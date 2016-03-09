@@ -22,7 +22,7 @@ my $header = qq{
 };
 
 my $outfile = undef;
-my $embl = undef;
+my $gb = undef;
 my $primaryTags = undef;
 my $discard = undef;
 my $keep = undef;
@@ -30,7 +30,7 @@ my $help;
 
 if( !GetOptions(
     "help" => \$help,
-    "embl=s" => \$embl,
+    "gb=s" => \$gb,
     "ptag|t=s" => \$primaryTags,
     "d|s" => \$discard,
     "k" => \$keep,
@@ -48,9 +48,9 @@ if ($help) {
                  -message => "$header\n" } );
 }
 
-if ( ! (defined($embl)) ){
+if ( ! (defined($gb)) ){
     pod2usage( {
-           -message => "$header\nMissing the --embl argument",
+           -message => "$header\nMissing the --gb argument",
            -verbose => 0,
            -exitval => 1 } );
 }
@@ -95,12 +95,12 @@ else{
 }
 
 ### Read gb input file. 
-my $embl_in = Bio::SeqIO->new(-file => $embl, -format => 'embl');
+my $gb_in = Bio::SeqIO->new(-file => $gb, -format => 'genbank');
 
 
 ### MAIN ###
 
-while( my $seq_obj = $embl_in->next_seq) {
+while( my $seq_obj = $gb_in->next_seq) {
 
   for my $feat_obj ($seq_obj->get_SeqFeatures) {          
     my $skipit=undef;
@@ -138,18 +138,18 @@ __END__
 
 =head1 NAME
 
-embl2gff.pl -
-The script take a EMBL file as input, and will translate it in gff format.
+gb2gff.pl -
+The script take a GeneBank file as input, and will translate it in gff format.
 
 =head1 SYNOPSIS
 
-    ./embl2gff.pl --embl infile.embl [ -o outfile ]
+    ./gb2gff.pl --gb infile.gb [ -o outfile ]
 
 =head1 OPTIONS
 
 =over 8
 
-=item B<--embl>
+=item B<--gb>
 
 Input EMBL file that will be read 
 

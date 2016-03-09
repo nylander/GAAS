@@ -8,24 +8,12 @@ use Pod::Usage;
 use Getopt::Long;
 use Bio::SeqIO;
 
-my $usage = qq{
+my $header = qq{
 ########################################################
 # BILS 2015 - Sweden                                   #  
 # jacques.dainat\@bils.se                               #
 # Please cite BILS (www.bils.se) when using this tool. #
 ########################################################
-
-Usage: perl my_script.pl --embl Infile [--out outfile]
-  Getting help:
-    [--help]
-
-  Input:
-    [--embl filename]
-    The name of the EMBL file to convert. 
-  
-  Ouput:    
-    [--out filename]
-        The name of the output file (A Genbank file).
 };
 
 my $outfile = undef;
@@ -37,22 +25,23 @@ if( !GetOptions(
     "embl=s" => \$embl,
     "outfile|output|o|out|gb=s" => \$outfile))
 {
-    pod2usage( { -message => "Failed to parse command line\n$usage",
+    pod2usage( { -message => "Failed to parse command line\n$header",
                  -verbose => 1,
                  -exitval => 1 } );
 }
 
 # Print Help and exit
 if ($help) {
-    print $usage;
-    exit(0);
+    pod2usage( { -verbose => 2,
+                 -exitval => 2,
+                 -message => "$header\n" } );
 }
 
-if ( ! (defined($gb)) ){
+if ( ! (defined($embl)) ){
     pod2usage( {
-           -message => "Missing the --embl argument\n$usage",
+           -message => "$header\nMissing the --embl argument",
            -verbose => 0,
-           -exitval => 2 } );
+           -exitval => 1 } );
 }
 
 ## Manage output file

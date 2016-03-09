@@ -16,7 +16,7 @@ my $usage = qq{
 # jacques.dainat\@bils.se                               #
 # Please cite BILS (www.bils.se) when using this tool. #
 ########################################################
-};
+/!\\Only first 6 column inplemented... if your bed file contains more columns and you need their information... you need to finish the implementation };
 
 my $outfile = undef;
 my $bed = undef;

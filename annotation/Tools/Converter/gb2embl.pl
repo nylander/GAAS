@@ -9,24 +9,12 @@ use Pod::Usage;
 use Getopt::Long;
 use Bio::SeqIO;
 
-my $usage = qq{
+my $header = qq{
 ########################################################
 # BILS 2015 - Sweden                                   #  
 # jacques.dainat\@bils.se                               #
 # Please cite BILS (www.bils.se) when using this tool. #
 ########################################################
-
-Usage: perl my_script.pl --gb Infile [--out outfile]
-  Getting help:
-    [--help]
-
-  Input:
-    [--gb filename]
-    The name of the Genebank file to convert. 
-  
-  Ouput:    
-    [--out filename]
-        The name of the output file (An EMBL file).
 };
 
 my $outfile = undef;
@@ -38,22 +26,23 @@ if( !GetOptions(
     "gb=s" => \$gb,
     "outfile|output|o|out|embl=s" => \$outfile))
 {
-    pod2usage( { -message => "Failed to parse command line\n$usage",
+    pod2usage( { -message => "Failed to parse command line\n$header\n",
                  -verbose => 1,
                  -exitval => 1 } );
 }
 
 # Print Help and exit
 if ($help) {
-    print $usage;
-    exit(0);
+    pod2usage( { -verbose => 2,
+                 -exitval => 2,
+                 -message => "$header\n" } );
 }
 
 if ( ! (defined($gb)) ){
     pod2usage( {
-           -message => "Missing the --gb argument\n$usage",
+           -message => "$header\nMissing the --gb argument\n",
            -verbose => 0,
-           -exitval => 2 } );
+           -exitval => 1 } );
 }
 
 ## Manage output file
@@ -73,10 +62,9 @@ my $gb_in = Bio::SeqIO->new(-file => $gb, -format => 'genbank');
 ### MAIN ###
 
 while( my $seq = $gb_in->next_seq) {
-  #print $seq->primary_seq;
-  #print Dumper($seq );
+
   $embl_out->write_seq($seq);
-  exit;
+
 }
 
 __END__
