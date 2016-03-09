@@ -1,0 +1,64 @@
+ID   AF389858; SV 1; linear; genomic DNA; STS; MAM; 349 BP.
+XX
+AC   AF389858;
+XX
+DT   23-OCT-2001 (Rel. 69, Created)
+DT   22-MAR-2002 (Rel. 71, Last updated, Version 2)
+XX
+DE   Bos taurus microsatellite UW88 isolated from BAC clone containing GH1
+DE   locus, sequence tagged site.
+XX
+KW   STS.
+XX
+OS   Bos taurus (cattle)
+OC   Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia;
+OC   Eutheria; Laurasiatheria; Cetartiodactyla; Ruminantia; Pecora; Bovidae;
+OC   Bovinae; Bos.
+XX
+RN   [1]
+RP   1-349
+RX   DOI; 10.1046/j.1365-2052.2002.00808.x.
+RX   PUBMED; 11849140.
+RA   Kirkpatrick B.W., Byla B., Kurar E., Warren W.C.;
+RT   "Development of microsatellite markers and comparative mapping for bovine
+RT   chromosome 19";
+RL   Anim. Genet. 33(1):65-68(2002).
+XX
+RN   [2]
+RP   1-349
+RA   Kirkpatrick B.W., Byla B., Kurar E., Warren W.C.;
+RT   ;
+RL   Submitted (08-JUN-2001) to the INSDC.
+RL   Animal Sciences, University of Wisconsin-Madison, 1675 Observatory Drive,
+RL   Madison, WI 53706, USA
+XX
+DR   MD5; 2d164e35c6dcf97937a3afddc1bd4a72.
+XX
+CC   Primers:
+CC   GTCTCCAAACTACCACCAGGG
+CC   CCATTTTTCCTCTTAGAGGCTCCA.
+XX
+FH   Key             Location/Qualifiers
+FH
+FT   source          1..349
+FT                   /organism="Bos taurus"
+FT                   /chromosome="19"
+FT                   /mol_type="genomic DNA"
+FT                   /note="isolated from BAC clone containing GH1 locus"
+FT                   /db_xref="taxon:9913"
+FT   STS             <1..190
+FT                   /standard_name="UW88"
+FT                   /note="isolated from BAC clone containing GH1 locus"
+FT   repeat_region   1..349
+FT                   /rpt_type=TANDEM
+FT                   /note="microsatellite"
+FT   primer_bind     complement(167..190)
+XX
+SQ   Sequence 349 BP; 103 A; 105 C; 51 G; 90 T; 0 other;
+     tctaaggcct tgctagcaga cccgggaagc ctgatctaca tgtttataag tctccaaact        60
+     accaccaggg gccttttgga taacctcccc cctccccgcc caccacacac acacacacac       120
+     acacacatct cacaaggata accacaattt gtagaaataa caaagttgga gcctctaaga       180
+     ggaaaaatgg aatttcttta ctgttacaat ttcaagactt ctgtccacaa atccattagt       240
+     cttgtaattc tgcaaactgg tatttaacac ctctccttca accgtcatat tctaattcct       300
+     tccaacttgt gcctctttag gaactgggcc ctcccaaaag agcctgcca                   349
+//

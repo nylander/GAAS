@@ -1,0 +1,34 @@
+#!/bin/bash
+#
+#BSUB -e err.%J.pasa
+#BSUB -J PASA
+#BSUB -o log.%J.pasa
+#BSUB -n 16
+#BSUB -R "span[hosts=1]"
+#BSUB -q normal
+
+### OPTIONS FOR YOU TO FILL IN ###
+Trinity="path/to/trinity"       # name of cleaned trinity transcripts
+Cufflinks="path/to/cufflinks"   # name of cufflinks GTF
+LIB_TYPE="RF"                   # RF corresponds to dUTP sequencing, i.e. stranded RNA-seq data from HiSeq2000
+OUTDIR="trinity_assembly"       # Output directory - consider changing to avoid naming conflicts
+#################################
+
+WORKING_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+echo "I am starting the Trinity assembly on $( hostname )"
+
+cd /scratch/nobackup
+
+Trinity --seqType fq --JM 230G --left $WORKING_DIR/$LEFT  --right $WORKING_DIR/$RIGHT --CPU 16 --output $OUTDIR --SS_lib_type $LIB_TYPE --full_cleanup
+
+echo "###############"
+echo "Trinity is done"
+echo "###############"
+echo ""
+echo "Copying back output"
+
+cp $OUTDIR.Trinity.fasta $WORKING_DIR
+
+echo ""
+echo "Recommending to remove output ($OUTDIR) on compute node: $( hostname )"

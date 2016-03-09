@@ -1,0 +1,34 @@
+#!/bin/bash
+#
+#BSUB -e err.%J.trinity
+#BSUB -J Trinity
+#BSUB -o log.%J.trinity
+#BSUB -n 16
+#BSUB -R "span[hosts=1]"
+#BSUB -q highmem
+
+### OPTIONS FOR YOU TO FILL IN ###
+LEFT="path/to/left/reads"       # name of left mate
+RIGHT="path/to/right/reads"     # name of right mate
+LIB_TYPE="RF"                   # RF corresponds to dUTP sequencing, i.e. stranded RNA-seq data from HiSeq2000
+OUTDIR="trinity_assembly"       # Output directory - consider changing to avoid naming conflicts
+#################################
+
+WORKING_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+echo "I am starting the Trinity assembly on $( hostname )"
+
+cd /scratch/nobackup
+
+Trinity --seqType fq --JM 230G --left $LEFT  --right $RIGHT --CPU 16 --output $OUTDIR --SS_lib_type $LIB_TYPE --full_cleanup
+
+echo "###############"
+echo "Trinity is done"
+echo "###############"
+echo ""
+echo "Copying back output"
+
+cp $OUTDIR.Trinity.fasta $WORKING_DIR
+
+echo ""
+echo "Recommending to remove output ($OUTDIR) on compute node: $( hostname )"

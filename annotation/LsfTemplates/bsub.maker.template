@@ -1,0 +1,8 @@
+#!/bin/bash
+#
+#BSUB -e err.%J.maker
+#BSUB -J Maker
+#BSUB -o log.%J.maker
+#BSUB -n 80
+
+openmpi-mpirun maker -q

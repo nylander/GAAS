@@ -1,0 +1,48 @@
+LOCUS       AF389858                 349 bp    DNA     linear   STS 20-MAR-2002
+DEFINITION  Bos taurus microsatellite UW88 isolated from BAC clone containing
+            GH1 locus, sequence tagged site.
+ACCESSION   AF389858
+VERSION     AF389858.1  GI:16266052
+KEYWORDS    STS.
+SOURCE      Bos taurus (cattle)
+  ORGANISM  Bos taurus
+            Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi;
+            Mammalia; Eutheria; Laurasiatheria; Cetartiodactyla; Ruminantia;
+            Pecora; Bovidae; Bovinae; Bos.
+REFERENCE   1  (bases 1 to 349)
+  AUTHORS   Kirkpatrick,B.W., Byla,B., Kurar,E. and Warren,W.C.
+  TITLE     Development of microsatellite markers and comparative mapping for
+            bovine chromosome 19
+  JOURNAL   Anim. Genet. 33 (1), 65-68 (2002)
+   PUBMED   11849140
+REFERENCE   2  (bases 1 to 349)
+  AUTHORS   Kirkpatrick,B.W., Byla,B., Kurar,E. and Warren,W.C.
+  TITLE     Direct Submission
+  JOURNAL   Submitted (08-JUN-2001) Animal Sciences, University of
+            Wisconsin-Madison, 1675 Observatory Drive, Madison, WI 53706, USA
+COMMENT     Primers:
+            GTCTCCAAACTACCACCAGGG
+            CCATTTTTCCTCTTAGAGGCTCCA.
+FEATURES             Location/Qualifiers
+     source          1..349
+                     /organism="Bos taurus"
+                     /mol_type="genomic DNA"
+                     /db_xref="taxon:9913"
+                     /chromosome="19"
+                     /note="isolated from BAC clone containing GH1 locus"
+     repeat_region   1..349
+                     /rpt_type=tandem
+                     /satellite="microsatellite"
+     STS             <1..190
+                     /standard_name="UW88"
+                     /note="isolated from BAC clone containing GH1 locus"
+     primer_bind     complement(167..190)
+ORIGIN      
+        1 tctaaggcct tgctagcaga cccgggaagc ctgatctaca tgtttataag tctccaaact
+       61 accaccaggg gccttttgga taacctcccc cctccccgcc caccacacac acacacacac
+      121 acacacatct cacaaggata accacaattt gtagaaataa caaagttgga gcctctaaga
+      181 ggaaaaatgg aatttcttta ctgttacaat ttcaagactt ctgtccacaa atccattagt
+      241 cttgtaattc tgcaaactgg tatttaacac ctctccttca accgtcatat tctaattcct
+      301 tccaacttgt gcctctttag gaactgggcc ctcccaaaag agcctgcca
+//
+

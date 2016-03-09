@@ -1,0 +1,40 @@
+#!/bin/bash
+#
+#BSUB -J InSilNorm
+#BSUB -e err.%J.normalize
+#BSUB -o log.%J.normalize
+#BSUB -n 16
+#BSUB -R "span[hosts=1]"
+#BSUB -q highmem
+
+#module load trinity/2013-08-14
+
+### OPTIONS FOR YOU TO FILL IN ###
+LEFT="path/to/left/reads"	# Full path to your left mate
+RIGHT="path/to/right/reads"	# Full path to your right mate
+LIB_TYPE="RF"			# RF corresponds to dUTP sequencing, i.e. stranded RNA-seq data from HiSeq2000
+OUTDIR="trinity_normalize"	# Output directory - consider changing to avoid naming conflicts
+#################################
+
+echo "I am starting the normalization on $( hostname )"
+
+cd /scratch/nobackup
+
+/sw/bioinfo/trinity/trinityrnaseq_r2013_08_14/util/normalize_by_kmer_coverage.pl --SS_lib_type $LIB_TYPE --output $OUTDIR --JELLY_CPU 16 --max_cov 100 --JM 230G --seqType fq --left $LEFT --right $RIGHT
+
+echo "###################"
+echo "Normalization done!"
+echo "###################"
+echo ""
+echo "Compressing normalized reads..."
+
+cd $OUTDIR
+pigz -p 16 left.norm.fq
+pigz -p 16 right.norm.fq
+
+echo "Copying compressed reads to $WORK_DIR"
+
+cp *.norm.fq.gz $WORKING_DIR
+
+echo ""
+echo "Recommending to remove normalization output on compute node: $( hostname )"

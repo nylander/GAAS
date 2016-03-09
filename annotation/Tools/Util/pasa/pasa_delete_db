@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# A script to delete a PASA database on our db server. Checks if exists and prompts for confirmation
+
+DB=$1
+
+DB_HOST=bdb
+DB_USER=bils_pasa_admin
+DB_PW=swetrUT2
+
+
+if [[ ! -z "`mysql -u$DB_USER -h $DB_HOST -p$DB_PW -D test -qfsBe "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME='$DB'" 2>&1`" ]];
+then	
+	read -p "Are you sure you want to delete the database $DB? " -n 1 -r
+	echo    # (optional) move to a new line
+	if [[ ! $REPLY =~ ^[Yy]$ ]];
+	then
+		echo "ABORTING..."
+	else
+		mysql -h $DB_HOST -u$DB_USER -p$DB_PW -D test -e "DROP DATABASE $DB"
+                echo "Deleted database $DB"
+
+	fi
+else
+  echo "DATABASE DOES NOT EXIST!"
+fi
