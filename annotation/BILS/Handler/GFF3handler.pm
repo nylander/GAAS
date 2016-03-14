@@ -338,7 +338,7 @@ sub check_gene_link_to_mrna{
 				$gene_feature->remove_tag('Parent'); # remove parent ID because, none.
 				check_level1_positions($hash_omniscient, $gene_feature);	# check start stop if isoforms exists
 				my $primary_tag_l1="gene";
-				$gene_feature->primary_tag=$primary_tag_l1; # change primary tag
+				$gene_feature->primary_tag($primary_tag_l1); # change primary tag
 				$hash_omniscient->{"level1"}{$primary_tag_l1}{lc($new_ID)}=$gene_feature; # now save it in omniscient
 			}
 		}
