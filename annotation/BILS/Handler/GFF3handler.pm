@@ -71,6 +71,11 @@ sub slurp_gff3_file_JD {
       	print_duplicates(\%duplicate, \%omniscient, $gffout);
       	print "We removed them from the regular output.\n";
     }
+
+    #Check relationship between mRNA and gene
+    check_gene_link_to_mrna(\%omniscient);
+
+
 	return \%omniscient, \%mRNAGeneLink	;
 }
 
@@ -152,6 +157,7 @@ sub manage_one_feature{
       		foreach my $parent (@parentList){ # first feature level3 with this primary_tag linked to the level2 feature
 				if(! exists_keys($omniscient,('level3',$primary_tag,lc($parent)))){
 					# save feature in omciscient
+					create_or_replace_tag($feature,'Parent',$parent); #modify Parent To keep only one
 					push (@{$omniscient->{"level3"}{$primary_tag}{lc($parent)}}, $feature);
 				}
 				else{  # If not the first feature level3 with this primary_tag linked to the level2 feature
@@ -176,6 +182,7 @@ sub manage_one_feature{
 					}
 					if(! $is_dupli){
 						# save feature in omniscient
+						create_or_replace_tag($feature,'Parent',$parent); #modify Parent To keep only one
 						push (@{$omniscient->{"level3"}{$primary_tag}{lc($parent)}}, $feature);
 					}
 				}
@@ -191,9 +198,9 @@ sub manage_one_feature{
     		
     		#get ID
 	    	if($feature->has_tag('ID')){
-		    	my @values = $feature->get_tag_values('ID');
-				$id = lc(shift @values) ;
+		    	$id = lc($feature->_tag_value('ID'));
 			}
+
 			else{warn "gff3 reader error level2: No ID attribute found @ for the feature ".$feature->gff_string()."\n";
 				$miscCount->{'noID'}{$primary_tag}++;
 				$id = $primary_tag."-".$miscCount->{'noID'}{$primary_tag};		
@@ -201,8 +208,7 @@ sub manage_one_feature{
 
 			#get Parent
 			if($feature->has_tag('Parent')){
-				my @values = $feature->get_tag_values('Parent');
-				$parent = lc(shift @values);
+				$parent = lc($feature->_tag_value('Parent'));
 			}
 			else{warn "WARNING gff3 reader level2 : No Parent attribute found for @ the feature".$feature->gff_string()."\n";
 				$miscCount->{'noParent'}{$primary_tag}++;
@@ -310,6 +316,32 @@ sub manage_one_feature{
 }
 
 ##==============================================================
+
+# check if mrNA have is PArenttal gene existing. If not we create it.
+sub check_gene_link_to_mrna{
+	my ($hash_omniscient)=@_;
+
+	foreach my $primary_tag_l2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
+		foreach my $id_l1 (keys %{$hash_omniscient->{'level2'}{$primary_tag_l2}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
+			my $l1_exist=undef;
+			foreach my $primary_tag_l1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
+				if(exists ($hash_omniscient->{'level1'}{$primary_tag_l1}{$id_l1})){
+					$l1_exist=1;
+					last;
+				}
+			}
+			if(! $l1_exist){
+				warn "WARNING gff3 reader level2 : No Parent feature found with the ID".$id_l1.". We will create one.\n";
+				my $gene_feature=clone($hash_omniscient->{'level2'}{$primary_tag_l2}{$id_l1}[0]);#create a copy of the first mRNA feature;
+				my $new_ID = $gene_feature->_tag_value('Parent');
+				create_or_replace_tag($gene_feature,'ID', $new_ID); #modify ID to replace by parent value
+				$gene_feature->remove_tag('Parent'); # remove parent ID because, none.
+				check_level1_positions($hash_omniscient, $gene_feature);	# check start stop if isoforms exists
+				$hash_omniscient->{"level1"}{'gene'}{lc($new_ID)}=$gene_feature; # now save it in omniscient
+			}
+		}
+	}
+}
 
 sub modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop{
 
