@@ -87,30 +87,37 @@ print ("GFF3 data grouped\n");
 
 ###
 # or for GMT formatted appropriately for your locale:
-my $datestring = strftime "%e-%h-%g", gmtime;
+my $datestring = uc(strftime "%e-%h-%g", gmtime);
 
 ####################
 # index the genome #
 my $db = Bio::DB::Fasta->new($file_fasta);
 print ("Genome fasta parsed\n");
 
-
+#Foreach sequence (sequence = Contig/scaffold/chromosome)
 foreach my $seq_id (keys %{$hash_by_group} ){
- 
-  my $seqObject = Bio::Seq->new(-seq => $db->seq($seq_id));
- # my $location = Bio::Location::Split->new();
+
+  #create a sequence_object
+  my $seqObject = Bio::Seq::RichSeq->new(-seq => $db->seq($seq_id));
+
+  # Add creation date
+  $seqObject->add_date($datestring);
+  # Add last modification date
+  $seqObject->add_date($datestring);
 
   foreach my $gene_grouped(keys %{$hash_by_group->{$seq_id}}){
-
 
     foreach my $feature (@{$hash_by_group->{$seq_id}{$gene_grouped}}){
  #     $location->add_sub_Location($feature->location);
 #      print $feature->location;
 #      my $genef = Bio::SeqFeature::Generic->new(-location =>$location, -primary_tag => 'CDS');
       $seqObject->add_SeqFeature($feature);
+      
+   #   print ref($seqObject);  exit;  #Check object type 
+   #   print Dumper($seqObject);exit;
     } 
   }
-  print Dumper($seqObject);
+ # print Dumper($seqObject);
   $embl_out->write_seq($seqObject);
 }
 

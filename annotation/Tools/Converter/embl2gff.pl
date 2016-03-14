@@ -128,10 +128,7 @@ while( my $seq_obj = $embl_in->next_seq) {
     if(! $skipit){
         $gff_out->write_feature($feat_obj);
     }   
-}
-  #my $seqObject = Bio::Seq->new(-seq => $db->seq($seq_id));
-
-  #$gff_out->write_feature($seq);
+  }
 }
 
 __END__

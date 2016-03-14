@@ -149,13 +149,13 @@ sub manage_one_feature{
 			}
 
 			#Save feature and check duplicates	(treat also cases where there is multiple parent. => In that case we expand to create a uniq feature for each)	
-      		foreach my $parent (@parentList){
+      		foreach my $parent (@parentList){ # first feature level3 with this primary_tag linked to the level2 feature
 				if(! exists_keys($omniscient,('level3',$primary_tag,lc($parent)))){
 					# save feature in omciscient
 					push (@{$omniscient->{"level3"}{$primary_tag}{lc($parent)}}, $feature);
 				}
-				else{
-					# check among list of feature if one with an identical exists.
+				else{  # If not the first feature level3 with this primary_tag linked to the level2 feature
+					# check among list of feature level3 already exits with an identical ID.
 					my $is_dupli=undef;
 					foreach my $feat ( @{$omniscient->{"level3"}{$primary_tag}{lc($parent)} }){
 						# case where same feature is spread on different location (i.e utr, cds). In that case, following the gff3 gene ontologie specification, the ID can be share by all "peace of feature" building the feature entity.
@@ -163,12 +163,14 @@ sub manage_one_feature{
 							if(lc($feat->seq_id().$feat->start().$feat->end().$feat->_tag_value('ID')) eq  lc($feature->seq_id().$feature->start().$feature->end().$feature->_tag_value('ID'))){
 								my $id = $feature->seq_id().$feature->start().$feature->end().$feature->_tag_value('ID');
 								push ( @{$duplicate->{"level3"}{$primary_tag}{lc($id )}}, $feature );
+								$is_dupli=1;
 								last;
 							}
-						}
+						}# case where a feature are an uniq element (exon, etc.)
 						elsif(lc($feat->_tag_value('ID')) eq lc($feature->_tag_value('ID'))){
 							my $id = $feature->_tag_value('ID');
 							push ( @{$duplicate->{"level3"}{$primary_tag}{lc($id)}}, $feature );
+							$is_dupli=1;
 							last;
 						}
 					}
@@ -207,23 +209,28 @@ sub manage_one_feature{
 				$parent = $primary_tag."-".$miscCount->{'noParent'}{$primary_tag};	
 			}
 
-
-  			if (! exists ($mRNAGeneLink->{lc($id)})){ # keep track of link between level2->leve1
+			# keep track of link between level2->leve1
+  			if (! exists ($mRNAGeneLink->{lc($id)})){ 
 				$mRNAGeneLink->{lc($id)}=lc($parent);
 	 		}
 
 	 		#Save feature and check duplicates
-	 		if(! exists_keys($omniscient,('level2',$primary_tag,lc($parent)))){
+	 		if(! exists_keys($omniscient,('level2',$primary_tag,lc($parent)))){# case of first feature l2 linked to the level1 feature 
       			push (@{$omniscient->{"level2"}{$primary_tag}{lc($parent)}}, $feature);
       		}
-      		else{
+      		else{# case where isoforms exist
       			# check among list of feature if one with a similar ID exists.
+      			my $is_dupli=undef;
       			foreach my $feat ( @{$omniscient->{"level2"}{$primary_tag}{lc($parent)} }){
 					if($feat->_tag_value('ID') eq $feature->_tag_value('ID')){
 						push (@{$duplicate->{"level2"}{$primary_tag}{lc($parent)}}, $feature);
+						my $is_dupli=1;
+						last;
 					}
-
-     			}		
+     			}
+     			if(! $is_dupli){ # No similar ID found, we keep it as isoform
+	     			push (@{$omniscient->{"level2"}{$primary_tag}{lc($parent)}}, $feature);
+	     		}		
       		}
 
       	}
@@ -276,16 +283,21 @@ sub manage_one_feature{
 		 		}
 
 		 		#Save feature and check duplicates
-		 		if(! exists_keys($omniscient,('level2',$source_tag,lc($parent)))){
+		 		if(! exists_keys($omniscient,('level2',$source_tag,lc($parent)))){ # case of first feature l2 linked to the level1 feature 
 	      			push (@{$omniscient->{"level2"}{$source_tag}{lc($parent)}}, $feature);
 	      		}
-	      		else{
+	      		else{ # case where isoforms exist
 	      			# check among list of feature if one with a similar ID exists.
+	      			my $is_dupli=undef;
 	      			foreach my $feat ( @{$omniscient->{"level2"}{$source_tag}{lc($parent)} }){
-						if($feat->_tag_value('ID') eq $feature->_tag_value('ID')){
+						if($feat->_tag_value('ID') eq $feature->_tag_value('ID')){ # on similar ID exits. We save it as a duplicate
 							push (@{$duplicate->{"level2"}{$source_tag}{lc($parent)}}, $feature);
+							my $is_dupli=1;
+							last;
 						}
-
+	     			}
+	     			if(! $is_dupli){ # No similar ID found, we keep it as isoform
+	     				push (@{$omniscient->{"level2"}{$source_tag}{lc($parent)}}, $feature);
 	     			}		
 	      		}
 			}

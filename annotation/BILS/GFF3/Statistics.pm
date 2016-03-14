@@ -53,6 +53,7 @@ sub gff3_statistics {
 
 	# get nb of each feature inomniscient;
 	my %nb_feat;
+	my %nb_spread_feat; #(utr and cds)
 	my %size_feat;
 	my %longest;
 	my %shortest;
@@ -123,6 +124,7 @@ sub gff3_statistics {
 				    	  			
 				    	  			if(($tag_l3 =~ /cds/) or ($tag_l3 =~ /utr/)){
 				    	  				$sizeMultiFeat+=$sizeFeature;
+				    	  				$nb_spread_feat{$tag_l3}++;
 				    	  			}
 				    	  			else{
 				    	  				#count number of feature
@@ -175,6 +177,9 @@ sub gff3_statistics {
 	my $info_number = _info_number(\%tagList_relationship, \%nb_feat, $utr_both_side, \%utr_at_least_one_side);
 	push @result, @$info_number;
 
+	my $info_number_spread = info_number_spread(\%tagList_relationship, \%nb_spread_feat);
+	push @result, @$info_number_spread;
+
 	my $info_mean_per = _info_mean_per(\%tagList_relationship, \%nb_feat);
 	push @result, @$info_mean_per;
 
@@ -198,7 +203,56 @@ sub gff3_statistics {
 return \@result;
 }
 
+#####
+# Give info about number of spread feature of each type
+# spread feature can only be level3 (utr or cds)
+sub info_number_spread{
+	my ($tag_list, $nb_feat) = @_  ;
+	
+	my @resu;
 
+	#print level3
+	foreach my $tag_l2 (keys %{$tag_list->{'level3'}}){
+		foreach my $tag_l3 (keys %{$tag_list->{'level3'}{$tag_l2}}){
+			if($tag_l3 =~ /utr/ or $tag_l3 =~ /cds/){
+		   		push @resu, sprintf("%-45s%d%s", "Number of exon of $tag_l3", $nb_feat->{$tag_l3},"\n");
+		   	}
+		}
+	}
+	return  \@resu;
+}
+
+#####
+# Give info about number of feature of each type
+sub _info_number {
+
+	my ($tag_list, $nb_feat, $utr_both_side, $utr_at_least_one_side) = @_  ;
+	my @resu;
+	my $there_is_utr=undef;
+
+	#print level1
+	foreach my $tag_l1 (keys %{$tag_list->{'level1'}}){
+		push @resu, sprintf("%-45s%d%s", "Number of $tag_l1"."s", $nb_feat->{$tag_l1},"\n");
+
+		#print level2
+	  	foreach my $tag_l2 (keys %{$tag_list->{'level2'}{$tag_l1}}){
+		    push @resu, sprintf("%-45s%d%s", "Number of $tag_l2"."s", $nb_feat->{$tag_l2},"\n");
+
+		    #print level3
+		    foreach my $tag_l3 (keys %{$tag_list->{'level3'}{$tag_l2}}){
+		    	if($tag_l3 =~ /utr/){$there_is_utr=1;}
+		        push @resu, sprintf("%-45s%d%s", "Number of $tag_l3"."s", $nb_feat->{$tag_l3},"\n");
+		    }
+		}
+	}
+	#manage utr both side
+	if($there_is_utr){
+		push @resu, sprintf("%-45s%d%s", "Number of mrnas with utr both sides", $utr_both_side,"\n");
+		my $nb_at_lest_one_side = keys %{$utr_at_least_one_side};
+		push @resu, sprintf("%-45s%d%s", "Number of mrnas with at least one UTR", $nb_at_lest_one_side,"\n");
+	}
+	return \@resu;
+}
 
 #############
 # Give info about shortest feature of each type
@@ -244,38 +298,6 @@ sub _info_longest {
 		       push @resu, sprintf("%-45s%d%s", "Longest $tag_l3"."s", $longest->{$tag_l3},"\n");
 		    }
 		}
-	}
-	return \@resu;
-}
-
-#####
-# Give info about number of feature of each type
-sub _info_number {
-
-	my ($tag_list, $nb_feat, $utr_both_side, $utr_at_least_one_side) = @_  ;
-	my @resu;
-	my $there_is_utr=undef;
-
-	#print level1
-	foreach my $tag_l1 (keys %{$tag_list->{'level1'}}){
-		push @resu, sprintf("%-45s%d%s", "Number of $tag_l1"."s", $nb_feat->{$tag_l1},"\n");
-
-		#print level2
-	  	foreach my $tag_l2 (keys %{$tag_list->{'level2'}{$tag_l1}}){
-		    push @resu, sprintf("%-45s%d%s", "Number of $tag_l2"."s", $nb_feat->{$tag_l2},"\n");
-
-		    #print level3
-		    foreach my $tag_l3 (keys %{$tag_list->{'level3'}{$tag_l2}}){
-		    	if($tag_l3 =~ /utr/){$there_is_utr=1;}
-		       push @resu, sprintf("%-45s%d%s", "Number of $tag_l3"."s", $nb_feat->{$tag_l3},"\n");
-		    }
-		}
-	}
-	#manage utr both side
-	if($there_is_utr){
-		push @resu, sprintf("%-45s%d%s", "Number of mrnas with utr both sides", $utr_both_side,"\n");
-		my $nb_at_lest_one_side = keys %{$utr_at_least_one_side};
-		push @resu, sprintf("%-45s%d%s", "Number of mrnas with at least one UTR", $nb_at_lest_one_side,"\n");
 	}
 	return \@resu;
 }
