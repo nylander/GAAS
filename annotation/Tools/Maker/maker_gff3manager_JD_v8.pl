@@ -250,11 +250,13 @@ my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GFF3handler->slurp_gf
 print("Parsing Finished\n\n");
 ### END Parse GFF input #
 #########################
-my $stat = gff3_statistics($hash_omniscient, $opt_genomeSize);
-  foreach my $info (@$stat){
-    $outputTab[0]->print("$info");
-  }
-exit;
+
+#Print directly what has been read 
+#my $stat = gff3_statistics($hash_omniscient, $opt_genomeSize);
+#  foreach my $info (@$stat){
+#    $outputTab[0]->print("$info");
+#  }
+
 ################################
 # MANAGE FUNCTIONAL INPUT FILE #
 
