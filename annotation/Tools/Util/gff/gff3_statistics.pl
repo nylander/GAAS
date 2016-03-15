@@ -6,6 +6,7 @@ use Clone 'clone';
 use strict;
 use Getopt::Long;
 use Pod::Usage;
+use IO::File;
 use Data::Dumper;
 use List::MoreUtils qw(uniq);
 use Bio::Tools::GFF;
@@ -54,7 +55,7 @@ if ( ! (defined($gff)) ){
 
 
 #### IN / OUT
-my $out = new IO::File;
+my $out = IO::File->new();
 if ($opt_output) {
 
   if (-f $opt_output){
