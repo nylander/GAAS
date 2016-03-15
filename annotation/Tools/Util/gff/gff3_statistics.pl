@@ -54,7 +54,7 @@ if ( ! (defined($gff)) ){
 
 
 #### IN / OUT
-my $out = IO::File->new();
+my $out = new IO::File;
 if ($opt_output) {
 
   if (-f $opt_output){
