@@ -63,15 +63,6 @@ if ( ! defined($opt_reffile ) or ! ($opt_utr3 or $opt_utr5 or $opt_bst or $opt_p
            -exitval => 1 } );
 }
 
-# #####################
-# # Manage Input File #
-# #####################
- my $ref_istream = Bio::Tools::GFF->new(-file => $opt_reffile, -gff_version => 3 ) or
-      croak(sprintf( "Can not open '%s' for writing %s", $opt_reffile, $! ));
-
-# #########################
-# # END Manage Input File #
-# #########################
 # #######################
 # # START Manage Option #
 # #######################

@@ -91,12 +91,7 @@ if ($attributes){
 
 ### Parse GTF input file 
 my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GTFhandler->slurp_gtf_file_JD($gtf);
-
-## Check duplication
-#my $size = keys %$hash_duplicatedFeature;
-#if($size == 0){
-#	print "No duplicated feature found !\n";
-#}else { print "//// !! ACHTUNG \\\\\\\\\ $size duplicated feature found !";}
+# END parsing
 
 my $hash_level1=$hash_omniscient->{"level1"};
 my $hash_level2=$hash_omniscient->{"level2"};

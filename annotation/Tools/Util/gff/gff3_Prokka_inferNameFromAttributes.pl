@@ -86,20 +86,21 @@ foreach my $tag (keys %{$hash_omniscient->{'level1'}}){
       $feature->remove_tag('name');
     }
     
-    #Name already contain in that attribute.
+    #Name already contained in the gene attribute.
     if($feature->has_tag('gene')){
-      
+      # we get the Name
       my $name=$feature->_tag_value('gene');
 
-        if(! $feature->has_tag('Name') or ($force)){
-          create_or_replace_tag($feature,'Name', $name);
-          $nbNameAdded++;
-        }
-        elsif($feature->has_tag('Name') and ( ! $force)){
-          print "Feature contains already an attribute Name. You can force it replacement by using the option --force\n";
-        }
-      print "My Name = $name\n";
-    }
+      # If no attribute Name or if we have to replace it
+      if(! $feature->has_tag('Name') or ($force)){
+        create_or_replace_tag($feature,'Name', $name);
+        $nbNameAdded++;
+      }
+      elsif($feature->has_tag('Name') and ( ! $force)){
+        print "Feature contains already an attribute Name. You can force it replacement by using the option --force\n";
+      }
+      print "Name found in gene attribute = $name\n";
+    }# Name not found in gene attribute. So we try to get the name included in the inference attribute.
     elsif($feature->has_tag('inference')){
       my @inferenceAtt=$feature->get_tag_values('inference');
       if ($#inferenceAtt > 0){
@@ -121,6 +122,7 @@ foreach my $tag (keys %{$hash_omniscient->{'level1'}}){
         if($name =~ /similar to AA sequence:UniProtKB:/i){        
           next;
         }
+        # ELSE name contains the Uniprot header of the protein coming from "--proteins" option ( Fasta file of trusted proteins to first annotate from ).
 
 
         if(! $feature->has_tag('Name') or ($force)){
@@ -130,7 +132,7 @@ foreach my $tag (keys %{$hash_omniscient->{'level1'}}){
         elsif($feature->has_tag('Name') and ( ! $force)){
           print "Feature contains already an attribute Name. You can force it replacement by using the option --force\n";
         }
-        print "My Name = $name\n";
+        print "My Name get in inference attribute = $name\n";
       }
       #else{
       #  print "We skip: ".$feature->gff_string."\n";

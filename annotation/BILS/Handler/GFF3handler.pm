@@ -32,7 +32,7 @@ sub slurp_gff3_file_JD {
 	
 	my ($self, $file) = @_  ;
 	
-	my $gtfio = Bio::Tools::GFF->new(-file => $file, -gff_version => 3);	
+	my $gffio = Bio::Tools::GFF->new(-file => $file, -gff_version => 3);	
 
 	### Handle to not print to much warning
 	my %WARNS;
@@ -57,7 +57,7 @@ sub slurp_gff3_file_JD {
 
 
 
-	while( my $feature = $gtfio->next_feature()) {
+	while( my $feature = $gffio->next_feature()) {
 		manage_one_feature($feature, \%omniscient, \%mRNAGeneLink, \%duplicate, \%miscCount);
     }
 
@@ -75,7 +75,10 @@ sub slurp_gff3_file_JD {
     #Check relationship between mRNA and gene
     check_gene_link_to_mrna(\%omniscient);
 
+    #close the file
+    $gffio->close();
 
+    #return
 	return \%omniscient, \%mRNAGeneLink	;
 }
 
