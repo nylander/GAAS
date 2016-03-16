@@ -93,8 +93,11 @@ if($opt_genomeSize){
 }else{$stat = gff3_statistics($hash_omniscient);}
 
 #print statistics
-foreach my $info (@$stat){
-  print $out "$info";
+foreach my $infoList (@$stat){
+  foreach my $info (@$infoList){
+    print $out "$info";
+  }
+  print $out "\n";
 }
 # END STATISTICS #
 ##################

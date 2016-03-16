@@ -82,7 +82,7 @@ my $nbTotalGOterm=0;
 
 # OPTION MANAGMENT
 my @copyARGV=@ARGV;
-if ( !GetOptions( 'f|ref|reffile=s' => \$opt_reffile,
+if ( !GetOptions( 'f|ref|reffile|gff|gff3=s' => \$opt_reffile,
                   'b|blast=s' => \$opt_BlastFile,
                   'i|interpro=s' => \$opt_InterproFile,
                   'id=s' => \$opt_name,
@@ -349,12 +349,14 @@ foreach my $key_hash (keys %hash_of_omniscient){
   }else{$stat = gff3_statistics($hash_ref);}
 
   #print statistics
-  foreach my $info (@$stat){
-    $outputTab[0]->print("$info");
-    if($opt_output){print "$info";} # When ostreamReport is a file we have to also display on screen
+  foreach my $infoList (@$stat){
+    foreach my $info (@$infoList){
+      $outputTab[0]->print("$info");
+      if($opt_output){print "$info";} # When ostreamReport is a file we have to also display on screen
+    }
+    $outputTab[0]->print("\n");
+    if($opt_output){print "\n";} # When ostreamReport is a file we have to also display on screen
   }
-  $outputTab[0]->print("\n");
-  if($opt_output){print "\n";} # When ostreamReport is a file we have to also display on screen
 }
 
 # END STATISTICS #
@@ -912,7 +914,7 @@ Remark: If there is duplicate in the file they will be removed in the output. In
 
 =over 8
 
-=item B<-f>, B<--reffile> or B<-ref>
+=item B<-f>, B<--reffile>,B<-ref> , B<--gff> or B<--gff3> 
 
 Input GFF3 file that will be read (and sorted)
 
