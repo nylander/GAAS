@@ -395,7 +395,7 @@ sub fill_omniscient_from_other_omniscient{
 							#################
 							# == LEVEL 3 == #
 							#################
-							my $level2_ID = lc( $feature_level2->get_tag_values('ID') );
+							my $level2_ID = lc( $feature_level2->_tag_value('ID') );
 
 							foreach my $primary_tag_key_level3 (keys %{$hash_omniscient->{'level3'}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
 
@@ -407,8 +407,7 @@ sub fill_omniscient_from_other_omniscient{
 					}
 				}
 			}
-		}
-		
+		}	
 	}
 }
 
