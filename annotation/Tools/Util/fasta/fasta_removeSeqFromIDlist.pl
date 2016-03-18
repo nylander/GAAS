@@ -6,6 +6,7 @@ use strict;
 use Getopt::Long;
 use Pod::Usage;
 use Bio::SeqIO;
+use IO::File;
 
 my $header = qq{
 ########################################################
