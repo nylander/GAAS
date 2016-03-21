@@ -6,6 +6,7 @@ use POSIX qw(strftime);
 use List::MoreUtils qw(uniq);
 use Pod::Usage;
 use Bio::Tools::GFF;
+use IO::File;
 use BILS::Handler::GFF3handler qw(:Ok);
 use BILS::Handler::GXFhandler qw(:Ok);
 
@@ -26,7 +27,7 @@ my $opt_help;
 # OPTION MANAGMENT
 my @copyARGV=@ARGV;
 if ( !GetOptions( 'f|ref|reffile=s' => \$opt_gff,
-                  's|score|v=i' => \$opt_score,
+                  's|score|v=f' => \$opt_score,
                   't|test=s' => \$opt_test,
                   'o|output=s'      => \$opt_output,
 
