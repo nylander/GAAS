@@ -17,6 +17,9 @@ class Span(object):
     
     def __repr__(self):
         output = ""
+        if self.start > self.end and not self.complement:
+            self.complement = True
+        
         start = self.end if self.complement else self.start
         end = self.start if self.complement else self.end
         start_mod = self.end_modifier if self.complement else self.start_modifier
