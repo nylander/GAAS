@@ -30,7 +30,7 @@ class Feature(object):
         self.optional_qualifiers = {}
     
     def __repr__(self):
-        output = "FT   %s %s\n" % ("{:15}".format(self.type), self.location)
+        output = "\nFT   %s %s" % ("{:15}".format(self.type), self.location)
         for qualifier, value in self.mandatory_qualifiers.iteritems():
             if value:
                 output += str(value)
@@ -132,7 +132,7 @@ class CDSFeature( Feature ):
                  a result will permanently be associated with a given
                  protein;"""
 
-    def __init__(self, feature = None, translate = {'phase':'codon_start', "Name":"standard_name"}, disregard = ["source", "ID", "Parent"]):
+    def __init__(self, feature = None, translate = {'phase':'codon_start', "Name":"standard_name", "ID":"standard_name", "gene_name":"gene", "gene_type":"function"}, disregard = ["source", "Parent"]):
         super(CDSFeature, self).__init__(feature, translate, disregard)
         self.type = "CDS"
 
@@ -178,7 +178,7 @@ class ExonFeature( Feature ):
     definition="""region of genome that codes for portion of spliced mRNA,
                   rRNA and tRNA; may contain 5'UTR, all CDSs and 3' UTR;"""
 
-    def __init__(self, feature = None, translate = {"Name":"standard_name"}, disregard = ['phase', "source", "ID", "Parent"]):
+    def __init__(self, feature = None, translate = {"Name":"standard_name", "ID":"standard_name", "gene_name":"gene", "gene_type":"function"}, disregard = ['phase', "source", "Parent"]):
         super(ExonFeature, self).__init__(feature, translate, disregard)
         self.type = "exon"
 
@@ -216,7 +216,7 @@ class GapFeature( Feature ):
                   "n"'s in the sequence. 
                   No upper or lower limit is set on the size of the gap."""
 
-    def __init__(self, feature = None, translate = {"Name":"standard_name"}, disregard = ['phase', "source", "ID", "Parent"]):
+    def __init__(self, feature = None, translate = {"Name":"standard_name", "ID":"standard_name"}, disregard = ['phase', "source", "Parent"]):
         super(GapFeature, self).__init__(feature, translate, disregard)
         self.type = "gap"
         
@@ -243,7 +243,7 @@ class GeneFeature( Feature ):
                  transfer RNA, the functional molecule of which is the RNA
                  transcript;"""
     
-    def __init__(self, feature = None, translate = {"ID":"standard_name", "Name":"standard_name"}, disregard = ["orthology", "source", "phase", "eC_number"]):
+    def __init__(self, feature = None, translate = {"Name":"standard_name", "ID":"standard_name"}, disregard = ["orthology", "source", "phase", "eC_number"]):
         super(GeneFeature, self).__init__(feature, translate, disregard)
         self.type = "gene"
         self.optional_qualifiers = {'allele':None,
@@ -287,7 +287,7 @@ class Misc_RNAFeature( Feature ):
                   5'UTR, 3'UTR, exon, CDS, sig_peptide, transit_peptide,
                   mat_peptide, intron, polyA_site, ncRNA, rRNA and tRNA);"""
 
-    def __init__(self, feature = None, translate={"Name":"standard_name"}, disregard = ['phase', "source", "ID", "Parent"]):
+    def __init__(self, feature = None, translate={"Name":"standard_name", "ID":"standard_name"}, disregard = ['phase', "source", "Parent"]):
         super(Misc_RNAFeature, self).__init__(feature, translate, disregard)
         self.type = "misc_RNA"
         self.optional_qualifiers = {'allele':None,
@@ -322,7 +322,7 @@ class MRNAFeature( Feature ):
     definition="""region of biological interest identified as a gene
                   and for which a name has been assigned"""
 
-    def __init__(self, feature = None, translate={"Name":"standard_name"}, disregard = ['phase', "source", "ID", "eC_number", "Parent"]):
+    def __init__(self, feature = None, translate={"Name":"standard_name", "ID":"standard_name"}, disregard = ['phase', "source", "eC_number", "Parent", "parent_name"]):
         super(MRNAFeature, self).__init__(feature, translate, disregard)
         self.type = "mRNA"
         self.optional_qualifiers = {'allele':None,
@@ -360,7 +360,7 @@ class NcRNAFeature( Feature ):
                RNA annotation, for which the rRNA and tRNA feature keys
                should be used, respectively;"""
     
-    def __init__(self, feature = None, translate={"Name":"standard_name"}, disregard = ['phase', "source", "ID", "eC_number", "Parent"]):
+    def __init__(self, feature = None, translate={"Name":"standard_name", "ID":"standard_name"}, disregard = ['phase', "source", "eC_number", "Parent"]):
         super(NcRNAFeature, self).__init__(feature, translate, disregard)
         self.type = "mRNA"
         self.mandatory_qualifiers = {'ncRNA_class':None,
@@ -409,7 +409,7 @@ class RRNAFeature( Feature ):
                   ribonucleoprotein particle (ribosome) which assembles
                   amino acids into proteins"""
 
-    def __init__(self, feature = None, translate={"Name":"standard_name"}, disregard = ['phase', "source", "ID", "Parent"]):
+    def __init__(self, feature = None, translate={"Name":"standard_name", "ID":"standard_name"}, disregard = ['phase', "source", "Parent"]):
         super(RRNAFeature, self).__init__(feature, translate, disregard)
         self.type = "rRNA"
         self.optional_qualifiers = {'allele':None,
@@ -443,7 +443,7 @@ class Sig_peptideFeature( Feature ):
                   involved in attaching nascent polypeptide to the
                   membrane leader sequence;"""
 
-    def __init__(self, feature = None, translate={"Name":"standard_name"}, disregard = ['phase', "source", "ID", "Parent"]):
+    def __init__(self, feature = None, translate={"Name":"standard_name", "ID":"standard_name"}, disregard = ['phase', "source", "Parent"]):
         super(Sig_peptideFeature, self).__init__(feature, translate, disregard)
         self.type = "sig_peptide"
 
@@ -478,7 +478,7 @@ class SourceFeature( Feature ):
                   sequence or multiple source keys, which together, span the
                   entire sequence."""
 
-    def __init__(self, feature = None, translate={"Name":"standard_name"}, disregard = ['phase', "source", "ID"]):
+    def __init__(self, feature = None, translate={"Name":"standard_name", "ID":"standard_name"}, disregard = ['phase', "source"]):
         super(SourceFeature, self).__init__(feature, translate, disregard)
         self.type = "source"
         
@@ -555,7 +555,7 @@ class TmRNAFeature( Feature ):
                   unfinished protein; this attached tag targets the protein for
                   destruction or proteolysis;"""
 
-    def __init__(self, feature = None, translate={"Name":"standard_name"}, disregard = ['phase', "source", "ID", "eC_number", "Parent"]):
+    def __init__(self, feature = None, translate={"Name":"standard_name", "ID":"standard_name"}, disregard = ['phase', "source", "eC_number", "Parent"]):
         super(TmRNAFeature, self).__init__(feature, translate, disregard)
         self.type = "tmRNA"
         self.optional_qualifiers = {'allele':None,
@@ -588,7 +588,7 @@ class TRNAFeature( Feature ):
                   long) that mediates the translation of a nucleic acid
                   sequence into an amino acid sequence;"""
 
-    def __init__(self, feature = None, translate={"Name":"standard_name"}, disregard = ['phase', "source", "ID", "Parent"]):
+    def __init__(self, feature = None, translate={"Name":"standard_name", "ID":"standard_name"}, disregard = ['phase', "source", "Parent"]):
         super(TRNAFeature, self).__init__(feature, translate, disregard)
         self.type = "tRNA"
         self.optional_qualifiers = {'allele':None,

@@ -23,7 +23,7 @@ class Qualifier( object ):
         for val in value:
             if type(val) == type(""):
                 val = "\"%s\"" % val
-            line = "FT                   /%s=%s\n" % (qualifier, val)
+            line = "\nFT                   /%s=%s" % (qualifier, val)
             if len(line) <= 70:
                 output += line
             else:

@@ -111,8 +111,8 @@ class EMBL( object ):
                      114:time.strptime("2012-12-21", "%Y-%m-%d"),
                      }
     
-    spacer = "XX\n"
-    termination = "//\n"
+    spacer = "\nXX"
+    termination = "\n//\n"
     
     def __init__(self, record = None, verify = False, guess = True):
         self.record = record
@@ -128,7 +128,7 @@ class EMBL( object ):
     def _add_mandatory(self):
         # Make sure that there's at least one source qualifier
         if not [f for f in self.record.features if f.type == 'source']:
-            source_location = FeatureLocation(ExactPosition(0), ExactPosition(len(record.seq)))
+            source_location = FeatureLocation(ExactPosition(0), ExactPosition(len(self.record.seq)))
             source_location.strand = 1
             source_feature = SeqFeature( source_location )
             source_feature.qualifiers["mol_type"] = self.molecule_class
@@ -157,6 +157,10 @@ class EMBL( object ):
                         self.record.features += [gap_feature]
                     
                 start = None
+        
+        # Make sure that there's at least one reference
+        if not self.refs:
+            self.add_reference("ENA submission", [(0,len(self.record.seq))])
     
     def _get_release(self, date):
         """
@@ -207,7 +211,7 @@ class EMBL( object ):
                     output += "\n%s%s" % (prefix, " "*indent)
             output += "\"" if quoted else ""
                 
-        return output.strip().strip(sep) + suffix + "\n"
+        return "\n" + output.strip().strip(sep) + suffix
     
     def _print_feature(self, feature):
         output = "FT   %s %i..%i\n" % ("{:15}".format(feature.type), feature.location.start+1, feature.location.end)
@@ -276,9 +280,9 @@ class EMBL( object ):
     def add_xref(self, xref):
         self.dbxref += [xref]
     
-    def add_reference(self, title, positions, location = "", comment = "", xrefs = [], group = [], authors = []):
+    def add_reference(self, title, positions = "all", location = "", comment = "", xrefs = [], group = [], authors = []):
         self.refs += [{'title':title,
-                       'positions':positions,
+                       'positions':positions if positions != 'all' else [(0,len(self.record.seq))],
                        'location':location,
                        'comment':comment,
                        'xrefs':xrefs,
@@ -359,9 +363,9 @@ class EMBL( object ):
             self.data_class     = self._verify( self.data_class,     "data_class")
             self.taxonomy       = self._verify( self.taxonomy,       "taxonomy")
         
-        return "ID   %s; SV %s; %s; %s; %s; %s; %i BP.\n" % (self.accessions[0], self.version, self.topology, 
-                                                             self.molecule_class, self.data_class, self.taxonomy, 
-                                                             len(self.record.seq) ) + self.spacer
+        return "ID   %s; SV %s; %s; %s; %s; %s; %i BP." % (self.accessions[0], self.version, self.topology, 
+                                                           self.molecule_class, self.data_class, self.taxonomy, 
+                                                           len(self.record.seq) ) + self.spacer
     
     def AC(self):
         """
@@ -383,7 +387,7 @@ class EMBL( object ):
                 output += "\nAC   "
             output += accession + "; "
             
-        return output.strip() + "\n" + self.spacer
+        return "\n" + output.strip() + self.spacer
     
     def PR(self):
         """
@@ -392,7 +396,7 @@ class EMBL( object ):
         Full details of INSDC Project are available at
         http://www.ebi.ac.uk/ena/about/page.php?page=project_guidelines.
         """
-        return "PR   Project:%s;\n" % self.project_id + self.spacer
+        return "\nPR   Project:%s;" % self.project_id + self.spacer
     
     def DT(self):
         """
@@ -411,8 +415,8 @@ class EMBL( object ):
         
         updated = time.localtime() # this should be the latest update...
         
-        output  = "DT   %s (Rel. %s, Created)\n" % (time.strftime("%d-%b-%Y", self.created), self._get_release(self.created))
-        output += "DT   %s (Rel. %s, Last updated, Version %i)\n" % (time.strftime("%d-%b-%Y", updated), 
+        output  = "\nDT   %s (Rel. %s, Created)" % (time.strftime("%d-%b-%Y", self.created), self._get_release(self.created))
+        output += "\nDT   %s (Rel. %s, Last updated, Version %i)" % (time.strftime("%d-%b-%Y", updated), 
                                                                      self._get_release(updated), self.version)
         return output + self.spacer
     
@@ -426,7 +430,7 @@ class EMBL( object ):
         output = ""
         temp = str(self.description)
         while temp:
-            output += "DE   %s\n" % temp[:75]
+            output += "\nDE   %s" % temp[:75]
             temp = temp[75:]
         return output + self.spacer
     
@@ -454,7 +458,7 @@ class EMBL( object ):
         known. The preferred format is:
              OS   Genus species (name)
         """
-        return "OS   %s\n" % self.species + self.spacer
+        return "\nOS   %s" % self.species + self.spacer
     
     def OC(self):
         """
@@ -506,7 +510,7 @@ class EMBL( object ):
         output = ""
         
         for i, ref in enumerate(self.refs):
-            output += "RN   [%i]\n" % (i+1)                         # RN - reference number           (>=1 per entry)
+            output += "\nRN   [%i]" % (i+1)                         # RN - reference number           (>=1 per entry)
             if ref['comment']:                                      # RC - reference comment          (>=0 per entry)
                 output += self._multiline("RC", ref['comment'])
                                                                     # RP - reference positions        (>=1 per entry)
@@ -588,7 +592,7 @@ class EMBL( object ):
         contain no data and may be ignored by computer programs. The format of these
         lines is always the same.
         """
-        return "FH   Key             Location/Qualifiers\nFH\n"
+        return "\nFH   Key             Location/Qualifiers\nFH"
     
     def FT(self):
         """
@@ -643,7 +647,7 @@ class EMBL( object ):
         num_t = seq.count("t")+seq.count("T")
         num_o = len(seq) - (num_a + num_c + num_g + num_t)
         
-        output = "SQ   Sequence %i BP; %i A; %i C; %i G; %i T; %i other;\n" % (len(seq), num_a, num_c, num_g, num_t, num_o)
+        output = "\nSQ   Sequence %i BP; %i A; %i C; %i G; %i T; %i other;" % (len(seq), num_a, num_c, num_g, num_t, num_o)
         
         if out:
             out.write(output)
@@ -653,7 +657,7 @@ class EMBL( object ):
         while seq:
             current_line = " ".join([seq[i*10:(i+1)*10] for i in range(0, 6)])
             seq_len += min(60, len(seq))
-            formatted_line = "     %s %s\n" % ("{:65}".format(current_line), "{:>9}".format(str(seq_len)))
+            formatted_line = "\n     %s %s" % ("{:65}".format(current_line), "{:>9}".format(str(seq_len)))
             
             if out:
                 out.write(formatted_line)
@@ -851,6 +855,9 @@ class EMBL( object ):
         if type(out) == type(""):
             out = open(out, 'w')
         
+        # Add missing mandatory features:
+        self._add_mandatory()
+        
         out.write( self.ID() ) # ID - identification             (begins each entry; 1 per entry)
         out.write( self.AC() ) # AC - accession number           (>=1 per entry)
         out.write( self.PR() ) # PR - project identifier         (0 or 1 per entry)
@@ -867,9 +874,6 @@ class EMBL( object ):
         if self.assembly_information:
             out.write( self.AH() ) # AH - assembly header            (0 or 1 per entry)
             out.write( self.AS() ) # AS - assembly information       (0 or >=1 per entry)
-        
-        # Add missing mandatory features:
-        self._add_mandatory()
         
         if self.record and self.record.features:
             out.write( self.FH() ) # FH - feature table header       (2 per entry)
@@ -889,6 +893,7 @@ class EMBL( object ):
 if __name__ == '__main__':
     
     parser = argparse.ArgumentParser( description = __doc__ )
+    
     parser.add_argument("gff_file", help="input gff-file")
     parser.add_argument("fasta", help="input fasta sequence")
     parser.add_argument("-a", "--accession", default=[], nargs="+", help="Accession number(s) for the entry")
@@ -904,6 +909,11 @@ if __name__ == '__main__':
     parser.add_argument("-p", "--project_id", default=None, help="Project ID (optional).")
     parser.add_argument("-s", "--species", default=None, help="Sample Species, formatted as 'Genus species (english name)'.")
     parser.add_argument("-t", "--topology", default="linear", help="Sequence topology.", choices=[None, "linear", "circular"])
+    
+    parser.add_argument("--reference", default="ENA-submission", help="Reference name.")
+    parser.add_argument("--location", default="unpublished 0:0-0(2016)", help="Reference publishing location.")
+    parser.add_argument("--author", nargs="+", default=["NBIS genome annotation service"], help="Author for the reference")
+    
     parser.add_argument("-v", "--version", default=1, type=int, help="Sequence version number")
     parser.add_argument("-x", "--taxonomy", default=None, help="Source taxonomy.", choices=["PHG", "ENV", "FUN", "HUM", "INV", "MAM", "VRT", "MUS", "PLN", "PRO", "ROD", "SYN", "TGN", "UNC", "VRL"])
     
@@ -940,14 +950,7 @@ if __name__ == '__main__':
         writer.set_topology( args.topology )
         writer.set_version( args.version )
         
-        writer.add_xref( ["SecretDB", "00100111"] )
-
-        writer.add_reference( "The infallible EMBL script",
-                              [(0,2000)],"Daily Truth vol 3:0-132 (2015)",
-                              "There is no question that this script was totally worth it!",
-                              ["DOI; 123.125-123.1", "PUBMED; ATAS-127-AS"],
-                              ["The Developer"],
-                              ["Norling M."] )
-
+        writer.add_reference(args.reference, location = args.location, authors = args.author)
+        
         writer.write_all( outfile )
      
