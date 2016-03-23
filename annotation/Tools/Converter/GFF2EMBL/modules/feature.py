@@ -631,8 +631,7 @@ def parse_gff_feature(feature):
     try:
         features += [eval("%s( feature )" % feature_type)]
     except Exception as e:
-        sys.stderr.write( str(e) )
-        sys.stderr.write( "Unknown feature type '%s'" % feature_type + "\n" )
+        sys.stderr.write( "WARNING: Unknown feature type '%s'\n" % feature_type )
     
     for sub_feature in feature.sub_features:
         features += parse_gff_feature(sub_feature)
