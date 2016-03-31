@@ -326,15 +326,15 @@ foreach my $primary_tag_level1 (keys %{$hash_omniscient->{'level1'}}){ # primary
 my %hash_of_omniscient;
 if(@list_geneID_l1){
   fill_omniscient_from_other_omniscient_level1_id(\@list_geneID_l1, $hash_omniscient, \%omniscient_gene);
-  $hash_of_omniscient{'Coding_Gene_Info'}=\%omniscient_gene;
+  $hash_of_omniscient{'Coding_Gene'}=\%omniscient_gene;
 }
 if(@list_OtherRnaID_l1){
   fill_omniscient_from_other_omniscient_level1_id(\@list_OtherRnaID_l1, $hash_omniscient, \%omniscient_other);
-  $hash_of_omniscient{'Non_Coding_Gene_Info'}=\%omniscient_other;
+  $hash_of_omniscient{'Non_Coding_Gene'}=\%omniscient_other;
 }
 if(@list_repeatID_l1){
   fill_omniscient_from_other_omniscient_level1_id(\@list_repeatID_l1, $hash_omniscient, \%omniscient_repeat);
-  $hash_of_omniscient{'Repeat_Info'}=\%omniscient_repeat;
+  $hash_of_omniscient{'Repeat'}=\%omniscient_repeat;
 }
 
 ##############
@@ -379,7 +379,7 @@ foreach my $key_hash (keys %hash_of_omniscient){
 ###########################
 # change FUNCTIONAL information if asked for
 if ($opt_BlastFile || $opt_InterproFile ){#|| $opt_BlastFile || $opt_InterproFile){
-    my $hash_ref = $hash_of_omniscient{'Gene'};
+    my $hash_ref = $hash_of_omniscient{'Coding_Gene'};
 
     #################
     # == LEVEL 1 == #
