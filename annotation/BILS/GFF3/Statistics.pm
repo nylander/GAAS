@@ -258,8 +258,8 @@ sub _info_number {
 			push @resu, sprintf("%-45s%d%s", "Number of mrnas with utr both sides", $all_info->{'level2'}{$tag_l2}{'utr_both_side'},"\n");
 		}
 		#manage utr both side
-		if(exists ($all_info->{'level2'}{$tag_l2}{'nb_at_least_one_side'})){
-			push @resu, sprintf("%-45s%d%s", "Number of mrnas with at least one utr", $all_info->{'level2'}{$tag_l2}{'nb_at_least_one_side'},"\n");
+		if(exists ($all_info->{'level2'}{$tag_l2}{'utr_at_least_one_side'})){
+			push @resu, sprintf("%-45s%d%s", "Number of mrnas with at least one utr", $all_info->{'level2'}{$tag_l2}{'utr_at_least_one_side'},"\n");
 		}
 	 }
 
