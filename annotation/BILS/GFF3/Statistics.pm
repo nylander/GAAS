@@ -174,14 +174,10 @@ sub gff3_statistics {
 
 		    	# 1) Manage UTR both side 
 		    	if ($utr3  and $utr5){
-		    		if (! exists ($all_info{$tag_l2}{'level2'}{$tag_l2}{'utr_both_side'}) ) {
 			    		$all_info{$tag_l2}{'level2'}{$tag_l2}{'utr_both_side'}++;
-			    	}
 		    	} # 2) Manage UTR at least one side 
 		    	elsif ($utr3  or $utr5){ 
-		    		if (! exists ($all_info{$tag_l2}{'level2'}{$tag_l2}{'utr_at_least_one_side'}) ) {
 		   				$all_info{$tag_l2}{'level2'}{$tag_l2}{'utr_at_least_one_side'}++;
- 					}
  				}
 		  	}
 		}
