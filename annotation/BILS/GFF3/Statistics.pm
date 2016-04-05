@@ -114,6 +114,8 @@ sub gff3_statistics {
 
 				######
 				#get all level3
+				my $3prime=undef;
+				my $5prime=undef;
 	  			my $id_l2=lc($feature_l2->_tag_value('ID'));
 		    	foreach my $tag_l3 (keys %{$hash_omniscient->{'level3'}}){
 
@@ -143,17 +145,13 @@ sub gff3_statistics {
 			    					$all_info{$tag_l2}{'level3'}{$tag_l3}{'shortest'}=$sizeFeature;
 			    				}
 			    			}
-
+			    			####################
 		    				#mange utr per mRNA
 		    				if ($tag_l3 =~ /three_prime_utr/){
-		    					if( exists ($hash_omniscient->{'level3'}{'five_prime_utr'}{$id_l2})){
-		    						$all_info{$tag_l2}{'level2'}{$tag_l2}{'utr_both_side'}++;
-		    					}
+								$3prime=1;
 		    				}
-		    				if (($tag_l3 =~ /three_prime_utr/) or ($tag_l3 =~ /five_prime_utr/) ) {
-		    					if (! exists ($all_info{$tag_l2}{'level2'}{$tag_l2}{'utr_at_least_one_side'}) ) {
-		    						$all_info{$tag_l2}{'level2'}{$tag_l2}{'utr_at_least_one_side'}++;
-		    					}
+		    				if ($tag_l3 =~ /five_prime_utr/){
+		    					$5prime=1;
 		    				}
 		    			}
 
@@ -172,7 +170,19 @@ sub gff3_statistics {
 			    			}
 		    			}
 		  			}
-		  		}
+		  		}# END all feature level 3
+
+		    	# 1) Manage UTR both side 
+		    	if ($3prime  and $5prime){
+		    		if (! exists ($all_info{$tag_l2}{'level2'}{$tag_l2}{'utr_both_side'}) ) {
+			    		$all_info{$tag_l2}{'level2'}{$tag_l2}{'utr_both_side'}++;
+			    	}
+		    	} # 2) Manage UTR at least one side 
+		    	elsif ($3prime  or $5prime){ 
+		    		if (! exists ($all_info{$tag_l2}{'level2'}{$tag_l2}{'utr_at_least_one_side'}) ) {
+		   				$all_info{$tag_l2}{'level2'}{$tag_l2}{'utr_at_least_one_side'}++;
+ 					}
+ 				}
 		  	}
 		}
 	}
@@ -253,7 +263,7 @@ sub _info_number {
 		}
 		#manage utr both side
 		if(exists ($all_info->{'level2'}{$tag_l2}{'nb_at_least_one_side'})){
-			push @resu, sprintf("%-45s%d%s", "Number of mrnas with utr both sides", $all_info->{'level2'}{$tag_l2}{'nb_at_least_one_side'},"\n");
+			push @resu, sprintf("%-45s%d%s", "Number of mrnas with at least one utr", $all_info->{'level2'}{$tag_l2}{'nb_at_least_one_side'},"\n");
 		}
 	 }
 
