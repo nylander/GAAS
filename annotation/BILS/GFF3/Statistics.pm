@@ -114,8 +114,8 @@ sub gff3_statistics {
 
 				######
 				#get all level3
-				my $3prime=undef;
-				my $5prime=undef;
+				my $utr3 = undef;
+				my $utr5 = undef;
 	  			my $id_l2=lc($feature_l2->_tag_value('ID'));
 		    	foreach my $tag_l3 (keys %{$hash_omniscient->{'level3'}}){
 
@@ -148,10 +148,10 @@ sub gff3_statistics {
 			    			####################
 		    				#mange utr per mRNA
 		    				if ($tag_l3 =~ /three_prime_utr/){
-								$3prime=1;
+								$utr3=1;
 		    				}
 		    				if ($tag_l3 =~ /five_prime_utr/){
-		    					$5prime=1;
+		    					$utr5=1;
 		    				}
 		    			}
 
@@ -173,12 +173,12 @@ sub gff3_statistics {
 		  		}# END all feature level 3
 
 		    	# 1) Manage UTR both side 
-		    	if ($3prime  and $5prime){
+		    	if ($utr3  and $utr5){
 		    		if (! exists ($all_info{$tag_l2}{'level2'}{$tag_l2}{'utr_both_side'}) ) {
 			    		$all_info{$tag_l2}{'level2'}{$tag_l2}{'utr_both_side'}++;
 			    	}
 		    	} # 2) Manage UTR at least one side 
-		    	elsif ($3prime  or $5prime){ 
+		    	elsif ($utr3  or $utr5){ 
 		    		if (! exists ($all_info{$tag_l2}{'level2'}{$tag_l2}{'utr_at_least_one_side'}) ) {
 		   				$all_info{$tag_l2}{'level2'}{$tag_l2}{'utr_at_least_one_side'}++;
  					}
