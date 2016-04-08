@@ -284,6 +284,15 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
   }
 }
 print "Calcul of mapped percentage length finished !\n";
+
+
+######################
+# Check if nothing mapped
+my $nbKey = keys %mappedPercentPerGene;
+if ($nbKey == 0){
+ print "No succefully mapped feature found!\n"; exit;
+}
+
 ###############
 # print the value per gene in a temporary file for R plot
 foreach my $key (keys %mappedPercentPerGene){
