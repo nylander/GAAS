@@ -52,8 +52,9 @@ if ( ! ((defined($file1)) and (defined($file2)))){
 # Manage output file #
 my $fastaout;
 if ($outfile) {
-  $outfile=~ s/.gff//g;
-open(my $fh, '>', $outfile.".gff") or die "Could not open file '$outfile' $!";
+  $outfile=~ s/.fasta//g;
+  $outfile=~ s/.fa//g;
+open(my $fh, '>', $outfile.".fa") or die "Could not open file '$outfile' $!";
   $fastaout=  Bio::SeqIO->new(-fh => $fh , -format => 'Fasta');
 }
 else{
@@ -107,7 +108,7 @@ __END__
 
 =head1 NAME
 
-Compare two fasta file in order to remove occurence of fasta sequence from file 1 present in file 2.
+Compare a fasta file to a list of ID in order to remove the matching name from file 1.
 The whole header must be identical to be consider as identic.
 
 =head1 SYNOPSIS
