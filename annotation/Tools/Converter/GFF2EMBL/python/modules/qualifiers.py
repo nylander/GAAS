@@ -237,7 +237,7 @@ class Codon_startQualifier( Qualifier ):
             for i, val in enumerate(value):
                 if type(val) == type(""):
                     val = int(val)
-                val += 0
+                val += 1
                 value[i] = val
         super(Codon_startQualifier, self).__init__(value)
     

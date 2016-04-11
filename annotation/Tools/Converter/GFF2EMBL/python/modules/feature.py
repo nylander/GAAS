@@ -622,16 +622,22 @@ class TRNAFeature( Feature ):
 # class Variation
 # class 3'UTR
 # class 5'UTR
+#
+# /!\ Specific features (UTR and CDS) can be "multiple line feature". It means, they are described through several lines if contain several exon.
+# Depending of the tool used to produce the annotation, Some features may have several parents (like an exon share by multiple mRNA). It allows to factorise the information and condense the gff file.
+# NBIS annotation service tool always "expand" them. Here the implementation don't manage that case. We report just an error that has to be fixed outside this code.
+# The phylosophy of that code is expecting to have sequential describtion of feature ordered (i.e: all cds parts must be described in a row).
 def parse_gff_feature(feature):
     
     features = []
     feature_type=feature.type[0].upper() + feature.type[1:] + "Feature"
         
-    
+    ### First check if a feature has a mulitple parents. In this case it through an error message.
+
     try:
-        features += [eval("%s( feature )" % feature_type)]
+        features += [eval("%s( feature )" % feature_type)] #### Where the different methods are called ####
     except Exception as e:
-        sys.stderr.write( "WARNING: Unknown feature type '%s'\n" % feature_type )
+        sys.stderr.write( "WARNING parse_gff_feature: Unknown feature type '%s'\n" % feature_type )
     
     for sub_feature in feature.sub_features:
         features += parse_gff_feature(sub_feature)
