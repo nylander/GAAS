@@ -25,6 +25,14 @@ our %EXPORT_TAGS = ( DEFAULT => [qw()],
 	
 =cut	
 
+
+###################
+#
+# Print methods
+#
+###################
+# 1) Original print
+###################
 sub print_ref_list_feature {
 
 	my ($list, $gffout) = @_  ;
@@ -174,6 +182,12 @@ sub print_omniscient_from_level1_id_list{
 		
 	}
 }
+
+##################
+#
+# END Print methods
+#
+###################
 
 # omniscient is a hash containing a whole gXf file in memory sorted in a specific way (3 levels)
 sub gtf2gff_features_in_omniscient_from_level1_id_list{
@@ -1243,7 +1257,7 @@ sub check_level1_positions{
 	    }
     }
     if(! $check_existence_feature_l2){
-    	print "WARNING: NO level2 feature to check positions of the level1 feature !\n";
+    	warn "WARNING: NO level2 feature to check positions of the level1 feature ! @\n";
     }
     else{
 	    # modify START if needed
