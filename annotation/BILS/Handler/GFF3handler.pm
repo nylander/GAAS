@@ -34,27 +34,29 @@ sub slurp_gff3_file_JD {
 	
 	my $gffio = Bio::Tools::GFF->new(-file => $file, -gff_version => 3);	
 
+
 	### Handle to not print to much warning
 	my %WARNS;
-	my $nbWarn=5;
+	my $nbWarnLimit=5;
   	local $SIG{__WARN__} = sub {
     my $message = shift;
     my @thematic=split /@/,$message ;
     
     $WARNS{$thematic[0]}++;
-    	if ($WARNS{$thematic[0]} < $nbWarn){
+    	if ($WARNS{$thematic[0]} <= $nbWarnLimit){
 			print $message;
 		}
-		elsif($WARNS{$thematic[0]} == $nbWarn){
+		if($WARNS{$thematic[0]} == $nbWarnLimit){
 			print "$thematic[0] ************** Too much WARNING message we skip the next **************\n";
 		}
-  	};
+  	}; 
+  	########### END WARNING LOCAL METHOD
+
 
 	my %mRNAGeneLink;
 	my %omniscient;
 	my %duplicate;# Hash to store any counter. Will be use to create a new uniq ID 
 	my %miscCount;# Hash to store any counter. Will be use to create a new uniq ID
-
 
 
 	while( my $feature = $gffio->next_feature()) {
@@ -74,6 +76,14 @@ sub slurp_gff3_file_JD {
 
     #Check relationship between mRNA and gene
     check_gene_link_to_mrna(\%omniscient);
+
+    # To keep track of How many Warnings we got....
+    foreach my $thematic (keys %WARNS){
+  		my $nbW = $WARNS{$thematic};
+  		if($nbW > $nbWarnLimit){
+  			print "Actually we had $nbW warning message: $thematic\n";
+  		}	
+  	}
 
     #close the file
     $gffio->close();
@@ -452,7 +462,12 @@ sub check_gene_link_to_mrna{
 				create_or_replace_tag($gene_feature,'ID', $new_ID); #modify ID to replace by parent value
 				$gene_feature->remove_tag('Parent'); # remove parent ID because, none.
 				check_level1_positions($hash_omniscient, $gene_feature);	# check start stop if isoforms exists
-				my $primary_tag_l1="gene";
+				
+				#Deal case where we reconstruct other thing than a gene
+				my $primary_tag_l1=undef;
+				if(lc($gene_feature->primary_tag) =~ /match/){ $primary_tag_l1="match"; }
+				else{ $primary_tag_l1="gene"; }
+
 				$gene_feature->primary_tag($primary_tag_l1); # change primary tag
 				$hash_omniscient->{"level1"}{$primary_tag_l1}{lc($new_ID)}=$gene_feature; # now save it in omniscient
 				#print "feature level1 created: ".$gene_feature->gff_string."\n";
