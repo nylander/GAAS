@@ -612,8 +612,9 @@ class EMBL( object ):
         
         output = ""
         for feature in self.record.features:
-            for feat in parse_gff_feature(feature):
-                output += str(feat)
+             sys.stderr.write( "\n\n>>AA Feature = "+str(feature)+"<<AA AVANT\n\n")
+             for feat in parse_gff_feature(feature):
+                 output += str(feat)
         return output + self.spacer
     
     def CO(self):
@@ -889,6 +890,9 @@ class EMBL( object ):
         
         # CO - contig/construct line      (0 or >=1 per entry) ?????
     
+##########################
+#        MAIN            #
+##########################
 
 if __name__ == '__main__':
     
