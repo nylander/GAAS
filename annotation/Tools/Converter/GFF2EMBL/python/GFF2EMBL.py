@@ -612,7 +612,6 @@ class EMBL( object ):
         
         output = ""
         for feature in self.record.features:
-             sys.stderr.write( "\n\n>>AA Feature = "+str(feature)+"<<AA AVANT\n\n")
              for feat in parse_gff_feature(feature):
                  output += str(feat)
         return output + self.spacer

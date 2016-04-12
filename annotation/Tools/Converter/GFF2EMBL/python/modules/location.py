@@ -102,14 +102,15 @@ class Location(object):
         self.spans = []
         for arg in args:
             if hasattr(arg, "start"): # Deal with BioPython FeatureLocation basically
-                span = Span(str(arg.start))
-                if hasattr(arg, "end"):
-                    span.set_end(str(arg.end))
-                if hasattr(arg, "strand") and arg.strand < 0:
-                    span.set_complement()
-                if hasattr(arg, "ref") and hasattr(arg, "ref_db") and arg.ref and arg.ref_db:
-                    span.accession = "%s:%s" % (arg.ref_db, arg.ref)
-                self.spans += [span]
+                for part in arg.parts:
+                    span = Span(str(part.start))
+                    if hasattr(part, "end"):
+                        span.set_end(str(arg.end))
+                    if hasattr(part, "strand") and part.strand < 0:
+                        span.set_complement()
+                    if hasattr(part, "ref") and hasattr(part, "ref_db") and part.ref and part.ref_db:
+                        span.accession = "%s:%s" % (part.ref_db, part.ref)
+                    self.spans += [span]
             elif not self.spans:
                 self.spans += [Span(arg)]
             elif arg == "any":
