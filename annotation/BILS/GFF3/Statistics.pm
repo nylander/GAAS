@@ -121,10 +121,13 @@ sub gff3_statistics {
 
 		    		if(exists ($hash_omniscient->{'level3'}{$tag_l3}{$id_l2})){
 						my $sizeMultiFeat=0;
-						my $feature;
+						my $nb_multiFeature=0;
+
 		    			foreach my $feature_l3 ( @{$hash_omniscient->{'level3'}{$tag_l3}{$id_l2}} ){
-		    				$feature=$feature_l3;
 		    				
+		    				#count number feature of tag_l3 type
+		    				$nb_multiFeature++;
+
 		    				#compute feature size
 		    				my $sizeFeature=($feature_l3->end-$feature_l3->start)+1;
 		    				$all_info{$tag_l2}{'level3'}{$tag_l3}{'size_feat'}+=$sizeFeature;
@@ -166,8 +169,13 @@ sub gff3_statistics {
     						# grab shorter
 			    			if ((! $all_info{$tag_l2}{'level3'}{$tag_l3}{'shortest'}) or ($all_info{$tag_l2}{'level3'}{$tag_l3}{'shortest'} > $sizeMultiFeat)){
 			    				$all_info{$tag_l2}{'level3'}{$tag_l3}{'shortest'}=$sizeMultiFeat;
-			    				#$out->write_feature($feature); 
 			    			}
+		    			}
+
+		    			#Manage number intron per type of tag_l3
+		    			if($nb_multiFeature > 1){
+		    				my $nbIntron = ($nb_multiFeature-1);
+		    				$all_info{$tag_l2}{'level3'}{$tag_l3}{'intron'}+=$nbIntron;
 		    			}
 		  			}
 		  		}# END all feature level 3
@@ -232,6 +240,7 @@ sub info_number_spread{
 	    #manage nb_spread_feat
 	    if(exists ($all_info->{'level3'}{$tag_l3}{'nb_spread_feat'})){
 	    	push @resu, sprintf("%-45s%d%s", "Number of exon of $tag_l3", $all_info->{'level3'}{$tag_l3}{'nb_spread_feat'},"\n");
+	    	push @resu, sprintf("%-45s%d%s", "Number of intron of $tag_l3", $all_info->{'level3'}{$tag_l3}{'intron'},"\n");
 	    }
 	}
 	return  \@resu;
@@ -266,6 +275,10 @@ sub _info_number {
 	#print level3
 	foreach my $tag_l3 (keys %{$all_info->{'level3'}}){
 	    push @resu, sprintf("%-45s%d%s", "Number of $tag_l3"."s", $all_info->{'level3'}{$tag_l3}{'nb_feat'},"\n");
+	    #intron case 
+	    if($tag_l3 eq "exon"){
+	    	push @resu, sprintf("%-45s%d%s", "Number of intron"."s", $all_info->{'level3'}{$tag_l3}{'intron'},"\n");
+	    }	    
 	}
 	
 
