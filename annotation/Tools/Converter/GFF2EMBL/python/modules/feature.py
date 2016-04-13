@@ -694,6 +694,9 @@ def parse_gff_feature(feature_l1):
 
         ###### MANAGE LEVEL 2 FEATURE because now it is fine ####
         feature_l2.location=new_location_l2 #change location according to the exons. It create something like: location: join{[93462:94960](-), [94983:95153](-)}
+        if(feature_l2.location == "empty"):
+            sys.stderr.write("WARNING location for feature_l2: No subfeature location found to create the feature location. We skip it: '%s'\n" % feature_l2 )
+            continue
         features += feature_modeler(feature_l2)
         
         ###### MANAGE LEVEL 3 FEATURE because now it is fine ####    
@@ -704,15 +707,15 @@ def parse_gff_feature(feature_l1):
 
 # It is a caller to form the correct EMBL feature from a gff feature
 def feature_modeler(feature):
-    feature
+    feature_result=""
     feature_type=feature.type[0].upper() + feature.type[1:] + "Feature"
 
     try:
-        feature = [eval("%s( feature )" % feature_type)] #### Where the different methods are called ####
+        feature_result = [eval("%s( feature )" % feature_type)] #### Where the different methods are called ####
     except Exception as e:
         sys.stderr.write( "WARNING parse_gff_feature: Unknown feature type '%s'\n" % feature_type )
 
-    return feature
+    return feature_result
 
 ##########################
 #        MAIN            #
