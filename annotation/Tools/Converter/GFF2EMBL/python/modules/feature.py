@@ -633,75 +633,92 @@ def parse_gff_feature(feature_l1):
     
     features = []
     
-    ##############################
-    ###### LEVEL 1 FEATURE ######
-    ##############################
-    ### First check if a feature has a mulitple parents.
-    if('Parent' in feature_l1.qualifiers):
-        if(len(feature_l1.qualifiers['Parent']) > 1):
-            sys.stderr.write( "WARNING Feature "+str(feature_l1)+" has more than one parent.\n")
-    
-    features += feature_modeler(feature_l1)
+    if feature_l1.type.lower() == "source":
+        features += feature_modeler(feature_l1)
+    else: #feature describing data
 
-
-    ##############################
-    ###### LEVEL 2 FEATURE #######
-    ##############################
-    #Call sub feature (level2 or level3)
-    # and compile information for level3 feature (not exon)
-    
-    for feature_l2 in feature_l1.sub_features:
-        
+        ##############################
+        ###### LEVEL 1 FEATURE ######
+        ##############################
         ### First check if a feature has a mulitple parents.
         if('Parent' in feature_l1.qualifiers):
             if(len(feature_l1.qualifiers['Parent']) > 1):
                 sys.stderr.write( "WARNING Feature "+str(feature_l1)+" has more than one parent.\n")
 
-        ##############################
-        ###### LEVEL 3 FEATURE #####
-        ##############################
-        bucket_l3={}
-        new_location_l2 = "empty" # for location level2 feature we have to restart it from scratch
+        # create locus_tag from ID
+        locus_tag=feature_l1.qualifiers['ID']
 
-        for l3_feature in feature_l2.sub_features:
+        # add locus tag
+        feature_l1.qualifiers['locus_tag']=locus_tag
 
+        #handle feature
+        features += feature_modeler(feature_l1)
+
+
+        ##############################
+        ###### LEVEL 2 FEATURE #######
+        ##############################
+        #Call sub feature (level2 or level3)
+        # and compile information for level3 feature (not exon)
+        
+        for feature_l2 in feature_l1.sub_features:
+            
             ### First check if a feature has a mulitple parents.
             if('Parent' in feature_l1.qualifiers):
                 if(len(feature_l1.qualifiers['Parent']) > 1):
                     sys.stderr.write( "WARNING Feature "+str(feature_l1)+" has more than one parent.\n")
 
-            #exon case (it is a multifeature)
-            if(l3_feature.type.lower() == "exon"):
-                if (new_location_l2 == "empty"):
-                    new_location_l2=l3_feature.location
-                else:        
-                    new_location_l2=new_location_l2+l3_feature.location
+            # add locus tag
+            feature_l2.qualifiers['locus_tag']=locus_tag
 
-            # other multifeature case. Here we save result in bucket that we will process later
-            elif(l3_feature.type.lower() == "cds" or "utr" in l3_feature.type.lower()):
+            ##############################
+            ###### LEVEL 3 FEATURE #####
+            ##############################
+            bucket_l3={}
+            new_location_l2 = "empty" # for location level2 feature we have to restart it from scratch
 
-                if not l3_feature.type in bucket_l3.keys():
-                    bucket_l3 = {l3_feature.type : l3_feature}
-                else: #update location
-                    tmp_location_l3 = bucket_l3[l3_feature.type].location
-                    new_location_l3 = tmp_location_l3 + l3_feature.location
-                    bucket_l3[l3_feature.type].location = new_location_l3
+            for l3_feature in feature_l2.sub_features:
 
-            # Not a multifeature case (stop codon, start codon, etc...)
-            else:
-                features += feature_modeler(l3_feature)
-           
+                ### First check if a feature has a mulitple parents.
+                if('Parent' in feature_l1.qualifiers):
+                    if(len(feature_l1.qualifiers['Parent']) > 1):
+                        sys.stderr.write( "WARNING Feature "+str(feature_l1)+" has more than one parent.\n")
 
-        ###### MANAGE LEVEL 2 FEATURE because now it is fine ####
-        feature_l2.location=new_location_l2 #change location according to the exons. It create something like: location: join{[93462:94960](-), [94983:95153](-)}
-        if(feature_l2.location == "empty"):
-            sys.stderr.write("WARNING location for feature_l2: No subfeature location found to create the feature location. We skip it: '%s'\n" % feature_l2 )
-            continue
-        features += feature_modeler(feature_l2)
-        
-        ###### MANAGE LEVEL 3 FEATURE because now it is fine ####    
-        for feature_l3_spread in bucket_l3.values():
-            features += feature_modeler(feature_l3_spread)
+                # add locus tag
+                l3_feature.qualifiers['locus_tag']=locus_tag
+
+                # exon case (it is a multifeature use for level2 feature)
+                if(l3_feature.type.lower() == "exon"):
+                    if (new_location_l2 == "empty"):
+                        new_location_l2=l3_feature.location
+                    else:        
+                        new_location_l2=new_location_l2+l3_feature.location
+
+                # other multifeature case. Here we save result in bucket that we will process later
+                elif(l3_feature.type.lower() == "cds" or "utr" in l3_feature.type.lower()):
+
+                    if not l3_feature.type in bucket_l3.keys():
+                        bucket_l3 = {l3_feature.type : l3_feature}
+                    else: #update location
+                        tmp_location_l3 = bucket_l3[l3_feature.type].location
+                        new_location_l3 = tmp_location_l3 + l3_feature.location
+                        bucket_l3[l3_feature.type].location = new_location_l3
+
+                # Not a multifeature case (stop codon, start codon, etc...)
+                else:
+                    features += feature_modeler(l3_feature)
+               
+
+            ###### MANAGE LEVEL 2 FEATURE because now it is fine ####
+            feature_l2.location=new_location_l2 #change location according to the exons. It create something like: location: join{[93462:94960](-), [94983:95153](-)}
+            if(feature_l2.location == "empty"):
+                sys.stderr.write("WARNING location for feature_l2: No subfeature location found to create the feature location. We skip it: '%s'\n" % feature_l2 )
+                continue
+            features += feature_modeler(feature_l2)
+            
+            ###### MANAGE LEVEL 3 FEATURE because now it is fine ####    
+            for feature_l3_spread in bucket_l3.values():
+                features += feature_modeler(feature_l3_spread)
 
     return features
 
