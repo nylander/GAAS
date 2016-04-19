@@ -194,7 +194,7 @@ else {
 
   my $ostream  = IO::File->new();
   $ostream->fdopen( fileno(STDOUT), 'w' ) or croak( sprintf( "Can not open STDOUT for writing: %s", $! ) );
-  my $outputGFF = Bio::Tools::GFF->new( -fh => $ostream ) or croak( sprintf( "Can not open STDOUT for writing: %s", $! ) );
+  my $outputGFF = Bio::Tools::GFF->new( -fh => $ostream, -gff_version => 3) or croak( sprintf( "Can not open STDOUT for writing: %s", $! ) );
 
   #my $outputGFF = Bio::Tools::GFF->new( \*STDOUT, -gff_version => 3 ) or
   #croak( sprintf( "Can not open STDOUT for writing: %s", $! ) );
@@ -435,10 +435,10 @@ if ($opt_BlastFile || $opt_InterproFile ){#|| $opt_BlastFile || $opt_InterproFil
                 }
                 my $productData=printProductFunct($level2_ID);
                 if ($productData ne ""){
-                  create_or_replace_tag($feature_level2, 'description', $productData);
+                  create_or_replace_tag($feature_level2, 'product', $productData);
                 }
                 else {
-                  create_or_replace_tag($feature_level2, 'description', "hypothetical protein");
+                  create_or_replace_tag($feature_level2, 'product', "hypothetical protein");
                 } #Case where the protein is not known
               }
 
