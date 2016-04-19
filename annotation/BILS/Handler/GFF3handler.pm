@@ -152,7 +152,7 @@ sub manage_one_feature{
 
       	elsif ( ($primary_tag eq "cds") or ($primary_tag eq "exon") or ($primary_tag eq "stop_codon") or ($primary_tag eq "start_codon") or ($primary_tag eq "three_prime_utr") or ($primary_tag eq "five_prime_utr") or ($primary_tag eq "utr"),
       	 or ($primary_tag eq "selenocysteine") or ($primary_tag eq "non_canonical_three_prime_splice_site") or ($primary_tag eq "non_canonical_five_prime_splice_site") or ($primary_tag eq "stop_codon_read_through"),
-      	 or ($primary_tag eq "sig_peptide") ){
+      	 or ($primary_tag eq "sig_peptide") or ($primary_tag eq "tss") or ($primary_tag eq "tts") or ($primary_tag eq "intron") ){
 
       		# manage ID
       		if(! $feature->has_tag('ID')){

@@ -30,12 +30,14 @@ sub slurp_gtf_file_JD {
 	
 	my ($self, $file) = @_  ;
 	
-	my $gtfio = Bio::Tools::GFF->new(-file => $file, -gff_version => 2.5);	
+	my $gtfio = Bio::Tools::GFF->new(-file => $file, -gff_version => 2.5);
+	#my $gtfout = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 2.5);
 
 	my %mRNAGeneLink;
 	my %omniscient;
 
 	while( my $feature = $gtfio->next_feature()) {
+		#$gtfout->write_feature($feature);
 		manage_one_feature($feature, \%omniscient, \%mRNAGeneLink);
     }
     
@@ -73,11 +75,20 @@ sub manage_one_feature{
 		####################################################
 	    ########## Manage feature WITHOUT parent ###########	== LEVEL1 ==
 	    ####################################################
+
 	    if (lc($primary_tag) eq "gene" ) {
+	    	
 	    	#get ID
-	    	my @values = $feature->get_tag_values('gene_id');
-	    	if($#values == -1){print "error !! No gene_id found for the feature $feature->gff_string()\n";}
-			$id = shift @values ;
+	    	my $id;
+	    	if($feature->has_tag('gene_id')){
+	    		$id  = $feature->_tag_value('gene_id');
+	    	}
+	    	else{
+	    		warn "GTFhandler Warning !! No gene_id found for the feature: ".$feature->gff_string()." \n";
+	    		print "No worries, if everything goes fine, the gene feature will be recreated from sub-features\n\n";
+	    		next();
+	    	}
+
     
 	        $omniscient->{"level1"}{lc($primary_tag)}{lc($id)}=$feature;
 	        next();
@@ -87,7 +98,8 @@ sub manage_one_feature{
       	########## Manage feature WITHout CHILD  ##########		== LEVEL3 ==
       	###################################################
 
-      	elsif ( (lc($primary_tag) eq "cds" ) or (lc($primary_tag) eq "exon" ) or (lc($primary_tag) eq "stop_codon" ) or (lc($primary_tag) eq "start_codon" ) or (lc($primary_tag) eq "utr" ) or (lc($primary_tag) eq "selenocysteine" ) ){
+      	elsif ( (lc($primary_tag) eq "cds" ) or (lc($primary_tag) eq "exon" ) or (lc($primary_tag) eq "stop_codon" ) or (lc($primary_tag) eq "start_codon" ) or (lc($primary_tag) eq "utr" ) or (lc($primary_tag) eq "selenocysteine" )
+      	  		or (lc($primary_tag) eq "tss" ) or (lc($primary_tag) eq "tts" ) or (lc($primary_tag) eq "intron" ) ){
       		if($feature->has_tag('transcript_id')){
 	      		$parent = $feature->_tag_value('transcript_id');
 	      		push (@{$omniscient->{"level3"}{lc($primary_tag)}{lc($parent)}}, $feature);
@@ -175,11 +187,11 @@ sub manage_one_feature{
     		#get ID
     		if($feature->has_tag('transcript_id')){ # Check if transcript id exists
 	    		$id = $feature->_tag_value('transcript_id');
-	    	}else{warn "GTFhandler Warning !! transcript_id was not found for the following feature: \n".$feature->gff_string."\n";}
+	    	}else{warn "GTFhandler Warning !! transcript_id was not found for the following feature: \n".$feature->gff_string."\n\n";}
 
 	    	if($feature->has_tag('gene_id')){ # Check if gene id exists
 				$parent = $feature->_tag_value('gene_id');
-			}else{warn "GTFhandler Warning !! transcript_id was not found for the following feature: \n".$feature->gff_string."\n";}
+			}else{warn "GTFhandler Warning !! gene_id was not found for the following feature: \n".$feature->gff_string."\n\n";}
 
   			if (! exists ($mRNAGeneLink->{lc($id)})){ # keep track of link between level2->leve1
 				$mRNAGeneLink->{lc($id)}=lc($parent);
