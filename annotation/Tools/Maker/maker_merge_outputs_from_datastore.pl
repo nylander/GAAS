@@ -111,9 +111,10 @@ if ($nbDir > 1 ){print "Results will be merged together !\n";}
 #############################
 
 foreach my $makerDir (@inDir){
-
+	my $prefix = $makerDir;
+	$prefix = s/\.maker\.output//;
 	my $maker_dir_path = $dir . "/" . $makerDir."/";
-	my $datastore = $maker_dir_path."genome_datastore" ;
+	my $datastore = $maker_dir_path.$prefix."datastore" ;
 
 	if (-d $datastore ) {
         	print "Found datastore in $makerDir, merging annotations now...\n";
