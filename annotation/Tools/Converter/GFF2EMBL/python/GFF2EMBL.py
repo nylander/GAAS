@@ -612,8 +612,8 @@ class EMBL( object ):
         
         output = ""
         for feature in self.record.features:
-            for feat in parse_gff_feature(feature):
-                output += str(feat)
+             for feat in parse_gff_feature(feature):
+                 output += str(feat)
         return output + self.spacer
     
     def CO(self):
@@ -889,9 +889,20 @@ class EMBL( object ):
         
         # CO - contig/construct line      (0 or >=1 per entry) ?????
     
+##########################
+#        MAIN            #
+##########################
 
 if __name__ == '__main__':
     
+    sys.stderr.write( """
+    ########################################################
+    # NBIS 2016 - Sweden                                   #  
+    # Authors: Martin Norling, Jacques Dainat              #
+    # Please cite NBIS (www.nbis.se) when using this tool. #
+    ########################################################\n\n
+    """)
+
     parser = argparse.ArgumentParser( description = __doc__ )
     
     parser.add_argument("gff_file", help="input gff-file")
@@ -954,3 +965,4 @@ if __name__ == '__main__':
         
         writer.write_all( outfile )
      
+    sys.stderr.write( """Well done\n""")

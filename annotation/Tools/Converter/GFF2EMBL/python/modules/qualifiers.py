@@ -237,7 +237,7 @@ class Codon_startQualifier( Qualifier ):
             for i, val in enumerate(value):
                 if type(val) == type(""):
                     val = int(val)
-                val += 0
+                val += 1
                 value[i] = val
         super(Codon_startQualifier, self).__init__(value)
     
@@ -1090,6 +1090,12 @@ class NoteQualifier( Qualifier ):
     value_format = "text"
     
     def __init__(self, value = None):
+        
+        # if the value is a list, join it by commas
+        # TODO: evaluate if this is ultra-dumb.
+        if type(value) == type([]):
+            value = ", ".join(value)
+        
         super(NoteQualifier, self).__init__(value)
     
     def __repr__(self):

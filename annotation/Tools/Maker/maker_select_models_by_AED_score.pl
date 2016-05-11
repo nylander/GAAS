@@ -26,7 +26,7 @@ my $opt_help;
 
 # OPTION MANAGMENT
 my @copyARGV=@ARGV;
-if ( !GetOptions( 'f|ref|reffile=s' => \$opt_gff,
+if ( !GetOptions( 'f|ref|reffile|gff=s' => \$opt_gff,
                   's|score|v=f' => \$opt_score,
                   't|test=s' => \$opt_test,
                   'o|output=s'      => \$opt_output,
@@ -47,7 +47,7 @@ if ($opt_help) {
 if ( ! $opt_gff or ! defined($opt_score) or ! $opt_test ){
     pod2usage( {
            -message => "$header\nAt least 3 parameters are mandatory:\n1) Input reference gff file (--f)\n".
-           "2) score use for filtering (between 0 and 1) with option --v\n3) test to apply (> < = >= <=) with the option -t\n\n",
+           "2) score use for filtering (between 0 and 1) with option --v\n3) test to apply (> < = >= <=) with the option -t. And don't forget to quote you parameter if it contains the character < or >.\n\n",
            -verbose => 0,
            -exitval => 1 } );
 }
@@ -198,9 +198,28 @@ Remark: If there is duplicate in the file they will be removed in the output. In
 
 =over 8
 
-=item B<-f>, B<--reffile> or B<-ref>
+=item B<-f>, B<--reffile>, B<--gff>  or B<-ref>
 
-Input GFF3 file that will be read (and sorted)
+Input GFF3 file that will be read 
+
+=item B<-v>, B<--score> or B<-s>
+
+Score use for filtering (between 0 and 1) with option.
+Can be a float.
+
+=item B<-t> or B<--test>
+Test to apply (> < = >= <=). If you us one of these two character >, <, please don't forget to quote you parameter liket that "<=". Else your terminal will complain.
 
 
+=item B<-o> or B<--output>
 
+Output GFF file.  If no output file is specified, the output will be
+written to STDOUT.
+
+=item B<-h> or B<--help>
+
+Display this helpful text.
+
+=back
+
+=cut

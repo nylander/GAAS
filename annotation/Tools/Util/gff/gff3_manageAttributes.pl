@@ -223,8 +223,7 @@ __END__
 
 gff3_manageAttributes.pl -
 The script take a gff3 file as input. -
-The script give basic statistics of a gff file. 
-Remark: identical feature from level1 or level2 with identical ID will be merged as well as their subsequent features (Level2 or level3).
+The script allows to remove choosen attributes to choosen features. 
 
 =head1 SYNOPSIS
 

@@ -2,6 +2,7 @@
 
 import sys
 from location import Location
+from Bio.SeqFeature import FeatureLocation
 from qualifiers import *
 
 #
@@ -348,6 +349,7 @@ class MRNAFeature( Feature ):
 
         if feature:
             for qualifier, value in feature.qualifiers.iteritems():
+                #sys.stderr.write( "CC Feature "+str(qualifier)+str(value)+"\n")
                 self.add_qualifier(qualifier, value)
 
 class NcRNAFeature( Feature ):
@@ -622,21 +624,119 @@ class TRNAFeature( Feature ):
 # class Variation
 # class 3'UTR
 # class 5'UTR
-def parse_gff_feature(feature):
+#
+# /!\ Specific features (UTR and CDS) can be "multiple line feature". It means, they are described through several lines if contain several exon.
+# Depending of the tool used to produce the annotation, Some features may have several parents (like an exon share by multiple mRNA). It allows to factorise the information and condense the gff file.
+# NBIS annotation service tool always "expand" them. Here the implementation don't manage that case. We report just an error that has to be fixed outside this code.
+# The phylosophy of that code is expecting to have sequential describtion of feature ordered (i.e: all cds parts must be described in a row).
+def parse_gff_feature(feature_l1):
     
     features = []
-    feature_type=feature.type[0].upper() + feature.type[1:] + "Feature"
+    
+    if feature_l1.type.lower() == "source":
+        features += feature_modeler(feature_l1)
+    else: #feature describing data
+
+        ##############################
+        ###### LEVEL 1 FEATURE ######
+        ##############################
+        ### First check if a feature has a mulitple parents.
+        if('Parent' in feature_l1.qualifiers):
+            if(len(feature_l1.qualifiers['Parent']) > 1):
+                sys.stderr.write( "WARNING Feature "+str(feature_l1)+" has more than one parent.\n")
+
+        # create locus_tag from ID
+        locus_tag=feature_l1.qualifiers['ID']
+
+        # add locus tag
+        feature_l1.qualifiers['locus_tag']=locus_tag
+
+        #handle feature
+        features += feature_modeler(feature_l1)
+
+
+        ##############################
+        ###### LEVEL 2 FEATURE #######
+        ##############################
+        #Call sub feature (level2 or level3)
+        # and compile information for level3 feature (not exon)
         
-    
-    try:
-        features += [eval("%s( feature )" % feature_type)]
-    except Exception as e:
-        sys.stderr.write( "WARNING: Unknown feature type '%s'\n" % feature_type )
-    
-    for sub_feature in feature.sub_features:
-        features += parse_gff_feature(sub_feature)
-    
+        for feature_l2 in feature_l1.sub_features:
+            
+            ### First check if a feature has a mulitple parents.
+            if('Parent' in feature_l1.qualifiers):
+                if(len(feature_l1.qualifiers['Parent']) > 1):
+                    sys.stderr.write( "WARNING Feature "+str(feature_l1)+" has more than one parent.\n")
+
+            # add locus tag
+            feature_l2.qualifiers['locus_tag']=locus_tag
+
+            ##############################
+            ###### LEVEL 3 FEATURE #####
+            ##############################
+            bucket_l3={}
+            new_location_l2 = "empty" # for location level2 feature we have to restart it from scratch
+
+            for l3_feature in feature_l2.sub_features:
+
+                ### First check if a feature has a mulitple parents.
+                if('Parent' in feature_l1.qualifiers):
+                    if(len(feature_l1.qualifiers['Parent']) > 1):
+                        sys.stderr.write( "WARNING Feature "+str(feature_l1)+" has more than one parent.\n")
+
+                # add locus tag
+                l3_feature.qualifiers['locus_tag']=locus_tag
+
+                # exon case (it is a multifeature use for level2 feature)
+                if(l3_feature.type.lower() == "exon"):
+                    if (new_location_l2 == "empty"):
+                        new_location_l2=l3_feature.location
+                    else:        
+                        new_location_l2=new_location_l2+l3_feature.location
+
+                # other multifeature case. Here we save result in bucket that we will process later
+                elif(l3_feature.type.lower() == "cds" or "utr" in l3_feature.type.lower()):
+
+                    if not l3_feature.type in bucket_l3.keys():
+                        bucket_l3 = {l3_feature.type : l3_feature}
+                    else: #update location
+                        tmp_location_l3 = bucket_l3[l3_feature.type].location
+                        new_location_l3 = tmp_location_l3 + l3_feature.location
+                        bucket_l3[l3_feature.type].location = new_location_l3
+
+                # Not a multifeature case (stop codon, start codon, etc...)
+                else:
+                    features += feature_modeler(l3_feature)
+               
+
+            ###### MANAGE LEVEL 2 FEATURE because now it is fine ####
+            feature_l2.location=new_location_l2 #change location according to the exons. It create something like: location: join{[93462:94960](-), [94983:95153](-)}
+            if(feature_l2.location == "empty"):
+                sys.stderr.write("WARNING location for feature_l2: No subfeature location found to create the feature location. We skip it: '%s'\n" % feature_l2 )
+                continue
+            features += feature_modeler(feature_l2)
+            
+            ###### MANAGE LEVEL 3 FEATURE because now it is fine ####    
+            for feature_l3_spread in bucket_l3.values():
+                features += feature_modeler(feature_l3_spread)
+
     return features
+
+# It is a caller to form the correct EMBL feature from a gff feature
+def feature_modeler(feature):
+    feature_result=""
+    feature_type=feature.type[0].upper() + feature.type[1:] + "Feature"
+
+    try:
+        feature_result = [eval("%s( feature )" % feature_type)] #### Where the different methods are called ####
+    except Exception as e:
+        sys.stderr.write( "WARNING parse_gff_feature: Unknown feature type '%s'\n" % feature_type )
+
+    return feature_result
+
+##########################
+#        MAIN            #
+##########################
 
 if __name__ == '__main__':
 

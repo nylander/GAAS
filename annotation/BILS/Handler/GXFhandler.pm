@@ -5,13 +5,14 @@ package BILS::Handler::GXFhandler ;
 use strict;
 use Data::Dumper;
 use Exporter qw(import);
+use URI::Escape;
 use Bio::Seq;
 
 our $VERSION     = 1.00;
 our @ISA         = qw(Exporter);
-our @EXPORT_OK   = qw(extract_cds_sequence group_l1features_from_omniscient create_omniscient_from_idlevel2list get_feature_l2_from_id_l2_l1 print_duplicates remove_omniscient_elements_from_level2_feature_list featuresList_identik fill_omniscient_from_other_omniscient group_features_from_omniscient featuresList_overlap check_level1_positions check_level2_positions info_omniscient fil_cds_frame exists_keys gtf2gff_features_in_omniscient_from_level1_id_list _group_features_by_transcript_and_seq_id reconstruct_locus_without_transcripts_with_seq_id remove_element_from_omniscient append_omniscient merge_omniscients remove_omniscient_elements_from_level1_id_list fill_omniscient_from_other_omniscient_level1_id print_omniscient_from_level1_id_list check_if_feature_overlap remove_tuple_from_omniscient print_ref_list_feature print_omniscient create_or_replace_tag);
+our @EXPORT_OK   = qw(webapollo_compliant extract_cds_sequence group_l1features_from_omniscient create_omniscient_from_idlevel2list get_feature_l2_from_id_l2_l1 print_duplicates remove_omniscient_elements_from_level2_feature_list featuresList_identik fill_omniscient_from_other_omniscient group_features_from_omniscient featuresList_overlap check_level1_positions check_level2_positions info_omniscient fil_cds_frame exists_keys gtf2gff_features_in_omniscient_from_level1_id_list _group_features_by_transcript_and_seq_id reconstruct_locus_without_transcripts_with_seq_id remove_element_from_omniscient append_omniscient merge_omniscients remove_omniscient_elements_from_level1_id_list fill_omniscient_from_other_omniscient_level1_id print_omniscient_from_level1_id_list check_if_feature_overlap remove_tuple_from_omniscient print_ref_list_feature print_omniscient create_or_replace_tag);
 our %EXPORT_TAGS = ( DEFAULT => [qw()],
-                 Ok    => [qw(extract_cds_sequence group_l1features_from_omniscient create_omniscient_from_idlevel2list get_feature_l2_from_id_l2_l1 print_duplicates remove_omniscient_elements_from_level2_feature_list featuresList_identik fill_omniscient_from_other_omniscient group_features_from_omniscient featuresList_overlap check_level1_positions check_level2_positions info_omniscient fil_cds_frame exists_keys gtf2gff_features_in_omniscient_from_level1_id_list _group_features_by_transcript_and_seq_id reconstruct_locus_without_transcripts_with_seq_id remove_element_from_omniscient append_omniscient merge_omniscients remove_omniscient_elements_from_level1_id_list fill_omniscient_from_other_omniscient_level1_id print_omniscient_from_level1_id_list check_if_feature_overlap remove_tuple_from_omniscient print_ref_list_feature print_omniscient create_or_replace_tag)]);
+                 Ok    => [qw(webapollo_compliant extract_cds_sequence group_l1features_from_omniscient create_omniscient_from_idlevel2list get_feature_l2_from_id_l2_l1 print_duplicates remove_omniscient_elements_from_level2_feature_list featuresList_identik fill_omniscient_from_other_omniscient group_features_from_omniscient featuresList_overlap check_level1_positions check_level2_positions info_omniscient fil_cds_frame exists_keys gtf2gff_features_in_omniscient_from_level1_id_list _group_features_by_transcript_and_seq_id reconstruct_locus_without_transcripts_with_seq_id remove_element_from_omniscient append_omniscient merge_omniscients remove_omniscient_elements_from_level1_id_list fill_omniscient_from_other_omniscient_level1_id print_omniscient_from_level1_id_list check_if_feature_overlap remove_tuple_from_omniscient print_ref_list_feature print_omniscient create_or_replace_tag)]);
 =head1 SYNOPSIS
 
 
@@ -25,6 +26,14 @@ our %EXPORT_TAGS = ( DEFAULT => [qw()],
 	
 =cut	
 
+
+###################
+#
+# Print methods
+#
+###################
+# 1) Original print
+###################
 sub print_ref_list_feature {
 
 	my ($list, $gffout) = @_  ;
@@ -39,12 +48,13 @@ sub print_omniscient{
 	
 	my ($hash_omniscient, $gffout) = @_  ;
 
+	uri_encode($hash_omniscient);
+
 	#################
 	# == LEVEL 1 == #
 	#################
 	foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
 		foreach my $id_tag_key_level1 (keys %{$hash_omniscient->{'level1'}{$primary_tag_key_level1}}){
-			web_apollo_rendering($hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1});
 			$gffout->write_feature($hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1}); # print feature			
 
 			#################
@@ -54,7 +64,6 @@ sub print_omniscient{
 				
 				if ( exists ($hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1} ) ){
 					foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1}}) {
-						web_apollo_rendering($feature_level2);
 						$gffout->write_feature($feature_level2);
 			
 						#################
@@ -67,7 +76,6 @@ sub print_omniscient{
 						# FIRST EXON
 						if ( exists ($hash_omniscient->{'level3'}{'exon'}{$level2_ID} ) ){
 							foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{'exon'}{$level2_ID}}) {
-								web_apollo_rendering($feature_level3);
 								$gffout->write_feature($feature_level3);
 							}
 						}
@@ -75,7 +83,6 @@ sub print_omniscient{
 						# SECOND CDS
 						if ( exists ($hash_omniscient->{'level3'}{'cds'}{$level2_ID} ) ){
 							foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{'cds'}{$level2_ID}}) {
-								web_apollo_rendering($feature_level3);
 								$gffout->write_feature($feature_level3);
 							}
 						}
@@ -86,7 +93,6 @@ sub print_omniscient{
 							if (($primary_tag_key_level3 ne 'cds') and ($primary_tag_key_level3 ne 'exon')) {
 								if ( exists ($hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID} ) ){
 									foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID}}) {
-										web_apollo_rendering($feature_level3);
 										$gffout->write_feature($feature_level3);
 									}
 								}
@@ -103,6 +109,8 @@ sub print_omniscient_from_level1_id_list{
 	
 	my ($hash_omniscient, $level_id_list, $gffout) = @_  ;
 
+	uri_encode($hash_omniscient);
+
 	#################
 	# == LEVEL 1 == #
 	#################
@@ -110,7 +118,6 @@ sub print_omniscient_from_level1_id_list{
 			foreach my $id_tag_key_level1_raw (@$level_id_list){
 				my $id_tag_key_level1 = lc($id_tag_key_level1_raw);
 				if(exists ($hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1})){
-					web_apollo_rendering($hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1});
 					$gffout->write_feature($hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1}); # print feature
 
 					#################
@@ -120,7 +127,6 @@ sub print_omniscient_from_level1_id_list{
 						
 						if ( exists ($hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1} ) ){
 							foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1}}) {
-								web_apollo_rendering($feature_level2);
 								$gffout->write_feature($feature_level2);
 					
 								#################
@@ -138,11 +144,18 @@ sub print_omniscient_from_level1_id_list{
 								else{
 									warn "Cannot retrieve the parent feature of the following feature: ".gff_string($feature_level2);
 								}
+								###########
+								# Before tss
+								if ( exists ($hash_omniscient->{'level3'}{'tss'}{$level2_ID} ) ){
+									foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{'tss'}{$level2_ID}}) {
+										$gffout->write_feature($feature_level3);
+									}
+								}
+
 								######
 								# FIRST EXON
 								if ( exists ($hash_omniscient->{'level3'}{'exon'}{$level2_ID} ) ){
 									foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{'exon'}{$level2_ID}}) {
-										web_apollo_rendering($feature_level3);
 										$gffout->write_feature($feature_level3);
 									}
 								}
@@ -150,17 +163,24 @@ sub print_omniscient_from_level1_id_list{
 								# SECOND CDS
 								if ( exists ($hash_omniscient->{'level3'}{'cds'}{$level2_ID} ) ){
 									foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{'cds'}{$level2_ID}}) {
-										web_apollo_rendering($feature_level3);
 										$gffout->write_feature($feature_level3);
 									}
 								}
 
+								###########
+								# Last tts
+								if ( exists ($hash_omniscient->{'level3'}{'tts'}{$level2_ID} ) ){
+									foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{'tts'}{$level2_ID}}) {
+										$gffout->write_feature($feature_level3);
+									}
+								}
 
+								###########
+								# The rest
 								foreach my $primary_tag_key_level3 (keys %{$hash_omniscient->{'level3'}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
 									if( ($primary_tag_key_level3 ne 'cds') and ($primary_tag_key_level3 ne 'exon') ){
 										if ( exists ($hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID} ) ){
 											foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID}}) {
-												web_apollo_rendering($feature_level3);
 												$gffout->write_feature($feature_level3);
 											}
 										}
@@ -174,6 +194,12 @@ sub print_omniscient_from_level1_id_list{
 		
 	}
 }
+
+##################
+#
+# END Print methods
+#
+###################
 
 # omniscient is a hash containing a whole gXf file in memory sorted in a specific way (3 levels)
 sub gtf2gff_features_in_omniscient_from_level1_id_list{
@@ -796,16 +822,58 @@ sub append_omniscient{
 	}
 }
 
-sub web_apollo_rendering{
+#Transform omniscient data to be Webapollo compliant
+sub webapollo_compliant {
+		my ($hash_omniscient) = @_  ;
+
+	#################
+	# == LEVEL 1 == #
+	#################
+	foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
+		foreach my $id_tag_key_level1 (keys %{$hash_omniscient->{'level1'}{$primary_tag_key_level1}}){
+			webapollo_rendering($hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1});	
+
+			#################
+			# == LEVEL 2 == #
+			#################
+			foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
+				
+				if ( exists ($hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1} ) ){
+					foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1}}) {
+						webapollo_rendering($feature_level2);
+			
+						#################
+						# == LEVEL 3 == #
+						#################
+						my $level2_ID  = lc($feature_level2->_tag_value('ID'));
+
+						foreach my $primary_tag_key_level3 (keys %{$hash_omniscient->{'level3'}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
+							
+							if ( exists ($hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID} ) ){
+								foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID}}) {
+									webapollo_rendering($feature_level3);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+#follow webapollo description for a correct visualisation of data
+sub webapollo_rendering{
 
 	my ($feature)=@_;
 
-	my $primary_tag = $feature->primary_tag;
+	## check primary tag
+	my $primary_tag = lc($feature->primary_tag);
 
 	if($primary_tag eq 'cds'){
 		$feature->primary_tag('CDS');
 	}
-	if($primary_tag eq 'EXON'){
+	if($primary_tag eq 'exon'){
 		$feature->primary_tag('exon');
 	}
 	if($primary_tag eq 'three_prime_utr'){
@@ -820,8 +888,145 @@ sub web_apollo_rendering{
 	if($primary_tag eq 'mrna'){
 		$feature->primary_tag('mRNA');
 	}
-	if($primary_tag eq 'GENE'){
+	if($primary_tag eq 'gene'){
 		$feature->primary_tag('gene');
+	}
+
+	## check attribute
+	if($feature->has_tag('product')){
+		my @values = $feature->get_tag_values('product');
+		$feature->add_tag_value('description', @values);
+		$feature->remove_tag('product');
+	}
+}
+
+#Transform omniscient data to be Webapollo compliant
+sub embl_compliant {
+		my ($hash_omniscient) = @_  ;
+
+	#################
+	# == LEVEL 1 == #
+	#################
+	foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
+		foreach my $id_tag_key_level1 (keys %{$hash_omniscient->{'level1'}{$primary_tag_key_level1}}){
+			embl_rendering($hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1});	
+
+			#################
+			# == LEVEL 2 == #
+			#################
+			foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
+				
+				if ( exists ($hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1} ) ){
+					foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1}}) {
+						embl_rendering($feature_level2);
+			
+						#################
+						# == LEVEL 3 == #
+						#################
+						my $level2_ID  = lc($feature_level2->_tag_value('ID'));
+
+						foreach my $primary_tag_key_level3 (keys %{$hash_omniscient->{'level3'}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
+							
+							if ( exists ($hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID} ) ){
+								foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID}}) {
+									embl_rendering($feature_level3);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+sub embl_rendering{
+
+	my ($feature)=@_;
+
+	## check primary tag
+	my $primary_tag = lc($feature->primary_tag);
+
+	my @feature_list=["assembly_gap","C_region","CDS","centromere","D-loop","D_segment","exon","gap","gene","iDNA","intron","J_segment","LTR","mat_peptide","misc_binding","misc_difference","misc_feature","misc_recomb","misc_RNA","misc_structure","mobile_element","modified_base","mRNA","ncRNA","N_region","old_sequence","operon","oriT","polyA_site","precursor_RNA","prim_transcript","primer_bind","protein_bind","regulatory","repeat_region","rep_origin","rRNA","S_region","sig_peptide","source","stem_loop","STS","telomere","tmRNA","transit_peptide","tRNA","unsure","V_region","V_segment","variation","3'UTR","5'UTR"];
+
+	foreach my $element (@feature_list){
+		if(lc($element) =~ /$primary_tag/){
+			$feature->$primary_tag = $element;
+		}
+		else{
+			#repeat exception rule
+			if( $primary_tag =~ /repeat/ ){
+				$feature->$primary_tag = "repeat_region";
+			}
+			#utr5 exception rule
+			elsif($primary_tag =~ /utr/ and ($primary_tag =~ /3/ or $primary_tag =~ /three/) ){
+				$feature->$primary_tag = "3'UTR";
+			}
+			#utr5 exception rule
+			elsif($primary_tag =~ /utr/ and ($primary_tag =~ /5/ or $primary_tag =~ /five/) ){
+				$feature->$primary_tag = "5'UTR";
+			}
+			print "WARNING: this primary tag ".$primary_tag." is not recognized among those expected to be EMBL compliant. Please check it or create an exception rule.\n";
+		}
+	}
+}
+
+# check all the attribute to URI encode the values
+sub uri_encode{
+	
+	my ($hash_omniscient) = @_  ;
+
+	#################
+	# == LEVEL 1 == #
+	#################
+	foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
+		foreach my $id_tag_key_level1 (keys %{$hash_omniscient->{'level1'}{$primary_tag_key_level1}}){
+			uri_encode_one_feature($hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1});	
+
+			#################
+			# == LEVEL 2 == #
+			#################
+			foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
+				
+				if ( exists ($hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1} ) ){
+					foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1}}) {
+						uri_encode_one_feature($feature_level2);
+			
+						#################
+						# == LEVEL 3 == #
+						#################
+						my $level2_ID  = lc($feature_level2->_tag_value('ID'));
+
+						foreach my $primary_tag_key_level3 (keys %{$hash_omniscient->{'level3'}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
+							
+							if ( exists ($hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID} ) ){
+								foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID}}) {
+									uri_encode_one_feature($feature_level3);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+# reencode in uri all value of all attributes of a feature
+sub uri_encode_one_feature{
+
+	my ($feature)=@_;
+
+	my @list_tag = $feature->get_all_tags;
+	
+	foreach my $tag (@list_tag){
+		my @values = $feature->get_tag_values($tag);
+		$feature->remove_tag($tag);
+		foreach my $val (@values){
+			my $val_checked = uri_unescape($val);
+			my $new_val = uri_escape($val_checked );
+			$feature->add_tag_value($tag, $new_val);
+		}
 	}
 }
 
@@ -1243,7 +1448,7 @@ sub check_level1_positions{
 	    }
     }
     if(! $check_existence_feature_l2){
-    	print "WARNING: NO level2 feature to check positions of the level1 feature !\n";
+    	warn "WARNING: NO level2 feature to check positions of the level1 feature ! @\n";
     }
     else{
 	    # modify START if needed

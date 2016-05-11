@@ -112,9 +112,10 @@ if ($nbDir > 1 ){print "Results will be merged together !\n";}
 #############################
 
 foreach my $makerDir (@inDir){
-
+	my $prefix = $makerDir;
+	$prefix =~ s/\.maker\.output//;
 	my $maker_dir_path = $dir . "/" . $makerDir."/";
-	my $datastore = $maker_dir_path."genome_datastore" ;
+	my $datastore = $maker_dir_path.$prefix."_datastore" ;
 
 	if (-d $datastore ) {
         	print "Found datastore in $makerDir, merging annotations now...\n";
@@ -230,12 +231,12 @@ for (my $i = 0; $i < scalar(@sources); ++$i) {
 #########################
 #convert the gff in gtf #
 #########################
-if (-f "${splitedData_dir}/maker.gff"){
-	print "Converting Maker file to GTF...\n";
-	my $gffreadPath="/sw/bioinfo/cufflinks/cufflinks-2.1.1/gffread";
-	system("$gffreadPath","-o","$splitedData_dir/maker.gtf","-T","-F","$splitedData_dir/maker.gff");
-}
-else{print "No gff file to convert\n";}
+#if (-f "${splitedData_dir}/maker.gff"){
+#	print "Converting Maker file to GTF...\n";
+#	my $gffreadPath="/sw/bioinfo/cufflinks/cufflinks-2.1.1/gffread";
+#	system("$gffreadPath","-o","$splitedData_dir/maker.gtf","-T","-F","$splitedData_dir/maker.gff");
+#}
+#else{print "No gff file to convert\n";}
 print "All done!\n";
 
 # --------------
