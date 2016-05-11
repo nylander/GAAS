@@ -16,7 +16,9 @@ use IO::File;
 use Pod::Usage;
 use List::MoreUtils qw(uniq);
 use Bio::Tools::GFF;
+use BILS::CheckModule qw(:Ok);
 # END libraries
+
 # PARAMETERS - OPTION
 my @opt_files;
 my $opt_output;

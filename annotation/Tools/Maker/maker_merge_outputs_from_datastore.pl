@@ -6,6 +6,7 @@ use Scalar::Util qw(openhandle);
 use Time::Piece;
 use Time::Seconds;
 use Cwd;
+use Pod::Usage;
 use Getopt::Long qw(:config no_ignore_case bundling);
 use IO::File;
 use File::Basename;
