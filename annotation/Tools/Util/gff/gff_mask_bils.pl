@@ -8,15 +8,14 @@ use strict;
 use Pod::Usage;
 use Getopt::Long;
 use Bio::SeqIO ;
+use Bio::Tools::GFF;
 
 my $start_run = time();
 my $opt_HardMask;
 my $opt_SoftMask;
 my $opt_gfffile;
 my $opt_fastafile;
-use lib $ENV{ANDREASCODE} ;
 my $opt_output;
-use Private::Bio::IO::GFF;
 my $opt_help = 0;
 
 # Character for hardMask
@@ -82,23 +81,24 @@ if (defined( $opt_HardMask)){
 #### read gff file and save info in memory
 my %gff; my $nbLineRead=0;
 
-my $gffS = IO::File->new();
-$gffS->open( $opt_gfffile, 'r' ) or
-  croak(
-     sprintf( "Can not open '%s' for reading: %s", $opt_gfffile, $! ) );
-my $gff_in = Private::Bio::IO::GFF->new(istream => $gffS);
+# Manage input fasta file
+my $gff_in = Bio::Tools::GFF->new(-file => $opt_gfffile, -gff_version => 3);
+
+
 print( "Reading features from $opt_gfffile...\n");
-  while (my $feature = $gff_in->read_feature()) {
-    my $seqname=$feature->seqname();
+  while (my $feature = $gff_in->next_feature()) {
+    my $seqname=$feature->seq_id();
     my $start=$feature->start();
     my $end=$feature->end();
    	push @{$gff{uc $seqname}},"$start $end";
     $nbLineRead++;
    }
-close gffS;
+close gff_in;
 print "$nbLineRead lines read\n";
+
 #### read fasta
 my $nbFastaSeq=0;
+my $nucl_masked=0;
 my $inFasta  = Bio::SeqIO->new(-file => "$opt_fastafile" , '-format' => 'Fasta');
 
 while ($_=$inFasta->next_seq()) {
@@ -114,6 +114,7 @@ while ($_=$inFasta->next_seq()) {
       else{
 	     substr($sequence,$start-1,$end+1-$start) = $hardMaskChar x ($end+1-$start);
       }
+      $nucl_masked=$nucl_masked+($end-$start+1);
     }
 
     print $ostream ">$seqname\n";
@@ -121,6 +122,7 @@ while ($_=$inFasta->next_seq()) {
     $nbFastaSeq++;
 }
 print "$nbFastaSeq fasta sequences read.\n";
+print "$nucl_masked nucleotides masked.\n";
 my $end_run = time();
 my $run_time = $end_run - $start_run;
 print "Job done in $run_time seconds\n";
