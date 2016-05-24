@@ -201,12 +201,12 @@ mkdir $splitedData_dir;
 ######## SPiece of code base on split_gff_by_source from gmod
 my $EXPECTED_NUM_COLUMNS = 9;
 
-$in = new IO::File($out."/".$annotations_file) or die "Error reading gff3 file $out/$annotations_file: $!\n";
+my $gff_in = new IO::File($out."/".$annotations_file) or die "Error reading gff3 file $out/$annotations_file: $!\n";
 
 
 my %data = ();
 
-while (my $line = <$in>) {
+while (my $line = <$gff_in>) {
     chomp $line;
     my @tokens = split /\t+/, $line;
     next if scalar(@tokens) != $EXPECTED_NUM_COLUMNS;
