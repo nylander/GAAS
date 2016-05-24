@@ -8,6 +8,7 @@ use strict;
 use Pod::Usage;
 use Getopt::Long;
 use Bio::SeqIO ;
+use IO::File ;
 use Bio::Tools::GFF;
 
 my $start_run = time();
