@@ -205,25 +205,24 @@ mkdir $splitedData_dir;
 ######## SPiece of code base on split_gff_by_source from gmod
 
 # Manage input fasta file
-my $gffio = Bio::Tools::GFF->new(-file => $out."/".$annotations_file, -gff_version => 3);
-	
-my %handlers;
-while( my $feature = $gffio->next_feature()) {
+#my $gffio = Bio::Tools::GFF->new(-file => $out."/".$annotations_file, -gff_version => 3);
 
-		#manage handler
-		my $source_tag = lc($feature->source_tag);		
-		if(! exists ( $handlers{$source_tag} ) ) {
+exec "awk '{if(\$2 ~ /[a-zA-Z]+/) print \$0 > \"$splitedData_dir/\"\$2\".gff\"}' $out\"/\"$annotations_file";
+# my %handlers;
+# while( my $feature = $gffio->next_feature()) {
 
-			open(my $fh, '>', $splitedData_dir."/".$source_tag.".gff") or die "Could not open file '$source_tag' $!";
-			my $gffout= Bio::Tools::GFF->new(-fh => $fh, -gff_version => 3 );
-			$handlers{$source_tag}=$gffout;
-		}
+# 		#manage handler
+# 		my $source_tag = lc($feature->source_tag);		
+# 		if(! exists ( $handlers{$source_tag} ) ) {
 
-		my $gffout = $handlers{$source_tag};
-		$gffout->write_feature($feature);
-    }
+# 			open(my $fh, '>', $splitedData_dir."/".$source_tag.".gff") or die "Could not open file '$source_tag' $!";
+# 			my $gffout= Bio::Tools::GFF->new(-fh => $fh, -gff_version => 3 );
+# 			$handlers{$source_tag}=$gffout;
+# 		}
 
-
+# 		my $gffout = $handlers{$source_tag};
+# 		$gffout->write_feature($feature);
+#     }
 }
 print "All done!\n";
 
