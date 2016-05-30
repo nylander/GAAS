@@ -5,6 +5,8 @@
 # If tehre is only the level2 to build
 
 use strict;
+use warnings;
+use Time::HiRes;
 use Getopt::Long;
 use Clone 'clone';
 use Pod::Usage;
@@ -167,6 +169,7 @@ foreach my $parent (keys %Level2featuresNames){
             
             ######
             # Now print it
+            print "follow1\n";
             gtf2gff_features_in_omniscient_from_level1_id_list($hash_omniscient, \@gene_id_list, $gffout);
             print_omniscient_from_level1_id_list($hash_omniscient, \@gene_id_list, $gffout);
             $level1_alreadyAnnotated{$hash_mRNAGeneLink->{$parent}}++;
@@ -181,9 +184,9 @@ foreach my $parent (keys %Level2featuresNames){
               my $level2_feature=@{$hash_omniscient->{'level2'}{$tag}{$gene_id}}[0];
               my $level1_feature=clone($level2_feature);#create a copy of one of the level2 feature
               my $tag_level1='gene';
-              $level1_feature->primary_tag($tag_level1); # change promary tag. Assume is only gene feature !!!!
+              $level1_feature->primary_tag($tag_level1); # change primary tag. Assume is only gene feature !!!!!!!!!
               $hash_omniscient->{"level1"}{$tag_level1}{$gene_id}=$level1_feature; # push the feature in omniscient now!
-
+              
               #######
               # Manage attribute
 
@@ -193,14 +196,18 @@ foreach my $parent (keys %Level2featuresNames){
               }
 
               if($attributes){
-                manage_attributesa($level2_feature, $level1_feature);
+                manage_attributes($level2_feature, $level1_feature);
               }
 
               ######
               # Now print it
+
               gtf2gff_features_in_omniscient_from_level1_id_list($hash_omniscient, \@gene_id_list, $gffout);
+              my $start_time = [Time::HiRes::gettimeofday()];
               print_omniscient_from_level1_id_list($hash_omniscient, \@gene_id_list, $gffout);
+              my $diff = Time::HiRes::tv_interval($start_time);print "\nIn out $diff\n";
               $level1_alreadyAnnotated{$hash_mRNAGeneLink->{$parent}}++;
+              
             }      
           }
         }
@@ -227,7 +234,7 @@ foreach my $parent (keys %Level2featuresNames){
           }
 
           if($attributes){
-             manage_attributesa($level2_feature, $level1_feature);
+             manage_attributes($level2_feature, $level1_feature);
           }
 
           ######
