@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 
 package BILS::Handler::GXFhandler ;
-
+#use Time::HiRes;
 use strict;
 use Data::Dumper;
 use Exporter qw(import);
@@ -48,7 +48,7 @@ sub print_omniscient{
 	
 	my ($hash_omniscient, $gffout) = @_  ;
 
-	uri_encode($hash_omniscient);
+	uri_encode_omniscient($hash_omniscient);
 
 	#################
 	# == LEVEL 1 == #
@@ -109,17 +109,17 @@ sub print_omniscient_from_level1_id_list{
 	
 	my ($hash_omniscient, $level_id_list, $gffout) = @_  ;
 
-	uri_encode($hash_omniscient);
-
 	#################
 	# == LEVEL 1 == #
 	#################
 	foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
+
 			foreach my $id_tag_key_level1_raw (@$level_id_list){
 				my $id_tag_key_level1 = lc($id_tag_key_level1_raw);
 				if(exists ($hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1})){
+					uri_encode_one_feature($hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1});
 					$gffout->write_feature($hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1}); # print feature
-
+            
 					#################
 					# == LEVEL 2 == #
 					#################
@@ -127,50 +127,54 @@ sub print_omniscient_from_level1_id_list{
 						
 						if ( exists ($hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1} ) ){
 							foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1}}) {
+								uri_encode_one_feature($feature_level2);
 								$gffout->write_feature($feature_level2);
-					
+
 								#################
 								# == LEVEL 3 == #
 								#################
 								my $level2_ID ;
 								if($feature_level2->has_tag('ID')){
-									my @temp = $feature_level2->get_tag_values('ID');
-									$level2_ID = lc(shift @temp);
+									$level2_ID = lc($feature_level2->_tag_value('ID'));
 								}
 								elsif($feature_level2->has_tag('transcript_id')){
-									my @temp = $feature_level2->get_tag_values('transcript_id');
-									$level2_ID = lc(shift @temp);
+									$level2_ID = lc( $feature_level2->_tag_value('transcript_id'));
 								}
 								else{
 									warn "Cannot retrieve the parent feature of the following feature: ".gff_string($feature_level2);
 								}
+
 								###########
 								# Before tss
-								if ( exists ($hash_omniscient->{'level3'}{'tss'}{$level2_ID} ) ){
+								if ( exists_keys($hash_omniscient,('level3','tss',$level2_ID)) ){
 									foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{'tss'}{$level2_ID}}) {
+										uri_encode_one_feature($feature_level3);
 										$gffout->write_feature($feature_level3);
 									}
 								}
 
 								######
 								# FIRST EXON
-								if ( exists ($hash_omniscient->{'level3'}{'exon'}{$level2_ID} ) ){
+								if ( exists_keys($hash_omniscient,('level3','exon',$level2_ID)) ){
 									foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{'exon'}{$level2_ID}}) {
+										uri_encode_one_feature($feature_level3);
 										$gffout->write_feature($feature_level3);
 									}
 								}
 								###########
 								# SECOND CDS
-								if ( exists ($hash_omniscient->{'level3'}{'cds'}{$level2_ID} ) ){
+								if ( exists_keys($hash_omniscient,('level3','cds',$level2_ID)) ){
 									foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{'cds'}{$level2_ID}}) {
+										uri_encode_one_feature($feature_level3);
 										$gffout->write_feature($feature_level3);
 									}
 								}
 
 								###########
 								# Last tts
-								if ( exists ($hash_omniscient->{'level3'}{'tts'}{$level2_ID} ) ){
+								if ( exists_keys($hash_omniscient,('level3','tts',$level2_ID)) ){
 									foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{'tts'}{$level2_ID}}) {
+										uri_encode_one_feature($feature_level3);
 										$gffout->write_feature($feature_level3);
 									}
 								}
@@ -178,9 +182,10 @@ sub print_omniscient_from_level1_id_list{
 								###########
 								# The rest
 								foreach my $primary_tag_key_level3 (keys %{$hash_omniscient->{'level3'}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
-									if( ($primary_tag_key_level3 ne 'cds') and ($primary_tag_key_level3 ne 'exon') ){
+									if( ($primary_tag_key_level3 ne 'cds') and ($primary_tag_key_level3 ne 'exon') and ($primary_tag_key_level3 ne 'tss') and ($primary_tag_key_level3 ne 'tts')){
 										if ( exists ($hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID} ) ){
 											foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID}}) {
+												uri_encode_one_feature($feature_level3);
 												$gffout->write_feature($feature_level3);
 											}
 										}
@@ -972,7 +977,7 @@ sub embl_rendering{
 }
 
 # check all the attribute to URI encode the values
-sub uri_encode{
+sub uri_encode_omniscient{
 	
 	my ($hash_omniscient) = @_  ;
 
