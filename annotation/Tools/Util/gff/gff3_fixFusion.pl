@@ -600,6 +600,7 @@ sub split_gene_model{
                  
                   ########
                   # calcul utr
+                  print "Remodelate ancient gene\n";
                   my ($original_utr5_list, $variable_not_needed, $original_utr3_list) = modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop($newOrignal_exon_list, $cdsExtremStart, $cdsExtremEnd);
                   @{$tmpOmniscient->{'level3'}{'five_prime_utr'}{$id_level2}}=@$original_utr5_list;
                   @{$tmpOmniscient->{'level3'}{'three_prime_utr'}{$id_level2}}=@$original_utr3_list;
@@ -629,6 +630,10 @@ sub split_gene_model{
         # Remodelate New Prediction
         ###################################
                   #print "\nRemodelate New Prediction\n";
+                  # If newPred_exon_list list is empty we skipt the new gene modeling part
+                  if(!@$newPred_exon_list){ 
+                    next;
+                  }
                   ###############################################
                   # modelate level3 features for new prediction #
                   my ($new_pred_utr5_list, $new_pred_cds_list, $new_pred_utr3_list) = modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop($newPred_exon_list, $realORFstart, $realORFend);
@@ -676,7 +681,7 @@ sub split_gene_model{
                     #Save the gene (not necesserely new) and mRNA feature (necesseraly new)
                     append_omniscient($tmpOmniscient, \@level1_list, \@level2_list, \@level3_list); 
 
-                    #Noe we have the new transcript we can test the gene end and start
+                    #Now we have the new transcript we can test the gene end and start
                     check_gene_positions($tmpOmniscient, $gene_id);
                   }
                   else{
