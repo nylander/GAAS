@@ -122,6 +122,8 @@ sub gff3_statistics {
 		    		if(exists ($hash_omniscient->{'level3'}{$tag_l3}{$id_l2})){
 						my $sizeMultiFeat=0;
 						my $nb_multiFeature=0;
+						#Initialize intro to 0 to avoid error during printing results
+						$all_info{$tag_l2}{'level3'}{$tag_l3}{'intron'}=0;
 
 		    			foreach my $feature_l3 ( @{$hash_omniscient->{'level3'}{$tag_l3}{$id_l2}} ){
 		    				

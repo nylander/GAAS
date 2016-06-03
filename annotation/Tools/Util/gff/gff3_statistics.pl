@@ -106,15 +106,15 @@ __END__
 
 =head1 NAME
 
-gff3_checkOmniscient.pl -
+gff3_statistics.pl -
 The script take a gff3 file as input. -
 The script give basic statistics of a gff file. 
 Remark: identical feature from level1 or level2 with identical ID will be merged as well as their subsequent features (Level2 or level3).
 
 =head1 SYNOPSIS
 
-    ./gff3_checkOmniscient.pl -gff file.gff  [ -o outfile ]
-    ./gff3_checkOmniscient.pl --help
+    ./gff3_statistics.pl -gff file.gff  [ -o outfile ]
+    ./gff3_statistics.pl --help
 
 =head1 OPTIONS
 
