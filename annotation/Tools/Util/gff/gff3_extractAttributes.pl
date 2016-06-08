@@ -6,6 +6,7 @@ use Clone 'clone';
 use strict;
 use Getopt::Long;
 use Pod::Usage;
+use IO::File;
 use Data::Dumper;
 use List::MoreUtils qw(uniq);
 use Bio::Tools::GFF;
