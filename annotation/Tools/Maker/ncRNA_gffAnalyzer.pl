@@ -20,7 +20,7 @@ my $genomeSize;
 my $opt_help = 0;
 
 Getopt::Long::Configure ('bundling');
-if ( !GetOptions ('i|file|input=s' => \$inputFile,
+if ( !GetOptions ('i|file|input|gff=s' => \$inputFile,
       'o|output=s' => \$outputFile,
       'g|genome=i' => \$genomeSize,
       'h|help!'         => \$opt_help )  )
@@ -130,7 +130,7 @@ The script allows to generate a tabulated format report of repeats annotated fro
 
 =over 8
 
-=item B<-i>, B<--file> or B<--input>
+=item B<-i>, B<--gff>, B<--file> or B<--input>
 
 STRING: Input gff file that will be read.
 

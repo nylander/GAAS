@@ -11,8 +11,9 @@ use strict;
 use warnings;
 use Pod::Usage;
 use Getopt::Long;
-use lib $ENV{ANDREASCODE};
-use Private::Bio::IO::GFF;
+use Bio::Tools::GFF;
+use BILS::Handler::GXFhandler qw(:Ok);
+use BILS::Handler::GFF3handler qw(:Ok);
 
 my $start_run = time();
 
@@ -44,13 +45,9 @@ if ((!defined($inputFile)) ){
 }
 
 my $ostream     = IO::File->new();
-my $ref_istream = IO::File->new();
 
 # Manage input fasta file
-$ref_istream->open( $inputFile, 'r' ) or
-  croak(
-     sprintf( "Can not open '%s' for reading: %s", $inputFile, $! ) );
-my $ref_in = Private::Bio::IO::GFF->new(istream => $ref_istream);
+my $ref_in = Bio::Tools::GFF->new(-file => $inputFile, -gff_version => 3);
 
 # Manage Output
 if(defined($outputFile))
@@ -73,13 +70,13 @@ my $line_cpt=0;
 
 my $type_count;
 my $type_bp;
-while (my $feature = $ref_in->read_feature() ) {
+while (my $feature = $ref_in->next_feature() ) {
   $line_cpt++;
-  my $type = lc($feature->feature_type);
+  my $type = lc($feature->primary_tag);
   ## repeatMasker or repeatRunner
   if (($type eq 'match') or ($type eq 'protein_match')){
 
-     my $nameAtt=$feature->get_attribute('Name');
+     my $nameAtt=$feature->_tag_value('Name');
      my $genus=(split ":", (split /\|/, (split /\s+/,$nameAtt)[0])[-1])[-1];
      $type_count->{$genus}++;
      $type_bp->{$genus}+=($feature->end()-$feature->start())+1;
