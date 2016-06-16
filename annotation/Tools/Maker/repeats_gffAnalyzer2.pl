@@ -64,7 +64,8 @@ else{
 
 #time to calcul progression
 my $startP=time;print "start\n";
-my $nbLine=`wc -l $inputFile | cut -d' ' -f4`;
+my $nbLine=`wc -l < $inputFile`;
+$nbLine =~ s/ //g;
 chomp $nbLine;
 print "$nbLine line to process...\n";
 my $line_cpt=0;
