@@ -23,6 +23,8 @@ use BILS::Handler::GFF3handler qw(:Ok);
 use BILS::Plot::R qw(:Ok);
 
 my $SIZE_OPT=21;
+my $PREFIX_CPT_EXON=1;
+my $PREFIX_CPT_MRNA=1;
 
 my $header = qq{
 ########################################################
@@ -37,6 +39,7 @@ my $gff = undef;
 my $file_fasta=undef;
 my $stranded=undef;
 my $threshold=undef;
+my $verbose=undef;
 my $help= 0;
 
 if ( !GetOptions(
@@ -44,6 +47,7 @@ if ( !GetOptions(
     "gff=s" => \$gff,
     "fasta|fa=s" => \$file_fasta,
     "stranded|s" => \$stranded,
+    "verbose|v" => \$verbose,
     "threshold|t=i" => \$threshold,
     "output|outfile|out|o=s" => \$outfile))
 
@@ -143,7 +147,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
     my $one_level2_modified; # check if one of the level2 feature will be modified
     my $number_mrna=0;
 
-    # COPY gene and subfeatures.
+    # COPY gene and subfeatures in tmpOmniscient.
     %$tmpOmniscient = (); # empty the hash
     @$mRNAlistToTakeCare = (); # empty the list    
     my @tmpListID=($gene_id);
@@ -152,6 +156,8 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
     foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
       foreach my $level2_feature ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$gene_id}}) {
        
+        $PREFIX_CPT_MRNA=1;
+
         # get multiple info
         $number_mrna=$#{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$gene_id}}+1;
         my $id_level2 = lc($level2_feature->_tag_value('ID'));
@@ -164,6 +170,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
         if ( exists ($hash_omniscient->{'level3'}{'three_prime_utr'}{$id_level2} ) ){
           
           while($oneRoundAgain){
+            if($verbose) {print "\nNew round three_prime_utr\n";}
             my ($breakRound, $nbNewUTRgene, $mRNAlistToTakeCare) = take_care_utr('three_prime_utr', $tmpOmniscient, $mRNAlistToTakeCare, $stranded, $gffout);
             $oneRoundAgain =  $breakRound;
             $nbNewUTR3gene = $nbNewUTR3gene+$nbNewUTRgene;
@@ -175,11 +182,12 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
         my $nbNewUTR5gene=0;
         if ( exists ($hash_omniscient->{'level3'}{'five_prime_utr'}{$id_level2} ) ){
         
-        while($oneRoundAgain){
-            my ($breakRound, $nbNewUTRgene, $mRNAlistToTakeCare) = take_care_utr('five_prime_utr', $tmpOmniscient, $mRNAlistToTakeCare, $stranded, $gffout);
-            $oneRoundAgain =  $breakRound;
-            $nbNewUTR5gene = $nbNewUTR5gene+$nbNewUTRgene;
-          }
+          while($oneRoundAgain){
+              if($verbose) { print "\nNew round five_prime_utr\n";}
+              my ($breakRound, $nbNewUTRgene, $mRNAlistToTakeCare) = take_care_utr('five_prime_utr', $tmpOmniscient, $mRNAlistToTakeCare, $stranded, $gffout);
+              $oneRoundAgain =  $breakRound;
+              $nbNewUTR5gene = $nbNewUTR5gene+$nbNewUTRgene;
+            }
         }
         ##########################
         #If UTR not well defined #
@@ -195,7 +203,6 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
           $mRNACounter_fixed++; # Count only mRNA modified
         }
         @$mRNAlistToTakeCare = (); # empty the list
-        #print "ONLY ONE ROUND TO CHECK !\n";print_omniscient($tmpOmniscient, $gffout2); exit;
       } # End foreach mRNA
 
       if($oneMRNAmodified){
@@ -264,181 +271,323 @@ sub take_care_utr{
   my $nbNewUTRgene=0;      
 
   foreach my $primary_tag_key_level1 (keys %{$tmpOmniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
-  foreach my $gene_id (keys %{$tmpOmniscient->{'level1'}{$primary_tag_key_level1}}){
-    
-  my $gene_feature=$tmpOmniscient->{'level1'}{$primary_tag_key_level1}{$gene_id};
-  my $gene_id = lc($gene_feature->_tag_value('ID'));  
-  #print "\ntake care utr GeneID = $gene_id\n";
-
-  foreach my $primary_tag_key_level2 (keys %{$tmpOmniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
-    foreach my $level2_feature ( @{$tmpOmniscient->{'level2'}{$primary_tag_key_level2}{$gene_id}}) {
+    foreach my $gene_id (sort keys %{$tmpOmniscient->{'level1'}{$primary_tag_key_level1}}){
       
-      my $id_level2=lc($level2_feature->_tag_value('ID'));   
-      foreach my $mRNAtoTakeCare (@{$mRNAlistToTakeCare}){
-        #print "id_level2 -- $id_level2 ***** to take_care -- $mRNAtoTakeCare  \n";
-        if($mRNAtoTakeCare eq $id_level2){ # ok is among the list of those to analyze
+    my $gene_feature=$tmpOmniscient->{'level1'}{$primary_tag_key_level1}{$gene_id};
+    my $gene_id = lc($gene_feature->_tag_value('ID'));  
+    #print "\ntake care utr GeneID = $gene_id\n";
 
-          if(exists ($tmpOmniscient->{'level3'}{$utr_tag}) and exists ($tmpOmniscient->{'level3'}{$utr_tag}{$id_level2}) ){
-            
-            ##################################################
-            # extract the concatenated exon and cds sequence #
-            my $oppDir=undef;
-            my $original_strand=$level2_feature->strand;
-            ###############
-            # Manage UTRS #
-            my @utr_feature_list = sort {$a->start <=> $b->start} @{$tmpOmniscient->{'level3'}{$utr_tag}{$id_level2}}; # be sure that list is sorted
-            my ($utrExtremStart, $utr_seq, $utrExtremEnd) = concatenate_feature_list(\@utr_feature_list);        
-            #create the utr object
-            my $utr_obj = Bio::Seq->new(-seq => $utr_seq, -alphabet => 'dna' );
-            
-            #Reverse complement according to strand
-            if ($original_strand == -1 or $original_strand eq "-"){
-              $utr_obj = $utr_obj->revcom();
-            }
-            
-            # get the revcomp
-            my $opposite_utr_obj = $utr_obj->revcom();
-
-
-            my $longest_ORF_prot_obj;
-            my $orf_utr_region;
-            #################################
-            # Get the longest ORF positive ## record ORF = start, end (half-open), length, and frame
-            my $longest_ORF_prot_obj_p;
-            my $orf_utr_region_p;
-            my ($longest_ORF_prot_objM, $orf_utr_regionM) = translate_JD($utr_obj, 
-                                                                        -nostartbyaa => 'L',
-                                                                        -orf => 'longest');
-            my ($longest_ORF_prot_objL, $orf_utr_regionL) = translate_JD($utr_obj, 
-                                                                        -nostartbyaa => 'M',
-                                                                        -orf => 'longest');
-            if($longest_ORF_prot_objL->length()+$SIZE_OPT > $longest_ORF_prot_objM ){ # In a randomly generated DNA sequence with an equal percentage of each nucleotide, a stop-codon would be expected once every 21 codons. Deonier et al. 2005
-              $longest_ORF_prot_obj_p=$longest_ORF_prot_objL;                    # As Leucine L (9/100) occur more often than Metionine M (2.4) JD arbitrary choose to use the L only if we strength the sequence more than 21 AA. Otherwise we use M start codon.
-              $orf_utr_region_p=$orf_utr_regionL;
-              $counter_case21++;
-            }else{
-              $longest_ORF_prot_obj_p=$longest_ORF_prot_objM;
-              $orf_utr_region_p=$orf_utr_regionM;
-            }
-            #print "Best same strand as original mRNA = ".$longest_ORF_prot_obj_p->length()."\n";
-           
-            ########################################
-            # Get the longest ORF opposite strand ## record ORF = start, end (half-open), length, and frame
-            my $length_longest_ORF_prot_obj_n=0;
-            my $longest_ORF_prot_obj_n;
-            my $orf_utr_region_n;
-            
-            if(! $stranded){
-
-              my ($longest_ORF_prot_objM, $orf_utr_regionM) = translate_JD($opposite_utr_obj, 
-                                                                          -nostartbyaa => 'L',
-                                                                          -orf => 'longest');
-              my ($longest_ORF_prot_objL, $orf_utr_regionL) = translate_JD($opposite_utr_obj, 
-                                                                          -nostartbyaa => 'M',
-                                                                          -orf => 'longest');
-              if($longest_ORF_prot_objL->length()+$SIZE_OPT > $longest_ORF_prot_objM ){ # In a randomly generated DNA sequence with an equal percentage of each nucleotide, a stop-codon would be expected once every 21 codons. Deonier et al. 2005
-                $longest_ORF_prot_obj_n=$longest_ORF_prot_objL;                    # As Leucine L (9/100) occur more often than Metionine M (2.4) JD arbitrary choose to use the L only if we strength the sequence more than 21 AA. Otherwise we use M start codon.
-                $orf_utr_region_n=$orf_utr_regionL;
-                $counter_case21++;
-              }else{
-                $longest_ORF_prot_obj_n=$longest_ORF_prot_objM;
-                $orf_utr_region_n=$orf_utr_regionM;
-              }
-              $length_longest_ORF_prot_obj_n = $longest_ORF_prot_obj_n->length();
-              #print "Best opposite strand as original mRNA = ".$longest_ORF_prot_obj_n->length()."\n";
-            }
-
-            #################
-            # Choose the best
-            if($longest_ORF_prot_obj_p->length() >= $length_longest_ORF_prot_obj_n){
-              $longest_ORF_prot_obj= $longest_ORF_prot_obj_p;
-              $orf_utr_region= $orf_utr_region_p;
-              #print "positive $id_level2 !!\n";
-            }else{
-              #print "Negative  $id_level2 !!\n";
-              $longest_ORF_prot_obj= $longest_ORF_prot_obj_n;
-              $orf_utr_region= $orf_utr_region_n;
-              $oppDir=1;
-              #my @cds_feature_list = sort {$a->start <=> $b->start} @{$tmpOmniscient->{'level3'}{'cds'}{$id_level2}}; # be sure that list is sorted
-              #($cdsExtremStart, $cds_dna_seq, $cdsExtremEnd) = concatenate_feature_list($cds_feature_list); # we have to change these value because it was not predicted as same direction as mRNA
-            }
-
-
-            ########################
-            # prediction is longer than threshold#
-            if($longest_ORF_prot_obj->length() > $threshold){
-              print "$gene_id Longer AA in utr = ".$longest_ORF_prot_obj->length()."\n".$longest_ORF_prot_obj->seq."\n\n";
-               
-              my @exons_features = sort {$a->start <=> $b->start} @{$tmpOmniscient->{'level3'}{'exon'}{$id_level2}};# be sure that list is sorted
-              my ($exonExtremStart, $mrna_seq, $exonExtremEnd) = concatenate_feature_list(\@exons_features); 
-             
-              my @cds_feature_list = sort {$a->start <=> $b->start} @{$tmpOmniscient->{'level3'}{'cds'}{$id_level2}}; # be sure that list is sorted  
-              my ($cdsExtremStart, $cds_dna_seq, $cdsExtremEnd) = concatenate_feature_list(\@cds_feature_list);
-
-              # set real start and stop to orf
-              my $realORFstart;
-              my $realORFend;
-              #print "mRNA length: ".length($mrna_seq)."  UTR length: ".length($utr_seq)."\n";
-              #print "start in UTR piece ".$orf_utr_region->[0]." end ".$orf_utr_region->[1]."\n";
-              ####################################
-              # Recreate position of start in mRNA positive strand
-              my $startUTRinMRNA=length($mrna_seq) - length($utr_seq);
-              if ($utr_tag eq 'three_prime_utr' ){    
-                if($original_strand == 1 or $original_strand eq "+" ){
-                  if(! $oppDir){
-                    $orf_utr_region->[0]=$orf_utr_region->[0]+($startUTRinMRNA);
-                  }
-                  else{ #opposite direction
-                    $orf_utr_region->[0]=length($mrna_seq) - $orf_utr_region->[1]; 
-                  }
-                }
-                else{ #minus strand
-                    if(! $oppDir){
-                      $orf_utr_region->[0]=length($utr_seq) - $orf_utr_region->[1]; #flip position
-                    }
-                }
-              }
-              elsif ($utr_tag eq 'five_prime_utr'){
-                if($original_strand == 1 or $original_strand eq "+"){
-                  if($oppDir){
-                    $orf_utr_region->[0]=length($utr_seq) - $orf_utr_region->[1];
-                  }
-                }
-                else{ #minus strand
-                  if(! $oppDir){
-                    $orf_utr_region->[0]=(length($utr_seq) - $orf_utr_region->[1])+($startUTRinMRNA);
-                  }
-                  else{ #opposite direction
-                     $orf_utr_region->[0]=$orf_utr_region->[0]+($startUTRinMRNA);
-                  }
-                }
-              }
-
+      foreach my $primary_tag_key_level2 (sort keys %{$tmpOmniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
+        foreach my $level2_feature ( @{$tmpOmniscient->{'level2'}{$primary_tag_key_level2}{$gene_id}}) {
+          
+          my $id_level2=lc($level2_feature->_tag_value('ID'));   
+          foreach my $mRNAtoTakeCare (@{$mRNAlistToTakeCare}){
+            #print "id_level2 -- $id_level2 ***** to take_care -- $mRNAtoTakeCare  \n";
+            if($mRNAtoTakeCare eq $id_level2){ # ok is among the list of those to analyze
+              if($verbose) { print "id_level2 -- $id_level2 ***** to take_care -- $mRNAtoTakeCare  \n";}
+              if(exists ($tmpOmniscient->{'level3'}{$utr_tag}) and exists ($tmpOmniscient->{'level3'}{$utr_tag}{$id_level2}) ){
                 
-              #print "Real start in UTR piece ".$orf_utr_region->[0]." end ".$orf_utr_region->[1]."\n";
-              #calcul the real start end stop of utr in genome  
-              ($realORFstart, $realORFend) = calcul_real_orf_end_and_start($orf_utr_region, \@exons_features);
-              #print "start: $realORFstart end: $realORFend\n"; 
-   
-              #save the real start and stop
-              $orf_utr_region->[0]=$realORFstart;
-              $orf_utr_region->[1]=$realORFend;       
+                ##################################################
+                # extract the concatenated exon and cds sequence #
+                my $oppDir=undef;
+                my $original_strand=$level2_feature->strand;
+                ###############
+                # Manage UTRS #
+                my @utr_feature_list = sort {$a->start <=> $b->start} @{$tmpOmniscient->{'level3'}{$utr_tag}{$id_level2}}; # be sure that list is sorted
+                my ($utrExtremStart, $utr_seq, $utrExtremEnd) = concatenate_feature_list(\@utr_feature_list);        
+                #create the utr object
+                my $utr_obj = Bio::Seq->new(-seq => $utr_seq, -alphabet => 'dna' );
+                
+                #Reverse complement according to strand
+                if ($original_strand == -1 or $original_strand eq "-"){
+                  $utr_obj = $utr_obj->revcom();
+                }
+                
+                # get the revcomp
+                my $opposite_utr_obj = $utr_obj->revcom();
 
-              # Now manage splitting the old gene to obtain two genes
-              $mRNAlistToTakeCare = split_gene_model($tmpOmniscient, $gene_feature, $level2_feature, \@exons_features, \@cds_feature_list, $cdsExtremStart, $cdsExtremEnd, $realORFstart, $realORFend, $oppDir, $mRNAlistToTakeCare, $gffout);
-              #print Dumper($tmpOmniscient)."\n";
-              $oneRoundAgain="yes";
-              $nbNewUTRgene++;
-            } # We predict something in UTR
-          } # End there is UTR
-        } 
+
+                my $longest_ORF_prot_obj;
+                my $orf_utr_region;
+                #################################
+                # Get the longest ORF positive ## record ORF = start, end (half-open), length, and frame
+                my $longest_ORF_prot_obj_p;
+                my $orf_utr_region_p;
+                my ($longest_ORF_prot_objM, $orf_utr_regionM) = translate_JD($utr_obj, 
+                                                                            -nostartbyaa => 'L',
+                                                                            -orf => 'longest');
+                my ($longest_ORF_prot_objL, $orf_utr_regionL) = translate_JD($utr_obj, 
+                                                                            -nostartbyaa => 'M',
+                                                                            -orf => 'longest');
+                if($longest_ORF_prot_objL->length()+$SIZE_OPT > $longest_ORF_prot_objM ){ # In a randomly generated DNA sequence with an equal percentage of each nucleotide, a stop-codon would be expected once every 21 codons. Deonier et al. 2005
+                  $longest_ORF_prot_obj_p=$longest_ORF_prot_objL;                    # As Leucine L (9/100) occur more often than Metionine M (2.4) JD arbitrary choose to use the L only if we strength the sequence more than 21 AA. Otherwise we use M start codon.
+                  $orf_utr_region_p=$orf_utr_regionL;
+                  $counter_case21++;
+                }else{
+                  $longest_ORF_prot_obj_p=$longest_ORF_prot_objM;
+                  $orf_utr_region_p=$orf_utr_regionM;
+                }
+               
+                ########################################
+                # Get the longest ORF opposite strand ## record ORF = start, end (half-open), length, and frame
+                my $length_longest_ORF_prot_obj_n=0;
+                my $longest_ORF_prot_obj_n;
+                my $orf_utr_region_n;
+                
+                if(! $stranded){
+
+                  my ($longest_ORF_prot_objM, $orf_utr_regionM) = translate_JD($opposite_utr_obj, 
+                                                                              -nostartbyaa => 'L',
+                                                                              -orf => 'longest');
+                  my ($longest_ORF_prot_objL, $orf_utr_regionL) = translate_JD($opposite_utr_obj, 
+                                                                              -nostartbyaa => 'M',
+                                                                              -orf => 'longest');
+                  if($longest_ORF_prot_objL->length()+$SIZE_OPT > $longest_ORF_prot_objM ){ # In a randomly generated DNA sequence with an equal percentage of each nucleotide, a stop-codon would be expected once every 21 codons. Deonier et al. 2005
+                    $longest_ORF_prot_obj_n=$longest_ORF_prot_objL;                    # As Leucine L (9/100) occur more often than Metionine M (2.4) JD arbitrary choose to use the L only if we strength the sequence more than 21 AA. Otherwise we use M start codon.
+                    $orf_utr_region_n=$orf_utr_regionL;
+                    $counter_case21++;
+                  }else{
+                    $longest_ORF_prot_obj_n=$longest_ORF_prot_objM;
+                    $orf_utr_region_n=$orf_utr_regionM;
+                  }
+                  $length_longest_ORF_prot_obj_n = $longest_ORF_prot_obj_n->length();
+                }
+
+                #################
+                # Choose the best
+                if($longest_ORF_prot_obj_p->length() >= $length_longest_ORF_prot_obj_n){
+                  $longest_ORF_prot_obj= $longest_ORF_prot_obj_p;
+                  $orf_utr_region= $orf_utr_region_p;
+                }
+                else{
+                  $longest_ORF_prot_obj= $longest_ORF_prot_obj_n;
+                  $orf_utr_region= $orf_utr_region_n;
+                  $oppDir=1;
+                  #my @cds_feature_list = sort {$a->start <=> $b->start} @{$tmpOmniscient->{'level3'}{'cds'}{$id_level2}}; # be sure that list is sorted
+                  #($cdsExtremStart, $cds_dna_seq, $cdsExtremEnd) = concatenate_feature_list($cds_feature_list); # we have to change these value because it was not predicted as same direction as mRNA
+                }
+
+
+                ########################
+                # prediction is longer than threshold#
+                if($longest_ORF_prot_obj->length() > $threshold){
+
+                  if($verbose) {print "Longer AA in utr = ".$longest_ORF_prot_obj->length()."\n".$longest_ORF_prot_obj->seq."\n";}
+                   
+                  my @exons_features = sort {$a->start <=> $b->start} @{$tmpOmniscient->{'level3'}{'exon'}{$id_level2}};# be sure that list is sorted
+                  my ($exonExtremStart, $mrna_seq, $exonExtremEnd) = concatenate_feature_list(\@exons_features); 
+
+                  my @cds_feature_list = sort {$a->start <=> $b->start} @{$tmpOmniscient->{'level3'}{'cds'}{$id_level2}}; # be sure that list is sorted  
+                  my ($cdsExtremStart, $cds_dna_seq, $cdsExtremEnd) = concatenate_feature_list(\@cds_feature_list);
+
+                  # set real start and stop to orf
+                  my $realORFstart;
+                  my $realORFend;
+                  #print "mRNA length: ".length($mrna_seq)."  UTR length: ".length($utr_seq)."\n";
+                  #print "start in UTR piece ".$orf_utr_region->[0]." end ".$orf_utr_region->[1]."\n";
+
+                  ####################################
+                  # Recreate position of start in mRNA positive strand
+                  my $startUTRinMRNA=length($mrna_seq) - length($utr_seq);
+                  if ($utr_tag eq 'three_prime_utr' ){    
+                    if($original_strand == 1 or $original_strand eq "+" ){
+                      if(! $oppDir){
+                        $orf_utr_region->[0]=$orf_utr_region->[0]+($startUTRinMRNA);
+                      }
+                      else{ #opposite direction
+                        $orf_utr_region->[0]=length($mrna_seq) - $orf_utr_region->[1]; 
+                      }
+                    }
+                    else{ #minus strand
+                        if(! $oppDir){
+                          $orf_utr_region->[0]=length($utr_seq) - $orf_utr_region->[1]; #flip position
+                        }
+                    }
+                  }
+                  elsif ($utr_tag eq 'five_prime_utr'){
+                    if($original_strand == 1 or $original_strand eq "+"){
+                      if($oppDir){
+                        $orf_utr_region->[0]=length($utr_seq) - $orf_utr_region->[1];
+                      }
+                    }
+                    else{ #minus strand
+                      if(! $oppDir){
+                        $orf_utr_region->[0]=(length($utr_seq) - $orf_utr_region->[1])+($startUTRinMRNA);
+                      }
+                      else{ #opposite direction
+                         $orf_utr_region->[0]=$orf_utr_region->[0]+($startUTRinMRNA);
+                      }
+                    }
+                  }
+
+                  #calcul the real start end stop of utr in genome  
+                  ($realORFstart, $realORFend) = calcul_real_orf_end_and_start($orf_utr_region, \@exons_features);
+       
+                  #save the real start and stop
+                  $orf_utr_region->[0]=$realORFstart;
+                  $orf_utr_region->[1]=$realORFend;       
+
+                  # Now manage splitting the old gene to obtain two genes
+                  $mRNAlistToTakeCare = split_gene_model($tmpOmniscient, $gene_feature, $level2_feature, \@exons_features, \@cds_feature_list, $cdsExtremStart, $cdsExtremEnd, $realORFstart, $realORFend, $oppDir, $mRNAlistToTakeCare, $gffout);
+
+                  $oneRoundAgain="yes";
+                  $nbNewUTRgene++;
+                } # We predict something in UTR
+                else{ if($verbose) { print "Nothing predicted over threshold :". $longest_ORF_prot_obj->length()." ! Next\n";} }
+              } # End there is UTR
+              else{ if($verbose) {print "There is no UTR ! Next\n";} }
+            } 
+            #else{print "Not among the list mRNAtoTakeCare. Next \n";}
+          }
+        }
       }
     }
   }
-  }
-  }
   return $oneRoundAgain, $nbNewUTRgene, $mRNAlistToTakeCare;
 }        
+
+############ /!\
+# P.S: To be perfect, when a gene is newly created, we should verify if it is not created where another one has already been created. If yes, the should be linked together !!
+############
+sub split_gene_model{
+
+   my ($tmpOmniscient, $gene_feature, $level2_feature, $exons_features, $cds_feature_list, $cdsExtremStart, $cdsExtremEnd, $realORFstart, $realORFend, $oppDir, $mRNAlistToTakeCare, $gffout)=@_;
+
+      my $gene_id = $gene_feature->_tag_value('ID');  
+      my $id_level2 = lc($level2_feature->_tag_value('ID'));
+      my $newcontainerUsed=0;
+
+                  ######################
+                  # Recreate exon list #
+                  my $bolean_original_is_first;
+                  my $first_end;
+                  my $second_start;
+                  #if new prediction after on the sequence
+                  if($realORFstart >= $cdsExtremEnd){
+                    $bolean_original_is_first="true";
+                    $first_end=$cdsExtremEnd;
+                    $second_start=$realORFstart;
+                  }else{ # ($realORFend < $cdsExtremStart)
+                    $bolean_original_is_first="false";
+                    $first_end=$realORFend;
+                    $second_start=$cdsExtremStart;
+                  }
+                  my ($newOrignal_exon_list, $newPred_exon_list) = create_two_exon_lists($tmpOmniscient, $exons_features, $first_end, $second_start, $bolean_original_is_first, $oppDir);
+                 
+        ####################################
+        # Remodelate ancient gene
+        ####################################
+                  if($verbose) { print "Remodelate ancient gene\n"; }
+                  #############################################################
+                  #  Remove all level3 feature execept cds
+                  my @tag_list=('cds');
+                  my @l2_id_list=($id_level2);
+                  remove_tuple_from_omniscient(\@l2_id_list, $tmpOmniscient, 'level3', 'false', \@tag_list);
+                             
+
+                  #############
+                  # Recreate original exon 
+                  @{$tmpOmniscient->{'level3'}{'exon'}{$id_level2}}=@$newOrignal_exon_list;
+
+                  #########
+                  #RE-SHAPE last/first exon if less than 3 nucleotides (1  or 2 must be romved) when the CDS finish 1 or 2 nuclotide before... because cannot be defined as UTR
+                  shape_exon_extremity($newOrignal_exon_list,$cds_feature_list);
+                 
+                  ########
+                  # calcul utr
+                  if($verbose) { print "Remodelate ancient gene ($gene_id)".$gene_feature->start." ".$gene_feature->end."\n";}
+
+                  my ($original_utr5_list, $variable_not_needed, $original_utr3_list) = modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop($newOrignal_exon_list, $cdsExtremStart, $cdsExtremEnd);
+                  @{$tmpOmniscient->{'level3'}{'five_prime_utr'}{$id_level2}}=@$original_utr5_list;
+                  @{$tmpOmniscient->{'level3'}{'three_prime_utr'}{$id_level2}}=@$original_utr3_list;
+
+
+                  ####
+                  # Check existance
+                  my ($new_gene, $new_mrna, $overlaping_gene_ft, $overlaping_mrna_ft) = must_be_a_new_gene_new_mrna($tmpOmniscient, $cds_feature_list, $newOrignal_exon_list);
+
+
+                  if ($new_mrna){
+                    #########
+                    #RE-SHAPE mrna extremities
+                    check_mrna_positions($level2_feature, $newOrignal_exon_list);
+
+                  }
+                  else{
+                    if($verbose) { print "*** remove IT *** because exon and CDS IDENTIK ! $id_level2 \n"; }
+                    my @l2_feature_list=($level2_feature);
+                    remove_omniscient_elements_from_level2_feature_list($tmpOmniscient, \@l2_feature_list);
+                  }
+                  
+                  #########
+                  #RE-SHAPE gene extremities
+                  check_gene_positions($tmpOmniscient, $gene_id);
+
+        ###################################
+        # Remodelate New Prediction
+        ###################################
+                  if($verbose) { print "Remodelate New Prediction\n"; }
+                  # If newPred_exon_list list is empty we skipt the new gene modeling part
+                  #if(!@$newPred_exon_list){ 
+                  #  next;
+                  #}
+                  ###############################################
+                  # modelate level3 features for new prediction #
+                  my ($new_pred_utr5_list, $new_pred_cds_list, $new_pred_utr3_list) = modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop($newPred_exon_list, $realORFstart, $realORFend);
+
+                  ####################################
+                  #RE-SHAPE last/first exon if less than 3 nucleotides (1  or 2 must be romved) when the CDS finish 1 or 2 nuclotide before... because cannot be defined as UTR
+                  shape_exon_extremity($newPred_exon_list, $new_pred_cds_list);  
+
+                  my @level1_list;
+                  my @level2_list;
+                  my @level3_list;
+                  my $transcript_id = $newPred_exon_list->[0]->_tag_value('Parent');
+                  #############################################
+                  # Modelate gene features for new prediction #
+                  
+                  # $containerUsed exist when we already use the gene container. So in the case where we have only one mRNA, the split will give 2 mRNA. One is linked to the original gene container (done before)
+                  # The second must be linked to a new gene container. So, even if must_be_a_new_gene method say no, we must create it because the original one has been already used.         
+                  my ($new_gene, $new_mrna, $overlaping_gene_ft, $overlaping_mrna_ft) = must_be_a_new_gene_new_mrna($tmpOmniscient, $new_pred_cds_list, $newPred_exon_list);
+                  if ( $new_gene ){
+                    #print "create_a_new_gene for ".$transcript_id." !!!! 2\n";
+                    $newcontainerUsed++;
+                    $gene_id = take_care_gene_id($gene_id, $tmpOmniscient);
+                    my $new_gene_feature = Bio::SeqFeature::Generic->new(-seq_id => $newPred_exon_list->[0]->seq_id, -source_tag => $newPred_exon_list->[0]->source_tag, -primary_tag => 'gene' , -start => $newPred_exon_list->[0]->start,  -end => $newPred_exon_list->[$#{$newPred_exon_list}]->end, -frame => $newPred_exon_list->[0]->frame, -strand => $newPred_exon_list->[0]->strand , -tag => { 'ID' => $gene_id }) ;
+                    @level1_list=($new_gene_feature);
+                    
+                  }
+                  else{ #the new mRNA still overlap an isoform. So we keep the link with the original gene  
+                    
+                    # change gene ID
+                    $gene_id = $overlaping_gene_ft->_tag_value('ID');
+                    #print "We use $gene_id\n";
+                    check_gene_positions($tmpOmniscient, $gene_id);
+                    @level1_list=($overlaping_gene_ft);
+                  }
+
+                  #############################################
+                  # Modelate mRNA features for new prediction #
+                  if ( $new_mrna ){
+                    my $new_mRNA_feature = Bio::SeqFeature::Generic->new(-seq_id => $newPred_exon_list->[0]->seq_id, -source_tag => $newPred_exon_list->[0]->source_tag, -primary_tag => 'mRNA' , -start => $newPred_exon_list->[0]->start,  -end => $newPred_exon_list->[$#{$newPred_exon_list}]->end, -frame => $newPred_exon_list->[0]->frame, -strand => $newPred_exon_list->[0]->strand , -tag => { 'ID' => $transcript_id , 'Parent' => $gene_id }) ;
+                    push (@$mRNAlistToTakeCare, lc($transcript_id));
+                    @level2_list=($new_mRNA_feature);
+
+                    @level3_list=(@$newPred_exon_list, @$new_pred_cds_list, @$new_pred_utr5_list, @$new_pred_utr3_list);
+                    
+                    #Save the gene (not necesserely new) and mRNA feature (necesseraly new)
+                    append_omniscient($tmpOmniscient, \@level1_list, \@level2_list, \@level3_list); 
+
+                    #Now we have the new transcript we can test the gene end and start
+                    check_gene_positions($tmpOmniscient, $gene_id);
+                  }
+                  else{
+                    print "*** Not creating mRNA *** because exon and CDS IDENTIK ! \n";
+                  }
+
+  return $mRNAlistToTakeCare;
+}
+
 
 #create an Uniq gene ID
 sub take_care_gene_id{
@@ -499,7 +648,6 @@ sub take_care_mrna_id {
 
       #count current gene number - should be one if first analysis
       my %id_to_avoid;
-      my $numberOfNewMrna=1;
 
       foreach my $primary_tag_key_level1 (keys %{$tmpOmniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
         foreach my $gene_id_from_hash (keys %{$tmpOmniscient->{'level1'}{$primary_tag_key_level1}}){
@@ -509,7 +657,7 @@ sub take_care_mrna_id {
                 my $mrna_id_from_hash=$featureL2->_tag_value('ID');
                 if($mrna_id_from_hash =~ /(new[1-9]+_)/){
                   $id_to_avoid{lc($mrna_id_from_hash)};
-                  $numberOfNewMrna++;
+                  $PREFIX_CPT_MRNA++;
                 }     
               }
             }
@@ -519,7 +667,7 @@ sub take_care_mrna_id {
 
       my $testok=undef;
       my $nbToadd=-1;
-      my $numberMRNA_IDToCheck=$numberOfNewMrna;
+      my $numberMRNA_IDToCheck=$PREFIX_CPT_MRNA;
       my $new_id;
       while (! $testok){
         my $newPrefix="new".$numberMRNA_IDToCheck."_";
@@ -530,7 +678,7 @@ sub take_care_mrna_id {
         }
         else{
           if($numberMRNA_IDToCheck == 1){
-            $nbToadd=1;$numberMRNA_IDToCheck=$numberOfNewMrna;
+            $nbToadd=1;$numberMRNA_IDToCheck=$PREFIX_CPT_MRNA;
           }
           $numberMRNA_IDToCheck=$numberMRNA_IDToCheck+$nbToadd;}
       }
@@ -540,156 +688,47 @@ sub take_care_mrna_id {
 }
 
 #As based on a Uniq mRNA ID, this will create a Uniq ID;
+#PREFIX_CPT_EXON allows to kepp track of name already given during a exon list spliting
 sub take_care_level3_id {
 
-      my ($level3_id, $value) = @_;
+      my ($tmpOmniscient, $feature) = @_;
 
       #clean geneid if necessary
+      my $level3_id = $feature->_tag_value('ID');
       $level3_id =~ /^(new[0-9]+_)?(.*)$/;
       my $clean_id=$2;
-      my $newPrefix="new".$value."_";
+      my $newPrefix="new".$PREFIX_CPT_EXON."_";
       my $new_id="$newPrefix$clean_id";
 
+
+      my $primary_tag = lc($feature->primary_tag);
+
+      while(ID_exists_at_level3($tmpOmniscient, $new_id, $primary_tag )){
+        $PREFIX_CPT_EXON++;
+        $new_id =~ /^(new[0-9]+_)?(.*)$/;
+        my $clean_id=$2;
+        my $newPrefix="new".$PREFIX_CPT_EXON."_";
+        $new_id="$newPrefix$clean_id";
+      }
   return $new_id;
 }
 
-############ /!\
-# P.S: To be perfect, when a gene is newly created, we should verify if it is not created where another one has already been created. If yes, the should be linked together !!
-############
-sub split_gene_model{
+#return undef if the ID is not existing in tmpOmniscient
+sub ID_exists_at_level3{
 
-   my ($tmpOmniscient, $gene_feature, $level2_feature, $exons_features, $cds_feature_list, $cdsExtremStart, $cdsExtremEnd, $realORFstart, $realORFend, $oppDir, $mRNAlistToTakeCare, $gffout)=@_;
+  my ($tmpOmniscient, $ID, $primary_tag ) = @_;
+  
+  my $result=undef;
+      foreach my $level2_ID (keys %{$tmpOmniscient->{'level3'}{$primary_tag}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
 
-      my $gene_id = $gene_feature->_tag_value('ID');  
-      my $id_level2 = lc($level2_feature->_tag_value('ID'));
-      my $newcontainerUsed=0;
-
-                  ######################
-                  # Recreate exon list #
-                  my $bolean_original_is_first;
-                  my $first_end;
-                  my $second_start;
-                  #if new prediction after on the sequence
-                  if($realORFstart >= $cdsExtremEnd){
-                    $bolean_original_is_first="true";
-                    $first_end=$cdsExtremEnd;
-                    $second_start=$realORFstart;
-                  }else{ # ($realORFend < $cdsExtremStart)
-                    $bolean_original_is_first="false";
-                    $first_end=$realORFend;
-                    $second_start=$cdsExtremStart;
-                  }
-                  my ($newOrignal_exon_list, $newPred_exon_list) = create_two_exon_lists($tmpOmniscient, $exons_features, $first_end, $second_start, $bolean_original_is_first, $oppDir);
-
-        ####################################
-        # Remodelate ancient gene
-        ####################################
-                  # print "Remodelate ancient gene\n";
-                  #############################################################
-                  #  Remove all level3 feature execept cds
-                  my @tag_list=('cds');
-                  my @l2_id_list=($id_level2);
-                  remove_tuple_from_omniscient(\@l2_id_list, $tmpOmniscient, 'level3', 'false', \@tag_list);
-                  #############
-                  # Recreate original exon 
-                  @{$tmpOmniscient->{'level3'}{'exon'}{$id_level2}}=@$newOrignal_exon_list;
-
-                  #########
-                  #RE-SHAPE last/first exon if less than 3 nucleotides (1  or 2 must be romved) when the CDS finish 1 or 2 nuclotide before... because cannot be defined as UTR
-                  shape_exon_extremity($newOrignal_exon_list,$cds_feature_list);
-                 
-                  ########
-                  # calcul utr
-                  print "Remodelate ancient gene\n";
-                  my ($original_utr5_list, $variable_not_needed, $original_utr3_list) = modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop($newOrignal_exon_list, $cdsExtremStart, $cdsExtremEnd);
-                  @{$tmpOmniscient->{'level3'}{'five_prime_utr'}{$id_level2}}=@$original_utr5_list;
-                  @{$tmpOmniscient->{'level3'}{'three_prime_utr'}{$id_level2}}=@$original_utr3_list;
-
-                  ####
-                  # Check existance
-                  my ($new_gene, $new_mrna, $overlaping_gene_ft, $overlaping_mrna_ft) = must_be_a_new_gene_new_mrna($tmpOmniscient, $cds_feature_list, $newOrignal_exon_list);
-                  if ($new_mrna){
-                    #########
-                    #RE-SHAPE mrna extremities
-                    check_mrna_positions($level2_feature, $newOrignal_exon_list);
-
-                  }
-                  else{
-                    print "*** remove IT *** because exon and CDS IDENTIK ! $id_level2 \n";
-                    my @l2_feature_list=($level2_feature);
-                    remove_omniscient_elements_from_level2_feature_list($tmpOmniscient, \@l2_feature_list);
-                  }
-                  
-                  #########
-                  #RE-SHAPE gene extremities
-                  check_gene_positions($tmpOmniscient, $gene_id);
-
-
-                  
-        ###################################
-        # Remodelate New Prediction
-        ###################################
-                  #print "\nRemodelate New Prediction\n";
-                  # If newPred_exon_list list is empty we skipt the new gene modeling part
-                  if(!@$newPred_exon_list){ 
-                    next;
-                  }
-                  ###############################################
-                  # modelate level3 features for new prediction #
-                  my ($new_pred_utr5_list, $new_pred_cds_list, $new_pred_utr3_list) = modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop($newPred_exon_list, $realORFstart, $realORFend);
-
-                  ####################################
-                  #RE-SHAPE last/first exon if less than 3 nucleotides (1  or 2 must be romved) when the CDS finish 1 or 2 nuclotide before... because cannot be defined as UTR
-                  shape_exon_extremity($newPred_exon_list, $new_pred_cds_list);  
-
-                  my @level1_list;
-                  my @level2_list;
-                  my @level3_list;
-                  my $transcript_id = $newPred_exon_list->[0]->_tag_value('Parent');
-                  #############################################
-                  # Modelate gene features for new prediction #
-                  
-                  # $containerUsed exist when we already use the gene container. So in the case where we have only one mRNA, the split will give 2 mRNA. One is linked to the original gene container (done before)
-                  # The second must be linked to a new gene container. So, even if must_be_a_new_gene method say no, we must create it because the original one has been already used.         
-                  my ($new_gene, $new_mrna, $overlaping_gene_ft, $overlaping_mrna_ft) = must_be_a_new_gene_new_mrna($tmpOmniscient, $new_pred_cds_list, $newPred_exon_list);
-                  if ( $new_gene ){
-                    #print "create_a_new_gene for ".$transcript_id." !!!! 2\n";
-                    $newcontainerUsed++;
-                    $gene_id = take_care_gene_id($gene_id, $tmpOmniscient);
-                    my $new_gene_feature = Bio::SeqFeature::Generic->new(-seq_id => $newPred_exon_list->[0]->seq_id, -source_tag => $newPred_exon_list->[0]->source_tag, -primary_tag => 'gene' , -start => $newPred_exon_list->[0]->start,  -end => $newPred_exon_list->[$#{$newPred_exon_list}]->end, -frame => $newPred_exon_list->[0]->frame, -strand => $newPred_exon_list->[0]->strand , -tag => { 'ID' => $gene_id }) ;
-                    @level1_list=($new_gene_feature);
-                    
-                  }
-                  else{ #the new mRNA still overlap an isoform. So we keep the link with the original gene  
-                   
-                    # change gene ID
-                    $gene_id = $overlaping_gene_ft->_tag_value('ID');
-                    #print "We use $gene_id\n";
-                    check_gene_positions($tmpOmniscient, $gene_id);
-                    @level1_list=($overlaping_gene_ft);
-                  }
-
-                  #############################################
-                  # Modelate mRNA features for new prediction #
-                  if ( $new_mrna ){
-                    my $new_mRNA_feature = Bio::SeqFeature::Generic->new(-seq_id => $newPred_exon_list->[0]->seq_id, -source_tag => $newPred_exon_list->[0]->source_tag, -primary_tag => 'mRNA' , -start => $newPred_exon_list->[0]->start,  -end => $newPred_exon_list->[$#{$newPred_exon_list}]->end, -frame => $newPred_exon_list->[0]->frame, -strand => $newPred_exon_list->[0]->strand , -tag => { 'ID' => $transcript_id , 'Parent' => $gene_id }) ;
-                    push (@$mRNAlistToTakeCare, lc($transcript_id));
-                    @level2_list=($new_mRNA_feature);
-
-                    @level3_list=(@$newPred_exon_list, @$new_pred_cds_list, @$new_pred_utr5_list, @$new_pred_utr3_list);
-                    
-                    #Save the gene (not necesserely new) and mRNA feature (necesseraly new)
-                    append_omniscient($tmpOmniscient, \@level1_list, \@level2_list, \@level3_list); 
-
-                    #Now we have the new transcript we can test the gene end and start
-                    check_gene_positions($tmpOmniscient, $gene_id);
-                  }
-                  else{
-                    print "*** Not creating mRNA *** because exon and CDS IDENTIK ! \n";
-                  }
-
-
-  return $mRNAlistToTakeCare;
+        foreach my $feature_l3 ( @{$tmpOmniscient->{'level3'}{$primary_tag}{$level2_ID}}) {
+          my $existingID = $feature_l3->_tag_value('ID');
+          if ($existingID eq $ID){
+             $result=1;return $result;
+          }
+        }
+      }
+  return $result;
 }
 
 # Yes if mRNA doesnt overlap an other existing isoform
@@ -730,7 +769,7 @@ sub must_be_a_new_gene_new_mrna{
                   if(featuresList_identik(\@cds_feature_list, $new_pred_cds_list)){
                     #print "cds identik !\n";
                     if(featuresList_identik(\@exon_feature_list, $newPred_exon_list)){                 
-                      print "mRNA identik BETWEEN $featureL2_id and $featureL2_original_id \n";
+                      if($verbose) { print "mRNA identik BETWEEN $featureL2_id and $featureL2_original_id \n"; }
                       $Need_new_mRNA=undef;
                       $overlaping_mrna_ft=$featureL2_id;
                       last;
@@ -756,14 +795,11 @@ sub shape_exon_extremity{
 
    #test between first exon and first cds
    if( (abs($cds_features->[0]->start - $exon_features->[0]->start) < 3) and (abs($cds_features->[0]->start - $exon_features->[0]->start) > 0) ){ #We have to shape the exon start. We don't want a non multiple of 3 inferior to 3
-
       $exon_features->[0]->start($cds_features->[0]->start);
-#      print "start reshaped\n";
    }
    #test between last exon and last cds
    if(abs($exon_features->[$#{ $exon_features }]->end - $cds_features->[$#{ $cds_features }]->end ) < 3){  #We have to shape the exon end
       $exon_features->[$#{ $exon_features }]->end($cds_features->[$#{ $cds_features }]->end);
-#      print "end reshaped\n";
    }
 }
 
@@ -839,11 +875,11 @@ sub create_two_exon_lists {
   my @list_exon_originalPred;
   my @list_exon_newPred;
   #print "firstEnd $firstEnd, secondStart $secondStart, $orignalFirst, $oppDir\n";
- 
+  $PREFIX_CPT_EXON=1;
+
   my $value = $exons_features->[0]->_tag_value('Parent');
   my $NewParentName = take_care_mrna_id($tmpOmniscient, $value); 
 
-  my $cptExon=1;
   foreach my $exon_feature (@$exons_features){ #for each exon
     if(two_positions_on_feature($exon_feature,$firstEnd,$secondStart)){  # We have to split the exon_feature
       my $duplicated_exon_feature=clone($exon_feature);#create a copy of the feature
@@ -855,8 +891,7 @@ sub create_two_exon_lists {
 
         push( @list_exon_originalPred, $exon_feature);
 
-        my $value = $duplicated_exon_feature->_tag_value('ID');
-        $value = take_care_level3_id($value, $cptExon);                 
+        my $value = take_care_level3_id($tmpOmniscient,$duplicated_exon_feature);            
         create_or_replace_tag($duplicated_exon_feature,'ID', $value);          
         create_or_replace_tag($duplicated_exon_feature,'Parent', $NewParentName);
         if($oppDir){
@@ -868,8 +903,7 @@ sub create_two_exon_lists {
         $duplicated_exon_feature->start($secondStart-1);
         push( @list_exon_originalPred, $duplicated_exon_feature);
 
-        my $value = $exon_feature->_tag_value('ID');
-        $value = take_care_level3_id($value, $cptExon);              
+        my $value = take_care_level3_id($tmpOmniscient, $exon_feature);              
         create_or_replace_tag($exon_feature,'ID', $value);  
               
         create_or_replace_tag($exon_feature,'Parent', $NewParentName);
@@ -886,8 +920,7 @@ sub create_two_exon_lists {
           push( @list_exon_originalPred, $exon_feature);
         }else{
           my $duplicated_exon_feature=clone($exon_feature);#create a copy of the feature
-          my $value = $duplicated_exon_feature->_tag_value('ID');
-          $value = take_care_level3_id($value, $cptExon);                
+          my $value = take_care_level3_id($tmpOmniscient, $duplicated_exon_feature);                
           create_or_replace_tag($duplicated_exon_feature,'ID', $value);             
           create_or_replace_tag($duplicated_exon_feature,'Parent', $NewParentName);
           if($oppDir){
@@ -899,8 +932,7 @@ sub create_two_exon_lists {
       if ($exon_feature->start >=  $firstEnd) { 
         if($orignalFirst eq "true"){
           my $duplicated_exon_feature=clone($exon_feature);#create a copy of the feature
-          my $value = $duplicated_exon_feature->_tag_value('ID');
-          $value = take_care_level3_id($value, $cptExon);             
+          my $value = take_care_level3_id($tmpOmniscient, $duplicated_exon_feature);             
           create_or_replace_tag($duplicated_exon_feature,'ID', $value);                 
           create_or_replace_tag($duplicated_exon_feature,'Parent', $NewParentName);
            if($oppDir){
@@ -918,8 +950,7 @@ sub create_two_exon_lists {
         push( @list_exon_originalPred, $exon_feature);
       }else{
         my $duplicated_exon_feature=clone($exon_feature);#create a copy of the feature
-        my $value = $duplicated_exon_feature->_tag_value('ID');
-        $value = take_care_level3_id($value, $cptExon);                
+        my $value = take_care_level3_id($tmpOmniscient, $duplicated_exon_feature);                
         create_or_replace_tag($duplicated_exon_feature,'ID', $value);              
         create_or_replace_tag($duplicated_exon_feature,'Parent', $NewParentName);
         if($oppDir){
@@ -928,7 +959,6 @@ sub create_two_exon_lists {
         push( @list_exon_newPred, $duplicated_exon_feature);
       }
     }
-  $cptExon++;
   }
   my @list_exon_originalPred_sorted = sort {$a->start <=> $b->start} @list_exon_originalPred;
   my @list_exon_newPred_sorted = sort {$a->start <=> $b->start} @list_exon_newPred;
@@ -1105,11 +1135,6 @@ sub concatenate_feature_list{
   my $ExtremEnd=0;
 
   foreach my $feature (@$feature_list) { 
-#        my @values = $feature->get_tag_values('Parent');                 
-#        my $parent = $values[0];
-#        my @values = $feature->get_tag_values('Parent');                 
-#        my $id = $values[0];
-#    print $feature->primary_tag." ".$parent." ".$id."\n";
     my $start=$feature->start();
     my $end=$feature->end();
     my $seqid=$feature->seq_id();   
@@ -1236,6 +1261,10 @@ By default this value is 100 AA.
 By default we predict protein in UTR3 and UTR5 and in both direction. The fusion assumed can be between gene in same direction and in opposite direction.
 If RNAseq data used during the annotation was stranded, only fusion of close genes oriented in same direction are expected. In that case this option should be activated.
 When activated, we will try to predict protein in UTR3 and UTR5 only in the same orientation than the gene investigated.
+
+=item B<-v> or B<--verbose> 
+
+Output verbose information.
 
 =item B<-o> , B<--output> , B<--out> or B<--outfile>
 
