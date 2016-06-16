@@ -155,8 +155,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
         $number_mrna=$#{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$gene_id_tag_key}}+1;
        
         # get level2 id
-        my @values = $level2_feature->get_tag_values('ID');       
-        my $id_level2 = lc(shift @values) ;
+        my $id_level2 = lc($level2_feature->_tag_value('ID'));       
         
         ##############################
         #If it's a mRNA = have CDS. #
@@ -232,8 +231,9 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
 
           ########################
           # prediction is longer #
+          print $id_level2." - size before: ".$originalProt_size." size after: ".$longest_ORF_prot_obj->length()."\n";
           if($longest_ORF_prot_obj->length() > $originalProt_size){
-
+            
 #Model1     ###############################################
             # sequence original is part of new prediction #
             if (index($longest_ORF_prot_obj->seq,$cds_prot) != -1){
@@ -259,7 +259,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
                 my $model;
   
                 if( exists($ListModel{2}) ){
-                   print "mrNA $id_level2 $gene_id_tag_key => model1\n";
+                   print "mrNA $id_level2 $gene_id_tag_key => model2\n";
                   $ListModel{2}++;
                   $model=1;
                   if($split_opt){

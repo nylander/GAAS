@@ -21,6 +21,7 @@ my $header = qq{
 ########################################################
 };
 
+my %handlers;
 my $gff = undef;
 my $help= 0;
 my $primaryTag=undef;
@@ -54,15 +55,6 @@ if ( ! (defined($gff)) ){
            -exitval => 2 } );
 }
 
-my $out = IO::File->new();
-if ($outfile) {
-  $outfile=~ s/.gff//g;
-  open($out, '>', $outfile.".txt") or die "Could not open file '$outfile' $!";
-}
-else{
-  $out->fdopen( fileno(STDOUT), 'w' );
-}
-
 # Manage $primaryTag
 my @ptagList;
 if(! $primaryTag or $primaryTag eq "all"){
@@ -86,31 +78,13 @@ if(! $primaryTag or $primaryTag eq "all"){
 # Manage attributes if given
 ### If attributes given, parse them:
 my %attListOk;
-my @attListPair;
 if ($attributes){
-  @attListPair= split(/,/, $attributes);
-  my $nbAtt=$#attListPair+1;
+  my @attList = split(/,/, $attributes); # split at comma as separated value
   
-  foreach my $attributeTuple (@attListPair){ 
-    my @attList= split(/\//, $attributeTuple);
-    if($#attList == 0){ # Attribute alone
-      #check for ID attribute
-      if(lc($attList[0]) eq "id"){print "It's forbidden to remove the ID attribute in a gff3 file !\n";exit;}
-      #check for Parent attribute
-      if(lc($attList[0]) eq "parent"){
-        foreach my $tag (@ptagList){
-          if($tag ne "gene" and $tag ne "level1"){
-            print "It's forbidden to remove the $attList[0] attribute to a $tag feature in a gff3 file !\n";
-            exit;
-          }
-        }
-      }
-      $attListOk{$attList[0]}++;
-      print "$attList[0] attribute will be processed.\n";
-    }
-    else{ # Attribute we have to replace by a new name
-      print "I don't understand this attribute $attList[1] !. Do not provide any \\ character.\n";
-    }
+  foreach my $attribute (@attList){ 
+      $attListOk{$attribute}++;
+      print "$attribute attribute will be processed.\n";
+
   }
   print "\n";
 }
@@ -184,30 +158,64 @@ sub  manage_attributes{
   foreach my $ptag (@$ptagList){
 
     if($ptag eq "all"){
-      remove_tag_from_list($feature,$attListOk);
+      tag_from_list($feature,$attListOk);
     }
     elsif(lc($ptag) eq $level){
-      remove_tag_from_list($feature,$attListOk);
+      tag_from_list($feature,$attListOk);
     }
     elsif(lc($ptag) eq lc($primary_tag) ){
-      remove_tag_from_list($feature,$attListOk);
+      tag_from_list($feature,$attListOk);
     }
   }
 }
 
-sub remove_tag_from_list{
+sub tag_from_list{
   my  ($feature, $attListOk)=@_;
 
   foreach my $att (sort keys %{$attListOk}){
     if ($feature->has_tag($att)){
+      
+      # create handler if needed (on the fly)
+      if(! exists ( $handlers{$att} ) ) {
+
+        my $out = IO::File->new();
+        if ($outfile) {
+          $outfile=~ s/.gff//g;
+          open($out, '>', $outfile."_".$att.".txt") or die "Could not open file '$outfile'_'$att.txt' $!";
+        }
+        else{
+          $out->fdopen( fileno(STDOUT), 'w' );
+        }
+        $handlers{$att}=$out;
+      }
+
+      my $out = $handlers{$att};
       my @values = $feature->get_tag_values($att);
-      print $out @values."\n";
+      foreach my $value (@values){
+        print $out $value."\n";
+      }
     } 
   }
 }
 
 
 __END__
+
+
+# while( my $feature = $gffio->next_feature()) {
+
+#     #manage handler
+#     my $source_tag = lc($feature->source_tag);    
+#     if(! exists ( $handlers{$source_tag} ) ) {
+
+#       open(my $fh, '>', $splitedData_dir."/".$source_tag.".gff") or die "Could not open file '$source_tag' $!";
+#       my $gffout= Bio::Tools::GFF->new(-fh => $fh, -gff_version => 3 );
+#       $handlers{$source_tag}=$gffout;
+#     }
+
+#     my $gffout = $handlers{$source_tag};
+#     $gffout->write_feature($feature);
+#     }
 
 =head1 NAME
 

@@ -291,6 +291,7 @@ sub get_longest_cds_start_end{
   return $resu_start,$resu_end;
 }
 
+#Check if two genes have at least one mRNA isoform which overlap at cds level.
 sub two_features_overlap{
   my  ($hash_omniscient,$gene_id, $gene_id2)=@_;
   my $resu=undef;
