@@ -499,10 +499,9 @@ sub modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop{
  			my $cds_feature=clone($exon_feature);#create a copy of the feature 					exon    ====================================
  			$cds_feature->start($ORFstart); #modify start 											 cds     ============================ 
  			$cds_feature->end($ORFend); #modify end
- 			$cds_feature->primary_tag('cds');
+ 			$cds_feature->primary_tag('CDS');
  			#get old name
- 			my @IDs = $cds_feature->get_tag_values('ID');
- 			my $ID = $IDs[0];
+ 			my $ID = $cds_feature->_tag_value('ID');
  			create_or_replace_tag($cds_feature,'ID',$ID.'-cds-'.$cds_counter); #modify name
  			push(@cds_features, $cds_feature);#save that cds
  			$cds_counter++;
@@ -510,12 +509,12 @@ sub modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop{
  				my $utr_feature=clone($exon_feature);#create a copy of the feature 
  				$utr_feature->end($ORFstart-1); #modify start 
  				if ( ($strand == -1) or ($strand eq "-") ) {
- 					$utr_feature->primary_tag('three_prime_utr');
+ 					$utr_feature->primary_tag('three_prime_UTR');
  					create_or_replace_tag($utr_feature,'ID',$ID.'-utr3-'.$utr3_counter); #modify name
 	 				push(@utr3_features, $utr_feature);#save that cds
 	 				$utr3_counter++;
 	 			}else{
-	 				$utr_feature->primary_tag('five_prime_utr');
+	 				$utr_feature->primary_tag('five_prime_UTR');
 	 				create_or_replace_tag($utr_feature,'ID',$ID.'-utr5-'.$utr5_counter); #modify name
 	 				push(@utr5_features, $utr_feature);#save that cds
 	 				$utr5_counter++;
@@ -525,12 +524,12 @@ sub modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop{
  				my $utr_feature=clone($exon_feature);#create a copy of the feature 
  				$utr_feature->start($ORFend+1); #modify start 
  				if ( ($strand == -1) or ($strand eq "-") ) {
- 					$utr_feature->primary_tag('five_prime_utr');
+ 					$utr_feature->primary_tag('five_prime_UTR');
 	 				create_or_replace_tag($utr_feature,'ID',$ID.'-utr5-'.$utr5_counter); #modify name
 	 				push(@utr5_features, $utr_feature);#save that cds
 	 				$utr5_counter++;
 	 			}else{
-	 				$utr_feature->primary_tag('three_prime_utr');
+	 				$utr_feature->primary_tag('three_prime_UTR');
  					create_or_replace_tag($utr_feature,'ID',$ID.'-utr3-'.$utr3_counter); #modify name
 	 				push(@utr3_features, $utr_feature);#save that cds
 	 				$utr3_counter++;
@@ -540,10 +539,9 @@ sub modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop{
 		# cds overlap fully an exon
 		elsif( ($exon_feature->end <= $ORFend) and ($exon_feature->start >= $ORFstart) ){
  			my $cds_feature=clone($exon_feature);#create a copy of the feature 						exon    ========================
- 			$cds_feature->primary_tag('cds');
+ 			$cds_feature->primary_tag('CDS');
  			#get old name 																			cds  ===============================
- 			my @IDs = $cds_feature->get_tag_values('ID');
- 			my $ID = $IDs[0];
+ 			my $ID = $cds_feature->_tag_value('ID');
  			create_or_replace_tag($cds_feature,'ID',$ID.'-cds-'.$cds_counter); #modify name
  			push(@cds_features, $cds_feature);#save that cds
  			$cds_counter++;
@@ -555,26 +553,24 @@ sub modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop{
 	      	#Manage CDS
 	      	my $cds_feature=clone($exon_feature);#create a copy of the feature 						cds ===============================
  			$cds_feature->end($ORFend); #modify end
- 			$cds_feature->primary_tag('cds');
+ 			$cds_feature->primary_tag('CDS');
  				#get old name
- 			my @IDs = $cds_feature->get_tag_values('ID');
- 			my $ID = $IDs[0];
+ 			my $ID = $cds_feature->_tag_value('ID');
  			create_or_replace_tag($cds_feature,'ID',$ID.'-cds-'.$cds_counter); #modify name
  			push(@cds_features, $cds_feature);#save that cds
  			$cds_counter++;
  			#manage UTR
  			my $utr_feature=clone($exon_feature);#create a copy of the feature 
  			$utr_feature->start($ORFend+1); #modify end 
- 			@IDs = $utr_feature->get_tag_values('ID');
-	 		$ID = $IDs[0];
+ 			$ID = $utr_feature->_tag_value('ID');
 	 		if ( ($strand == -1) or ($strand eq "-") ) {
-	 			$utr_feature->primary_tag('five_prime_utr');
+	 			$utr_feature->primary_tag('five_prime_UTR');
 	 			create_or_replace_tag($utr_feature,'ID',$ID.'-utr5-'.$utr5_counter); #modify name
 	 			push(@utr5_features, $utr_feature);#save that cds
 	 			$utr5_counter++;
 
 	 		}else{
-				$utr_feature->primary_tag('three_prime_utr');
+				$utr_feature->primary_tag('three_prime_UTR');
 	 			create_or_replace_tag($utr_feature,'ID',$ID.'-utr3-'.$utr3_counter); #modify name
 	 			push(@utr3_features, $utr_feature);#save that cds
 	 			$utr3_counter++;
@@ -585,25 +581,23 @@ sub modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop{
 	       	#Manage CDS
 	       	my $cds_feature=clone($exon_feature);#create a copy of the feature
  			$cds_feature->start($ORFstart); #modify start 										exon ===============================
- 			$cds_feature->primary_tag('cds');	
+ 			$cds_feature->primary_tag('CDS');	
  				#get old name 																					cds =====================================
- 			my @IDs = $cds_feature->get_tag_values('ID');
- 			my $ID = $IDs[0];
+ 			my $ID = $cds_feature->_tag_value('ID');
  			create_or_replace_tag($cds_feature,'ID',$ID.'-cds-'.$cds_counter); #modify name
  			push(@cds_features, $cds_feature);#save that cds
  			$cds_counter++;
 	 		 #Manage UTR
  			my $utr_feature=clone($exon_feature);#create a copy of the feature 
  			$utr_feature->end($ORFstart-1); #modify start 
- 			@IDs = $utr_feature->get_tag_values('ID');
-	 		$ID = $IDs[0];
+ 			$ID = $utr_feature->_tag_value('ID');
 	 		if ( ($strand == -1) or ($strand eq "-") ) {
-	 			$utr_feature->primary_tag('three_prime_utr');
+	 			$utr_feature->primary_tag('three_prime_UTR');
 	 			create_or_replace_tag($utr_feature,'ID',$ID.'-utr3-'.$utr3_counter); #modify name
 	 			push(@utr3_features, $utr_feature);#save that cds
 	 			$utr3_counter++;
 	 		}else{
-	 			$utr_feature->primary_tag('five_prime_utr');
+	 			$utr_feature->primary_tag('five_prime_UTR');
 	 			create_or_replace_tag($utr_feature,'ID',$ID.'-utr5-'.$utr5_counter); #modify name
 	 			push(@utr5_features, $utr_feature);#save that cds
 	 			$utr5_counter++;
@@ -614,15 +608,14 @@ sub modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop{
 	    	if($exon_feature->end < $ORFstart){ #UTR5 in + strand
 		    	my $utr_feature=clone($exon_feature);#create a copy of the feature 			exon ===============================
 	 			#get old name 																											 cds ===============================
-	 			my @IDs = $utr_feature->get_tag_values('ID');
-	 			my $ID = $IDs[0];
+	 			my $ID = $utr_feature->_tag_value('ID');
 	 			if ( ($strand == -1) or ($strand eq "-") ) {
-	 				$utr_feature->primary_tag('three_prime_utr');
+	 				$utr_feature->primary_tag('three_prime_UTR');
 	 				create_or_replace_tag($utr_feature,'ID',$ID.'-utr3-'.$utr3_counter); #modify name
 	 				push(@utr3_features, $utr_feature);#save that cds
 	 				$utr3_counter++;
 	 			}else{
-	 				$utr_feature->primary_tag('five_prime_utr');
+	 				$utr_feature->primary_tag('five_prime_UTR');
 	 				create_or_replace_tag($utr_feature,'ID',$ID.'-utr5-'.$utr5_counter); #modify name
 	 				push(@utr5_features, $utr_feature);#save that cds
 	 				$utr5_counter++;
@@ -632,15 +625,14 @@ sub modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop{
 	 		else{	#UTR3 in + strand
 		    	my $utr_feature=clone($exon_feature);#create a copy of the feature 													exon ===============================
 	 			#get old name
-	 			my @IDs = $utr_feature->get_tag_values('ID'); 									#cds ===============================
-	 			my $ID = $IDs[0];
+	 			my $ID = $utr_feature->_tag_value('ID'); 									#cds ===============================
 	 			if ( ($strand == -1) or ($strand eq "-") ) {
-	 				$utr_feature->primary_tag('five_prime_utr');
+	 				$utr_feature->primary_tag('five_prime_UTR');
 	 				create_or_replace_tag($utr_feature,'ID',$ID.'-utr5-'.$utr5_counter); #modify name
 	 				push(@utr5_features, $utr_feature);#save that cds
 	 				$utr5_counter++;
 	 			}else{
-	 				$utr_feature->primary_tag('three_prime_utr');
+	 				$utr_feature->primary_tag('three_prime_UTR');
 	 				create_or_replace_tag($utr_feature,'ID',$ID.'-utr3-'.$utr3_counter); #modify name
 	 				push(@utr3_features, $utr_feature);#save that cds
 	 				$utr3_counter++;

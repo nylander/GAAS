@@ -48,7 +48,7 @@ sub print_omniscient{
 	
 	my ($hash_omniscient, $gffout) = @_  ;
 
-	uri_encode_omniscient($hash_omniscient);
+	#uri_decode_omniscient($hash_omniscient);
 
 	#################
 	# == LEVEL 1 == #
@@ -117,7 +117,7 @@ sub print_omniscient_from_level1_id_list{
 			foreach my $id_tag_key_level1_raw (@$level_id_list){
 				my $id_tag_key_level1 = lc($id_tag_key_level1_raw);
 				if(exists ($hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1})){
-					uri_encode_one_feature($hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1});
+					#uri_encode_one_feature($hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1});
 					$gffout->write_feature($hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1}); # print feature
             
 					#################
@@ -127,7 +127,7 @@ sub print_omniscient_from_level1_id_list{
 						
 						if ( exists ($hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1} ) ){
 							foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1}}) {
-								uri_encode_one_feature($feature_level2);
+								#uri_encode_one_feature($feature_level2);
 								$gffout->write_feature($feature_level2);
 
 								#################
@@ -148,7 +148,7 @@ sub print_omniscient_from_level1_id_list{
 								# Before tss
 								if ( exists_keys($hash_omniscient,('level3','tss',$level2_ID)) ){
 									foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{'tss'}{$level2_ID}}) {
-										uri_encode_one_feature($feature_level3);
+										#uri_encode_one_feature($feature_level3);
 										$gffout->write_feature($feature_level3);
 									}
 								}
@@ -157,7 +157,7 @@ sub print_omniscient_from_level1_id_list{
 								# FIRST EXON
 								if ( exists_keys($hash_omniscient,('level3','exon',$level2_ID)) ){
 									foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{'exon'}{$level2_ID}}) {
-										uri_encode_one_feature($feature_level3);
+										#uri_encode_one_feature($feature_level3);
 										$gffout->write_feature($feature_level3);
 									}
 								}
@@ -165,7 +165,7 @@ sub print_omniscient_from_level1_id_list{
 								# SECOND CDS
 								if ( exists_keys($hash_omniscient,('level3','cds',$level2_ID)) ){
 									foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{'cds'}{$level2_ID}}) {
-										uri_encode_one_feature($feature_level3);
+										#uri_encode_one_feature($feature_level3);
 										$gffout->write_feature($feature_level3);
 									}
 								}
@@ -174,7 +174,7 @@ sub print_omniscient_from_level1_id_list{
 								# Last tts
 								if ( exists_keys($hash_omniscient,('level3','tts',$level2_ID)) ){
 									foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{'tts'}{$level2_ID}}) {
-										uri_encode_one_feature($feature_level3);
+										#uri_encode_one_feature($feature_level3);
 										$gffout->write_feature($feature_level3);
 									}
 								}
@@ -185,7 +185,7 @@ sub print_omniscient_from_level1_id_list{
 									if( ($primary_tag_key_level3 ne 'cds') and ($primary_tag_key_level3 ne 'exon') and ($primary_tag_key_level3 ne 'tss') and ($primary_tag_key_level3 ne 'tts')){
 										if ( exists ($hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID} ) ){
 											foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID}}) {
-												uri_encode_one_feature($feature_level3);
+												#uri_encode_one_feature($feature_level3);
 												$gffout->write_feature($feature_level3);
 											}
 										}
@@ -1017,6 +1017,46 @@ sub uri_encode_omniscient{
 	}
 }
 
+sub uri_decode_omniscient{
+	
+	my ($hash_omniscient) = @_  ;
+
+	#################
+	# == LEVEL 1 == #
+	#################
+	foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
+		foreach my $id_tag_key_level1 (keys %{$hash_omniscient->{'level1'}{$primary_tag_key_level1}}){
+			uri_decode_one_feature($hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1});	
+
+			#################
+			# == LEVEL 2 == #
+			#################
+			foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
+				
+				if ( exists ($hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1} ) ){
+					foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1}}) {
+						uri_decode_one_feature($feature_level2);
+			
+						#################
+						# == LEVEL 3 == #
+						#################
+						my $level2_ID  = lc($feature_level2->_tag_value('ID'));
+
+						foreach my $primary_tag_key_level3 (keys %{$hash_omniscient->{'level3'}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
+							
+							if ( exists ($hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID} ) ){
+								foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID}}) {
+									uri_decode_one_feature($feature_level3);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 # reencode in uri all value of all attributes of a feature
 sub uri_encode_one_feature{
 
@@ -1030,6 +1070,22 @@ sub uri_encode_one_feature{
 		foreach my $val (@values){
 			my $val_checked = uri_unescape($val);
 			my $new_val = uri_escape($val_checked );
+			$feature->add_tag_value($tag, $new_val);
+		}
+	}
+}
+
+sub uri_decode_one_feature{
+
+	my ($feature)=@_;
+
+	my @list_tag = $feature->get_all_tags;
+	
+	foreach my $tag (@list_tag){
+		my @values = $feature->get_tag_values($tag);
+		$feature->remove_tag($tag);
+		foreach my $val (@values){
+			my $new_val = uri_unescape($val);
 			$feature->add_tag_value($tag, $new_val);
 		}
 	}
