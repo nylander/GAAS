@@ -11,9 +11,9 @@ use Exporter qw(import);
 
 our $VERSION     = 1.00;
 our @ISA         = qw(Exporter);
-our @EXPORT_OK   = qw(check_gene_positions check_mrna_positions modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop create_omniscient slurp_gff3_file_JD create_omniscient_from_feature_list);
+our @EXPORT_OK   = qw(check_mrna_positions modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop create_omniscient slurp_gff3_file_JD create_omniscient_from_feature_list);
 our %EXPORT_TAGS = ( DEFAULT => [qw()],
-                 Ok    => [qw(check_gene_positions check_mrna_positions modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop create_omniscient slurp_gff3_file_JD create_omniscient_from_feature_list)]);
+                 Ok    => [qw(check_mrna_positions modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop create_omniscient slurp_gff3_file_JD create_omniscient_from_feature_list)]);
 =head1 SYNOPSIS
 
 
@@ -662,38 +662,6 @@ sub check_mrna_positions{
   }
   elsif($mRNA_feature->end != $exonEnd){
     $mRNA_feature->end($exonEnd);
-  }
-}
-
-# Check the start and end of gene feature based on its mRNAs;
-sub check_gene_positions{
-
-  my ($hash_omniscient, $gene_id)=@_;
-
-  #####
-  #Modify gene start-end (have to check size of each mRNA)
-  my $geneExtremStart=1000000000000;
-  my $geneExtremEnd=0;
-  foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
-
-    foreach my $mrna_feature ( @{$hash_omniscient->{'level2'}{'mrna'}{lc($gene_id)}}) {
-      	my $start=$mrna_feature->start();
-      	my $end=$mrna_feature->end();
-
-      if ($start < $geneExtremStart){
-        $geneExtremStart=$start;
-      }
-      if($end > $geneExtremEnd){
-        $geneExtremEnd=$end;
-      }
-    }
-  }
-  my $gene_feature=$hash_omniscient->{'level1'}{'gene'}{lc($gene_id)};
-  if ($gene_feature->start != $geneExtremStart){
-      $gene_feature->start($geneExtremStart);
-   }
-  if($gene_feature->end != $geneExtremEnd){
-    $gene_feature->end($geneExtremEnd);
   }
 }
 
