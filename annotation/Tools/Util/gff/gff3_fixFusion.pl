@@ -237,9 +237,9 @@ my $hash_sortBySeq = sort_by_seq_id($hash_omniscient_intact);
 
 # 3) review all newly created gene
 my $overlap=0;
-foreach my $tag_l1 (keys $omniscient_modified_gene{'level1'} ){ # primary_tag_key_level1 = gene or repeat etc...
+foreach my $tag_l1 (keys %{$omniscient_modified_gene{'level1'}} ){ # primary_tag_key_level1 = gene or repeat etc...
     
-    foreach my $id_l1 (keys $omniscient_modified_gene{'level1'}{$tag_l1} ) {
+    foreach my $id_l1 (keys %{$omniscient_modified_gene{'level1'}{$tag_l1}} ) {
       my $geneFeature = $omniscient_modified_gene{'level1'}{$tag_l1}{$id_l1};
       if (find_overlap_between_geneFeature_and_sortBySeqId($geneFeature, \%omniscient_modified_gene, $hash_omniscient_intact, $hash_sortBySeq) ){
         $overlap++
@@ -249,9 +249,9 @@ foreach my $tag_l1 (keys $omniscient_modified_gene{'level1'} ){ # primary_tag_ke
 
 # 4) special case where two newly created gene from to different gene are overlapping
 my $hash_sortBySeq = sort_by_seq_id(\%omniscient_modified_gene);
-foreach my $tag_l1 (keys $omniscient_modified_gene{'level1'} ){ # primary_tag_key_level1 = gene or repeat etc...
+foreach my $tag_l1 (keys %{$omniscient_modified_gene{'level1'}} ){ # primary_tag_key_level1 = gene or repeat etc...
     
-    foreach my $id_l1 (keys $omniscient_modified_gene{'level1'}{$tag_l1} ) {
+    foreach my $id_l1 (keys %{$omniscient_modified_gene{'level1'}{$tag_l1}} ) {
       my $geneFeature = $omniscient_modified_gene{'level1'}{$tag_l1}{$id_l1};
       if (find_overlap_between_geneFeature_and_sortBySeqId($geneFeature, \%omniscient_modified_gene, \%omniscient_modified_gene, $hash_sortBySeq) ){
         $overlap++
