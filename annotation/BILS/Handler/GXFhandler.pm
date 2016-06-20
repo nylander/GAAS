@@ -1847,7 +1847,7 @@ sub find_overlap_between_geneFeature_and_sortBySeqId{
         	#######
         	#which hash the feature come from ?
         	my $currentHash=undef;
-        	foreach my $tag_l1 (keys $hash_source->{'level1'} ){ # primary_tag_key_level1 = gene or repeat etc...   
+        	foreach my $tag_l1 (keys %{$hash_source->{'level1'}} ){ # primary_tag_key_level1 = gene or repeat etc...   
     			if($hash_source->{'level1'}{$tag_l1}{$gene_id_to_remove} ){
     				$currentHash = $hash_source;
     			}
