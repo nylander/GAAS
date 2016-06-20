@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 ###################################################
-# domainExtractor.pl - Jacques Dainat 01/2015     #
+# Jacques Dainat 01/2015     #
 # Bioinformatics Infrastructure for Life Sciences #
 # jacques.dainat@bils.se                          #
 ###################################################
@@ -11,8 +11,10 @@ use strict;
 use warnings;
 use Pod::Usage;
 use Getopt::Long;
-use lib $ENV{ANDREASCODE};
-use Private::Bio::IO::GFF;
+use IO::File ;
+use Bio::Tools::GFF;
+use BILS::Handler::GXFhandler qw(:Ok);
+use BILS::Handler::GFF3handler qw(:Ok);
 
 my $start_run = time();
 
@@ -44,13 +46,9 @@ if ((!defined($inputFile)) ){
 }
 
 my $ostream     = IO::File->new();
-my $ref_istream = IO::File->new();
 
 # Manage input fasta file
-$ref_istream->open( $inputFile, 'r' ) or
-  croak(
-     sprintf( "Can not open '%s' for reading: %s", $inputFile, $! ) );
-my $ref_in = Private::Bio::IO::GFF->new(istream => $ref_istream);
+my $ref_in = Bio::Tools::GFF->new(-file => $inputFile, -gff_version => 3);
 
 # Manage Output
 if(defined($outputFile))
@@ -66,27 +64,36 @@ else{
 
 #time to calcul progression
 my $startP=time;print "start\n";
-my $nbLine=`wc -l $inputFile | cut -d' ' -f4`;
+my $nbLine=`wc -l < $inputFile`;
+$nbLine =~ s/ //g;
 chomp $nbLine;
 print "$nbLine line to process...\n";
 my $line_cpt=0;
 
 my $type_count;
 my $type_bp;
-while (my $feature = $ref_in->read_feature() ) {
+my %check; #track the repeat already annotated to not. Allopw to skip already read repeats
+
+while (my $feature = $ref_in->next_feature() ) {
   $line_cpt++;
-  my $type = lc($feature->feature_type);
+  my $type = lc($feature->primary_tag);
   ## repeatMasker or repeatRunner
   if (($type eq 'match') or ($type eq 'protein_match')){
 
-     my $nameAtt=$feature->get_attribute('Name');
+    my $position=$feature->seq_id."".$feature->start()."".$feature->end(); #uniq position
+    if(exists ($check{$position} ) ){next;}
+    else{
+
+     my $nameAtt=$feature->_tag_value('Name');
      my $genus=(split ":", (split /\|/, (split /\s+/,$nameAtt)[0])[-1])[-1];
      $type_count->{$genus}++;
      $type_bp->{$genus}+=($feature->end()-$feature->start())+1;
+     $check{$position}++;
+    }
   }
 
   #Display progression
-  if ((1 - (time - $startP)) < 0) {
+  if ((30 - (time - $startP)) < 0) {
     my $done = ($line_cpt*100)/$nbLine;
     $done = sprintf ('%.0f', $done);
         print "Progression : $done % processed.\n";
@@ -141,13 +148,13 @@ __END__
 
 =head1 NAME
 
-gffRepeat_analyzor.pl -
+gffRepeat_analyzer.pl -
 The script allows to generate a tabulated format report of repeats annotated from a gff file containing repeats. 
 
 =head1 SYNOPSIS
 
-    gffRepeat_analyzor.pl -i <input file> [-g <integer> -o <output file>]
-    gffRepeat_analyzor.pl --help
+    gffRepeat_analyzer.pl -i <input file> [-g <integer> -o <output file>]
+    gffRepeat_analyzer.pl --help
 
 =head1 OPTIONS
 
