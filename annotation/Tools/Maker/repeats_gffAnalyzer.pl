@@ -12,6 +12,7 @@ use warnings;
 use Pod::Usage;
 use Getopt::Long;
 use IO::File ;
+use Bio::SeqIO;
 use Bio::Tools::GFF;
 use BILS::Handler::GXFhandler qw(:Ok);
 use BILS::Handler::GFF3handler qw(:Ok);
