@@ -20,13 +20,13 @@ my $start_run = time();
 
 my $inputFile;
 my $outputFile;
-my $genomeSize;
+my $genome;
 my $opt_help = 0;
 
 Getopt::Long::Configure ('bundling');
 if ( !GetOptions ('i|file|input|gff=s' => \$inputFile,
       'o|output=s' => \$outputFile,
-      'g|genome=i' => \$genomeSize,
+      'g|genome=i' => \$genome,
       'h|help!'         => \$opt_help )  )
 {
     pod2usage( { -message => 'Failed to parse command line',
@@ -62,8 +62,24 @@ else{
       croak( sprintf( "Can not open STDOUT for writing: %s", $! ) );
 }
 
+#check genome size
+my $genomeSize=undef;
+  if($genome){
+    if( $genome =~ /^[0-9]+$/){ #check if it's a number
+      $genomeSize=$genome;
+    }
+    elsif($genome){
+      my $seqio = Bio::SeqIO->new(-file => $genome, '-format' => 'Fasta');
+      while(my $seq = $seqio->next_seq) {
+          my $string = $seq->seq;
+          $genomeSize += length($string);
+        }
+    }
+  printf("%-45s%d%s", "Total sequence length", $genomeSize,"\n");
+  }
+
 #time to calcul progression
-my $startP=time;print "start\n";
+my $startP=time;
 my $nbLine=`wc -l < $inputFile`;
 $nbLine =~ s/ //g;
 chomp $nbLine;
