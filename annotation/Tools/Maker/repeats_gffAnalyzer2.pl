@@ -72,20 +72,28 @@ my $line_cpt=0;
 
 my $type_count;
 my $type_bp;
+my %check; #track the repeat already annotated to not. Allopw to skip already read repeats
+
 while (my $feature = $ref_in->next_feature() ) {
   $line_cpt++;
   my $type = lc($feature->primary_tag);
   ## repeatMasker or repeatRunner
   if (($type eq 'match') or ($type eq 'protein_match')){
 
+    my $position=$feature->seq_id."".$feature->start()."".$feature->end(); #uniq position
+    if(exists ($check{$position} ) ){next;}
+    else{
+
      my $nameAtt=$feature->_tag_value('Name');
      my $genus=(split ":", (split /\|/, (split /\s+/,$nameAtt)[0])[-1])[-1];
      $type_count->{$genus}++;
      $type_bp->{$genus}+=($feature->end()-$feature->start())+1;
+     $check{$position}++;
+    }
   }
 
   #Display progression
-  if ((1 - (time - $startP)) < 0) {
+  if ((30 - (time - $startP)) < 0) {
     my $done = ($line_cpt*100)/$nbLine;
     $done = sprintf ('%.0f', $done);
         print "Progression : $done % processed.\n";
