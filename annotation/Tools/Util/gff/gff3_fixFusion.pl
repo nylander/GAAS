@@ -230,7 +230,7 @@ print "Managing spurious labelling at gene level\n";
 my %hash_omniscient_intactR;
 my $hash_omniscient_intact=\%hash_omniscient_intactR;
 fill_omniscient_from_other_omniscient_level1_id(\@intact_gene_list,$hash_omniscient,$hash_omniscient_intact);
-delete $hash_omniscient->{$_} for (keys $hash_omniscient);
+delete $hash_omniscient->{$_} for (keys %{$hash_omniscient});
 
 # 2) Sort by seq_id
 my $hash_sortBySeq = sort_by_seq_id($hash_omniscient_intact);
