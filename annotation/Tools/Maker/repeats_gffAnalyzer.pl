@@ -91,6 +91,7 @@ my $type_count;
 my $type_bp;
 my %check; #track the repeat already annotated to not. Allopw to skip already read repeats
 
+local $| = 1; # Or use IO::Handle; STDOUT->autoflush; Use to print progression bar
 while (my $feature = $ref_in->next_feature() ) {
   $line_cpt++;
   my $type = lc($feature->primary_tag);
@@ -110,13 +111,15 @@ while (my $feature = $ref_in->next_feature() ) {
   }
 
   #Display progression
-  if ((30 - (time - $startP)) < 0) {
+  if ((1 - (time - $startP)) < 0) {
     my $done = ($line_cpt*100)/$nbLine;
     $done = sprintf ('%.0f', $done);
-        print "Progression : $done % processed.\n";
+        print "\rProgress : $done %";
     $startP= time;
   }
 }
+print "\rProgress : 100 %\n";
+
 my $totalNumber=0;
 my $totalSize=0;
 
