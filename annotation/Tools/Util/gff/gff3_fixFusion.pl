@@ -22,6 +22,8 @@ use BILS::Handler::GXFhandler qw(:Ok);
 use BILS::Handler::GFF3handler qw(:Ok);
 use BILS::Plot::R qw(:Ok);
 
+my $start_run = time();
+my $startP=time;
 my $SIZE_OPT=21;
 my $PREFIX_CPT_EXON=1;
 my $PREFIX_CPT_MRNA=1;
@@ -137,11 +139,26 @@ my $tmpOmniscient=\%tmpOmniscientR;
 my @mRNAlistToTakeCareR;
 my $mRNAlistToTakeCare=\@mRNAlistToTakeCareR;
 
+# manage progression bar variables
+my $TotalFeatureL1 = nb_feature_level1($hash_omniscient);
+my $featureChecked = 0;
+local $| = 1; # Or use IO::Handle; STDOUT->autoflush; Use to print progression bar
+
 foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
   foreach my $gene_id (keys %{$hash_omniscient->{'level1'}{$primary_tag_key_level1}}){
     
-    my $gene_feature=$hash_omniscient->{'level1'}{$primary_tag_key_level1}{$gene_id};
+      #Display progression
+      $featureChecked++;
+      if ((30 - (time - $startP)) < 0) {
+        my $done = ($featureChecked*100)/$TotalFeatureL1;
+        $done = sprintf ('%.0f', $done);
+        if($verbose) { print "Progress : $done %"; }
+        else{ print "\rProgress : $done %"; }
+        $startP= time;
+      }
 
+    my $gene_feature=$hash_omniscient->{'level1'}{$primary_tag_key_level1}{$gene_id};
+    $featureChecked++;
     my $oneMRNAmodified=undef;
     my $mrna_pseudo=0;
     my @list_mrna_pseudo;
@@ -217,6 +234,10 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
     }
   }
 }
+# end progreesion bar
+if($verbose) { print "Progress : 100 %\n"; }
+else{if($verbose) { print "\rProgress : 100 %\n"; }}
+
 ###
 # Fix frame
 fil_cds_frame(\%omniscient_modified_gene);
@@ -288,11 +309,12 @@ else{
 my $string_to_print="usage: $0 @copyARGV\n";
 $string_to_print="Results:\n";
 $string_to_print .="$geneCounter genes affected and $mRNACounter_fixed mRNA.\n";
-
 $string_to_print .="\n/!\\Remind:\n L and M are AA are possible start codons.\nParticular case: If we have a triplet as WTG, AYG, RTG, RTR or ATK it will be seen as a possible Methionine codon start (it's a X aa)\n".
 "An arbitrary choisce has been done: The longer translate can begin by a L only if it's longer by 21 AA than the longer translate beginning by M. It's happened $counter_case21 times here.\n";
+my $end_run = time();
+my $run_time = $end_run - $start_run;
+$string_to_print .= "Job done in $run_time seconds\n";
 
-#print $string_to_print;
 if($outfile){
   print $gffout4 $string_to_print
 }
