@@ -39,6 +39,7 @@ my $file_fasta=undef;
 my $split_opt=undef;
 my $help= 0;
 
+my @copyARGV=@ARGV;
 if ( !GetOptions(
     "help|h" => \$help,
     "gff=s" => \$gff,
@@ -145,7 +146,6 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
     my $one_ORFmodified="no";
     #my $mrna_pseudo=0;
     #my @list_mrna_pseudo;
-    my $one_level2_modified; # check if one of the level2 feature will be modified
     my $number_mrna=0;
 
     foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
@@ -382,7 +382,8 @@ else{
 }
 
 #END
-my $string_to_print="Results:\n";
+my $string_to_print="usage: $0 @copyARGV\n";
+$string_to_print .="Results:\n";
 $string_to_print .= "$geneCounter genes has been modified. These gene has  $mRNACounter mRNA, and among them  $mRNACounter_fixed had their ORF fixed.\n";
 if (exists ($ListModel{1})){
   $string_to_print .= "$ListModel{1} model1: Prediction(s) contains the orignal prediction but is longer.\n";

@@ -132,10 +132,7 @@ foreach my $tag (keys %hash_sortBySeq){ # loop over all the feature level1
         my ($reference_feature, $ListToRemove)=take_one_as_reference(\@ListOverlapingGene);
         print "We decided to keep that one: ".$reference_feature->gff_string."\n";
 
-        my @values_ref = $reference_feature->get_tag_values('ID');
-        my $gene_id_ref = shift @values_ref;
-
-
+        my $gene_id_ref  = $reference_feature->_tag_value('ID');
 
         #change level2 parent for feature of level2 that have a feature of level1 in $ListToRemove list
         foreach my $featureToRemove (@$ListToRemove){

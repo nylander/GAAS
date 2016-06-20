@@ -42,6 +42,7 @@ my $threshold=undef;
 my $verbose=undef;
 my $help= 0;
 
+my @copyARGV=@ARGV;
 if ( !GetOptions(
     "help|h" => \$help,
     "gff=s" => \$gff,
@@ -221,15 +222,61 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
 fil_cds_frame(\%omniscient_modified_gene);
 fil_cds_frame($hash_omniscient);
 
+
+#####################################
+# Manage modified gene to be sure they not overlap already existing gene. If yes => we give the same gene ID and remove one.
+print "Managing spurious labelling at gene level\n";
+# 1) create a hash omniscient intact
+my %hash_omniscient_intactR;
+my $hash_omniscient_intact=\%hash_omniscient_intactR;
+fill_omniscient_from_other_omniscient_level1_id(\@intact_gene_list,$hash_omniscient,$hash_omniscient_intact);
+delete $hash_omniscient->{$_} for (keys $hash_omniscient);
+
+# 2) Sort by seq_id
+my $hash_sortBySeq = sort_by_seq_id($hash_omniscient_intact);
+
+# 3) review all newly created gene
+my $overlap=0;
+foreach my $tag_l1 (keys $omniscient_modified_gene{'level1'} ){ # primary_tag_key_level1 = gene or repeat etc...
+    
+    foreach my $id_l1 (keys $omniscient_modified_gene{'level1'}{$tag_l1} ) {
+      my $geneFeature = $omniscient_modified_gene{'level1'}{$tag_l1}{$id_l1};
+      if (find_overlap_between_geneFeature_and_sortBySeqId($geneFeature, \%omniscient_modified_gene, $hash_omniscient_intact, $hash_sortBySeq) ){
+        $overlap++
+      }
+    } 
+}
+
+# 4) special case where two newly created gene from to different gene are overlapping
+my $hash_sortBySeq = sort_by_seq_id(\%omniscient_modified_gene);
+foreach my $tag_l1 (keys $omniscient_modified_gene{'level1'} ){ # primary_tag_key_level1 = gene or repeat etc...
+    
+    foreach my $id_l1 (keys $omniscient_modified_gene{'level1'}{$tag_l1} ) {
+      my $geneFeature = $omniscient_modified_gene{'level1'}{$tag_l1}{$id_l1};
+      if (find_overlap_between_geneFeature_and_sortBySeqId($geneFeature, \%omniscient_modified_gene, \%omniscient_modified_gene, $hash_sortBySeq) ){
+        $overlap++
+      }
+    } 
+}
+
+
+
+
+
+if ($overlap){print "We found $overlap case gene verlapping at CDS level wihout the same ID, we fixed them.";}
+# End manage overlaping name
+#####################################
+
 ########
 # Print results
 if ($outfile) {
   #print all in file1
-  print_omniscient_from_level1_id_list($hash_omniscient, \@intact_gene_list, $gffout); #print intact gene to the file
+  # print_omniscient_from_level1_id_list($hash_omniscient, \@intact_gene_list, $gffout); #print intact gene to the file
+  print_omniscient($hash_omniscient_intact, $gffout); #print intact gene to the file
   
   print_omniscient(\%omniscient_modified_gene, $gffout2); #print gene modified in file 
   
-  print_omniscient_from_level1_id_list($hash_omniscient, \@intact_gene_list, $gffout3);
+  print_omniscient($hash_omniscient_intact, $gffout3);
   print_omniscient(\%omniscient_modified_gene, $gffout3);
 }
 else{
@@ -238,7 +285,8 @@ else{
 }
 
 #END
-my $string_to_print="Results:\n";
+my $string_to_print="usage: $0 @copyARGV\n";
+$string_to_print="Results:\n";
 $string_to_print .="$geneCounter genes affected and $mRNACounter_fixed mRNA.\n";
 
 $string_to_print .="\n/!\\Remind:\n L and M are AA are possible start codons.\nParticular case: If we have a triplet as WTG, AYG, RTG, RTR or ATK it will be seen as a possible Methionine codon start (it's a X aa)\n".
@@ -446,9 +494,8 @@ sub take_care_utr{
   return $oneRoundAgain, $nbNewUTRgene, $mRNAlistToTakeCare;
 }        
 
-############ /!\
-# P.S: To be perfect, when a gene is newly created, we should verify if it is not created where another one has already been created. If yes, the should be linked together !!
-############
+############ 
+# P.S: when a gene is newly created, it has a new name even if it overlap at CDS level an another gene that is not part of the current temporary omniscient studied. So, an extra step at the end will catch and fix those kind of cases.
 sub split_gene_model{
 
    my ($tmpOmniscient, $gene_feature, $level2_feature, $exons_features, $cds_feature_list, $cdsExtremStart, $cdsExtremEnd, $realORFstart, $realORFend, $oppDir, $mRNAlistToTakeCare, $gffout)=@_;

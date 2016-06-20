@@ -73,20 +73,17 @@ my %check; #track the repeat already annotated to not. Allopw to skip already re
 
 while (my $feature = $ref_in->next_feature() ) {
   $line_cpt++;
-  my $type = lc($feature->primary_tag);
-  ## repeatMasker or repeatRunner
 
-
-    my $position=lc($feature->seq_id)."".lc($feature->source_tag)."".lc($feature->primary_tag)."".$feature->start()."".$feature->end(); #uniq position
-    if(exists ($check{$position} ) ){
-      $count++;
-      next;
-    }
-    else{
-     $gffout->write_feature($feature);
-     $check{$position}++;
-    }
-
+  my $position=lc($feature->seq_id)."".lc($feature->source_tag)."".lc($feature->primary_tag)."".$feature->start()."".$feature->end(); #uniq position
+  
+  if(exists ($check{$position} ) ){
+    $count++;
+    next;
+  }
+  else{
+    $gffout->write_feature($feature);
+    $check{$position}++;
+  }
 
   #Display progression
   if ((30 - (time - $startP)) < 0) {
