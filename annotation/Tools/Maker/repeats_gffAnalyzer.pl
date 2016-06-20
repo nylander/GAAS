@@ -26,7 +26,7 @@ my $opt_help = 0;
 Getopt::Long::Configure ('bundling');
 if ( !GetOptions ('i|file|input|gff=s' => \$inputFile,
       'o|output=s' => \$outputFile,
-      'g|genome=i' => \$genome,
+      'g|genome=s' => \$genome,
       'h|help!'         => \$opt_help )  )
 {
     pod2usage( { -message => 'Failed to parse command line',
