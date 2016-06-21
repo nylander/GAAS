@@ -96,6 +96,8 @@ class EMBL( object ):
                     'organelle':["chromatophore", "hydrogenosome", "mitochondrion", "nucleomorph", "plastid", 
                                  "mitochondrion:kinetoplast", "plastid:chloroplast", "plastid:apicoplast", 
                                  "plastid:chromoplast", "plastid:cyanelle", "plastid:leucoplast", "plastid:proplastid"],
+                    'transl_table':[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25],
+#                    'transl_table':["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25"],
                     }
     
     release_dates = {125:time.strptime("2015-09-23", "%Y-%m-%d"),
@@ -146,13 +148,13 @@ class EMBL( object ):
                 if start != None:
                     found = False
                     for f in [f for f in self.record.features if f.type == 'gap']:
-                        if f.location.start == start and f.location.end == i-1:
+                        if f.location.start == start-1 and f.location.end == i:
                             found = True
                     if not found:
-                        gap_location = FeatureLocation(ExactPosition(start), ExactPosition(i-1))
+                        gap_location = FeatureLocation(ExactPosition(start-1), ExactPosition(i))
                         gap_location.strand = 1
                         gap_feature = SeqFeature( gap_location )
-                        gap_feature.qualifiers["estimated_length"] = i-1-start
+                        gap_feature.qualifiers["estimated_length"] = i-start+1
                         gap_feature.type = "gap"
                         self.record.features += [gap_feature]
                     
@@ -254,6 +256,7 @@ class EMBL( object ):
         self.set_project_id
         self.set_version()
         self.set_topology()
+        self.set_transl_table()
         self.set_molecule_class()
         self.set_data_class()
         self.set_taxonomy()
@@ -609,7 +612,15 @@ class EMBL( object ):
         in the document "The DDBJ/ENA/GenBank Feature Table:  Definition". 
         URL: ftp://ftp.ebi.ac.uk/pub/databases/embl/doc/FT_current.txt
         """
-        
+        #add extra information to CDS features
+        for feature in self.record.features:
+            if not feature.type.lower() == "source":
+                for feature_l2 in feature.sub_features:
+                    for l3_feature in feature_l2.sub_features:
+                        if(l3_feature.type.lower() == "cds"):
+                            l3_feature.qualifiers['transl_table']=self.transl_table
+
+        #process features
         output = ""
         for feature in self.record.features:
              for feat in parse_gff_feature(feature):
@@ -836,7 +847,20 @@ class EMBL( object ):
         
         if self.verify:
             self.topology = self._verify( self.topology,       "topology")
-    
+
+    def set_transl_table(self, transl_table = None):
+        """
+        Sets the translation table, or parses it from the current record.
+        """
+        if transl_table:
+            self.transl_table = transl_table
+        elif hasattr(self.record, "transl_table"):
+            self.transl_table = self.record.transl_table
+        elif not hasattr(self, "transl_table"):
+            self.transl_table = ""
+        
+        if self.verify:
+            self.transl_table = self._verify( self.transl_table,       "transl_table")   
     def set_version(self, version = None):
         """
         Sets the release version, or parses it from the current record.
@@ -918,6 +942,8 @@ if __name__ == '__main__':
     parser.add_argument("-m", "--molecule_class", default="genomic DNA", help="Molecule class of the sample.", choices=["genomic DNA", "genomic RNA", "mRNA", "tRNA", "rRNA", "other RNA", "other DNA", "transcribed RNA", "viral cRNA", "unassigned DNA", "unassigned RNA"])
     parser.add_argument("-o", "--output", default=None, help="output filename.")
     parser.add_argument("-p", "--project_id", default=None, help="Project ID (optional).")
+#    parser.add_argument("-r", "--table", default="1", help="Translation table.", choices=["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24",25"])
+    parser.add_argument("-r", "--table", type=int, default=1, help="Translation table.", choices=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25])
     parser.add_argument("-s", "--species", default=None, help="Sample Species, formatted as 'Genus species (english name)'.")
     parser.add_argument("-t", "--topology", default="linear", help="Sequence topology.", choices=[None, "linear", "circular"])
     
@@ -959,6 +985,7 @@ if __name__ == '__main__':
         writer.set_species( args.species )
         writer.set_taxonomy( args.taxonomy )
         writer.set_topology( args.topology )
+        writer.set_transl_table( args.table )
         writer.set_version( args.version )
         
         writer.add_reference(args.reference, location = args.location, authors = args.author)

@@ -111,7 +111,7 @@ while (my $feature = $ref_in->next_feature() ) {
   }
 
   #Display progression
-  if ((1 - (time - $startP)) < 0) {
+  if ((30 - (time - $startP)) < 0) {
     my $done = ($line_cpt*100)/$nbLine;
     $done = sprintf ('%.0f', $done);
         print "\rProgress : $done %";

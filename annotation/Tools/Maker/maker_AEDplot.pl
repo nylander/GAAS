@@ -320,7 +320,7 @@ sub parseGFF {
         if (lc($type) eq 'mrna'){
 
           if(! $feature->has_tag('_AED')){
-              print "AED of this feature not found\n";
+              print "AED of this feature not found for".$feature->_tag_value('ID')."\n";
           }
           else{
              my $AED=$feature->_tag_value('_AED');

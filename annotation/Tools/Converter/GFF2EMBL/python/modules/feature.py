@@ -31,7 +31,20 @@ class Feature(object):
         self.optional_qualifiers = {}
     
     def __repr__(self):
-        output = "\nFT   %s %s" % ("{:15}".format(self.type), self.location)
+        # length of a line:79 characters
+        output = ""
+        line = "\nFT   %s %s" % ("{:15}".format(self.type), self.location)
+        if len(line) <= 79:
+                output += line
+        else: # we have to cut the line (between words)
+            output += line[:79]
+            line = line[79:]
+            while line:
+                output += "\nFT                   %s" % line[:59]
+                line = line[59:]
+
+
+#        sys.stderr.write( "WARNING keep track'%s'\n" % output )
         for qualifier, value in self.mandatory_qualifiers.iteritems():
             if value:
                 output += str(value)
@@ -634,6 +647,8 @@ def parse_gff_feature(feature_l1):
     features = []
     
     if feature_l1.type.lower() == "source":
+        features += feature_modeler(feature_l1)
+    elif feature_l1.type.lower() == "gap":
         features += feature_modeler(feature_l1)
     else: #feature describing data
 

@@ -103,7 +103,7 @@ class Location(object):
         for arg in args:
             if hasattr(arg, "start"): # Deal with BioPython FeatureLocation basically
                 for part in arg.parts:
-                    span = Span(str(part.start))
+                    span = Span(str(part.start-1))
                     if hasattr(part, "end"):
                         span.set_end(str(arg.end))
                     if hasattr(part, "strand") and part.strand < 0:

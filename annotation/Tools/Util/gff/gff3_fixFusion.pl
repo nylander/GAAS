@@ -146,19 +146,18 @@ local $| = 1; # Or use IO::Handle; STDOUT->autoflush; Use to print progression b
 
 foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
   foreach my $gene_id (keys %{$hash_omniscient->{'level1'}{$primary_tag_key_level1}}){
-    
-      #Display progression
-      $featureChecked++;
-      if ((30 - (time - $startP)) < 0) {
+
+    #Display progression
+    $featureChecked++;
+    if ((10 - (time - $startP)) < 0) {
         my $done = ($featureChecked*100)/$TotalFeatureL1;
         $done = sprintf ('%.0f', $done);
         if($verbose) { print "Progress : $done %"; }
         else{ print "\rProgress : $done %"; }
         $startP= time;
-      }
+    }
 
     my $gene_feature=$hash_omniscient->{'level1'}{$primary_tag_key_level1}{$gene_id};
-    $featureChecked++;
     my $oneMRNAmodified=undef;
     my $mrna_pseudo=0;
     my @list_mrna_pseudo;
@@ -235,8 +234,8 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
   }
 }
 # end progreesion bar
-if($verbose) { print "Progress : 100 %\n"; }
-else{if($verbose) { print "\rProgress : 100 %\n"; }}
+#if($verbose) { print "Progress : 100 %\n"; }
+#else{print "\rProgress : 100 %\n"; }
 
 ###
 # Fix frame
@@ -284,7 +283,7 @@ foreach my $tag_l1 (keys %{$omniscient_modified_gene{'level1'}} ){ # primary_tag
 
 
 
-if ($overlap){print "We found $overlap case gene verlapping at CDS level wihout the same ID, we fixed them.";}
+if ($overlap){print "We found $overlap case gene overlapping at CDS level wihout the same ID, we fixed them.";}
 # End manage overlaping name
 #####################################
 
@@ -307,7 +306,7 @@ else{
 
 #END
 my $string_to_print="usage: $0 @copyARGV\n";
-$string_to_print="Results:\n";
+$string_to_print .="Results:\n";
 $string_to_print .="$geneCounter genes affected and $mRNACounter_fixed mRNA.\n";
 $string_to_print .="\n/!\\Remind:\n L and M are AA are possible start codons.\nParticular case: If we have a triplet as WTG, AYG, RTG, RTR or ATK it will be seen as a possible Methionine codon start (it's a X aa)\n".
 "An arbitrary choisce has been done: The longer translate can begin by a L only if it's longer by 21 AA than the longer translate beginning by M. It's happened $counter_case21 times here.\n";

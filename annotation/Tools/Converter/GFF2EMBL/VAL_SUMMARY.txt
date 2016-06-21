@@ -1,0 +1,33 @@
+
+
+***MESSAGES SUMMARY***
+Compressed messages (occurring more than 5 times)
+INFO: organism unclassified. /transl_table identified. Recruiting translation table from /transl_table. Using /transl_table="{0}" (6056 occurrences) (CDSTranslator-13) 
+WARNING: Intron usually expected to be at least 10 nt long. Please check the accuracy. (751 occurrences) (intronLengthWithinCDSCheck) 
+ERROR: The first source feature location must start at base position 1, not "{0}" (source features must cover the full sequence length). (8 occurrences) (SequenceCoverageCheck-3) 
+ERROR: Sequence contains a stretch of 'n' characters between base {0} and {1} that is not represented with a "gap" feature (stretches of n greater than {2} gives a warning, greater than {3} gives an error). (10 occurrences) (SequenceToGapFeatureBasesCheck-1) 
+ERROR: "estimated_length" qualifier with value "{0}" must belong to a feature with a total length of {0}, not "{1}" (10 occurrences) (EstimatedLengthCheck-1) 
+ERROR: Protein coding feature length must be a multiple of 3. Consider 5' or 3' partial location. (5697 occurrences) (Translator-11) 
+ERROR: Protein coding feature with start codon {0} must be 5'' partial. (216 occurrences) (Translator-3) 
+ERROR: The protein translation of the protein coding feature contains internal stop codons. Consider a different start codon. (142 occurrences) (Translator-17) 
+
+Messages
+ERROR: "gap" or "assembly_gap" features must span a set of bases that are only 'n'. (GapFeatureBasesCheck-1)  line: 25079 of 4715.embl
+ERROR: "gap" or "assembly_gap" features must span a set of bases that are only 'n'. (GapFeatureBasesCheck-1)  line: 97272 of 4715.embl
+ERROR: "gap" or "assembly_gap" features must span a set of bases that are only 'n'. (GapFeatureBasesCheck-1)  line: 148714 of 4715.embl
+ERROR: "gap" or "assembly_gap" features must span a set of bases that are only 'n'. (GapFeatureBasesCheck-1)  line: 195620 of 4715.embl
+ERROR: "gap" or "assembly_gap" features must span a set of bases that are only 'n'. (GapFeatureBasesCheck-1)  line: 236366 of 4715.embl
+ERROR: The protein translation of the protein coding feature does not start with a methionine. Consider 5' partial location. (Translator-18)  line: 312231 of 4715.embl
+
+***FILE SUMMARY***
+4715.embl - 8 entries, 8 failed entries, 6089 errors, 0 fixes, 6807 warnings & info
+
+*** SUMMARY***
+Fixed Entries:0
+Failed Entries:8
+Checked Entries:8
+Unchanged Entries:8
+
+
+Processed 8 entries in 771 seconds.
+
