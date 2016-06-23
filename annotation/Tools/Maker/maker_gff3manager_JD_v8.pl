@@ -389,7 +389,9 @@ if ($opt_BlastFile || $opt_InterproFile ){#|| $opt_BlastFile || $opt_InterproFil
         
         my $feature_level1=$hash_ref->{'level1'}{$primary_tag_level1}{$id_level1};
         # Clean NAME attribute
-        $feature_level1->remove_tag('Name');
+        if($feature_level1->has_tag('Name')){
+          $feature_level1->remove_tag('Name');
+        }
 
         #Manage Name if otpion setting
         if( $opt_BlastFile ){
@@ -425,8 +427,10 @@ if ($opt_BlastFile || $opt_InterproFile ){#|| $opt_BlastFile || $opt_InterproFil
 
               my $level2_ID = lc($feature_level2->_tag_value('ID'));
               # Clean NAME attribute
-              $feature_level2->remove_tag('Name');
-
+              if($feature_level2->has_tag('Name')){
+                $feature_level2->remove_tag('Name');
+              }
+              
               #Manage Name if option set
               if($opt_BlastFile){
                 if (exists ($mRNANameBlast{$level2_ID})){
