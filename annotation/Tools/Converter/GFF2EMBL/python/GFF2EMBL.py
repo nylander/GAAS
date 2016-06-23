@@ -148,13 +148,14 @@ class EMBL( object ):
                 if start != None:
                     found = False
                     for f in [f for f in self.record.features if f.type == 'gap']:
-                        if f.location.start == start-1 and f.location.end == i:
+
+                        if f.location.start == start and f.location.end == i:
                             found = True
                     if not found:
-                        gap_location = FeatureLocation(ExactPosition(start-1), ExactPosition(i))
+                        gap_location = FeatureLocation(ExactPosition(start), ExactPosition(i))
                         gap_location.strand = 1
                         gap_feature = SeqFeature( gap_location )
-                        gap_feature.qualifiers["estimated_length"] = i-start+1
+                        gap_feature.qualifiers["estimated_length"] = i-start
                         gap_feature.type = "gap"
                         self.record.features += [gap_feature]
                     
@@ -623,7 +624,7 @@ class EMBL( object ):
         #process features
         output = ""
         for feature in self.record.features:
-             for feat in parse_gff_feature(feature):
+             for feat in parse_gff_feature(self.accessions, feature, self.record.seq):
                  output += str(feat)
         return output + self.spacer
     
@@ -924,8 +925,7 @@ if __name__ == '__main__':
     # NBIS 2016 - Sweden                                   #  
     # Authors: Martin Norling, Jacques Dainat              #
     # Please cite NBIS (www.nbis.se) when using this tool. #
-    ########################################################\n\n
-    """)
+    ########################################################\n\n""")
 
     parser = argparse.ArgumentParser( description = __doc__ )
     

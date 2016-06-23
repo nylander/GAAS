@@ -1,6 +1,8 @@
 #!/usr/bin/env python2.7
 
 import sys
+from Bio.Seq import Seq
+from Bio.Data import CodonTable
 from location import Location
 from Bio.SeqFeature import FeatureLocation
 from qualifiers import *
@@ -23,13 +25,13 @@ class Feature(object):
     
     def __init__(self, feature, translate = {}, disregard = []):
         self.type = None
-        self.location = Location(feature.location)
+        self.location = Location(feature, feature.location)
         self.translate = translate
         self.disregard = disregard
         self._load_default_translations()
         self.mandatory_qualifiers = {}
         self.optional_qualifiers = {}
-    
+
     def __repr__(self):
         # length of a line:79 characters
         output = ""
@@ -116,9 +118,9 @@ class Feature(object):
                 import traceback
                 traceback.print_exc(limit=5)
                 
-                sys.stderr.write( "Unknown qualifier '%s' for feature '%s'. " % (qualifier, type(qualifier)) + "\n" )
-        else:
-            sys.stderr.write( "unknown qualifier '%s' with value '%s' in %s" % (qualifier, value, type(self)) + "\n" )
+                #sys.stderr.write( "Unknown qualifier '%s' for feature '%s'. " % (qualifier, type(qualifier)) + "\n" )
+        #else:
+        #    sys.stderr.write( "unknown qualifier '%s' with value '%s' in %s" % (qualifier, value, type(self)) + "\n" )
 
 # class Assembly_gapFeature
 # class C_region
@@ -404,8 +406,6 @@ class NcRNAFeature( Feature ):
             for qualifier, value in feature.qualifiers.iteritems():
                 self.add_qualifier(qualifier, value)
 
-
-
 # class N_region
 # class Old_sequence
 # class Operon
@@ -635,14 +635,75 @@ class TRNAFeature( Feature ):
 # class V_region
 # class V_segment
 # class Variation
-# class 3'UTR
-# class 5'UTR
-#
+class Three_prime_UTRFeature( Feature ):
+
+    definition="""1) region at the 3' end of a mature transcript 
+                  (following the stop codon) that is not translated
+                  into a protein; 2) region at the 3' end of an RNA
+                  virus (following the last stop codon) that is not
+                  translated into a protein;"""
+    
+    def __init__(self, feature = None, translate={"Name":"standard_name", "ID":"standard_name"}, disregard = ['phase', "source", "eC_number", "Parent"]):
+        super(Three_prime_UTRFeature, self).__init__(feature, translate, disregard)
+        self.type = "3'UTR"
+
+        self.optional_qualifiers = {'allele':None,
+                           'citation':None,
+                           'db_xref':None,
+                           'experiment':None,
+                           'function':None,
+                           'gene':None,
+                           'gene_synonym':None,
+                           'inference':None,
+                           'locus_tag':None,
+                           'map':None,
+                           'note':None,
+                           'old_locus_tag':None,
+                           'standard_name':None,
+                           'trans_splicing':None,
+                           }
+
+        if feature:
+            for qualifier, value in feature.qualifiers.iteritems():
+                self.add_qualifier(qualifier, value)
+
+class Five_prime_UTRFeature( Feature ):
+
+    definition="""1) region at the 5' end of a mature transcript
+                  (preceding the initiation codon) that is not translated
+                  into a protein; 2) region at the 5' end of an RNA virus
+                  genome (preceding the first initiation codon) that is
+                  not translated into a protein;"""
+    
+    def __init__(self, feature = None, translate={"Name":"standard_name", "ID":"standard_name"}, disregard = ['phase', "source", "eC_number", "Parent"]):
+        super(Five_prime_UTRFeature, self).__init__(feature, translate, disregard)
+        self.type = "5'UTR"
+
+        self.optional_qualifiers = {'allele':None,
+                           'citation':None,
+                           'db_xref':None,
+                           'experiment':None,
+                           'function':None,
+                           'gene':None,
+                           'gene_synonym':None,
+                           'inference':None,
+                           'locus_tag':None,
+                           'map':None,
+                           'note':None,
+                           'old_locus_tag':None,
+                           'standard_name':None,
+                           'trans_splicing':None,
+                           }
+
+        if feature:
+            for qualifier, value in feature.qualifiers.iteritems():
+                self.add_qualifier(qualifier, value)
+
 # /!\ Specific features (UTR and CDS) can be "multiple line feature". It means, they are described through several lines if contain several exon.
 # Depending of the tool used to produce the annotation, Some features may have several parents (like an exon share by multiple mRNA). It allows to factorise the information and condense the gff file.
 # NBIS annotation service tool always "expand" them. Here the implementation don't manage that case. We report just an error that has to be fixed outside this code.
 # The phylosophy of that code is expecting to have sequential describtion of feature ordered (i.e: all cds parts must be described in a row).
-def parse_gff_feature(feature_l1):
+def parse_gff_feature(accessions, feature_l1, sequence):
     
     features = []
     
@@ -661,7 +722,13 @@ def parse_gff_feature(feature_l1):
                 sys.stderr.write( "WARNING Feature "+str(feature_l1)+" has more than one parent.\n")
 
         # create locus_tag from ID
-        locus_tag=feature_l1.qualifiers['ID']
+        output_accession=""
+        for accession in accessions:
+            output_accession += accession
+        locus_tag=[]
+        for loc_tag in feature_l1.qualifiers['ID']:
+          tmp_locus_tag=output_accession+"_"+loc_tag
+          locus_tag+=[tmp_locus_tag]
 
         # add locus tag
         feature_l1.qualifiers['locus_tag']=locus_tag
@@ -710,12 +777,32 @@ def parse_gff_feature(feature_l1):
                         new_location_l2=new_location_l2+l3_feature.location
 
                 # other multifeature case. Here we save result in bucket that we will process later
-                elif(l3_feature.type.lower() == "cds" or "utr" in l3_feature.type.lower()):
+                elif(l3_feature.type.lower() == "utr" in l3_feature.type.lower()):
 
                     if not l3_feature.type in bucket_l3.keys():
                         bucket_l3 = {l3_feature.type : l3_feature}
                     else: #update location
                         tmp_location_l3 = bucket_l3[l3_feature.type].location
+                        new_location_l3 = tmp_location_l3 + l3_feature.location
+                        bucket_l3[l3_feature.type].location = new_location_l3
+
+                elif(l3_feature.type.lower() == "cds" in l3_feature.type.lower()):
+                    
+                    if not l3_feature.type in bucket_l3.keys():
+                        bucket_l3 = {l3_feature.type : l3_feature}
+
+                    else: #update location
+                        tmp_location_l3 = bucket_l3[l3_feature.type].location #tmp_location_l3 corresponds to the one in memory/processed in previous round
+
+                        # In complement case (minus strand) we have to modify the phase to catch only the phase of the last cds
+                        if tmp_location_l3.strand == -1 or tmp_location_l3.strand == "-": # this is negative strand
+                          if l3_feature.location.start > tmp_location_l3.start: # the current cds piece is prior to the other pieces seen before
+                            bucket_l3[l3_feature.type].qualifiers['phase'] = l3_feature.qualifiers['phase'] # we modify the phase according to the new cds piece
+                        # In positive strand case we have to keep the phase of the first cds
+                        else: # this is just in case pieces of CDS don't arrive in correct order
+                          if l3_feature.location.start < tmp_location_l3.start: # the current cds piece is prior to the other pieces seen before
+                            bucket_l3[l3_feature.type].qualifiers['phase'] = l3_feature.qualifiers['phase'] # we modify the phase according to the new cds piece
+
                         new_location_l3 = tmp_location_l3 + l3_feature.location
                         bucket_l3[l3_feature.type].location = new_location_l3
 
@@ -733,6 +820,36 @@ def parse_gff_feature(feature_l1):
             
             ###### MANAGE LEVEL 3 FEATURE because now it is fine ####    
             for feature_l3_spread in bucket_l3.values():
+              if feature_l3_spread.type.lower() == "cds":
+                
+                #get start and stop codon
+                startCodon=""
+                stopCodon=""
+                if  feature_l3_spread.location.strand  == -1:
+                  startCodon=sequence[ feature_l3_spread.location.end-3: feature_l3_spread.location.end].reverse_complement()
+                  stopCodon=sequence[ feature_l3_spread.location.start: feature_l3_spread.location.start+3].reverse_complement()                 
+                else:
+                  startCodon=sequence[ feature_l3_spread.location.start: feature_l3_spread.location.start+3]
+                  stopCodon=sequence[ feature_l3_spread.location.end-3: feature_l3_spread.location.end]
+                  
+                
+                #check start and stop codon
+                codon_table = CodonTable.unambiguous_dna_by_id[feature_l3_spread.qualifiers['transl_table']]
+                start="yes"
+                stop="yes"
+                if not str(startCodon).upper() in codon_table.start_codons:
+                  #sys.stderr.write("'%s' is not a start codon \n" % startCodon)
+                  start="no"
+                if not str(stopCodon).upper() in codon_table.stop_codons:
+                  #sys.stderr.write("'%s' is not a stop codon \n" % stopCodon)
+                  stop="no"
+                
+                #Add new qualifier to keep track about start and stop. Will be used in the location class
+                feature_l3_spread.qualifiers['has_start']=start
+                feature_l3_spread.qualifiers['has_stop']=stop
+
+                features += feature_modeler(feature_l3_spread)
+              else:
                 features += feature_modeler(feature_l3_spread)
 
     return features
@@ -743,9 +860,9 @@ def feature_modeler(feature):
     feature_type=feature.type[0].upper() + feature.type[1:] + "Feature"
 
     try:
-        feature_result = [eval("%s( feature )" % feature_type)] #### Where the different methods are called ####
+      feature_result = [eval("%s( feature )" % feature_type)] #### Where the different methods are called ####
     except Exception as e:
-        sys.stderr.write( "WARNING parse_gff_feature: Unknown feature type '%s'\n" % feature_type )
+      sys.stderr.write( "WARNING parse_gff_feature: Unknown feature type '%s'\n" % feature_type )
 
     return feature_result
 
