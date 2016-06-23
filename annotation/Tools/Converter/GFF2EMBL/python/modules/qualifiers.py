@@ -16,6 +16,7 @@ class Qualifier( object ):
             self.value = [self.value]
         self.value += value if type(value) == type([]) else [value]
     
+    # length of a line:79 characters
     def format(self, qualifier, value):
         output = ""
         if type(value) != type([]):
@@ -24,14 +25,14 @@ class Qualifier( object ):
             if type(val) == type(""):
                 val = "\"%s\"" % val
             line = "\nFT                   /%s=%s" % (qualifier, val)
-            if len(line) <= 70:
+            if len(line) <= 79:
                 output += line
             else:
-                output += line[:70]
-                line = line[70:]
+                output += line[:79]
+                line = line[79:]
                 while line:
-                    output += "\nFT                   %s" % line[:48]
-                    line = line[48:]
+                    output += "\nFT                   %s" % line[:59]
+                    line = line[59:]
         return output
 
 class AlleleQualifier( Qualifier ):
