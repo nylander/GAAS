@@ -68,7 +68,7 @@ chomp $nbLine;
 print "$nbLine line to process...\n";
 my $line_cpt=0;
 
-my $count;
+my $count=0;
 my %check; #track the repeat already annotated to not. Allopw to skip already read repeats
 
 while (my $feature = $ref_in->next_feature() ) {
@@ -94,7 +94,10 @@ while (my $feature = $ref_in->next_feature() ) {
   }
 }
 
-print "$count entries removed !\n";
+if($count > 0){
+  print "$count entries removed !\n";
+}
+else{print "No entry removed !\n";}
 my $end_run = time();
 my $run_time = $end_run - $start_run;
 print "Job done in $run_time seconds\n";

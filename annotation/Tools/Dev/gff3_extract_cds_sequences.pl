@@ -89,7 +89,7 @@ my $nbFastaSeq=0;
 my $db = Bio::DB::Fasta->new($opt_fastafile);
 print ("Genome fasta parsed\n");
 
-  foreach my $seqname (keys $hash_l1_grouped) {
+  foreach my $seqname (keys %{$hash_l1_grouped}) {
      foreach my $feature_l1 (@{$hash_l1_grouped->{$seqname}}) {
         my $id_l1=lc($feature_l1->_tag_value('ID'));
         my $name=undef;
