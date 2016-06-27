@@ -112,7 +112,6 @@ print ("Genome fasta parsed\n");
 
               my $id_l2  = lc($feature_l2->_tag_value('ID'));
 
-              my $header=$id_l2;
               if ($feature_l2->has_tag('Name') and ! $name){
                 $name = $feature_l2->_tag_value('Name');
               }
@@ -127,7 +126,7 @@ print ("Genome fasta parsed\n");
               if ( exists ($hash_omniscient->{'level3'}{'cds'}{$id_l2} ) ){
                 my $seqObj = extract_cds_sequence($hash_omniscient->{'level3'}{'cds'}{$id_l2}, $db);
 
-                my $header=$id_l2;
+                my $header=$id_l2."|".$id_l1;
                 if($name){
                   $header.="|Name=".$name;
                 }
