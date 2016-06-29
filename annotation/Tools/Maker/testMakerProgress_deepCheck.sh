@@ -11,11 +11,11 @@
 dir0=""
 if (( $# !=1 )); then
 	echo -e "You can specify the maker datastore path.\nNevetheless we will try the default path ..."
-	if [ ! -f genome.maker.output/genome_datastore ];then
+	if [ ! -f "genome.maker.output/genome_datastore" ];then
 		echo -e "The default path do not work\nRetry giving a correct path to the datastore directory"
 		exit		
 	else
-		dir0=genome.maker.output/genome_datastore
+		dir0="genome.maker.output/genome_datastore"
 	fi
 else
 	dir0=$1	

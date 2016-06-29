@@ -645,16 +645,22 @@ if(defined $opt_output){print "$stringPrint";}
 ####################
 #print step
 printf("Writing result\n");
-#print gene (mRNA)
-print_omniscient(\%omniscient_gene, $outputTab[1]);
-print_omniscient(\%omniscient_gene, $outputTab[2]);
-#print other RNA gene
-print_omniscient(\%omniscient_other, $outputTab[1]);
-print_omniscient(\%omniscient_other, $outputTab[3]);
-#print repeat
-print_omniscient(\%omniscient_repeat, $outputTab[1]);
-print_omniscient(\%omniscient_repeat, $outputTab[4]);
-
+if($opt_output){
+  #print gene (mRNA)
+  print_omniscient(\%omniscient_gene, $outputTab[2]);
+  #print other RNA gene
+  print_omniscient(\%omniscient_other, $outputTab[3]);
+  #print repeat
+  print_omniscient(\%omniscient_repeat, $outputTab[4]);
+}
+else{
+  #print gene (mRNA)
+  print_omniscient(\%omniscient_gene, $outputTab[1]);
+  #print other RNA gene
+  print_omniscient(\%omniscient_other, $outputTab[1]);
+  #print repeat
+  print_omniscient(\%omniscient_repeat, $outputTab[1]);
+}
       ######################### 
       ######### END ###########
       #########################

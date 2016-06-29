@@ -171,9 +171,12 @@ sub manage_one_feature{
 				$parent = $primary_tag."-".$miscCount->{'noParent'}{$primary_tag};
 				push(@parentList, $parent);
 			}
-
-			#Save feature and check duplicates	(treat also cases where there is multiple parent. => In that case we expand to create a uniq feature for each)	
+			
+			#Save feature and check duplicates	(treat also cases where there is multiple parent. => In that case we expand to create a uniq feature for each)
+			my $nbParent=0; # to check if it is a multiple parent case
       		foreach my $parent (@parentList){ # first feature level3 with this primary_tag linked to the level2 feature
+				$nbParent++;
+
 				if(! exists_keys($omniscient,('level3',$primary_tag,lc($parent)))){
 					# save feature in omciscient
 					create_or_replace_tag($feature,'Parent',$parent); #modify Parent To keep only one
@@ -185,7 +188,6 @@ sub manage_one_feature{
 					foreach my $feat ( @{$omniscient->{"level3"}{$primary_tag}{lc($parent)} }){
 						# case where same feature is spread on different location (i.e utr, cds). In that case, following the gff3 gene ontologie specification, the ID can be share by all "peace of feature" building the feature entity.
 						if(($primary_tag eq "cds") or ($primary_tag =~ /utr/)){
-							
 							if(lc($feat->seq_id().$feat->start().$feat->end().$feat->_tag_value('ID')) eq  lc($feature->seq_id().$feature->start().$feature->end().$feature->_tag_value('ID'))){
 								my $id = $feature->seq_id().$feature->start().$feature->end().$feature->_tag_value('ID');
 								push ( @{$duplicate->{"level3"}{$primary_tag}{lc($id )}}, $feature );
@@ -200,10 +202,19 @@ sub manage_one_feature{
 							last;
 						}
 					}
+					#It is not a duplicated feature => save it in omniscient
 					if(! $is_dupli){
-						# save feature in omniscient
-						create_or_replace_tag($feature,'Parent',$parent); #modify Parent To keep only one
-						push (@{$omniscient->{"level3"}{$primary_tag}{lc($parent)}}, $feature);
+						# It is a multiple parent case => We have to clone the feature !!
+						if($nbParent > 1){ 
+							my $feature_clone=clone($feature);
+							create_or_replace_tag($feature_clone,'Parent',$parent); #modify Parent To keep only one
+							push (@{$omniscient->{"level3"}{$primary_tag}{lc($parent)}}, $feature_clone);
+						}
+						# It has only one parent 
+						else{
+							create_or_replace_tag($feature,'Parent',$parent); #modify Parent To keep only one
+							push (@{$omniscient->{"level3"}{$primary_tag}{lc($parent)}}, $feature);
+						}
 					}
 				}
       		}
