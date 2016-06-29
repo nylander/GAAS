@@ -160,11 +160,7 @@ class EMBL( object ):
                         self.record.features += [gap_feature]
                     
                 start = None
-        
-        # Make sure that there's at least one reference
-        if not self.refs:
-            self.add_reference("ENA submission", [(0,len(self.record.seq))])
-    
+
     def _get_release(self, date):
         """
         Tries to find the correct release number for a given date.
@@ -197,6 +193,13 @@ class EMBL( object ):
         If data is a list, the entries are listed with "sep" as separator, if data is
         a string, it's quoted over as many lines as needed.
         """
+        
+        #particular case when RT come empty. We must print ; wihtout quotes
+        if(prefix == "RT" and data == ";"):
+            output = "%s%s" % (prefix, " "*indent)
+            output += str(data)
+            return "\n" + output + suffix
+
         output = "%s%s" % (prefix, " "*indent)
         if type(data) == type([]):
             for item in data:
@@ -286,7 +289,7 @@ class EMBL( object ):
     
     def add_reference(self, title, positions = "all", location = "", comment = "", xrefs = [], group = [], authors = []):
         self.refs += [{'title':title,
-                       'positions':positions if positions != 'all' else [(0,len(self.record.seq))],
+                       'positions':positions if positions != 'all' else [(1,len(self.record.seq))],
                        'location':location,
                        'comment':comment,
                        'xrefs':xrefs,
@@ -505,8 +508,11 @@ class EMBL( object ):
         These lines comprise the literature citations within the database.
         The citations provide access to the papers from which the data has been 
         abstracted. The reference lines for a given citation occur in a block, and
-        are always in the order RN, RC, RP, RX, RG, RA, RT, RL. Within each such 
-        reference block the RN line occurs once, the RC, RP and RX lines occur zero
+        are always in the order RN, RC, RP, RX, RG, RA, RT, RL. 
+        
+        >>>> Within each such reference block <<<<<
+
+        the RN line occurs once, the RC, RP and RX lines occur zero
         or more times, and the RA, RT, RL lines each occur one or more times. 
         If several references are given, there will be a reference block for each.
         """
@@ -518,15 +524,18 @@ class EMBL( object ):
             if ref['comment']:                                      # RC - reference comment          (>=0 per entry)
                 output += self._multiline("RC", ref['comment'])
                                                                     # RP - reference positions        (>=1 per entry)
-            output += self._multiline("RC", ["%i-%i" % pos for pos in ref['positions']])   
+            output += self._multiline("RP", ["%i-%i" % pos for pos in ref['positions']])   
             for xref in ref['xrefs']:                               # RX - reference cross-reference  (>=0 per entry)
                 output += self._multiline("RX", xref, suffix=".")
             if ref['group']:                                        # RG - reference group            (>=0 per entry)
                 output += self._multiline("RG", ref['group'])
             if ref['authors']:                                      # RA - reference author(s)        (>=0 per entry)
                 output += self._multiline("RA", ref['authors'], sep=", ", suffix=";")
-                                                                    # RT - reference title            (>=1 per entry)
-            output += self._multiline("RT", ref['title'], quoted=True)
+             
+            if ref['title'] == ";":                                 # RT - reference title            (>=1 per entry)
+                output += self._multiline("RT", ref['title'], quoted=False)
+            else:
+                output += self._multiline("RT", ref['title'], quoted=True)
             # TODO: There are lots of recommended formatting for the references,
             #       but I won't bother implementing them right now.
             output += self._multiline("RL", ref['location'])        # RL - reference location         (>=1 per entry)
@@ -893,7 +902,6 @@ class EMBL( object ):
         out.write( self.OC() ) # OC - organism classification    (>=1 per entry)
         out.write( self.OG() ) # OG - organelle                  (0 or 1 per entry)
         out.write( self.RF() ) # References, including RN, RC, RP, RX, RG, RA, RT and RL
-        
         out.write( self.DR() ) # DR - database cross-reference   (>=0 per entry)
         out.write( self.CC() ) # CC - comments or notes          (>=0 per entry)
         if self.assembly_information:
@@ -947,9 +955,13 @@ if __name__ == '__main__':
     parser.add_argument("-s", "--species", default=None, help="Sample Species, formatted as 'Genus species (english name)'.")
     parser.add_argument("-t", "--topology", default="linear", help="Sequence topology.", choices=[None, "linear", "circular"])
     
-    parser.add_argument("--reference", default="ENA-submission", help="Reference name.")
-    parser.add_argument("--location", default="unpublished 0:0-0(2016)", help="Reference publishing location.")
-    parser.add_argument("--author", nargs="+", default=["NBIS genome annotation service"], help="Author for the reference")
+    parser.add_argument("--rc", default="", help="Reference Comment.")
+    parser.add_argument("--rx", default="", help="Reference cross-reference.")
+    parser.add_argument("--rg", default="", help="Reference Group.")
+    parser.add_argument("--ra", "--author", nargs="+", default="", help="Author for the reference")
+    parser.add_argument("--rt", default=";", help="Reference Title.")
+    parser.add_argument("--rl", default="Unpublished", help="Reference publishing location.")
+    
     
     parser.add_argument("-v", "--version", default=1, type=int, help="Sequence version number")
     parser.add_argument("-x", "--taxonomy", default=None, help="Source taxonomy.", choices=["PHG", "ENV", "FUN", "HUM", "INV", "MAM", "VRT", "MUS", "PLN", "PRO", "ROD", "SYN", "TGN", "UNC", "VRL"])
@@ -970,6 +982,18 @@ if __name__ == '__main__':
     infasta = gzip.open(args.fasta) if args.fasta.endswith(".gz") else open(args.fasta)
     seq_dict = SeqIO.to_dict( SeqIO.parse(infasta, "fasta") )
     
+    #Manage reference(s)
+    referenceExist=""
+    if not args.rg :
+        sys.stderr.write( """It is not mandatory to add a reference. Yes I know it'obvious when it's an unpublished work and you don't plan to. 
+So we will fill all infromation expected by ENA for unpublished work.
+BUT it's always interesting to know who produced the record. So, please enter a Reference Group (or leave it empty) and press ENTER:\n""")
+        key = raw_input()
+        if key == "":
+            print "It's a pity... Let's go anyway !"
+        else:
+            args.rg="key"
+
     for record in GFF.parse(infile, base_dict=seq_dict):
         
         writer = EMBL( record, True )
@@ -987,9 +1011,8 @@ if __name__ == '__main__':
         writer.set_topology( args.topology )
         writer.set_transl_table( args.table )
         writer.set_version( args.version )
-        
-        writer.add_reference(args.reference, location = args.location, authors = args.author)
-        
+        writer.add_reference(args.rt, location = args.rl, comment = args.rc, xrefs = args.rx, group = args.rg, authors = args.ra)
+
         writer.write_all( outfile )
      
     sys.stderr.write( """Well done\n""")
