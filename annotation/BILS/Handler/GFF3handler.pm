@@ -178,9 +178,18 @@ sub manage_one_feature{
 				$nbParent++;
 
 				if(! exists_keys($omniscient,('level3',$primary_tag,lc($parent)))){
-					# save feature in omciscient
-					create_or_replace_tag($feature,'Parent',$parent); #modify Parent To keep only one
-					push (@{$omniscient->{"level3"}{$primary_tag}{lc($parent)}}, $feature);
+					
+					# It is a multiple parent case => We have to clone the feature !!
+					if($nbParent > 1){ 
+						my $feature_clone=clone($feature);
+						create_or_replace_tag($feature_clone,'Parent',$parent); #modify Parent To keep only one
+						push (@{$omniscient->{"level3"}{$primary_tag}{lc($parent)}}, $feature_clone);
+					}
+					# It has only one parent 
+					else{
+						create_or_replace_tag($feature,'Parent',$parent); #modify Parent To keep only one
+						push (@{$omniscient->{"level3"}{$primary_tag}{lc($parent)}}, $feature);
+					}
 				}
 				else{  # If not the first feature level3 with this primary_tag linked to the level2 feature
 					# check among list of feature level3 already exits with an identical ID.
