@@ -1808,7 +1808,7 @@ sub sort_by_seq_id{
 # @output: 1 => undef || integer(1)
 sub find_overlap_between_geneFeature_and_sortBySeqId{
 	my ($geneFeature, $hash_source, $hashT, $hashT_sortBySeq )=@_;
-	print $geneFeature->gff_string."\n";
+
 	my $tag = $geneFeature->primary_tag;
 	my $seqid = $geneFeature->seq_id;
 	my $strand = $geneFeature->strand;
