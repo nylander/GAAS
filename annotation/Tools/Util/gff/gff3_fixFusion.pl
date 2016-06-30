@@ -259,8 +259,6 @@ my $hash_sortBySeq = sort_by_seq_id($hash_omniscient_intact);
 my $overlap=0;
 foreach my $tag_l1 (keys %{$omniscient_modified_gene{'level1'}} ){ # primary_tag_key_level1 = gene or repeat etc...    
     foreach my $id_l1 (keys %{$omniscient_modified_gene{'level1'}{$tag_l1}} ) {
-      print "case1 $id_l1";
-      print Dumper ($omniscient_modified_gene{'level1'}{$tag_l1}{$id_l1});
       my $geneFeature = $omniscient_modified_gene{'level1'}{$tag_l1}{$id_l1};
       if (find_overlap_between_geneFeature_and_sortBySeqId($geneFeature, \%omniscient_modified_gene, $hash_omniscient_intact, $hash_sortBySeq) ){
         $overlap++
@@ -269,14 +267,16 @@ foreach my $tag_l1 (keys %{$omniscient_modified_gene{'level1'}} ){ # primary_tag
 }
 
 # 4) special case where two newly created gene from to different gene are overlapping
+# Be careful If you by testing 2 identical omniscient, the method could remove element haven't yet been loop over. So check the gene exists before to analyse it !
 my $hash_sortBySeq = sort_by_seq_id(\%omniscient_modified_gene);
 foreach my $tag_l1 (keys %{$omniscient_modified_gene{'level1'}} ){ # primary_tag_key_level1 = gene or repeat etc...  
     foreach my $id_l1 (keys %{$omniscient_modified_gene{'level1'}{$tag_l1}} ) {
-      print "case2 $id_l1";
-      print Dumper ($omniscient_modified_gene{'level1'}{$tag_l1}{$id_l1});
-      my $geneFeature = $omniscient_modified_gene{'level1'}{$tag_l1}{$id_l1};
-      if (find_overlap_between_geneFeature_and_sortBySeqId($geneFeature, \%omniscient_modified_gene, \%omniscient_modified_gene, $hash_sortBySeq) ){
-        $overlap++
+      
+      if( exists_keys( \%omniscient_modified_gene, ('level1', $tag_l1, $id_l1 ) ) ) {
+        my $geneFeature = $omniscient_modified_gene{'level1'}{$tag_l1}{$id_l1};
+        if (find_overlap_between_geneFeature_and_sortBySeqId($geneFeature, \%omniscient_modified_gene, \%omniscient_modified_gene, $hash_sortBySeq) ){
+          $overlap++
+        }
       }
     } 
 }
@@ -285,7 +285,7 @@ foreach my $tag_l1 (keys %{$omniscient_modified_gene{'level1'}} ){ # primary_tag
 
 
 
-if ($overlap){print "We found $overlap case gene overlapping at CDS level wihout the same ID, we fixed them.";}
+if ($overlap){print "We found $overlap case gene overlapping at CDS level wihout the same ID, we fixed them.\n";}
 # End manage overlaping name
 #####################################
 

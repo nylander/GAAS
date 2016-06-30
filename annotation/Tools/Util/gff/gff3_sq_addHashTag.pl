@@ -103,7 +103,7 @@ while (my $feature = $ref_in->next_feature() ) {
  
   if ($interval eq "2"){ #per feature group
     $actual=lc($feature->primary_tag);
-    if ( ($actual ne $before) and ($actual ne "" and $before ne "") ) {
+    if ( ($actual ne $before) and ($before ne "") and ($actual eq "gene" or $actual eq "expressed_sequence_match" or $actual eq "match") ) {
       _write_bucket(\@bucket, $gffout);
       $count++;
       $nextGroup=0;
