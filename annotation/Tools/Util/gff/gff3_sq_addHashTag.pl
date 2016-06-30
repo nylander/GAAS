@@ -167,7 +167,7 @@ STRING: Input gff file that will be read.
 
 =item B<-i> or B<--interval>
 
-Integer: 1 or 2. 1 will add the ### after each group of feature (gene), while 2 will add ### after each new sequence (column1 of the gff).
+Integer: 1 or 2. 1 will add ### after each new sequence (column1 of the gff), while 2 will add the ### after each group of feature (gene).
 By default the value is 1.
 
 =item B<-o> or B<--output> 
