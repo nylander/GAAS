@@ -268,8 +268,7 @@ foreach my $tag_l1 (keys %{$omniscient_modified_gene{'level1'}} ){ # primary_tag
 
 # 4) special case where two newly created gene from to different gene are overlapping
 my $hash_sortBySeq = sort_by_seq_id(\%omniscient_modified_gene);
-foreach my $tag_l1 (keys %{$omniscient_modified_gene{'level1'}} ){ # primary_tag_key_level1 = gene or repeat etc...
-    
+foreach my $tag_l1 (keys %{$omniscient_modified_gene{'level1'}} ){ # primary_tag_key_level1 = gene or repeat etc...  
     foreach my $id_l1 (keys %{$omniscient_modified_gene{'level1'}{$tag_l1}} ) {
       my $geneFeature = $omniscient_modified_gene{'level1'}{$tag_l1}{$id_l1};
       if (find_overlap_between_geneFeature_and_sortBySeqId($geneFeature, \%omniscient_modified_gene, \%omniscient_modified_gene, $hash_sortBySeq) ){
@@ -346,173 +345,175 @@ sub take_care_utr{
     #print "\ntake care utr GeneID = $gene_id\n";
 
       foreach my $primary_tag_key_level2 (sort keys %{$tmpOmniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
-        foreach my $level2_feature ( @{$tmpOmniscient->{'level2'}{$primary_tag_key_level2}{$gene_id}}) {
-          
-          my $id_level2=lc($level2_feature->_tag_value('ID'));   
-          foreach my $mRNAtoTakeCare (@{$mRNAlistToTakeCare}){
+        if (exists_keys($tmpOmniscient, ('level2', $primary_tag_key_level2, $gene_id)) ){ # check if they have mRNA avoiding autovivifcation
+          foreach my $level2_feature ( @{$tmpOmniscient->{'level2'}{$primary_tag_key_level2}{$gene_id}}) {
+            
+            my $id_level2=lc($level2_feature->_tag_value('ID'));   
+            foreach my $mRNAtoTakeCare (@{$mRNAlistToTakeCare}){
 
-            if($mRNAtoTakeCare eq $id_level2){ # ok is among the list of those to analyze
-              if($verbose) { print "id_level2 -- $id_level2 ***** to take_care -- $mRNAtoTakeCare  \n";}
-              if(exists ($tmpOmniscient->{'level3'}{$utr_tag}) and exists ($tmpOmniscient->{'level3'}{$utr_tag}{$id_level2}) ){
-                
-                ##################################################
-                # extract the concatenated exon and cds sequence #
-                my $oppDir=undef;
-                my $original_strand=$level2_feature->strand;
-                
-                ###############
-                # Manage UTRS #
-                my @utr_feature_list = sort {$a->start <=> $b->start} @{$tmpOmniscient->{'level3'}{$utr_tag}{$id_level2}}; # be sure that list is sorted
-                my ($utrExtremStart, $utr_seq, $utrExtremEnd) = concatenate_feature_list(\@utr_feature_list);        
-                
-                #If UTR shorter than the minimum DNA size expected, we skip it => WE SAVE TIME
-                if(length($utr_seq) < ($threshold*3) ){
-                  next;
-                }
+              if($mRNAtoTakeCare eq $id_level2){ # ok is among the list of those to analyze
+                if($verbose) { print "id_level2 -- $id_level2 ***** to take_care -- $mRNAtoTakeCare  \n";}
+                if(exists ($tmpOmniscient->{'level3'}{$utr_tag}) and exists ($tmpOmniscient->{'level3'}{$utr_tag}{$id_level2}) ){
+                  
+                  ##################################################
+                  # extract the concatenated exon and cds sequence #
+                  my $oppDir=undef;
+                  my $original_strand=$level2_feature->strand;
+                  
+                  ###############
+                  # Manage UTRS #
+                  my @utr_feature_list = sort {$a->start <=> $b->start} @{$tmpOmniscient->{'level3'}{$utr_tag}{$id_level2}}; # be sure that list is sorted
+                  my ($utrExtremStart, $utr_seq, $utrExtremEnd) = concatenate_feature_list(\@utr_feature_list);        
+                  
+                  #If UTR shorter than the minimum DNA size expected, we skip it => WE SAVE TIME
+                  if(length($utr_seq) < ($threshold*3) ){
+                    next;
+                  }
 
-                #create the utr object
-                my $utr_obj = Bio::Seq->new(-seq => $utr_seq, -alphabet => 'dna' );
-                
-                #Reverse complement according to strand
-                if ($original_strand == -1 or $original_strand eq "-"){
-                  $utr_obj = $utr_obj->revcom();
-                }
-                
-                # get the revcomp
-                my $opposite_utr_obj = $utr_obj->revcom();
+                  #create the utr object
+                  my $utr_obj = Bio::Seq->new(-seq => $utr_seq, -alphabet => 'dna' );
+                  
+                  #Reverse complement according to strand
+                  if ($original_strand == -1 or $original_strand eq "-"){
+                    $utr_obj = $utr_obj->revcom();
+                  }
+                  
+                  # get the revcomp
+                  my $opposite_utr_obj = $utr_obj->revcom();
 
 
-                my $longest_ORF_prot_obj;
-                my $orf_utr_region;
-                #################################
-                # Get the longest ORF positive ## record ORF = start, end (half-open), length, and frame
-                my $longest_ORF_prot_obj_p;
-                my $orf_utr_region_p;
-                my ($longest_ORF_prot_objM, $orf_utr_regionM) = translate_JD($utr_obj, 
-                                                                            -nostartbyaa => 'L',
-                                                                            -orf => 'longest');
-                my ($longest_ORF_prot_objL, $orf_utr_regionL) = translate_JD($utr_obj, 
-                                                                            -nostartbyaa => 'M',
-                                                                            -orf => 'longest');
-                if($longest_ORF_prot_objL->length()+$SIZE_OPT > $longest_ORF_prot_objM ){ # In a randomly generated DNA sequence with an equal percentage of each nucleotide, a stop-codon would be expected once every 21 codons. Deonier et al. 2005
-                  $longest_ORF_prot_obj_p=$longest_ORF_prot_objL;                    # As Leucine L (9/100) occur more often than Metionine M (2.4) JD arbitrary choose to use the L only if we strength the sequence more than 21 AA. Otherwise we use M start codon.
-                  $orf_utr_region_p=$orf_utr_regionL;
-                  $counter_case21++;
-                }else{
-                  $longest_ORF_prot_obj_p=$longest_ORF_prot_objM;
-                  $orf_utr_region_p=$orf_utr_regionM;
-                }
-               
-                ########################################
-                # Get the longest ORF opposite strand ## record ORF = start, end (half-open), length, and frame
-                my $length_longest_ORF_prot_obj_n=0;
-                my $longest_ORF_prot_obj_n;
-                my $orf_utr_region_n;
-                
-                if(! $stranded){
-
-                  my ($longest_ORF_prot_objM, $orf_utr_regionM) = translate_JD($opposite_utr_obj, 
+                  my $longest_ORF_prot_obj;
+                  my $orf_utr_region;
+                  #################################
+                  # Get the longest ORF positive ## record ORF = start, end (half-open), length, and frame
+                  my $longest_ORF_prot_obj_p;
+                  my $orf_utr_region_p;
+                  my ($longest_ORF_prot_objM, $orf_utr_regionM) = translate_JD($utr_obj, 
                                                                               -nostartbyaa => 'L',
                                                                               -orf => 'longest');
-                  my ($longest_ORF_prot_objL, $orf_utr_regionL) = translate_JD($opposite_utr_obj, 
+                  my ($longest_ORF_prot_objL, $orf_utr_regionL) = translate_JD($utr_obj, 
                                                                               -nostartbyaa => 'M',
                                                                               -orf => 'longest');
                   if($longest_ORF_prot_objL->length()+$SIZE_OPT > $longest_ORF_prot_objM ){ # In a randomly generated DNA sequence with an equal percentage of each nucleotide, a stop-codon would be expected once every 21 codons. Deonier et al. 2005
-                    $longest_ORF_prot_obj_n=$longest_ORF_prot_objL;                    # As Leucine L (9/100) occur more often than Metionine M (2.4) JD arbitrary choose to use the L only if we strength the sequence more than 21 AA. Otherwise we use M start codon.
-                    $orf_utr_region_n=$orf_utr_regionL;
+                    $longest_ORF_prot_obj_p=$longest_ORF_prot_objL;                    # As Leucine L (9/100) occur more often than Metionine M (2.4) JD arbitrary choose to use the L only if we strength the sequence more than 21 AA. Otherwise we use M start codon.
+                    $orf_utr_region_p=$orf_utr_regionL;
                     $counter_case21++;
                   }else{
-                    $longest_ORF_prot_obj_n=$longest_ORF_prot_objM;
-                    $orf_utr_region_n=$orf_utr_regionM;
+                    $longest_ORF_prot_obj_p=$longest_ORF_prot_objM;
+                    $orf_utr_region_p=$orf_utr_regionM;
                   }
-                  $length_longest_ORF_prot_obj_n = $longest_ORF_prot_obj_n->length();
-                }
+                 
+                  ########################################
+                  # Get the longest ORF opposite strand ## record ORF = start, end (half-open), length, and frame
+                  my $length_longest_ORF_prot_obj_n=0;
+                  my $longest_ORF_prot_obj_n;
+                  my $orf_utr_region_n;
+                  
+                  if(! $stranded){
 
-                #################
-                # Choose the best
-                if($longest_ORF_prot_obj_p->length() >= $length_longest_ORF_prot_obj_n){
-                  $longest_ORF_prot_obj= $longest_ORF_prot_obj_p;
-                  $orf_utr_region= $orf_utr_region_p;
-                }
-                else{
-                  $longest_ORF_prot_obj= $longest_ORF_prot_obj_n;
-                  $orf_utr_region= $orf_utr_region_n;
-                  $oppDir=1;
-                  #my @cds_feature_list = sort {$a->start <=> $b->start} @{$tmpOmniscient->{'level3'}{'cds'}{$id_level2}}; # be sure that list is sorted
-                  #($cdsExtremStart, $cds_dna_seq, $cdsExtremEnd) = concatenate_feature_list($cds_feature_list); # we have to change these value because it was not predicted as same direction as mRNA
-                }
-
-
-                ########################
-                # prediction is longer than threshold#
-                if($longest_ORF_prot_obj->length() > $threshold){
-
-                  if($verbose) {print "Longer AA in utr = ".$longest_ORF_prot_obj->length()."\n".$longest_ORF_prot_obj->seq."\n";}
-                   
-                  my @exons_features = sort {$a->start <=> $b->start} @{$tmpOmniscient->{'level3'}{'exon'}{$id_level2}};# be sure that list is sorted
-                  my ($exonExtremStart, $mrna_seq, $exonExtremEnd) = concatenate_feature_list(\@exons_features); 
-
-                  my @cds_feature_list = sort {$a->start <=> $b->start} @{$tmpOmniscient->{'level3'}{'cds'}{$id_level2}}; # be sure that list is sorted  
-                  my ($cdsExtremStart, $cds_dna_seq, $cdsExtremEnd) = concatenate_feature_list(\@cds_feature_list);
-
-                  # set real start and stop to orf
-                  my $realORFstart;
-                  my $realORFend;
-                  #print "mRNA length: ".length($mrna_seq)."  UTR length: ".length($utr_seq)."\n";
-                  #print "start in UTR piece ".$orf_utr_region->[0]." end ".$orf_utr_region->[1]."\n";
-
-                  ####################################
-                  # Recreate position of start in mRNA positive strand
-                  my $startUTRinMRNA=length($mrna_seq) - length($utr_seq);
-                  if ($utr_tag eq 'three_prime_utr' ){    
-                    if($original_strand == 1 or $original_strand eq "+" ){
-                      if(! $oppDir){
-                        $orf_utr_region->[0]=$orf_utr_region->[0]+($startUTRinMRNA);
-                      }
-                      else{ #opposite direction
-                        $orf_utr_region->[0]=length($mrna_seq) - $orf_utr_region->[1]; 
-                      }
+                    my ($longest_ORF_prot_objM, $orf_utr_regionM) = translate_JD($opposite_utr_obj, 
+                                                                                -nostartbyaa => 'L',
+                                                                                -orf => 'longest');
+                    my ($longest_ORF_prot_objL, $orf_utr_regionL) = translate_JD($opposite_utr_obj, 
+                                                                                -nostartbyaa => 'M',
+                                                                                -orf => 'longest');
+                    if($longest_ORF_prot_objL->length()+$SIZE_OPT > $longest_ORF_prot_objM ){ # In a randomly generated DNA sequence with an equal percentage of each nucleotide, a stop-codon would be expected once every 21 codons. Deonier et al. 2005
+                      $longest_ORF_prot_obj_n=$longest_ORF_prot_objL;                    # As Leucine L (9/100) occur more often than Metionine M (2.4) JD arbitrary choose to use the L only if we strength the sequence more than 21 AA. Otherwise we use M start codon.
+                      $orf_utr_region_n=$orf_utr_regionL;
+                      $counter_case21++;
+                    }else{
+                      $longest_ORF_prot_obj_n=$longest_ORF_prot_objM;
+                      $orf_utr_region_n=$orf_utr_regionM;
                     }
-                    else{ #minus strand
+                    $length_longest_ORF_prot_obj_n = $longest_ORF_prot_obj_n->length();
+                  }
+
+                  #################
+                  # Choose the best
+                  if($longest_ORF_prot_obj_p->length() >= $length_longest_ORF_prot_obj_n){
+                    $longest_ORF_prot_obj= $longest_ORF_prot_obj_p;
+                    $orf_utr_region= $orf_utr_region_p;
+                  }
+                  else{
+                    $longest_ORF_prot_obj= $longest_ORF_prot_obj_n;
+                    $orf_utr_region= $orf_utr_region_n;
+                    $oppDir=1;
+                    #my @cds_feature_list = sort {$a->start <=> $b->start} @{$tmpOmniscient->{'level3'}{'cds'}{$id_level2}}; # be sure that list is sorted
+                    #($cdsExtremStart, $cds_dna_seq, $cdsExtremEnd) = concatenate_feature_list($cds_feature_list); # we have to change these value because it was not predicted as same direction as mRNA
+                  }
+
+
+                  ########################
+                  # prediction is longer than threshold#
+                  if($longest_ORF_prot_obj->length() > $threshold){
+
+                    if($verbose) {print "Longer AA in utr = ".$longest_ORF_prot_obj->length()."\n".$longest_ORF_prot_obj->seq."\n";}
+                     
+                    my @exons_features = sort {$a->start <=> $b->start} @{$tmpOmniscient->{'level3'}{'exon'}{$id_level2}};# be sure that list is sorted
+                    my ($exonExtremStart, $mrna_seq, $exonExtremEnd) = concatenate_feature_list(\@exons_features); 
+
+                    my @cds_feature_list = sort {$a->start <=> $b->start} @{$tmpOmniscient->{'level3'}{'cds'}{$id_level2}}; # be sure that list is sorted  
+                    my ($cdsExtremStart, $cds_dna_seq, $cdsExtremEnd) = concatenate_feature_list(\@cds_feature_list);
+
+                    # set real start and stop to orf
+                    my $realORFstart;
+                    my $realORFend;
+                    #print "mRNA length: ".length($mrna_seq)."  UTR length: ".length($utr_seq)."\n";
+                    #print "start in UTR piece ".$orf_utr_region->[0]." end ".$orf_utr_region->[1]."\n";
+
+                    ####################################
+                    # Recreate position of start in mRNA positive strand
+                    my $startUTRinMRNA=length($mrna_seq) - length($utr_seq);
+                    if ($utr_tag eq 'three_prime_utr' ){    
+                      if($original_strand == 1 or $original_strand eq "+" ){
                         if(! $oppDir){
-                          $orf_utr_region->[0]=length($utr_seq) - $orf_utr_region->[1]; #flip position
+                          $orf_utr_region->[0]=$orf_utr_region->[0]+($startUTRinMRNA);
                         }
-                    }
-                  }
-                  elsif ($utr_tag eq 'five_prime_utr'){
-                    if($original_strand == 1 or $original_strand eq "+"){
-                      if($oppDir){
-                        $orf_utr_region->[0]=length($utr_seq) - $orf_utr_region->[1];
+                        else{ #opposite direction
+                          $orf_utr_region->[0]=length($mrna_seq) - $orf_utr_region->[1]; 
+                        }
+                      }
+                      else{ #minus strand
+                          if(! $oppDir){
+                            $orf_utr_region->[0]=length($utr_seq) - $orf_utr_region->[1]; #flip position
+                          }
                       }
                     }
-                    else{ #minus strand
-                      if(! $oppDir){
-                        $orf_utr_region->[0]=(length($utr_seq) - $orf_utr_region->[1])+($startUTRinMRNA);
+                    elsif ($utr_tag eq 'five_prime_utr'){
+                      if($original_strand == 1 or $original_strand eq "+"){
+                        if($oppDir){
+                          $orf_utr_region->[0]=length($utr_seq) - $orf_utr_region->[1];
+                        }
                       }
-                      else{ #opposite direction
-                         $orf_utr_region->[0]=$orf_utr_region->[0]+($startUTRinMRNA);
+                      else{ #minus strand
+                        if(! $oppDir){
+                          $orf_utr_region->[0]=(length($utr_seq) - $orf_utr_region->[1])+($startUTRinMRNA);
+                        }
+                        else{ #opposite direction
+                           $orf_utr_region->[0]=$orf_utr_region->[0]+($startUTRinMRNA);
+                        }
                       }
                     }
-                  }
 
-                  #calcul the real start end stop of utr in genome  
-                  ($realORFstart, $realORFend) = calcul_real_orf_end_and_start($orf_utr_region, \@exons_features);
-       
-                  #save the real start and stop
-                  $orf_utr_region->[0]=$realORFstart;
-                  $orf_utr_region->[1]=$realORFend;       
+                    #calcul the real start end stop of utr in genome  
+                    ($realORFstart, $realORFend) = calcul_real_orf_end_and_start($orf_utr_region, \@exons_features);
+         
+                    #save the real start and stop
+                    $orf_utr_region->[0]=$realORFstart;
+                    $orf_utr_region->[1]=$realORFend;       
 
-                  # Now manage splitting the old gene to obtain two genes
-                  $mRNAlistToTakeCare = split_gene_model($tmpOmniscient, $gene_feature, $level2_feature, \@exons_features, \@cds_feature_list, $cdsExtremStart, $cdsExtremEnd, $realORFstart, $realORFend, $oppDir, $mRNAlistToTakeCare, $gffout);
+                    # Now manage splitting the old gene to obtain two genes
+                    $mRNAlistToTakeCare = split_gene_model($tmpOmniscient, $gene_feature, $level2_feature, \@exons_features, \@cds_feature_list, $cdsExtremStart, $cdsExtremEnd, $realORFstart, $realORFend, $oppDir, $mRNAlistToTakeCare, $gffout);
 
-                  $oneRoundAgain="yes";
-                  $nbNewUTRgene++;
-                } # We predict something in UTR
-                else{ if($verbose) { print "Nothing predicted over threshold :". $longest_ORF_prot_obj->length()." ! Next\n";} }
-              } # End there is UTR
-              else{ if($verbose) {print "There is no UTR ! Next\n";} }
-            } 
-            #else{print "Not among the list mRNAtoTakeCare. Next \n";}
+                    $oneRoundAgain="yes";
+                    $nbNewUTRgene++;
+                  } # We predict something in UTR
+                  else{ if($verbose) { print "Nothing predicted over threshold :". $longest_ORF_prot_obj->length()." ! Next\n";} }
+                } # End there is UTR
+                else{ if($verbose) {print "There is no UTR ! Next\n";} }
+              } 
+              #else{print "Not among the list mRNAtoTakeCare. Next \n";}
+            }
           }
         }
       }
@@ -725,9 +726,9 @@ sub take_care_mrna_id {
 
       foreach my $primary_tag_key_level1 (keys %{$tmpOmniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
         foreach my $gene_id_from_hash (keys %{$tmpOmniscient->{'level1'}{$primary_tag_key_level1}}){
+          
           foreach my $primary_tag_key_level2 (keys %{$tmpOmniscient->{'level2'}}){ # primary_tag_key_level1 = gene or repeat etc...
             if( exists_keys($tmpOmniscient, ('level2', $primary_tag_key_level2, $gene_id_from_hash)) ){
-
               foreach my $featureL2 (@{$tmpOmniscient->{'level2'}{$primary_tag_key_level2}{$gene_id_from_hash}}){
                 my $mrna_id_from_hash=$featureL2->_tag_value('ID');
                 if($mrna_id_from_hash =~ /(new[1-9]+_)/){
