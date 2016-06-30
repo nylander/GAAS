@@ -115,7 +115,6 @@ else{ print "You didn't use the option stranded. We will look for fusion in all 
 my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GFF3handler->slurp_gff3_file_JD($gff);
 print ("GFF3 file parsed\n");
 
-
 ####################
 # index the genome #
 my $db = Bio::DB::Fasta->new($file_fasta);
@@ -171,57 +170,58 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
     fill_omniscient_from_other_omniscient_level1_id(\@tmpListID,$hash_omniscient,$tmpOmniscient);
     
     foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
-      foreach my $level2_feature ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$gene_id}}) {
-       
-        $PREFIX_CPT_MRNA=1;
+      if (exists_keys($hash_omniscient, ('level2', $primary_tag_key_level2, $gene_id)) ){ # check if they have mRNA avoiding autovivifcation
+        foreach my $level2_feature ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$gene_id}}) {
+         
+          $PREFIX_CPT_MRNA=1;
 
-        # get multiple info
-        $number_mrna=$#{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$gene_id}}+1;
-        my $id_level2 = lc($level2_feature->_tag_value('ID'));
-        push (@$mRNAlistToTakeCare,$id_level2);
+          # get multiple info
+          $number_mrna=$#{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$gene_id}}+1;
+          my $id_level2 = lc($level2_feature->_tag_value('ID'));
+          push (@$mRNAlistToTakeCare,$id_level2);
 
-        ##############################
-        #If UTR3 #
-        my $oneRoundAgain="yes";
-        my $nbNewUTR3gene=0;
-        if ( exists ($hash_omniscient->{'level3'}{'three_prime_utr'}{$id_level2} ) ){
-          
-          while($oneRoundAgain){
-            if($verbose) {print "\nNew round three_prime_utr\n";}
-            my ($breakRound, $nbNewUTRgene, $mRNAlistToTakeCare) = take_care_utr('three_prime_utr', $tmpOmniscient, $mRNAlistToTakeCare, $stranded, $gffout);
-            $oneRoundAgain =  $breakRound;
-            $nbNewUTR3gene = $nbNewUTR3gene+$nbNewUTRgene;
-          }
-        }
-        ##############################
-        #If UTR5 #
-        $oneRoundAgain="yes";
-        my $nbNewUTR5gene=0;
-        if ( exists ($hash_omniscient->{'level3'}{'five_prime_utr'}{$id_level2} ) ){
-        
-          while($oneRoundAgain){
-              if($verbose) { print "\nNew round five_prime_utr\n";}
-              my ($breakRound, $nbNewUTRgene, $mRNAlistToTakeCare) = take_care_utr('five_prime_utr', $tmpOmniscient, $mRNAlistToTakeCare, $stranded, $gffout);
+          ##############################
+          #If UTR3 #
+          my $oneRoundAgain="yes";
+          my $nbNewUTR3gene=0;
+          if ( exists_keys($hash_omniscient, ('level3', 'three_prime_utr', $id_level2)) ){
+            
+            while($oneRoundAgain){
+              if($verbose) {print "\nNew round three_prime_utr\n";}
+              my ($breakRound, $nbNewUTRgene, $mRNAlistToTakeCare) = take_care_utr('three_prime_utr', $tmpOmniscient, $mRNAlistToTakeCare, $stranded, $gffout);
               $oneRoundAgain =  $breakRound;
-              $nbNewUTR5gene = $nbNewUTR5gene+$nbNewUTRgene;
+              $nbNewUTR3gene = $nbNewUTR3gene+$nbNewUTRgene;
             }
-        }
-        ##########################
-        #If UTR not well defined #
-        if ( exists ($hash_omniscient->{'level3'}{'utr'}{$id_level2} ) ){
-          print "Sorry but we need to know which utr it is ... 5 or 3 ?\n";exit;
-        }
+          }
+          ##############################
+          #If UTR5 #
+          $oneRoundAgain="yes";
+          my $nbNewUTR5gene=0;
+          if ( exists_keys($hash_omniscient, ('level3', 'five_prime_utr', $id_level2)) ){
+     
+            while($oneRoundAgain){
+                if($verbose) { print "\nNew round five_prime_utr\n";}
+                my ($breakRound, $nbNewUTRgene, $mRNAlistToTakeCare) = take_care_utr('five_prime_utr', $tmpOmniscient, $mRNAlistToTakeCare, $stranded, $gffout);
+                $oneRoundAgain =  $breakRound;
+                $nbNewUTR5gene = $nbNewUTR5gene+$nbNewUTRgene;
+              }
+          }
+          ##########################
+          #If UTR not well defined #
+          if ( exists ($hash_omniscient->{'level3'}{'utr'}{$id_level2} ) ){
+            print "Sorry but we need to know which utr it is ... 5 or 3 ?\n";exit;
+          }
 
-        #############
-        # CHECK AFTER ALL UTR ANALIZED
-        my $totalNewUTRgene=$nbNewUTR3gene+$nbNewUTR5gene;
-        if($totalNewUTRgene > 0){
-          $oneMRNAmodified="yes";
-          $mRNACounter_fixed++; # Count only mRNA modified
-        }
-        @$mRNAlistToTakeCare = (); # empty the list
-      } # End foreach mRNA
-
+          #############
+          # CHECK AFTER ALL UTR ANALIZED
+          my $totalNewUTRgene=$nbNewUTR3gene+$nbNewUTR5gene;
+          if($totalNewUTRgene > 0){
+            $oneMRNAmodified="yes";
+            $mRNACounter_fixed++; # Count only mRNA modified
+          }
+          @$mRNAlistToTakeCare = (); # empty the list
+        } # End foreach mRNA
+      }
       if($oneMRNAmodified){
         $geneCounter++;
         $mRNACounter=$mRNACounter+$number_mrna; #add all the mRNA if at least one modified
@@ -234,8 +234,8 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
   }
 }
 # end progreesion bar
-#if($verbose) { print "Progress : 100 %\n"; }
-#else{print "\rProgress : 100 %\n"; }
+if($verbose) { print "Progress : 100 %\n"; }
+else{print "\rProgress : 100 %\n"; }
 
 ###
 # Fix frame
@@ -257,8 +257,7 @@ my $hash_sortBySeq = sort_by_seq_id($hash_omniscient_intact);
 
 # 3) review all newly created gene
 my $overlap=0;
-foreach my $tag_l1 (keys %{$omniscient_modified_gene{'level1'}} ){ # primary_tag_key_level1 = gene or repeat etc...
-    
+foreach my $tag_l1 (keys %{$omniscient_modified_gene{'level1'}} ){ # primary_tag_key_level1 = gene or repeat etc...    
     foreach my $id_l1 (keys %{$omniscient_modified_gene{'level1'}{$tag_l1}} ) {
       my $geneFeature = $omniscient_modified_gene{'level1'}{$tag_l1}{$id_l1};
       if (find_overlap_between_geneFeature_and_sortBySeqId($geneFeature, \%omniscient_modified_gene, $hash_omniscient_intact, $hash_sortBySeq) ){
@@ -351,7 +350,7 @@ sub take_care_utr{
           
           my $id_level2=lc($level2_feature->_tag_value('ID'));   
           foreach my $mRNAtoTakeCare (@{$mRNAlistToTakeCare}){
-            #print "id_level2 -- $id_level2 ***** to take_care -- $mRNAtoTakeCare  \n";
+
             if($mRNAtoTakeCare eq $id_level2){ # ok is among the list of those to analyze
               if($verbose) { print "id_level2 -- $id_level2 ***** to take_care -- $mRNAtoTakeCare  \n";}
               if(exists ($tmpOmniscient->{'level3'}{$utr_tag}) and exists ($tmpOmniscient->{'level3'}{$utr_tag}{$id_level2}) ){
@@ -360,10 +359,17 @@ sub take_care_utr{
                 # extract the concatenated exon and cds sequence #
                 my $oppDir=undef;
                 my $original_strand=$level2_feature->strand;
+                
                 ###############
                 # Manage UTRS #
                 my @utr_feature_list = sort {$a->start <=> $b->start} @{$tmpOmniscient->{'level3'}{$utr_tag}{$id_level2}}; # be sure that list is sorted
                 my ($utrExtremStart, $utr_seq, $utrExtremEnd) = concatenate_feature_list(\@utr_feature_list);        
+                
+                #If UTR shorter than the minimum DNA size expected, we skip it => WE SAVE TIME
+                if(length($utr_seq) < ($threshold*3) ){
+                  next;
+                }
+
                 #create the utr object
                 my $utr_obj = Bio::Seq->new(-seq => $utr_seq, -alphabet => 'dna' );
                 
@@ -637,7 +643,7 @@ sub split_gene_model{
                   #############################################
                   # Modelate mRNA features for new prediction #
                   if ( $new_mrna ){
-                    my $new_mRNA_feature = Bio::SeqFeature::Generic->new(-seq_id => $newPred_exon_list->[0]->seq_id, -source_tag => $newPred_exon_list->[0]->source_tag, -primary_tag => 'mRNA' , -start => $newPred_exon_list->[0]->start,  -end => $newPred_exon_list->[$#{$newPred_exon_list}]->end, -frame => $newPred_exon_list->[0]->frame, -strand => $newPred_exon_list->[0]->strand , -tag => { 'ID' => $transcript_id , 'Parent' => $gene_id }) ;
+                    my $new_mRNA_feature = Bio::SeqFeature::Generic->new(-seq_id => $newPred_exon_list->[0]->seq_id, -source_tag => $newPred_exon_list->[0]->source_tag, -primary_tag => $level2_feature->primary_tag() , -start => $newPred_exon_list->[0]->start,  -end => $newPred_exon_list->[$#{$newPred_exon_list}]->end, -frame => $newPred_exon_list->[0]->frame, -strand => $newPred_exon_list->[0]->strand , -tag => { 'ID' => $transcript_id , 'Parent' => $gene_id }) ;
                     push (@$mRNAlistToTakeCare, lc($transcript_id));
                     @level2_list=($new_mRNA_feature);
 
@@ -650,7 +656,7 @@ sub split_gene_model{
                     check_gene_positions($tmpOmniscient, $gene_id);
                   }
                   else{
-                    print "*** Not creating mRNA *** because exon and CDS IDENTIK ! \n";
+                    if($verbose){print "*** Not creating mRNA *** because exon and CDS IDENTIK ! \n";}
                   }
 
   return $mRNAlistToTakeCare;
@@ -720,7 +726,8 @@ sub take_care_mrna_id {
       foreach my $primary_tag_key_level1 (keys %{$tmpOmniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
         foreach my $gene_id_from_hash (keys %{$tmpOmniscient->{'level1'}{$primary_tag_key_level1}}){
           foreach my $primary_tag_key_level2 (keys %{$tmpOmniscient->{'level2'}}){ # primary_tag_key_level1 = gene or repeat etc...
-            if( exists( $tmpOmniscient->{'level2'}{$primary_tag_key_level2}{$gene_id_from_hash} )){
+            if( exists_keys($tmpOmniscient, ('level2', $primary_tag_key_level2, $gene_id_from_hash)) ){
+
               foreach my $featureL2 (@{$tmpOmniscient->{'level2'}{$primary_tag_key_level2}{$gene_id_from_hash}}){
                 my $mrna_id_from_hash=$featureL2->_tag_value('ID');
                 if($mrna_id_from_hash =~ /(new[1-9]+_)/){
@@ -816,7 +823,8 @@ sub must_be_a_new_gene_new_mrna{
 
       if($strand eq $gene_feature->strand){
         foreach my $primary_tag_key_level2 (keys %{$omniscient->{'level2'}}){ # primary_tag_key_level1 = gene or repeat etc...
-          if( exists( $omniscient->{'level2'}{$primary_tag_key_level2}{$gene_id_from_hash} )){
+          if( exists_keys($omniscient, ('level2', $primary_tag_key_level2, $gene_id_from_hash)) ){
+
             foreach my $featureL2 (@{$omniscient->{'level2'}{$primary_tag_key_level2}{$gene_id_from_hash}}){
 
             # get level2 id
@@ -837,7 +845,7 @@ sub must_be_a_new_gene_new_mrna{
                   if(featuresList_identik(\@cds_feature_list, $new_pred_cds_list)){
                     #print "cds identik !\n";
                     if(featuresList_identik(\@exon_feature_list, $newPred_exon_list)){                 
-                      if($verbose) { print "mRNA identik BETWEEN $featureL2_id and $featureL2_original_id \n"; }
+                      if($verbose) { print "RNA identik BETWEEN $featureL2_id and $featureL2_original_id \n"; }
                       $Need_new_mRNA=undef;
                       $overlaping_mrna_ft=$featureL2_id;
                       last;
