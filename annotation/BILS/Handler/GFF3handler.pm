@@ -677,10 +677,12 @@ sub check_mrna_positions{
   #Modify mRNA start-end based on exon features
   my $exonStart=$exon_list_sorted[0]->start;
   my $exonEnd=$exon_list_sorted[$#exon_list_sorted]->end;
+  #check start
   if ($mRNA_feature->start != $exonStart){
     $mRNA_feature->start($exonStart);
   }
-  elsif($mRNA_feature->end != $exonEnd){
+  #check stop
+  if($mRNA_feature->end != $exonEnd){
     $mRNA_feature->end($exonEnd);
   }
 }

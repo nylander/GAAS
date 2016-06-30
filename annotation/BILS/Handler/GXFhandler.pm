@@ -1979,18 +1979,19 @@ sub check_gene_positions{
   my $geneExtremStart=1000000000000;
   my $geneExtremEnd=0;
   foreach my $primary_tag_l2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
+  	if (exists_keys($hash_omniscient, ('level2', $primary_tag_l2, lc($gene_id) ) ) ){ # check if they have mRNA avoiding autovivifcation
+	    foreach my $mrna_feature ( @{$hash_omniscient->{'level2'}{$primary_tag_l2}{lc($gene_id)}}) {
+	      	my $start=$mrna_feature->start();
+	      	my $end=$mrna_feature->end();
 
-    foreach my $mrna_feature ( @{$hash_omniscient->{'level2'}{$primary_tag_l2}{lc($gene_id)}}) {
-      	my $start=$mrna_feature->start();
-      	my $end=$mrna_feature->end();
-
-      if ($start < $geneExtremStart){
-        $geneExtremStart=$start;
-      }
-      if($end > $geneExtremEnd){
-        $geneExtremEnd=$end;
-      }
-    }
+	      if ($start < $geneExtremStart){
+	        $geneExtremStart=$start;
+	      }
+	      if($end > $geneExtremEnd){
+	        $geneExtremEnd=$end;
+	      }
+	    }
+	}
   }
   my $gene_feature=$hash_omniscient->{'level1'}{'gene'}{lc($gene_id)};
   if ($gene_feature->start != $geneExtremStart){
