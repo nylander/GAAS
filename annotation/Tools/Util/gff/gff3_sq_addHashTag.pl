@@ -62,11 +62,12 @@ if ($outfile) {
   $outfile=~ s/.gff//g;
   open(my $fh, '>', $outfile.".gff") or die "Could not open file '$outfile' $!";
   $gffout= Bio::Tools::GFF->new(-fh => $fh, -gff_version => 3 );
-
+  
 }
 else{
   $gffout = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 3);
 }
+my $gffXtra=$gffout->{"_filehandle"}; #to add extra lines to gff!!
 
 #time to calcul progression
 my $startP=time;
@@ -139,10 +140,9 @@ sub _write_bucket{
   foreach my $feature (@$bucket){
     $gffout->write_feature($feature);
   }
-  print "next\n";
+
   # Get the filehandle
-  my $fh=$gffout->fh;
-  print $fh "###\n";
+  print $gffXtra "###\n";
 }
 
 __END__
@@ -167,7 +167,7 @@ STRING: Input gff file that will be read.
 
 =item B<-i> or B<--interval>
 
-Integer: 1 or 2. 1 will add the ### after each group of feature (gene), while 2 will add ### after each sequence (column1 of the gff).
+Integer: 1 or 2. 1 will add the ### after each group of feature (gene), while 2 will add ### after each new sequence (column1 of the gff).
 By default the value is 1.
 
 =item B<-o> or B<--output> 
