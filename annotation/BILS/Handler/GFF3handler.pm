@@ -183,6 +183,18 @@ sub manage_one_feature{
 					if($nbParent > 1){ 
 						my $feature_clone=clone($feature);
 						create_or_replace_tag($feature_clone,'Parent',$parent); #modify Parent To keep only one
+
+						#Take care of ID to have uniq one (case of exon,etc...)
+						if( ($primary_tag ne "cds") and (index($primary_tag, 'utr') == -1) ){
+							my $substr = $feature->_tag_value('Parent');
+							my $clone_id=$feature->_tag_value('ID');
+							$clone_id=~ s/$substr//;
+							if($clone_id eq $feature->_tag_value('ID')){#Substring didn't work
+								$clone_id=$feature->_tag_value('ID')."$nbParent";
+							}else{$clone_id="$parent$clone_id";}
+							create_or_replace_tag($feature_clone,'ID',$clone_id); #modify Parent To keep only one
+						}
+
 						push (@{$omniscient->{"level3"}{$primary_tag}{lc($parent)}}, $feature_clone);
 					}
 					# It has only one parent 
@@ -217,6 +229,18 @@ sub manage_one_feature{
 						if($nbParent > 1){ 
 							my $feature_clone=clone($feature);
 							create_or_replace_tag($feature_clone,'Parent',$parent); #modify Parent To keep only one
+							
+							#Take care of ID to have uniq one (case of exon,etc...)
+							if( ($primary_tag ne "cds") and (index($primary_tag, 'utr') == -1) ){
+								my $substr = $feature->_tag_value('Parent');
+								my $clone_id=$feature->_tag_value('ID');
+								$clone_id=~ s/$substr//;
+								if($clone_id eq $feature->_tag_value('ID')){#Substring didn't work
+									$clone_id=$feature->_tag_value('ID')."$nbParent";
+								}else{$clone_id="$parent$clone_id";}
+								create_or_replace_tag($feature_clone,'ID',$clone_id); #modify Parent To keep only one
+							}
+
 							push (@{$omniscient->{"level3"}{$primary_tag}{lc($parent)}}, $feature_clone);
 						}
 						# It has only one parent 
