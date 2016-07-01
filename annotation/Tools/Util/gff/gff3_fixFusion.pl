@@ -780,7 +780,6 @@ sub take_care_level3_id {
       my $newPrefix="new".$PREFIX_CPT_EXON."_";
       my $new_id="$newPrefix$clean_id";
 
-
       my $primary_tag = lc($feature->primary_tag);
 
       while(ID_exists_at_level3($tmpOmniscient, $new_id, $primary_tag )){
@@ -798,17 +797,16 @@ sub ID_exists_at_level3{
 
   my ($tmpOmniscient, $ID, $primary_tag ) = @_;
   
-  my $result=undef;
       foreach my $level2_ID (keys %{$tmpOmniscient->{'level3'}{$primary_tag}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
 
         foreach my $feature_l3 ( @{$tmpOmniscient->{'level3'}{$primary_tag}{$level2_ID}}) {
           my $existingID = $feature_l3->_tag_value('ID');
           if ($existingID eq $ID){
-             $result=1;return $result;
+             return 1;
           }
         }
       }
-  return $result;
+  return undef;
 }
 
 # Yes if mRNA doesnt overlap an other existing isoform
