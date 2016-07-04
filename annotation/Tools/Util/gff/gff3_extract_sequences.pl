@@ -231,21 +231,23 @@ print "Job done in $run_time seconds\n";
 sub extract_sequence{
   my($feature_list, $db, $extermityOnly, $opt_upstreamRegion, $opt_downRegion)=@_;
 
+  my @sortedList = sort {$a->start <=> $b->start} @$feature_list;
   my $sequence="";
   my $info="";
   if($extermityOnly){
 
-    my ($start, $end) = get_extremities($feature_list);
+    my $start = $sortedList[0]->start;
+    my $end = $sortedList[$#sortedList]->end;
 
     #5'
     if($opt_upstreamRegion){
       #negative strand
-      if($feature_list->[0]->strand eq "-1" or $feature_list->[0]->strand eq "-"){
+      if($sortedList[0]->strand eq "-1" or $sortedList[0]->strand eq "-"){
         $end=$end+$opt_upstreamRegion;
         
         #get info
-        if($end > $db->length($feature_list->[0]->seq_id) ){
-          $info.="5'extra=".($db->length($feature_list->[0]->seq_id)-$end-$opt_upstreamRegion)."nt" ;
+        if($end > $db->length($sortedList[0]->seq_id) ){
+          $info.="5'extra=".($db->length($sortedList[0]->seq_id)-$end-$opt_upstreamRegion)."nt" ;
         }
         else{$info.="5'extra=".$opt_upstreamRegion."nt";}
       }
@@ -262,7 +264,7 @@ sub extract_sequence{
     }
     #3'
     if($opt_downRegion){
-      if($feature_list->[0]->strand eq "-1" or $feature_list->[0]->strand eq "-"){   
+      if($sortedList[0]->strand eq "-1" or $sortedList[0]->strand eq "-"){   
         $start=$start-$opt_upstreamRegion;
 
         #get info
@@ -275,17 +277,17 @@ sub extract_sequence{
         $end=$end+$opt_upstreamRegion;
 
         #get info
-        if($end > $db->length($feature_list->[0]->seq_id) ){
-          $info.="3'extra=".$db->length($feature_list->[0]->seq_id)-$end-$opt_upstreamRegion."nt" ;
+        if($end > $db->length($sortedList[0]->seq_id) ){
+          $info.="3'extra=".$db->length($sortedList[0]->seq_id)-$end-$opt_upstreamRegion."nt" ;
         }
         else{$info.="3'extra=".$opt_upstreamRegion."nt";}
       }
     }
 
-    $sequence = $db->subseq($feature_list->[0]->seq_id, $start, $end);
+    $sequence = $db->subseq($sortedList[0]->seq_id, $start, $end);
   }
   else{
-      foreach my $feature (sort {$a->start <=> $b->start} @$feature_list){
+      foreach my $feature ( @sortedList ){
       $sequence .= $db->subseq($feature->seq_id,$feature->start,$feature->end);
     }
   }
@@ -294,36 +296,11 @@ sub extract_sequence{
   my $seq  = Bio::Seq->new( '-format' => 'fasta' , -seq => $sequence);
   
   #check if need to be reverse complement
-  if($feature_list->[0]->strand eq "-1" or $feature_list->[0]->strand eq "-"){
+  if($sortedList[0]->strand eq "-1" or $sortedList[0]->strand eq "-"){
     $seq=$seq->revcom;
   }
 
   return $seq,$info ;
-}
-
-sub get_extremities{
-
-  my($feature_list)=@_;
-
-  my $extrem_start=1000000000000;
-  my $extrem_end=0;
-
-  foreach my $feature (@$feature_list){ 
-
-    #Manage start
-    my $start=$feature->start();
-    if ($start < $extrem_start){
-      $extrem_start=$start;
-    }
-
-    #Manage end
-    my $end=$feature->end();
-    if($end > $extrem_end){
-      $extrem_end=$end;
-    }
-  }
-
-  return $extrem_start, $extrem_end;
 }
 
 sub print_seqObj{
