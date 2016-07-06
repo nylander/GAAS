@@ -58,7 +58,7 @@ if ($opt_help) {
                  -message => "$header \n" } );
 }
  
-if ( (! (defined($opt_gfffile)) ) and (! (defined($opt_fastafile)) ) ){
+if ( (! (defined($opt_gfffile)) ) or (! (defined($opt_fastafile)) ) ){
     pod2usage( {
            -message => "\nAt least 2 parametes are mandatory:\nInput reference gff file (-g);  Input reference fasta file (-f)\n\n".
            "Output is optional. Look at the help documentation to know more.\n",
