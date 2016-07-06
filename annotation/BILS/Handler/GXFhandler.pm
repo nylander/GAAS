@@ -19,12 +19,12 @@ our %EXPORT_TAGS = ( DEFAULT => [qw()],
 
 =head1 DESCRIPTION
 
-	A library to convert 
-	Inherits from 
+	A library to convert
+	Inherits from
 
 	Dont take in account repeat and multi parent feature!!!
-	
-=cut	
+
+=cut
 
 
 ###################
@@ -45,7 +45,7 @@ sub print_ref_list_feature {
 
 # omniscient is a hash containing a whole gXf file in memory sorted in a specific way (3 levels)
 sub print_omniscient{
-	
+
 	my ($hash_omniscient, $gffout) = @_  ;
 
 	#uri_decode_omniscient($hash_omniscient);
@@ -55,17 +55,17 @@ sub print_omniscient{
 	#################
 	foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
 		foreach my $id_tag_key_level1 (keys %{$hash_omniscient->{'level1'}{$primary_tag_key_level1}}){
-			$gffout->write_feature($hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1}); # print feature			
+			$gffout->write_feature($hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1}); # print feature
 
 			#################
 			# == LEVEL 2 == #
 			#################
 			foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
-				
+
 				if ( exists ($hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1} ) ){
 					foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1}}) {
 						$gffout->write_feature($feature_level2);
-			
+
 						#################
 						# == LEVEL 3 == #
 						#################
@@ -105,8 +105,8 @@ sub print_omniscient{
 	}
 }
 # omniscient is a hash containing a whole gXf file in memory sorted in a specific way (3 levels)
-sub print_omniscient_from_level1_id_list{
-	
+sub print_omniscient_from_level1_id_list {
+
 	my ($hash_omniscient, $level_id_list, $gffout) = @_  ;
 
 	#################
@@ -121,12 +121,12 @@ sub print_omniscient_from_level1_id_list{
 					#uri_encode_one_feature($hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1});
 
 					$gffout->write_feature($hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1}); # print feature
-            
+
 					#################
 					# == LEVEL 2 == #
 					#################
 					foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
-						
+
 						if ( exists ($hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1} ) ){
 							foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1}}) {
 
@@ -210,7 +210,7 @@ sub print_omniscient_from_level1_id_list{
 					}
 				}
 			}
-		
+
 	}
 }
 
@@ -221,8 +221,8 @@ sub print_omniscient_from_level1_id_list{
 ###################
 
 # omniscient is a hash containing a whole gXf file in memory sorted in a specific way (3 levels)
-sub gtf2gff_features_in_omniscient_from_level1_id_list{
-	
+sub gtf2gff_features_in_omniscient_from_level1_id_list {
+
 	my ($hash_omniscient, $level_id_list, $gffout) = @_  ;
 
 	#################
@@ -230,11 +230,11 @@ sub gtf2gff_features_in_omniscient_from_level1_id_list{
 	#################
 	foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
 		foreach my $id_tag_key_level1 (@$level_id_list){
-				
+
 			if(exists ($hash_omniscient->{'level1'}{$primary_tag_key_level1}{lc($id_tag_key_level1)})){
 				my $feature_level1 = $hash_omniscient->{'level1'}{$primary_tag_key_level1}{lc($id_tag_key_level1)};
 				if(! $feature_level1->has_tag('ID')){
-					
+
 					if($feature_level1->has_tag('gene_id')){
 						my @temp = $feature_level1->get_tag_values('gene_id');
 						my $level1_ID = shift @temp;
@@ -249,7 +249,7 @@ sub gtf2gff_features_in_omniscient_from_level1_id_list{
 				# == LEVEL 2 == #
 				#################
 				foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
-					
+
 					if ( exists ($hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1} ) ){
 						foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1}}) {
 
@@ -276,7 +276,7 @@ sub gtf2gff_features_in_omniscient_from_level1_id_list{
 							}
 							## Manage Parent
 							if(! $feature_level2->has_tag('Parent')){
-			
+
 								if($feature_level2->has_tag('gene_id')){
 									my @temp = $feature_level2->get_tag_values('gene_id');
 									my $level2_Parent = shift @temp;
@@ -294,10 +294,10 @@ sub gtf2gff_features_in_omniscient_from_level1_id_list{
 								my $feature_counter=1;
 								if ( exists ($hash_omniscient->{'level3'}{$primary_tag_key_level3}{lc($level2_ID)} ) ){
 									foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{$primary_tag_key_level3}{lc($level2_ID)}}) {
-										
+
 										# Manage Parent Name
 										if(! $feature_level3->has_tag('Parent')){
-						
+
 											if($feature_level3->has_tag('transcript_id')){
 												my @temp = $feature_level3->get_tag_values('transcript_id');
 												my $level3_Parent = shift @temp;
@@ -317,7 +317,7 @@ sub gtf2gff_features_in_omniscient_from_level1_id_list{
 													$feature_level3->add_tag_value('ID',$level3_ID)
 												}
 												else{
-													
+
 													if($feature_level3->has_tag('transcript_id')){
 														my @temp = $feature_level3->get_tag_values('transcript_id');
 														my $level3_ID = shift @temp;
@@ -337,7 +337,7 @@ sub gtf2gff_features_in_omniscient_from_level1_id_list{
 													$feature_level3->add_tag_value('ID',$level3_ID)
 												}
 												else{
-													
+
 													if($feature_level3->has_tag('transcript_id')){
 														my @temp = $feature_level3->get_tag_values('transcript_id');
 														my $level3_ID = shift @temp;
@@ -350,7 +350,7 @@ sub gtf2gff_features_in_omniscient_from_level1_id_list{
 												}
 											}
 											else{
-													
+
 												if($feature_level3->has_tag('transcript_id')){
 													my @temp = $feature_level3->get_tag_values('transcript_id');
 													my $level3_ID = shift @temp;
@@ -374,7 +374,7 @@ sub gtf2gff_features_in_omniscient_from_level1_id_list{
 }
 
 # omniscient is a hash containing a whole gXf file in memory sorted in a specific way (3 levels)
-sub fill_omniscient_from_other_omniscient_level1_id{
+sub fill_omniscient_from_other_omniscient_level1_id {
 
 	my ($level_id_list, $hash_omniscient, $omniscient_to_append)=@_;
 
@@ -394,7 +394,7 @@ sub fill_omniscient_from_other_omniscient_level1_id{
 						@{$omniscient_to_append->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1}} = @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1}};
 
 						foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1}}) {
-							
+
 							#################
 							# == LEVEL 3 == #
 							#################
@@ -409,13 +409,13 @@ sub fill_omniscient_from_other_omniscient_level1_id{
 					}
 				}
 			}
-		}		
+		}
 	}
 }
 
 # omniscient is a hash containing a whole gXf file in memory sorted in a specific way (3 levels)
 # Merge two omniscients. Features are added if ID was not already existsing. Starting from level1 to level3. If level1 already exists we do not go to the next level.
-sub fill_omniscient_from_other_omniscient{
+sub fill_omniscient_from_other_omniscient {
 
 	my ($hash_omniscient, $omniscient_to_append)=@_;
 
@@ -423,7 +423,7 @@ sub fill_omniscient_from_other_omniscient{
 	# == LEVEL 1 == #
 	#################
 	foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
-		foreach my $id_tag_key_level1 (keys %{$hash_omniscient->{'level1'}{$primary_tag_key_level1}}){ 
+		foreach my $id_tag_key_level1 (keys %{$hash_omniscient->{'level1'}{$primary_tag_key_level1}}){
 			if( exists_keys($hash_omniscient, ('level1', $primary_tag_key_level1, $id_tag_key_level1)) ){
 				$omniscient_to_append->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1} = $hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1}; # print feature
 
@@ -435,7 +435,7 @@ sub fill_omniscient_from_other_omniscient{
 						@{$omniscient_to_append->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1}} = @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1}};
 
 						foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1}}) {
-							
+
 							#################
 							# == LEVEL 3 == #
 							#################
@@ -450,14 +450,14 @@ sub fill_omniscient_from_other_omniscient{
 					}
 				}
 			}
-		}	
+		}
 	}
 }
 
 # omniscient is a hash containing a whole gXf file in memory sorted in a specific way (3 levels)
 # put data from hash_omniscient1 in hash_omniscient2
 # Features are added if ID was not already existsing. Starting from level1 to level3. Each level is filled independently.
-sub merge_omniscients{
+sub merge_omniscients {
 
 	my ($hash_omniscient1, $hash_omniscient2)=@_;
 
@@ -477,7 +477,7 @@ sub merge_omniscients{
 	# == LEVEL 2 == #
 	#################
 	foreach my $primary_tag_key_level2 (keys %{$hash_omniscient1->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
-		foreach my $id_tag_key_level2 (keys %{$hash_omniscient1->{'level2'}{$primary_tag_key_level2}}){				
+		foreach my $id_tag_key_level2 (keys %{$hash_omniscient1->{'level2'}{$primary_tag_key_level2}}){
 
 			if (! exists ($hash_omniscient2->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level2} ) ){ #Non present in hash2, we create a list with one element
 					@{$hash_omniscient2->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level2}} = @{$hash_omniscient1->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level2}};
@@ -543,11 +543,11 @@ sub merge_omniscients{
 }
 
 # omniscient is a hash containing a whole gXf file in memory sorted in a specific way (3 levels)
-# Input: list of level1 id 
+# Input: list of level1 id
 #        omniscient
-#         
-sub remove_omniscient_elements_from_level1_id_list{
-	
+#
+sub remove_omniscient_elements_from_level1_id_list {
+
 	my ($hash_omniscient, $level_id_list) = @_  ;
 
 	#################
@@ -562,10 +562,10 @@ sub remove_omniscient_elements_from_level1_id_list{
 					# == LEVEL 2 == #
 					#################
 					foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
-						
+
 						if ( exists ($hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1} ) ){
 							foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1}}) {
-					
+
 								#################
 								# == LEVEL 3 == #
 								#################
@@ -591,11 +591,11 @@ sub remove_omniscient_elements_from_level1_id_list{
 }
 
 # omniscient is a hash containing a whole gXf file in memory sorted in a specific way (3 levels)
-# Input: list of level2 id 
+# Input: list of level2 id
 #        omniscient
-#         
-sub remove_omniscient_elements_from_level2_feature_list{
-	
+#
+sub remove_omniscient_elements_from_level2_feature_list {
+
 	my ($hash_omniscient, $feature_list) = @_  ;
 
 	#################
@@ -603,21 +603,21 @@ sub remove_omniscient_elements_from_level2_feature_list{
 	#################
 	foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
 		foreach my $id_tag_key_level1 (keys %{$hash_omniscient->{'level2'}{$primary_tag_key_level2}}){
-			if( exists_keys($hash_omniscient, ('level2', $primary_tag_key_level2, $id_tag_key_level1)) ){		
+			if( exists_keys($hash_omniscient, ('level2', $primary_tag_key_level2, $id_tag_key_level1)) ){
 				foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1}}) {
 					my $level2_ID= lc($feature_level2->_tag_value('ID'));
-					
+
 					foreach my $feature (@$feature_list){
 						my $feature_ID = lc($feature->_tag_value('ID'));
 						my $feature_Parent = lc($feature->_tag_value('Parent'));
 
 						if($level2_ID eq $feature_ID){
-								
+
 							#################
 							# == LEVEL 3 == #
 							#################
 							foreach my $primary_tag_key_level3 (keys %{$hash_omniscient->{'level3'}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
-								if( exists_keys($hash_omniscient, ('level3', $primary_tag_key_level3, $level2_ID)) ){	
+								if( exists_keys($hash_omniscient, ('level3', $primary_tag_key_level3, $level2_ID)) ){
 									delete $hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID} # delete level3
 								}
 							}
@@ -635,7 +635,7 @@ sub remove_omniscient_elements_from_level2_feature_list{
 }
 
 # remove value of hash from omniscient in level $level which have the tag incriminated
-sub remove_tuple_from_omniscient{
+sub remove_tuple_from_omniscient {
 
 	my ($id_list_to_remove, $hash_omniscient, $level, $bolean, $list_tag_key)=@_;
 
@@ -667,14 +667,14 @@ sub remove_tuple_from_omniscient{
 }
 
 # from omniscient: remove feature from "feature list" of level2 or level3 with id present in $id_list_to_remove
-sub remove_element_from_omniscient{
+sub remove_element_from_omniscient {
 
 	my ($id_concern_list, $id_list_to_remove, $hash_omniscient, $level, $bolean, $list_tag_key)=@_;
 
 	# bolean true => we remove if in list_tag_key
 	# bolean false => we remove if is not in list_tag_key
 	my $remove;
-	#Check level and tag 
+	#Check level and tag
 	foreach my $tag_key  (keys %{$hash_omniscient->{$level}}){
 		if($bolean eq 'true'){
 			$remove="no";
@@ -689,7 +689,7 @@ sub remove_element_from_omniscient{
 			}
 		}
 		#Check feature id from list
-		if ($remove eq 'yes'){ 
+		if ($remove eq 'yes'){
 			foreach my $id_concern (@$id_concern_list){
 				my $mustModifyList=undef;
 				my @listok;
@@ -700,9 +700,9 @@ sub remove_element_from_omniscient{
 					my $shouldremoveit=undef;
 
 					foreach my $id_to_remove (@$id_list_to_remove){
-							
+
 						if(lc ($id_to_remove) eq $id){ # These feature is in list to remove
-							$mustModifyList="yes"; $shouldremoveit="yes"; last;	
+							$mustModifyList="yes"; $shouldremoveit="yes"; last;
 						}
 					}
 					if(! $shouldremoveit){
@@ -717,10 +717,10 @@ sub remove_element_from_omniscient{
 	}
 }
 
-sub create_omniscient{
+sub create_omniscient {
 
 	my ($level1,$level2,$level3)=@_;
-	
+
 	my $omniscient;
 
 	foreach my $feature (@$level1){
@@ -739,6 +739,7 @@ sub create_omniscient{
 }
 
 # This method will create a new omniscient from an omniscient of reference and a list of id level2
+#$list_id_l2 has to be lower case
 sub create_omniscient_from_idlevel2list{
 	my ($omniscientref, $hash_mRNAGeneLink, $list_id_l2)=@_;
 
@@ -747,16 +748,16 @@ sub create_omniscient_from_idlevel2list{
 	foreach my $id_l2 (@$list_id_l2){
 		my  $id_l1 = $hash_mRNAGeneLink->{$id_l2};
 
-		# ADD LEVEL1 
+		# ADD LEVEL1
 		foreach my $tag_l1 (keys %{$omniscientref->{'level1'}}){
-			if(exists ($omniscientref->{'level1'}{$tag_l1}{$id_l1})){
+			if( exists ($omniscientref->{'level1'}{$tag_l1}{$id_l1}) ){
 				$omniscient_new{'level1'}{$tag_l1}{$id_l1}=$omniscientref->{'level1'}{$tag_l1}{$id_l1};
 				last;
 			}
 		}
 		# ADD LEVEL2
 		foreach my $tag_l2 (keys %{$omniscientref->{'level2'}}){
-			if(exists ($omniscientref->{'level2'}{$tag_l2}{$id_l1})){
+			if( exists ($omniscientref->{'level2'}{$tag_l2}{$id_l1}) ){
 				foreach my $feature_l2 ( @{$omniscientref->{'level2'}{$tag_l2}{$id_l1}}){
 					if(lc($feature_l2->_tag_value('ID')) eq $id_l2 ){
 						push (@{$omniscient_new{'level2'}{$tag_l2}{$id_l1}}, $feature_l2);
@@ -767,7 +768,7 @@ sub create_omniscient_from_idlevel2list{
 		}
 		# ADD LEVEL3
 		foreach my $tag_l3 (keys %{$omniscientref->{'level3'}}){
-			if(! exists ($omniscientref->{'level3'}{$tag_l3}{$id_l2})){
+			if( exists ($omniscientref->{'level3'}{$tag_l3}{$id_l2}) ){
 				foreach my $feature_l3 ( @{$omniscientref->{'level3'}{$tag_l3}{$id_l2}}){
 					push (@{$omniscient_new{'level3'}{$tag_l3}{$id_l2}}, $feature_l3);
 				}
@@ -777,7 +778,7 @@ sub create_omniscient_from_idlevel2list{
 	return \%omniscient_new;
 }
 
-sub append_omniscient{
+sub append_omniscient {
 
 	my ($omniscient, $level1,$level2,$level3)=@_;
 
@@ -800,7 +801,7 @@ sub append_omniscient{
 			my $exist_in_list="no";
 			my @values = $feature->get_tag_values('ID');
 			my $id = lc(shift @values) ;
-			foreach my $feature_original (@{$omniscient->{"level2"}{$primaryTag}{$parent_id}}){ 
+			foreach my $feature_original (@{$omniscient->{"level2"}{$primaryTag}{$parent_id}}){
 				my @original_values = $feature_original->get_tag_values('ID');
 				my $original_id = lc(shift @values);
 				if ($original_id eq $id){
@@ -823,7 +824,7 @@ sub append_omniscient{
 			my $exist_in_list="no";
 			my @values = $feature->get_tag_values('ID');
 			my $id = lc(shift @values) ;
-			foreach my $feature_original (@{$omniscient->{"level3"}{$primaryTag}{$parent_id}}){ 
+			foreach my $feature_original (@{$omniscient->{"level3"}{$primaryTag}{$parent_id}}){
 				my @original_values = $feature_original->get_tag_values('ID');
 				my $original_id = lc(shift @values);
 				if ($original_id eq $id){
@@ -846,24 +847,24 @@ sub webapollo_compliant {
 	#################
 	foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
 		foreach my $id_tag_key_level1 (keys %{$hash_omniscient->{'level1'}{$primary_tag_key_level1}}){
-			webapollo_rendering($hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1});	
+			webapollo_rendering($hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1});
 
 			#################
 			# == LEVEL 2 == #
 			#################
 			foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
-				
+
 				if ( exists ($hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1} ) ){
 					foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1}}) {
 						webapollo_rendering($feature_level2);
-			
+
 						#################
 						# == LEVEL 3 == #
 						#################
 						my $level2_ID  = lc($feature_level2->_tag_value('ID'));
 
 						foreach my $primary_tag_key_level3 (keys %{$hash_omniscient->{'level3'}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
-							
+
 							if ( exists ($hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID} ) ){
 								foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID}}) {
 									webapollo_rendering($feature_level3);
@@ -878,7 +879,7 @@ sub webapollo_compliant {
 }
 
 #follow webapollo description for a correct visualisation of data
-sub webapollo_rendering{
+sub webapollo_rendering {
 
 	my ($feature)=@_;
 
@@ -924,24 +925,24 @@ sub embl_compliant {
 	#################
 	foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
 		foreach my $id_tag_key_level1 (keys %{$hash_omniscient->{'level1'}{$primary_tag_key_level1}}){
-			embl_rendering($hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1});	
+			embl_rendering($hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1});
 
 			#################
 			# == LEVEL 2 == #
 			#################
 			foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
-				
+
 				if ( exists ($hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1} ) ){
 					foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1}}) {
 						embl_rendering($feature_level2);
-			
+
 						#################
 						# == LEVEL 3 == #
 						#################
 						my $level2_ID  = lc($feature_level2->_tag_value('ID'));
 
 						foreach my $primary_tag_key_level3 (keys %{$hash_omniscient->{'level3'}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
-							
+
 							if ( exists ($hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID} ) ){
 								foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID}}) {
 									embl_rendering($feature_level3);
@@ -955,7 +956,7 @@ sub embl_compliant {
 	}
 }
 
-sub embl_rendering{
+sub embl_rendering {
 
 	my ($feature)=@_;
 
@@ -987,8 +988,8 @@ sub embl_rendering{
 }
 
 # check all the attribute to URI encode the values
-sub uri_encode_omniscient{
-	
+sub uri_encode_omniscient {
+
 	my ($hash_omniscient) = @_  ;
 
 	#################
@@ -996,24 +997,24 @@ sub uri_encode_omniscient{
 	#################
 	foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
 		foreach my $id_tag_key_level1 (keys %{$hash_omniscient->{'level1'}{$primary_tag_key_level1}}){
-			uri_encode_one_feature($hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1});	
+			uri_encode_one_feature($hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1});
 
 			#################
 			# == LEVEL 2 == #
 			#################
 			foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
-				
+
 				if ( exists ($hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1} ) ){
 					foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1}}) {
 						uri_encode_one_feature($feature_level2);
-			
+
 						#################
 						# == LEVEL 3 == #
 						#################
 						my $level2_ID  = lc($feature_level2->_tag_value('ID'));
 
 						foreach my $primary_tag_key_level3 (keys %{$hash_omniscient->{'level3'}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
-							
+
 							if ( exists ($hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID} ) ){
 								foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID}}) {
 									uri_encode_one_feature($feature_level3);
@@ -1027,8 +1028,8 @@ sub uri_encode_omniscient{
 	}
 }
 
-sub uri_decode_omniscient{
-	
+sub uri_decode_omniscient {
+
 	my ($hash_omniscient) = @_  ;
 
 	#################
@@ -1036,24 +1037,24 @@ sub uri_decode_omniscient{
 	#################
 	foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
 		foreach my $id_tag_key_level1 (keys %{$hash_omniscient->{'level1'}{$primary_tag_key_level1}}){
-			uri_decode_one_feature($hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1});	
+			uri_decode_one_feature($hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1});
 
 			#################
 			# == LEVEL 2 == #
 			#################
 			foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
-				
+
 				if ( exists ($hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1} ) ){
 					foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1}}) {
 						uri_decode_one_feature($feature_level2);
-			
+
 						#################
 						# == LEVEL 3 == #
 						#################
 						my $level2_ID  = lc($feature_level2->_tag_value('ID'));
 
 						foreach my $primary_tag_key_level3 (keys %{$hash_omniscient->{'level3'}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
-							
+
 							if ( exists ($hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID} ) ){
 								foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID}}) {
 									uri_decode_one_feature($feature_level3);
@@ -1068,12 +1069,12 @@ sub uri_decode_omniscient{
 }
 
 # reencode in uri all value of all attributes of a feature
-sub uri_encode_one_feature{
+sub uri_encode_one_feature {
 
 	my ($feature)=@_;
 
 	my @list_tag = $feature->get_all_tags;
-	
+
 	foreach my $tag (@list_tag){
 		my @values = $feature->get_tag_values($tag);
 		$feature->remove_tag($tag);
@@ -1085,12 +1086,12 @@ sub uri_encode_one_feature{
 	}
 }
 
-sub uri_decode_one_feature{
+sub uri_decode_one_feature {
 
 	my ($feature)=@_;
 
 	my @list_tag = $feature->get_all_tags;
-	
+
 	foreach my $tag (@list_tag){
 		my @values = $feature->get_tag_values($tag);
 		$feature->remove_tag($tag);
@@ -1132,13 +1133,13 @@ my 	@gene;
 my 	@mRNA;
 	# All features belonging to the same gene
 	my ($features, $NewGeneID) = @_; #Features are
-	
-	# Take all features and bin them by transcript_id	
+
+	# Take all features and bin them by transcript_id
 
 	my %bin = _group_features_by_transcript_and_seq_id(@$features);
-	
+
 	# Build transcript from all features in the group
-		
+
 	my @answer = ();
 
 	# Some annotations (like lift-overs) can be split across scaffolds/contigs
@@ -1147,7 +1148,7 @@ my 	@mRNA;
 	# Check wether this gene is split across scaffolds
 	if ( (keys %bin) > 1) {
 		$is_split = 1;
-	}		
+	}
 
 	my $seq_counter = 0;
 	while (my ($seq_id,$transcript_hash) = each %bin) {
@@ -1157,8 +1158,8 @@ my 	@mRNA;
 		# Collect transcripts for gene reconstruction
 		my @transcripts = ();
 		my $exon_counter = 0;
-		
-		
+
+
 		while (my ($transcript_id,$features) = each %$transcript_hash) {
 
 			my ($t_feature, $NewGeneIDtmp) = _build_transcript_from_exons_with_seq_id($features, $NewGeneID);
@@ -1171,7 +1172,7 @@ my 	@mRNA;
 			}
 
 			push(@transcripts,$t_feature);
-			unshift (@{ $bin{$seq_id}{$transcript_id} }, $t_feature ) ;	
+			unshift (@{ $bin{$seq_id}{$transcript_id} }, $t_feature ) ;
 		}
 
 		# Build the gene container
@@ -1180,7 +1181,7 @@ my 	@mRNA;
 		# Gene into array
 		push(@gene,$gene_feature);
 		push(@mRNA,@transcripts);
-			
+
 	} # End sequence region
 
 	return \@gene,\@mRNA,$NewGeneID;
@@ -1194,7 +1195,7 @@ sub _update_feature_id {
 	my @tags = ( 'ID' , 'Parent' ) ;
 
 	foreach my $tag (@tags) {
-	
+
 		if ($feature->has_tag($tag) ) {
 			my @temp = $feature->get_tag_values($tag);
 			my $current_id = shift @temp;
@@ -1209,28 +1210,28 @@ sub _update_feature_id {
 
 # Deals with features across contigs
 sub _group_features_by_transcript_and_seq_id {
-	
+
 	my @features = @_;
-	
+
 	my %bin ;
-	
+
 	foreach my $feature (@features) {
 
 		if ($feature->start < 1) {
 			$feature->start(1);
 		}
-				
+
 		my $source_tag = $feature->source_tag;
 		my $primary_tag = $feature->primary_tag;
-		
+
 		# If a gene is split across multiple sequences,
-		# we need to build separate genes for each sequence - 
+		# we need to build separate genes for each sequence -
 		# this keeps track of that.
-		
+
 		my $seq_id = $feature->seq_id;
-				
+
 		# We need to reorganize feature relationships into parent/child:
-		my $this_id = undef; 
+		my $this_id = undef;
 		my $parent_id = undef;
 		my $transcript_id=undef;
 
@@ -1244,31 +1245,31 @@ sub _group_features_by_transcript_and_seq_id {
 		else{
 			warn "No id found for this feature ".gff_string($feature);
 		}
-		
-		
+
+
 		# Group features by transcripts/mRNA and seq_id
-			
+
 		if ( !exists( $bin{$seq_id} ) ) {
 			$bin{$seq_id} = {};
 		}
 
 		if ( !exists( $bin{$seq_id}{$transcript_id} ) ) {
-			$bin{$seq_id}{$transcript_id} = [];		
+			$bin{$seq_id}{$transcript_id} = [];
 		}
 
 		# Some annotation files (eg. lift-overs) may
-		# included negative coordinates, need to fix		
+		# included negative coordinates, need to fix
 		push( @{ $bin{$seq_id}{$transcript_id} }, $feature );
 	}
-	
+
 	return %bin ;
-	
+
 }
 
 sub _build_transcript_from_exons_with_seq_id {
-	
+
 	my ($features, $NewGeneID) = @_;
-		
+
 	my $transcript_start = 0;
 	my $transcript_end = 0;
 	my $transcript_strand = undef;
@@ -1299,7 +1300,7 @@ sub _build_transcript_from_exons_with_seq_id {
 
 		}
 		else{
-			print "GXFhandler Warning: No transcript_id neither ID attribute. So we will create one.\n"; 
+			print "GXFhandler Warning: No transcript_id neither ID attribute. So we will create one.\n";
 			print "actually it's not yet implemeted.... Sorry\n";
 		}
 		# CDS never contain more information than exons, skip
@@ -1307,7 +1308,7 @@ sub _build_transcript_from_exons_with_seq_id {
 			$transcript_strand = $f->strand;
 			$seq_id = $f->seq_id;
 			$source_tag = $f->source_tag;
-			
+
 			if ($transcript_start == 0) {
 				$transcript_start = $f->start;
 				$transcript_end = $f->end;
@@ -1315,21 +1316,21 @@ sub _build_transcript_from_exons_with_seq_id {
 				$seq_id = $f->seq_id;
 				$source_tag = $f->source_tag;
 			}
-			
+
 			if ($transcript_start > $f->start) {
 				$transcript_start = $f->start ;
 			}
-			
+
 			if ($transcript_end < $f->end) {
 				$transcript_end = $f->end ;
 			}
-		#} 
+		#}
 	} # end transcript features
 
-	
+
 	## THIS NEEDS CHECKING!
 	# We assume that EnsEMBL source_tags comply with SO terms - except 'protein_coding'
-	
+
 	#No gene_id ! We need one to create the mRNA
 	if(!$gene_id){ # No information we must create a new gene_id
 		print "GXFhandler Warning: No gene_id neither Parent attribute. So we will create one.\n";
@@ -1341,18 +1342,18 @@ sub _build_transcript_from_exons_with_seq_id {
 		$primary_tag = $source_tag ;
 	} else {
 		$primary_tag = "mRNA" ;
-	}	
+	}
 
 	my $t_feature = Bio::SeqFeature::Generic->new(-start => $transcript_start, -primary_tag => $primary_tag , -frame => '.' , -end => $transcript_end, -strand => $transcript_strand , -seq_id => $seq_id, -source_tag => $source_tag, -tag => { 'ID' => $transcript_id , 'Parent' => $gene_id }) ;
 
 	return $t_feature, $NewGeneID;
-	
+
 }
 
 sub _build_gene_from_transcripts_with_seq_id {
-	
+
 	my @transcripts = @_ ;
-	
+
 	# Define the gene container parameters:
 	my $gene_start = 0;
 	my $gene_end = 0;
@@ -1361,22 +1362,22 @@ sub _build_gene_from_transcripts_with_seq_id {
 	my $contig = undef;
 	my $source_tag = undef;
 	my $seq_id = undef;
-	
+
 	foreach my $t_feature (@transcripts) {
-		
+
 		$source_tag = $t_feature->source_tag;
 		$seq_id = $t_feature->seq_id;
-		
+
 		my @gvalues = $t_feature->get_tag_values('Parent');
 		$gene_id = shift @gvalues ;
-	
+
 		# Re-size the gene container...
 		if ($gene_start == 0) {
 			$gene_start = $t_feature->start;
 			$gene_end = $t_feature->end;
 			$gene_strand = $t_feature->strand;
 			$contig = $t_feature->seq_id;
-		}	
+		}
 		if ($gene_start > $t_feature->start) {
 			$gene_start = $t_feature->start;
 		}
@@ -1384,21 +1385,21 @@ sub _build_gene_from_transcripts_with_seq_id {
 		if ($gene_end < $t_feature->end) {
 			$gene_end = $t_feature->end;
 		} # end gene resize
-		
+
 	}
-	
+
 	my $gene_feature = Bio::SeqFeature::Generic->new(-start => $gene_start, -primary_tag => 'gene' , -frame => '.', -end => $gene_end, -strand => $gene_strand , -seq_id => $contig, -source_tag => $source_tag, -tag => { "ID" => $gene_id }) ;
 
 	return $gene_feature;
-	
+
 }
 
 #============= END Marc idea develloped ===============
 
 # frame explanation
-#0 indicates that the feature begins with a whole codon at the 5' most base. 1 means that there is one extra base (the third base of a codon) before the first whole codon 
-#and 2 means that there are two extra bases (the second and third bases of the codon) before the first codon. 
-sub fil_cds_frame{
+#0 indicates that the feature begins with a whole codon at the 5' most base. 1 means that there is one extra base (the third base of a codon) before the first whole codon
+#and 2 means that there are two extra bases (the second and third bases of the codon) before the first codon.
+sub fil_cds_frame {
 
 	my ($hash_omniscient)=@_;
 
@@ -1435,7 +1436,7 @@ sub fil_cds_frame{
 	}
 }
 
-sub info_omniscient{
+sub info_omniscient {
 	my ($hash_omniscient)=@_;
 
 	my %resu;
@@ -1483,7 +1484,7 @@ sub exists_keys {
 #============
 
 # Check the start and end of level1 feature based on all features level2;
-sub check_level1_positions{
+sub check_level1_positions {
 	my ($hash_omniscient, $level1_feature)=@_;
 
 	my $level1_feature_name = lc( $level1_feature->_tag_value('ID'));
@@ -1534,7 +1535,7 @@ sub check_level1_positions{
 }
 
 # Check the start and end of level2 feature based on all features level3;
-sub check_level2_positions{
+sub check_level2_positions {
 	my ($hash_omniscient, $level2_feature)=@_;
 
 	 my @values = $level2_feature->get_tag_values('ID');
@@ -1577,7 +1578,7 @@ sub check_level2_positions{
 
 #calcul the overlaping percentage betwwen 2 CDS list or 2 exon list etc...
 # /!\ Be careful if you test the output, a overlaping gene can have a percentage overlap to 0. And if you test "if(featuresList_overlap)" and you have a 0, it will fail. So you have to check defined(featuresList_overlap)
-sub featuresList_overlap{
+sub featuresList_overlap {
 
 	my ($listCDS1ref, $listCDS2ref)=@_;
 	my $resu;
@@ -1601,7 +1602,7 @@ sub featuresList_overlap{
 		my $endo;
 
 		foreach my $cds2 (@listCDS2){
-			if($cds2->start > $cds1->end){ #we are after of the investigated cds. 
+			if($cds2->start > $cds1->end){ #we are after of the investigated cds.
 				last;
 			}
 			elsif($cds2->end < $cds1->start){ # we are before investigated cds.
@@ -1635,12 +1636,12 @@ sub featuresList_overlap{
 }
 
 
-sub featuresList_identik{
+sub featuresList_identik {
 	my ($list1, $list2)=@_;
 
 	my @slist1 = sort {$a->start <=> $b->start} @{$list1};
 	my @slist2 = sort {$a->start <=> $b->start} @{$list2};
-	my $identik="true";	
+	my $identik="true";
 
 	if($#slist1 == $#slist2){
 		my $cpt=0;
@@ -1650,7 +1651,7 @@ sub featuresList_identik{
 			my $feature1=$slist1[$cpt];
 			my $feature2=$slist2[$cpt];
 			#print $feature1->start." != ".$feature2->start." or  ".$feature1->end." != ".$feature2->end." or  ".$feature1->strand." ne ".$feature2->strand." or  ".$feature1->seq_id." ne ".$feature2->seq_id."\n";
-			if( ($feature1->start != $feature2->start) or ($feature1->end != $feature2->end) or ($feature1->strand ne $feature2->strand) or ($feature1->seq_id ne $feature2->seq_id)){ 
+			if( ($feature1->start != $feature2->start) or ($feature1->end != $feature2->end) or ($feature1->strand ne $feature2->strand) or ($feature1->seq_id ne $feature2->seq_id)){
 				$identik=undef;last;
 			}
 			$cpt++;
@@ -1662,8 +1663,8 @@ sub featuresList_identik{
 
 # omniscient is a hash containing a whole gXf file in memory sorted in a specific way (3 levels)
 # This method group all features of a seq_id together.
-sub group_features_from_omniscient{
-	
+sub group_features_from_omniscient {
+
 	my ($hash_omniscient) = @_  ;
 
 	my %group;
@@ -1681,7 +1682,7 @@ sub group_features_from_omniscient{
 			# == LEVEL 2 == #
 			#################
 			foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
-				
+
 				if ( exists ($hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1} ) ){
 					foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1}}) {
 						push(@{$group{$seq_id}{$key}}, $feature_level2);
@@ -1712,8 +1713,8 @@ sub group_features_from_omniscient{
 
 # omniscient is a hash containing a whole gXf file in memory sorted in a specific way (3 levels)
 # This method group all level1 features of a seq_id together.
-sub group_l1features_from_omniscient{
-	
+sub group_l1features_from_omniscient {
+
 	my ($hash_omniscient) = @_  ;
 
 	my %group;
@@ -1732,11 +1733,11 @@ sub group_l1features_from_omniscient{
 }
 
 # print duplicate hash
-sub print_duplicates{
+sub print_duplicates {
 	my ($duplicate_omniscient, $hash_omniscient, $gffout) = @_  ;
 
 	foreach my $level (keys %{$duplicate_omniscient}){ # primary_tag_key_level1 = gene or repeat etc...
-		foreach my $primary_tag (keys %{$duplicate_omniscient->{$level}}){ 
+		foreach my $primary_tag (keys %{$duplicate_omniscient->{$level}}){
 			my $nb_by_pt=0;
 			my $nb_feat_pt=0;
 			foreach my $id (keys %{$duplicate_omniscient->{$level}{$primary_tag}}){
@@ -1744,14 +1745,14 @@ sub print_duplicates{
 				foreach my $feature (@{$duplicate_omniscient->{$level}{$primary_tag}{$id}}){
 					$nb_by_pt++;
 					$gffout->write_feature($feature); # print feature
-				}		
+				}
 			}
 			print "We found $nb_feat_pt duplicated $primary_tag feature for a total of $nb_by_pt duplicates.\n";
 		}
 	}
 }
 
-sub get_feature_l2_from_id_l2_l1{
+sub get_feature_l2_from_id_l2_l1 {
 	my ($hash_omniscient, $id_l2, $id_l1) = @_  ;
 	foreach my $tag_l2 (keys %{$hash_omniscient->{'level2'}}){
 		if(exists ($hash_omniscient->{'level2'}{$tag_l2}{$id_l1})){
@@ -1759,7 +1760,7 @@ sub get_feature_l2_from_id_l2_l1{
 				if ( lc($feature->_tag_value('ID')) eq lc($id_l2) ) {
 					return $feature
 				}
-			}			 
+			}
 		}
 		else{print "element level2 $tag_l2 $id_l1 doesnt exists in omniscient\n";}
 	}
@@ -1767,7 +1768,7 @@ sub get_feature_l2_from_id_l2_l1{
 
 #extract sequences form list of cds features in a fasta db
 # return a Bio::Seq object
-sub extract_cds_sequence{
+sub extract_cds_sequence {
 	my ($feature_list, $db)=@_;
 
 	my $sequence="";
@@ -1782,13 +1783,13 @@ sub extract_cds_sequence{
 }
 
 # From an omniscient, create a hash{primary_tag}{position} of feature. It is sort by seq id because position = contig1+
-sub sort_by_seq_id{
+sub sort_by_seq_id {
 	my ($omniscient)=@_;
 
 	my %hash_sortBySeq;
 	foreach my $tag_level1 (keys %{$omniscient->{'level1'}}){
 	  foreach my $level1_id (keys %{$omniscient->{'level1'}{$tag_level1}}){
-	    
+
 	    if (exists_keys($omniscient, ('level2','mrna',$level1_id)) ){ # check if they have mRNA avoiding autovivifcation
 	      my $mrna_id  = lc($omniscient->{'level2'}{'mrna'}{$level1_id}[0]->_tag_value('ID'));
 
@@ -1806,7 +1807,7 @@ sub sort_by_seq_id{
 # When an overlap is found, the ID/parent are fixed and we return 1 as a success !
 # @input: 4 => object(gene feature), hash(omniscient), hash(omniscient), hash(sortBySeq)
 # @output: 1 => undef || integer(1)
-sub find_overlap_between_geneFeature_and_sortBySeqId{
+sub find_overlap_between_geneFeature_and_sortBySeqId {
 	my ($geneFeature, $hash_source, $hashT, $hashT_sortBySeq )=@_;
 
 	my $tag = $geneFeature->primary_tag;
@@ -1817,19 +1818,19 @@ sub find_overlap_between_geneFeature_and_sortBySeqId{
 	#find overlap
 	my $total_overlap=0;
 	my $nb_feat_overlap=0;
-	my @ListOverlapingGene=(); 
+	my @ListOverlapingGene=();
     foreach my $gene_featureT ( @{$hashT_sortBySeq->{$tag}{"$seqid$strand"}}){
-    	
+
     	my $gene_idT = $gene_featureT->_tag_value('ID');
-    	
+
 
     	if($gene_idT eq $gene_idS){ next;} # avoid to compare same feature if we are checking same omniscient
 
-    	my ($start1,$end1) = get_longest_cds_start_end($hashT,$gene_idT); # look at CDS because we want only ioverlapinng CDS 
+    	my ($start1,$end1) = get_longest_cds_start_end($hashT,$gene_idT); # look at CDS because we want only ioverlapinng CDS
     	my ($start2,$end2) = get_longest_cds_start_end($hash_source,$gene_idS); # look at CDS becaus ewe want only ioverlapinng CDS
 
     	if( ($start2 <= $end1) and ($end2 >= $start1) ){ #feature overlap considering extrem start and extrem stop. It's just to optimise the next step. Avoid to do the next step every time. So at the end, that test (current one) could be removed
-           
+
             #now check at each CDS feature independently
             if (_two_features_overlap_two_hashes($hash_source,$gene_idS, $hashT, $gene_idT)){
               #print "These two features overlap without same id ! :\n".$geneFeature->gff_string."\n".$gene_featureT->gff_string."\n";
@@ -1846,7 +1847,7 @@ sub find_overlap_between_geneFeature_and_sortBySeqId{
       	push(@ListOverlapingGene, $geneFeature);
         #print "$nb_feat_overlap overlapping feature found ! We will treat them now:\n";
         #print "We decided to keep that one: ".$reference_feature->gff_string."\n";
-        
+
         my $gene_id_ref  = $reference_feature->_tag_value('ID');
 
         #change level2 parent for feature of level2 that have a feature of level1 in $ListToRemove list
@@ -1857,27 +1858,27 @@ sub find_overlap_between_geneFeature_and_sortBySeqId{
         	#######
         	#which hash the feature come from ?
         	my $currentHash=undef;
-        	foreach my $tag_l1 (keys %{$hash_source->{'level1'}} ){ # primary_tag_key_level1 = gene or repeat etc...   
+        	foreach my $tag_l1 (keys %{$hash_source->{'level1'}} ){ # primary_tag_key_level1 = gene or repeat etc...
     			if($hash_source->{'level1'}{$tag_l1}{$gene_id_to_remove} ){
     				$currentHash = $hash_source;
     			}
     		}
     		if(! $currentHash){$currentHash = $hashT;}
     		# ok now hash is choosen
-    		################        	
+    		################
 
 	        foreach my $tag_level2 (keys %{$currentHash->{'level2'}}){
 
             	if (exists_keys($currentHash, ('level2',$tag_level2,$gene_id_to_remove)) ){ # check if they have cds avoiding autovivification.
-      
+
 	              	my @list_tmp_features = @{$currentHash->{'level2'}{$tag_level2}{$gene_id_to_remove}}; # As we will remove element of the list we cannot loop over it directly, we have to save the list in a temporary list;
-			        foreach my $level2_feature (@list_tmp_features){ #replace Parent of each feature level2 by the new level1 reference 
+			        foreach my $level2_feature (@list_tmp_features){ #replace Parent of each feature level2 by the new level1 reference
 			            # Change parent feature
 			            create_or_replace_tag($level2_feature,'Parent',$gene_id_ref);
-			              
+
 			            #add it in other list
 			            push (@{$currentHash->{'level2'}{$tag_level2}{lc($gene_id_ref)}},$level2_feature);
-			              
+
 			            #remove mRNA from list <= not mandatory
 			            my $mrna_id_to_remove = $level2_feature->_tag_value('ID');
 		                my @tag_list=('all');
@@ -1885,9 +1886,9 @@ sub find_overlap_between_geneFeature_and_sortBySeqId{
 
 			            remove_element_from_omniscient(\@id_list, \@id_list2, $currentHash, 'level2', 'false', \@tag_list);
               		}
-            	}  
+            	}
           	}
-          	
+
           	foreach my $tag_level1 (keys %{$currentHash->{'level1'}}){ # remove the old feature level1 now
               	delete $currentHash->{'level1'}{$tag_level1}{$gene_id_to_remove}; # delete level1
           	}
@@ -1914,11 +1915,11 @@ sub _two_features_overlap_two_hashes{
 
       my $mrna_id1 = $mrna_feature->_tag_value('ID');
       my $mrna_id2 = $mrna_feature2->_tag_value('ID');
-   
+
       #check all cds pieces
       foreach my $cds_feature1 (@{$hash1->{'level3'}{'cds'}{lc($mrna_id1)}}){
         foreach my $cds_feature2 (@{$hash2->{'level3'}{'cds'}{lc($mrna_id2)}}){
-          
+
           if(($cds_feature2->start <= $cds_feature1->end) and ($cds_feature2->end >= $cds_feature1->start )){ # they overlap
             $resu="yes";last;
           }
@@ -1927,7 +1928,7 @@ sub _two_features_overlap_two_hashes{
       }
       if($resu){last;}
     }
-    if($resu){last;}  
+    if($resu){last;}
   }
   return $resu;
 }
@@ -1935,7 +1936,7 @@ sub _two_features_overlap_two_hashes{
 # @Purpose: from a omniscient and a gene_id, will get back the extrem value for start and end
 # @input: 2 => hash(omniscient), string(gene identifier)
 # @output: 2 => integer(extrem start position), integer(extrem end position)
-sub get_longest_cds_start_end{
+sub get_longest_cds_start_end {
   my  ($hash_omniscient,$gene_id)=@_;
   my $resu_start=100000000000;
   my $resu_end=0;
@@ -1946,7 +1947,7 @@ sub get_longest_cds_start_end{
     my $mrna_id = shift @values;
     my $extrem_start=100000000000;
     my $extrem_end=0;
-   
+
     #check all cds pieces
     foreach my $cds_feature (@{$hash_omniscient->{'level3'}{'cds'}{lc($mrna_id)}}){
       if ($cds_feature->start < $extrem_start){
@@ -1956,7 +1957,7 @@ sub get_longest_cds_start_end{
               $extrem_end=$cds_feature->end ;
       }
     }
-    
+
     if($extrem_start < $resu_start){
         $resu_start=$extrem_start;
     }
@@ -1970,7 +1971,7 @@ sub get_longest_cds_start_end{
 # @Purpose: Check the start and end of gene feature based on its mRNAs and eventualy fix it.
 # @input: 2 => hash(omniscient hash), string(gene identifier)
 # @output: none
-sub check_gene_positions{
+sub check_gene_positions {
 
   my ($hash_omniscient, $gene_id)=@_;
 
@@ -2005,7 +2006,7 @@ sub check_gene_positions{
 # @Purpose: Counter the number of feature level in an omniscient
 # @input: 1 => hash(omniscient hash)
 # @output: integer
-sub nb_feature_level1{
+sub nb_feature_level1 {
 
   my ($omniscient)=@_;
   my $resu=0;
@@ -2015,4 +2016,3 @@ sub nb_feature_level1{
 	return $resu;
 }
 1;
-
