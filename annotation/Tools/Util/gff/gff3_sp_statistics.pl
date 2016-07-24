@@ -1,6 +1,5 @@
 #!/usr/bin/perl
 
-
 use Carp;
 use Clone 'clone';
 use strict;
@@ -34,15 +33,15 @@ if ( !GetOptions(
     "gff|f=s" => \$gff))
 
 {
-    pod2usage( { -message => '$header Failed to parse command line',
+    pod2usage( { -message => "Failed to parse command line",
                  -verbose => 1,
                  -exitval => 1 } );
 }
 
 # Print Help and exit
 if ($help) {
-    pod2usage( { -verbose => 2,
-                 -exitval => 2,
+    pod2usage( { -verbose => 1,
+                 -exitval => 0,
                  -message => "$header \n" } );
 }
 
@@ -50,7 +49,7 @@ if ( ! (defined($gff)) ){
     pod2usage( {
            -message => "$header\nAt least 1 parameter is mandatory:\nInput reference gff file (--gff) \n\n",
            -verbose => 0,
-           -exitval => 1 } );
+           -exitval => 2 } );
 }
 
 
@@ -109,8 +108,8 @@ foreach my $infoList (@$stat){
 
 #Check if we have isoforms
 if($nbLevel1 != $nbLevel2){
-  print "\nApparently we have isoforms : Number level1 features: $nbLevel1 / Number of level2 features $nbLevel2\n";
-  print "We will proceed to the statistics analysis using only the mRNA with the longest cds\n";
+  print $out "\nApparently we have isoforms : Number level1 features: $nbLevel1 / Number of level2 features $nbLevel2\n";
+  print $out "We will proceed to the statistics analysis using only the mRNA with the longest cds\n";
 
   #create list of level2 where we kept only level2 that have cds and only the longest isoform !
   my $list_id_l2 = get_longest_cds_level2($hash_omniscient);

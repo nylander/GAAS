@@ -1,11 +1,5 @@
 #!/usr/bin/perl
 
-###################################################
-# Jacques Dainat 01/2015                          #  
-# Bioinformatics Infrastructure for Life Sciences #
-# jacques.dainat@bils.se                          #
-###################################################
-
 use Carp;
 use strict;
 use warnings;
@@ -18,6 +12,14 @@ use BILS::Handler::GFF3handler qw(:Ok);
 
 my $start_run = time();
 
+
+my $header = qq{
+########################################################
+# BILS 2015 - Sweden                                   #  
+# jacques.dainat\@bils.se                               #
+# Please cite BILS (www.bils.se) when using this tool. #
+########################################################
+};
 my $inputFile;
 my $outfile;
 my $opt_help = 0;
@@ -32,15 +34,17 @@ if ( !GetOptions ('i|file|input|gff=s' => \$inputFile,
                  -exitval => 1 } );
 }
 
-if ($opt_help) {
+# Print Help and exit
+if ($help) {
     pod2usage( { -verbose => 2,
-                 -exitval => 0 } );
+                 -exitval => 2,
+                 -message => "$header\n" } );
 }
 
 if ((!defined($inputFile)) ){
    pod2usage( { -message => 'at least 1 parameter is mandatory: -i',
-                 -verbose => 1,
-                 -exitval => 1 } );
+                 -verbose => 0,
+                 -exitval => 2 } );
 }
 
 my $ostream     = IO::File->new();

@@ -2,7 +2,9 @@
 
 my $header = qq{
 ########################################################
-# BILS 2015 - Sweden                                   #  
+# BILS 2015 - Sweden                                   #
+# jacques.dainat\@bils.se                               #
+# Please cite BILS (www.bils.se) when using this tool. #
 ########################################################
 };
 
@@ -30,14 +32,16 @@ if ( !GetOptions( 'g|gff=s' => \$opt_gfffile,
                  -exitval => 1 } );
 }
 
+# Print Help and exit
 if ($opt_help) {
-    pod2usage( { -verbose => 2,
-                 -exitval => 2 } );
+    pod2usage( { -verbose => 1,
+                 -exitval => 0,
+                 -message => "$header \n" } );
 }
- 
+
 if (! defined($opt_gfffile) ){
     pod2usage( {
-           -message => "\nAt least 1 parameter is mandatory:\nInput reference gff file (-g).\n\n".
+           -message => "$header\nAt least 1 parameter is mandatory:\nInput reference gff file (-g).\n\n".
            "Ouptut is optional. Look at the help documentation to know more.\n",
            -verbose => 0,
            -exitval => 1 } );
