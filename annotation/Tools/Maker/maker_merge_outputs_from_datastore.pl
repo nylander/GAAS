@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 
 use strict;
+use File::Copy;
 use warnings;
 use Scalar::Util qw(openhandle);
 use Time::Piece;
@@ -8,6 +9,9 @@ use Time::Seconds;
 use Cwd;
 use Pod::Usage;
 use Getopt::Long qw(:config no_ignore_case bundling);
+use BILS::Handler::GFF3handler qw(:Ok);
+use BILS::Handler::GXFhandler qw(:Ok);
+use Bio::Tools::GFF;
 use IO::File;
 use File::Basename;
 
@@ -78,20 +82,9 @@ if(! $out){
 	$out="annotations";
 }
 
-if (-d "$out") {
-	die "The output directory <$out> already exists, exiting\n";
-} 
-else{
-	mkdir $out;
-}
-
 # STANDARD
 my $protein_file = "annotations.proteins.fa";
 my $annotations_file = "annotations.gff";
-
-
-open(my $gff_out, '>', $out."/".$annotations_file) or die "Could not open file '$out/$annotations_file' $!";
-open(my $protein_out, '>', $out."/".$protein_file) or die "Could not open file '$out/$protein_file' $!";
 
 # MESSAGES
 my $nbDir=$#inDir+1; 
@@ -110,133 +103,131 @@ if ($nbDir > 1 ){print "Results will be merged together !\n";}
 #############################
 # Read the genome_datastore #
 #############################
+if (-d "$out") {
+	print "The output directory <$out> already exists, we skip the merge step.\n";
+} 
+else{
+	mkdir $out;
+	open(my $gff_out, '>', $out."/".$annotations_file) or die "Could not open file '$out/$annotations_file' $!";
+	open(my $protein_out, '>', $out."/".$protein_file) or die "Could not open file '$out/$protein_file' $!";
 
-foreach my $makerDir (@inDir){
-	my $prefix = $makerDir;
-	$prefix =~ s/\.maker\.output//;
-	my $maker_dir_path = $dir . "/" . $makerDir."/";
-	my $datastore = $maker_dir_path.$prefix."_datastore" ;
+	foreach my $makerDir (@inDir){
+		my $prefix = $makerDir;
+		$prefix =~ s/\.maker\.output//;
+		my $maker_dir_path = $dir . "/" . $makerDir."/";
+		my $datastore = $maker_dir_path.$prefix."_datastore" ;
 
-	if (-d $datastore ) {
-        	print "Found datastore in $makerDir, merging annotations now...\n";
-	} else {
-	        die "Could not find datastore index ($datastore), exiting...\n";
-	}
+		if (-d $datastore ) {
+	        	print "Found datastore in $makerDir, merging annotations now...\n";
+		} else {
+		        die "Could not find datastore index ($datastore), exiting...\n";
+		}
 
-	# This is one way to open a file...
-	#open (my $IN, '<', $datastore) or die "FATAL: Can't open file: $datastore for reading.\n$!\n";
+		# This is one way to open a file...
+		#open (my $IN, '<', $datastore) or die "FATAL: Can't open file: $datastore for reading.\n$!\n";
 
-	#Read list of dir
-	opendir(DIR, $datastore) or die "cannot open dir $datastore: $!";
-  	my @listDirL1= readdir DIR;
-  	closedir DIR;
+		#Read list of dir
+		opendir(DIR, $datastore) or die "cannot open dir $datastore: $!";
+	  	my @listDirL1= readdir DIR;
+	  	closedir DIR;
 
-  	foreach my $dirL1 (@listDirL1){
-  		if($dirL1 =~ /^\./){next;}
-
-  		#Read list of dir
-		opendir(DIR, $datastore."/".$dirL1) or die "cannot open dir $datastore/$dirL1: $!";
-  		my @listDirL2= readdir DIR;
-  		closedir DIR;
-
-  		foreach my $dirL2 (@listDirL2){
-  			if($dirL2 =~ /^\./){next;}
+	  	foreach my $dirL1 (@listDirL1){
+	  		if($dirL1 =~ /^\./){next;}
 
 	  		#Read list of dir
-			opendir(DIR, $datastore."/".$dirL1."/".$dirL2) or die "cannot open dir $datastore/$dirL1/$dirL2: $!";
-	  		my @listDirL3= readdir DIR;
+			opendir(DIR, $datastore."/".$dirL1) or die "cannot open dir $datastore/$dirL1: $!";
+	  		my @listDirL2= readdir DIR;
 	  		closedir DIR;
 
-	  		foreach my $dirL3 (@listDirL3){
-	  			if($dirL3 =~ /^\./){next;}
+	  		foreach my $dirL2 (@listDirL2){
+	  			if($dirL2 =~ /^\./){next;}
 
-	  			opendir(DIR, $datastore."/".$dirL1."/".$dirL2."/".$dirL3) or die "cannot open dir $datastore/$dirL1/$dirL2/$dirL3: $!";
-	  			my @listFile= readdir DIR;
-	  			closedir DIR;
+		  		#Read list of dir
+				opendir(DIR, $datastore."/".$dirL1."/".$dirL2) or die "cannot open dir $datastore/$dirL1/$dirL2: $!";
+		  		my @listDirL3= readdir DIR;
+		  		closedir DIR;
 
-	  			my $gff_file = undef;
-	  			my $aa_file = undef;
-	  			if(grep $_ =~ /\.gff$/ , @listFile ){
-	  				my @matchFile = grep $_ =~  /\.gff$/, @listFile ;
-					$gff_file = $matchFile[0] ;
-	  			}
+		  		foreach my $dirL3 (@listDirL3){
+		  			if($dirL3 =~ /^\./){next;}
 
-	  			if(grep $_ =~ /\.proteins\.fasta$/ , @listFile ){
-	  				my @matchFile = grep $_ =~  /\.proteins\.fasta$/, @listFile ;
-					$aa_file = $matchFile[0] ;
-	  			}
+		  			opendir(DIR, $datastore."/".$dirL1."/".$dirL2."/".$dirL3) or die "cannot open dir $datastore/$dirL1/$dirL2/$dirL3: $!";
+		  			my @listFile= readdir DIR;
+		  			closedir DIR;
 
-				if ($gff_file) {
-					my $filename="$datastore/$dirL1/$dirL2/$dirL3/$gff_file";
-					open(my $fh, '<:encoding(UTF-8)', $filename) or die "Could not open file '$filename' $!";
-					while (<$fh>) {
-						print $gff_out $_;
+		  			my $gff_file = undef;
+		  			my $aa_file = undef;
+		  			if(grep $_ =~ /\.gff$/ , @listFile ){
+		  				my @matchFile = grep $_ =~  /\.gff$/, @listFile ;
+						$gff_file = $matchFile[0] ;
+		  			}
+
+		  			if(grep $_ =~ /\.proteins\.fasta$/ , @listFile ){
+		  				my @matchFile = grep $_ =~  /\.proteins\.fasta$/, @listFile ;
+						$aa_file = $matchFile[0] ;
+		  			}
+
+					if ($gff_file) {
+						my $filename="$datastore/$dirL1/$dirL2/$dirL3/$gff_file";
+						open(my $fh, '<:encoding(UTF-8)', $filename) or die "Could not open file '$filename' $!";
+						while (<$fh>) {
+							print $gff_out $_;
+						}
+						close $fh;
 					}
-					close $fh;
-				}
-			
-				if ($aa_file ) {
-					my $filename="$datastore/$dirL1/$dirL2/$dirL3/$aa_file";
-					open(my $fh, '<:encoding(UTF-8)', $filename) or die "Could not open file '$filename' $!";
-					while (<$fh>) {
-						print $protein_out $_;
+				
+					if ($aa_file ) {
+						my $filename="$datastore/$dirL1/$dirL2/$dirL3/$aa_file";
+						open(my $fh, '<:encoding(UTF-8)', $filename) or die "Could not open file '$filename' $!";
+						while (<$fh>) {
+							print $protein_out $_;
+						}
+						close $fh;
 					}
-					close $fh;
 				}
 			}
 		}
 	}
+
+	close $gff_out;
+	close $protein_out;
 }
 
-close $gff_out;
-close $protein_out;
+print "Now save a copy of the Maker option files ...\n";
+if (-f "$out/maker_opts.ctl") {
+	print "A copy of the Maker files already exists in $out/maker_opts.ctl.  We skip it.\n";
+}
+else{
+	if(! $in){
+		copy("maker_opts.ctl","$out/maker_opts.ctl") or print "Copy failed: $! \n";
+		copy("maker_exe.ctl","$out/maker_exe.ctl") or print "Copy failed: $! \n";
+		copy("maker_evm.ctl","$out/maker_evm.ctl") or print "Copy failed: $! \n";
+		copy("maker_bopts.ctl","$out/maker_bopts.ctl") or print "Copy failed: $! \n";
+	}
+	else{
+		my ($name,$path,$suffix) = fileparse($in);
+		copy("$path/maker_opts.ctl","$out/maker_opts.ctl") or print  "Copy failed: $!";
+		copy("$path/maker_exe.ctl","$out/maker_exe.ctl") or print "Copy failed: $!";
+		copy("$path/maker_evm.ctl","$out/maker_evm.ctl") or print "Copy failed: $!";
+		copy("$path/maker_bopts.ctl","$out/maker_bopts.ctl") or print "Copy failed: $!";
+	}
+}
 
 
 ############################################
-# Now manage to split file by kind of data #
+# Now manage to split file by kind of data # Split is done on the fly (no data saved in memory)
 ############################################
-print "Now split file by data type...\n";
 my $splitedData_dir= "$out/annotationByType";
-mkdir $splitedData_dir;
-######## SPiece of code base on split_gff_by_source from gmod
-my $EXPECTED_NUM_COLUMNS = 9;
 
-my $gff_in = new IO::File($out."/".$annotations_file) or die "Error reading gff3 file $out/$annotations_file: $!\n";
-
-
-my %data = ();
-
-while (my $line = <$gff_in>) {
-    chomp $line;
-    my @tokens = split /\t+/, $line;
-    next if scalar(@tokens) != $EXPECTED_NUM_COLUMNS;
-    next if $tokens[1] eq ".";
-    push @{$data{$tokens[1]}}, \@tokens;
+if (-f $splitedData_dir) {
+	print "Output $splitedData_dir of the <split by type> step already exists. We skip it."
+}
+else{
+	print "Now split file by data type...\n";
+	mkdir $splitedData_dir;
+	# split data by column 2 with awk
+	exec "awk '{if(\$2 ~ /[a-zA-Z]+/) print \$0 > \"$splitedData_dir/\"\$2\".gff\"}' $out\"/\"$annotations_file";
 }
 
-my @sources = keys(%data);
-
-for (my $i = 0; $i < scalar(@sources); ++$i) {
-    my $source = $sources[$i];
-    my $out = new IO::File(">$splitedData_dir/$source.gff") or die "Error writing $splitedData_dir/$source.gff: $!\n";
-    print $out "##gff-version 3\n";
-    foreach my $gff (@{$data{$source}}) {
-        print $out join("\t", @{$gff}), "\n";
-    }
-    $out->close();
-}
-
-
-
-#########################
-#convert the gff in gtf #
-#########################
-#if (-f "${splitedData_dir}/maker.gff"){
-#	print "Converting Maker file to GTF...\n";
-#	my $gffreadPath="/sw/bioinfo/cufflinks/cufflinks-2.1.1/gffread";
-#	system("$gffreadPath","-o","$splitedData_dir/maker.gtf","-T","-F","$splitedData_dir/maker.gff");
-#}
-#else{print "No gff file to convert\n";}
 print "All done!\n";
 
 # --------------
