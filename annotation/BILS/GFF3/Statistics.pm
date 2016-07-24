@@ -26,26 +26,25 @@ our %EXPORT_TAGS = ( DEFAULT => [qw()],
 
 	We create a complex hash of hash containing all information needeed.
 	The data are scan from level 2 to level 1 and 3. We do that because different type of feature from level 2 can have same type of feature of level1. (e.g: mRNA => gene and tRNA => gene).
-	So the structure of the hash created is the following: 
+	So the structure of the hash created is the following:
 	{type_feature_level2}{'level'}{type_feature_level}{'flag'}='value';
 	'level' can be level1, level2 or level accordingly, allow to go all over the data for printing by driving the data form level1 to level3.
 	'flag' correspond to the type of information that has been saved in 'value'
-	
-=cut	
+
+=cut
 
 # Calculate information necessary going through the omniscient only once
-# return a lisf of sub_list - Sub list contain all inforamtion level1,2,3 of all feature linked to a type of feature of level 2. 
+# return a lisf of sub_list - Sub list contain all inforamtion level1,2,3 of all feature linked to a type of feature of level 2.
 # (eg: Gene(l1),mRNA(l2),cds(l3),exon(l3), where the type of level1 and level3 feature are only those linked to mRNA.)
 sub gff3_statistics {
-	
+
 	my ($hash_omniscient, $genome) = @_  ;
-	
+
 	my @result_list;
 
 	#my $out = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 3);
 
 	#check genome size
-
 	my $genomeSize=undef;
 	if($genome){
 		if( $genome =~ /^[0-9]+$/){ #check if it's a number
@@ -61,9 +60,9 @@ sub gff3_statistics {
 	printf("%-45s%d%s", "Total sequence length", $genomeSize,"\n");
 	}
 
-	# get nb of each feature inomniscient;
+	# get nb of each feature in omniscient;
 	my %all_info;
-
+	my %extra_info; #For info not sorted by Level.
 	foreach my $tag_l2 (keys %{$hash_omniscient->{'level2'}}){
 		foreach my $id_l1 (keys %{$hash_omniscient->{'level2'}{$tag_l2}}){
 			my $one_f2 = $hash_omniscient->{'level2'}{$tag_l2}{$id_l1}[0];
@@ -96,8 +95,9 @@ sub gff3_statistics {
 
 	    	#####
 	    	# get all level2
+	    	my $All_l2_single=1;
 			foreach my $feature_l2 ( @{$hash_omniscient->{'level2'}{$tag_l2}{$id_l1}} ){
-				
+				#print $feature_l2->gff_string()."\n";
 				#count number of feature
 				$all_info{$tag_l2}{'level2'}{$tag_l2}{'nb_feat'}++;
 				#compute feature size
@@ -121,22 +121,53 @@ sub gff3_statistics {
 
 		    		if(exists ($hash_omniscient->{'level3'}{$tag_l3}{$id_l2})){
 						my $sizeMultiFeat=0;
-						my $nb_multiFeature=0;
+						my $counterL3=-1;
 						#Initialize intron to 0 to avoid error during printing results
-						if(! exists ($all_info{$tag_l2}{'level3'}{$tag_l3}{'intron'})){$all_info{$tag_l2}{'level3'}{$tag_l3}{'intron'}=0;}
+						if(! exists ($all_info{$tag_l2}{'level3'}{'intron'}{'nb_feat'}))	{$all_info{$tag_l2}{'level3'}{'intron'}{'nb_feat'}=0;}
+						if(! exists ($all_info{$tag_l2}{'level3'}{'intron'}{'size_feat'}))	{$all_info{$tag_l2}{'level3'}{'intron'}{'size_feat'}=0;}
+						my $indexLast = $#{$hash_omniscient->{'level3'}{$tag_l3}{$id_l2}};
+						
 
-		    			foreach my $feature_l3 ( @{$hash_omniscient->{'level3'}{$tag_l3}{$id_l2}} ){
-		    				
+						my @sortedList = sort {$a->start <=> $b->start} @{$hash_omniscient->{'level3'}{$tag_l3}{$id_l2}};
+		    			foreach my $feature_l3 ( @sortedList ){
+
 		    				#count number feature of tag_l3 type
-		    				$nb_multiFeature++;
+		    				$counterL3++;
+
+		    				################
+		    				#Manage Introns# 
+		    				# from the second intron to the last (from index 1 to last index of the table sortedList) 
+		    				# We go inside this loop only if we have more than 1 feature.
+		    				if($counterL3 > 0 and $counterL3 <= $indexLast){
+		    					my $intronSize= $sortedList[$counterL3]->start - $sortedList[$counterL3-1]->end;
+		    					#compute feature size
+		    					$all_info{$tag_l2}{'level3'}{'intron'}{'size_feat'}+=$intronSize;
+		    								    	  			# grab longest
+			    	  			if ((! $all_info{$tag_l2}{'level3'}{'intron'}{'longest'}) or ($all_info{$tag_l2}{'level3'}{'intron'}{'longest'} < $intronSize)){
+    								$all_info{$tag_l2}{'level3'}{'intron'}{'longest'}=$intronSize;
+    							}
+    							# grab shorter
+			    				if ((! $all_info{$tag_l2}{'level3'}{'intron'}{'shortest'}) or ($all_info{$tag_l2}{'level3'}{'intron'}{'shortest'} > $intronSize)){
+			    					$all_info{$tag_l2}{'level3'}{'intron'}{'shortest'}=$intronSize;
+			    				}
+		    					#Count number
+			    				if($tag_l3 =~/exon/){ # don't count intron several times ... like between exon and between cds, because we count the sames
+			    					$all_info{$tag_l2}{'level2'}{$tag_l2}{'intron'}{'nb_feat'}+=1;
+			    					$all_info{$tag_l2}{'level3'}{'intron'}{'nb_feat'}+=1; #count all introns
+			    				}
+			    				else{ # count exon in other type of feature (within CDS, utr, etc)
+			    					$all_info{$tag_l2}{'level3'}{$tag_l3}{'intron'}{'nb_feat'}+=1;
+			    				}
+
+		    				}
 
 		    				#compute feature size
 		    				my $sizeFeature=($feature_l3->end-$feature_l3->start)+1;
 		    				$all_info{$tag_l2}{'level3'}{$tag_l3}{'size_feat'}+=$sizeFeature;
-		    	  			
+
 		    	  			if(($tag_l3 =~ /cds/) or ($tag_l3 =~ /utr/)){
 		    	  				$sizeMultiFeat+=$sizeFeature;
-		    	  				$all_info{$tag_l2}{'level3'}{$tag_l3}{'nb_spread_feat'}++;
+		    	  				$all_info{$tag_l2}{'level3'}{$tag_l3}{'exon'}{'nb_feat'}++;
 		    	  			}
 		    	  			else{
 		    	  				#count number of feature
@@ -158,8 +189,10 @@ sub gff3_statistics {
 		    				if ($tag_l3 =~ /five_prime_utr/){
 		    					$utr5=1;
 		    				}
-		    			}
+		    			}# END FOREACH L3
 
+
+		    			# NOW TAKE CARE OF MULTIFEATURE AND L2
 		    			#in that case the feature was split in several peaces that have been glue together
 		    			if (($tag_l3 =~ /utr/) or ($tag_l3 =~ /cds/)){
 		    				#count number of feature
@@ -174,22 +207,34 @@ sub gff3_statistics {
 			    			}
 		    			}
 
-		    			#Manage number intron per type of tag_l3
-		    			if($nb_multiFeature > 1){
-		    				my $nbIntron = ($nb_multiFeature-1);
-		    				$all_info{$tag_l2}{'level3'}{$tag_l3}{'intron'}+=$nbIntron;
+		    			if ($tag_l3 =~ /exon/){
+		    				if ($indexLast == 0) {
+			    				# body...
+			    				$extra_info{$tag_l2}{'level2'}{$tag_l2}{'single'}++;
+			    			}
+			    			else{
+			    				$All_l2_single=undef;
+			    			}
 		    			}
 		  			}
 		  		}# END all feature level 3
 
-		    	# 1) Manage UTR both side 
+		    	# 1) Manage UTR both side
 		    	if ($utr3  and $utr5){
 			    		$all_info{$tag_l2}{'level2'}{$tag_l2}{'utr_both_side'}++;
 			    		$all_info{$tag_l2}{'level2'}{$tag_l2}{'utr_at_least_one_side'}++;
-		    	} # 2) Manage UTR at least one side 
-		    	elsif ($utr3  or $utr5){ 
+		    	} # 2) Manage UTR at least one side
+		    	elsif ($utr3  or $utr5){
 		   				$all_info{$tag_l2}{'level2'}{$tag_l2}{'utr_at_least_one_side'}++;
  				}
+		  	}# END all feature level 2
+		  	if($All_l2_single){
+		  		$extra_info{$tag_l2}{'level1'}{$tag_l1}{'single'}++;
+		  		#print "avant: ".$feature_l1->gff_string()."\n";
+		  		#print $extra_info{$tag_l2}{'level1'}{$tag_l1}{'single'}." ".$extra_info{$tag_l2}{'level2'}{$tag_l2}{'single'};
+		  		#if ($extra_info{$tag_l2}{'level1'}{$tag_l1}{'single'} !=  $extra_info{$tag_l2}{'level2'}{$tag_l2}{'single'} ){
+		  		#	print $feature_l1->gff_string()."\n";exit;
+		  		#}
 		  	}
 		}
 	}
@@ -201,8 +246,10 @@ sub gff3_statistics {
 		my $info_number = _info_number($hashType);
 		push @result, @$info_number;
 
-		my $info_number_spread = info_number_spread($hashType);
-		push @result, @$info_number_spread;
+		if(exists ($extra_info{$type})){
+			my $info_single = _info_single($extra_info{$type});
+			push @result, @$info_single;
+		}
 
 		my $info_mean_per = _info_mean_per($hashType);
 		push @result, @$info_mean_per;
@@ -213,11 +260,11 @@ sub gff3_statistics {
 		my $info_mean_length = _info_mean_length($hashType);
 		push @result, @$info_mean_length;
 
-		if($genome){		
+		if($genome){
 			my $info_coverage = _info_coverage($hashType, $genomeSize);
 	 		push @result, @$info_coverage;
 		}
-	
+
 		my $info_longest = _info_longest($hashType);
 		push @result, @$info_longest;
 
@@ -231,22 +278,23 @@ return \@result_list;
 }
 
 #####
-# Give info about number of spread feature of each type
-# spread feature can only be level3 (utr or cds)
-sub info_number_spread{
+# Give info about single exon gene and mRNA
+sub _info_single{
+
 	my ($all_info) = @_  ;
-	
 	my @resu;
 
-	#print level3
-	foreach my $tag_l3 (keys %{$all_info->{'level3'}}){
-	    #manage nb_spread_feat
-	    if(exists ($all_info->{'level3'}{$tag_l3}{'nb_spread_feat'})){
-	    	push @resu, sprintf("%-45s%d%s", "Number of exon of $tag_l3", $all_info->{'level3'}{$tag_l3}{'nb_spread_feat'},"\n");
-	    	push @resu, sprintf("%-45s%d%s", "Number of intron of $tag_l3", $all_info->{'level3'}{$tag_l3}{'intron'},"\n");
-	    }
+	#print level1
+	foreach my $tag_l1 (sort keys %{$all_info->{'level1'}}){
+		push @resu, sprintf("%-45s%d%s", "Number of single exon $tag_l1",, $all_info->{'level1'}{$tag_l1}{'single'},"\n");
 	}
-	return  \@resu;
+
+	#print level2
+	foreach my $tag_l2 (sort keys %{$all_info->{'level2'}}){
+	    push @resu, sprintf("%-45s%d%s", "Number of single exon $tag_l2", $all_info->{'level2'}{$tag_l2}{'single'},"\n");
+	 }
+
+	return \@resu;
 }
 
 #####
@@ -258,12 +306,12 @@ sub _info_number {
 	my $there_is_utr=undef;
 
 	#print level1
-	foreach my $tag_l1 (keys %{$all_info->{'level1'}}){
+	foreach my $tag_l1 (sort keys %{$all_info->{'level1'}}){
 		push @resu, sprintf("%-45s%d%s", "Number of $tag_l1"."s", $all_info->{'level1'}{$tag_l1}{'nb_feat'},"\n");
 	}
 
 	#print level2
-	foreach my $tag_l2 (keys %{$all_info->{'level2'}}){
+	foreach my $tag_l2 (sort keys %{$all_info->{'level2'}}){
 	    push @resu, sprintf("%-45s%d%s", "Number of $tag_l2"."s", $all_info->{'level2'}{$tag_l2}{'nb_feat'},"\n");
 	    #manage utr both side
 	    if(exists ($all_info->{'level2'}{$tag_l2}{'utr_both_side'})){
@@ -275,15 +323,20 @@ sub _info_number {
 		}
 	 }
 
-	#print level3
-	foreach my $tag_l3 (keys %{$all_info->{'level3'}}){
+	#print level3 - 
+	foreach my $tag_l3 (sort keys %{$all_info->{'level3'}}){
 	    push @resu, sprintf("%-45s%d%s", "Number of $tag_l3"."s", $all_info->{'level3'}{$tag_l3}{'nb_feat'},"\n");
-	    #intron case 
-	    if($tag_l3 eq "exon"){
-	    	push @resu, sprintf("%-45s%d%s", "Number of intron"."s", $all_info->{'level3'}{$tag_l3}{'intron'},"\n");
-	    }	    
 	}
-	
+
+ 	#print level3 - intron and exon case
+	foreach my $tag_l3 (sort keys %{$all_info->{'level3'}}){
+		if( exists ($all_info->{'level3'}{$tag_l3}{'exon'} )) {
+	    	push @resu, sprintf("%-45s%d%s", "Number of exon in $tag_l3", $all_info->{'level3'}{$tag_l3}{'exon'}{'nb_feat'},"\n");
+	    }
+		if( exists ($all_info->{'level3'}{$tag_l3}{'intron'} )) {
+	    	push @resu, sprintf("%-45s%d%s", "Number of intron in $tag_l3", $all_info->{'level3'}{$tag_l3}{'intron'}{'nb_feat'},"\n");
+	    }
+	}
 
 	return \@resu;
 }
@@ -296,17 +349,17 @@ sub _info_shortest {
 	my @resu;
 
 	#print level1
-	foreach my $tag_l1 (keys %{$all_info->{'level1'}}){
+	foreach my $tag_l1 (sort keys %{$all_info->{'level1'}}){
 		push @resu, sprintf("%-45s%d%s", "Shortest $tag_l1"."s", $all_info->{'level1'}{$tag_l1}{'shortest'},"\n");
 	}
 
 	#print level2
-	foreach my $tag_l2 (keys %{$all_info->{'level2'}}){
+	foreach my $tag_l2 (sort keys %{$all_info->{'level2'}}){
 	    push @resu, sprintf("%-45s%d%s", "Shortest $tag_l2"."s", $all_info->{'level2'}{$tag_l2}{'shortest'},"\n");
 	 }
 
 	#print level3
-	foreach my $tag_l3 (keys %{$all_info->{'level3'}}){
+	foreach my $tag_l3 (sort keys %{$all_info->{'level3'}}){
 	    push @resu, sprintf("%-45s%d%s", "Shortest $tag_l3"."s", $all_info->{'level3'}{$tag_l3}{'shortest'},"\n");
 	}
 
@@ -321,17 +374,17 @@ sub _info_longest {
 	my @resu;
 
 	#print level1
-	foreach my $tag_l1 (keys %{$all_info->{'level1'}}){
+	foreach my $tag_l1 (sort keys %{$all_info->{'level1'}}){
 		push @resu, sprintf("%-45s%d%s", "Longest $tag_l1"."s", $all_info->{'level1'}{$tag_l1}{'longest'},"\n");
 	}
 
 	#print level2
-	foreach my $tag_l2 (keys %{$all_info->{'level2'}}){
+	foreach my $tag_l2 (sort keys %{$all_info->{'level2'}}){
 	    push @resu, sprintf("%-45s%d%s", "Longest $tag_l2"."s", $all_info->{'level2'}{$tag_l2}{'longest'},"\n");
 	 }
 
 	#print level3
-	foreach my $tag_l3 (keys %{$all_info->{'level3'}}){
+	foreach my $tag_l3 (sort keys %{$all_info->{'level3'}}){
 	    push @resu, sprintf("%-45s%d%s", "Longest $tag_l3"."s", $all_info->{'level3'}{$tag_l3}{'longest'},"\n");
 	}
 
@@ -345,23 +398,22 @@ sub _info_mean_per {
 	my @resu;
 
 	#print level2
-	foreach my $tag_l2 (keys %{$all_info->{'level2'}}){
-		foreach my $tag_l1 (keys %{$all_info->{'level1'}}){
+	foreach my $tag_l2 (sort keys %{$all_info->{'level2'}}){
+		foreach my $tag_l1 (sort keys %{$all_info->{'level1'}}){
 			my $mean=  $all_info->{'level2'}{$tag_l2}{'nb_feat'}/$all_info->{'level1'}{$tag_l1}{'nb_feat'};
 		    push @resu, sprintf("%-45s%.1f%s", "mean $tag_l2"."s per $tag_l1", $mean,"\n");
 		}
 	}
 	#print level3
-	foreach my $tag_l3 (keys %{$all_info->{'level3'}}){
-	    foreach my $tag_l2 (keys %{$all_info->{'level2'}}){
+	foreach my $tag_l3 (sort keys %{$all_info->{'level3'}}){
+	    foreach my $tag_l2 (sort keys %{$all_info->{'level2'}}){
 			my $mean=  $all_info->{'level3'}{$tag_l3}{'nb_feat'}/$all_info->{'level2'}{$tag_l2}{'nb_feat'};
 		    push @resu, sprintf("%-45s%.1f%s", "mean $tag_l3"."s per $tag_l2", $mean,"\n");
 		}
 	}
-
 	return \@resu;
 }
-	
+
 #############
 # Give info about lenght of the total of features by type
 sub _info_length {
@@ -369,17 +421,17 @@ sub _info_length {
 	my @resu;
 
 	#print level1
-	foreach my $tag_l1 (keys %{$all_info->{'level1'}}){
+	foreach my $tag_l1 (sort keys %{$all_info->{'level1'}}){
 		push @resu, sprintf("%-45s%d%s", "Total $tag_l1 length", $all_info->{'level1'}{$tag_l1}{'size_feat'},"\n");
 	}
 
 	#print level2
-	foreach my $tag_l2 (keys %{$all_info->{'level2'}}){
+	foreach my $tag_l2 (sort keys %{$all_info->{'level2'}}){
 	    push @resu, sprintf("%-45s%d%s", "Total $tag_l2 length", $all_info->{'level2'}{$tag_l2}{'size_feat'},"\n");
 	 }
 
 	#print level3
-	foreach my $tag_l3 (keys %{$all_info->{'level3'}}){
+	foreach my $tag_l3 (sort keys %{$all_info->{'level3'}}){
 	    push @resu, sprintf("%-45s%d%s", "Total $tag_l3 length", $all_info->{'level3'}{$tag_l3}{'size_feat'},"\n");
 	}
 
@@ -394,19 +446,19 @@ sub _info_mean_length {
 
 
 	#print level1
-	foreach my $tag_l1 (keys %{$all_info->{'level1'}}){
+	foreach my $tag_l1 (sort keys %{$all_info->{'level1'}}){
 		my $meanl= $all_info->{'level1'}{$tag_l1}{'size_feat'}/$all_info->{'level1'}{$tag_l1}{'nb_feat'};
 		push @resu, sprintf("%-45s%d%s", "mean $tag_l1 length", $meanl,"\n");
 	}
 
 	#print level2
-	foreach my $tag_l2 (keys %{$all_info->{'level2'}}){
+	foreach my $tag_l2 (sort keys %{$all_info->{'level2'}}){
 		my $meanl= $all_info->{'level2'}{$tag_l2}{'size_feat'}/$all_info->{'level2'}{$tag_l2}{'nb_feat'};
 	    push @resu, sprintf("%-45s%d%s", "mean $tag_l2 length", $meanl,"\n");
 	 }
 
 	#print level3
-	foreach my $tag_l3 (keys %{$all_info->{'level3'}}){
+	foreach my $tag_l3 (sort keys %{$all_info->{'level3'}}){
 		my $meanl= $all_info->{'level3'}{$tag_l3}{'size_feat'}/$all_info->{'level3'}{$tag_l3}{'nb_feat'};
 	    push @resu, sprintf("%-45s%d%s", "mean $tag_l3 length", $meanl,"\n");
 	}
@@ -421,19 +473,19 @@ sub _info_coverage {
 	my @resu;
 
 	#print level1
-	foreach my $tag_l1 (keys %{$all_info->{'level1'}}){
+	foreach my $tag_l1 (sort keys %{$all_info->{'level1'}}){
 		my $perc= ($all_info->{'level1'}{$tag_l1}{'size_feat'}*100)/$genomeSize;
 		push @resu, sprintf("%-45s%.1f%s", "% of genome covered by $tag_l1", $perc,"\n");
 	}
 
 	#print level2
-	foreach my $tag_l2 (keys %{$all_info->{'level2'}}){
+	foreach my $tag_l2 (sort keys %{$all_info->{'level2'}}){
 		my $perc= ($all_info->{'level2'}{$tag_l2}{'size_feat'}*100)/$genomeSize;
 	    push @resu, sprintf("%-45s%.1f%s", "% of genome covered by $tag_l2", $perc,"\n");
 	 }
 
 	#print level3
-	foreach my $tag_l3 (keys %{$all_info->{'level3'}}){
+	foreach my $tag_l3 (sort keys %{$all_info->{'level3'}}){
 	    my $perc= ($all_info->{'level3'}{$tag_l3}{'size_feat'}*100)/$genomeSize;
 	    push @resu, sprintf("%-45s%.1f%s", "% of genome covered by $tag_l3", $perc,"\n");
 	}
