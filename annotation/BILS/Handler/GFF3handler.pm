@@ -23,8 +23,6 @@ our %EXPORT_TAGS = ( DEFAULT => [qw()],
 	A library to convert 
 	Inherits from 
 
-	Dont take in account repeat and multi parent feature!!!
-	
 =cut	
 
 # Save in omniscient hash (sorted in a specific way (3 levels)) a whole gff3 file
@@ -58,10 +56,12 @@ sub slurp_gff3_file_JD {
 	my %duplicate;# Hash to store any counter. Will be use to create a new uniq ID 
 	my %miscCount;# Hash to store any counter. Will be use to create a new uniq ID
 
-
+	#read every lines
 	while( my $feature = $gffio->next_feature()) {
 		manage_one_feature($feature, \%omniscient, \%mRNAGeneLink, \%duplicate, \%miscCount);
     }
+    #close the file
+    $gffio->close();
 
     #Check if duplicate detected:
     my $keyExist = keys %duplicate;
@@ -74,8 +74,11 @@ sub slurp_gff3_file_JD {
       	print "We removed them from the regular output.\n";
     }
 
-    #Check relationship between mRNA and gene
+    #Check relationship between mRNA and gene.
     check_gene_link_to_mrna(\%omniscient);
+
+    #check level1 has subfeature else we remove it
+  	remove_orphan_l1(\%omniscient);
 
     # To keep track of How many Warnings we got....
     foreach my $thematic (keys %WARNS){
@@ -84,9 +87,6 @@ sub slurp_gff3_file_JD {
   			print "Actually we had $nbW warning message: $thematic\n";
   		}	
   	}
-
-    #close the file
-    $gffio->close();
 
     #return
 	return \%omniscient, \%mRNAGeneLink	;
@@ -169,40 +169,50 @@ sub manage_one_feature{
 				warn "WARNING gff3 reader level3: No Parent attribute found @ for the feature".$feature->gff_string()."\n";
 				$miscCount->{'noParent'}{$primary_tag}++;
 				$parent = $primary_tag."-".$miscCount->{'noParent'}{$primary_tag};
+				create_or_replace_tag($feature,'Parent',$parent); #add parent attribute
 				push(@parentList, $parent);
 			}
 			
 			#Save feature and check duplicates	(treat also cases where there is multiple parent. => In that case we expand to create a uniq feature for each)
-			my $nbParent=0; # to check if it is a multiple parent case
+			my $cptParent=0; # to check if it is a multiple parent case
+      		my $allParent = scalar @parentList;
       		foreach my $parent (@parentList){ # first feature level3 with this primary_tag linked to the level2 feature
-				$nbParent++;
+				$cptParent++;
 
+				#Level3 key doesn't exist
 				if(! exists_keys($omniscient,('level3',$primary_tag,lc($parent)))){
 					
-					# It is a multiple parent case => We have to clone the feature !!
-					if($nbParent > 1){ 
-						my $feature_clone=clone($feature);
-						create_or_replace_tag($feature_clone,'Parent',$parent); #modify Parent To keep only one
+					# It is a multiple parent case
+					if($allParent > 1){
+						# Not the first parent, we have to clone the feature !!
+						if($cptParent > 1){ 
+							my $feature_clone=clone($feature);
+							create_or_replace_tag($feature_clone,'Parent',$parent); #modify Parent To keep only one
 
-						#Take care of ID to have uniq one (case of exon,etc...)
-						if( ($primary_tag ne "cds") and (index($primary_tag, 'utr') == -1) ){
-							my $substr = $feature->_tag_value('Parent');
-							my $clone_id=$feature->_tag_value('ID');
-							$clone_id=~ s/$substr//;
-							if($clone_id eq $feature->_tag_value('ID')){#Substring didn't work
-								$clone_id=$feature->_tag_value('ID')."$nbParent";
-							}else{$clone_id="$parent$clone_id";}
-							create_or_replace_tag($feature_clone,'ID',$clone_id); #modify Parent To keep only one
+							#As we cloned the feature, we haev to take care of ID to have uniq one (case of exon,etc...)
+							if( ($primary_tag ne "cds") and (index($primary_tag, 'utr') == -1) ){ #avoid case where we can have the same ID (multi-feature)
+								my $substr = $feature->_tag_value('Parent');
+								my $clone_id=$feature->_tag_value('ID');
+								$clone_id=~ s/$substr//;
+								if($clone_id eq $feature->_tag_value('ID')){#Substring didn't work
+									$clone_id=$feature->_tag_value('ID')."$cptParent";
+								}else{$clone_id="$parent$clone_id";}
+								create_or_replace_tag($feature_clone,'ID',$clone_id); #modify Parent To keep only one
+							}
+
+							push (@{$omniscient->{"level3"}{$primary_tag}{lc($parent)}}, $feature_clone);
 						}
-
-						push (@{$omniscient->{"level3"}{$primary_tag}{lc($parent)}}, $feature_clone);
+						# It is the first parent. Do not clone the feature
+						else{
+							create_or_replace_tag($feature,'Parent',$parent); #modify Parent To keep only one
+							push (@{$omniscient->{"level3"}{$primary_tag}{lc($parent)}}, $feature);
+						}
 					}
-					# It has only one parent 
-					else{
-						create_or_replace_tag($feature,'Parent',$parent); #modify Parent To keep only one
+					else{ #the simpliest case. One parent only
 						push (@{$omniscient->{"level3"}{$primary_tag}{lc($parent)}}, $feature);
 					}
 				}
+				#Level3 key exists
 				else{  # If not the first feature level3 with this primary_tag linked to the level2 feature
 					# check among list of feature level3 already exits with an identical ID.
 					my $is_dupli=undef;
@@ -225,27 +235,33 @@ sub manage_one_feature{
 					}
 					#It is not a duplicated feature => save it in omniscient
 					if(! $is_dupli){
-						# It is a multiple parent case => We have to clone the feature !!
-						if($nbParent > 1){ 
-							my $feature_clone=clone($feature);
-							create_or_replace_tag($feature_clone,'Parent',$parent); #modify Parent To keep only one
-							
-							#Take care of ID to have uniq one (case of exon,etc...)
-							if( ($primary_tag ne "cds") and (index($primary_tag, 'utr') == -1) ){
-								my $substr = $feature->_tag_value('Parent');
-								my $clone_id=$feature->_tag_value('ID');
-								$clone_id=~ s/$substr//;
-								if($clone_id eq $feature->_tag_value('ID')){#Substring didn't work
-									$clone_id=$feature->_tag_value('ID')."$nbParent";
-								}else{$clone_id="$parent$clone_id";}
-								create_or_replace_tag($feature_clone,'ID',$clone_id); #modify Parent To keep only one
-							}
+						# It is a multiple parent case
+						if($allParent > 1){
+							# Not the first parent, we have to clone the feature !!
+							if($cptParent > 1){ 
+								my $feature_clone=clone($feature);
+								create_or_replace_tag($feature_clone,'Parent',$parent); #modify Parent To keep only one
+								
+								#Take care of ID to have uniq one (case of exon,etc...)
+								if( ($primary_tag ne "cds") and (index($primary_tag, 'utr') == -1) ){
+									my $substr = $feature->_tag_value('Parent');
+									my $clone_id=$feature->_tag_value('ID');
+									$clone_id=~ s/$substr//;
+									if($clone_id eq $feature->_tag_value('ID')){#Substring didn't work
+										$clone_id=$feature->_tag_value('ID')."$cptParent";
+									}else{$clone_id="$parent$clone_id";}
+									create_or_replace_tag($feature_clone,'ID',$clone_id); #modify Parent To keep only one
+								}
 
-							push (@{$omniscient->{"level3"}{$primary_tag}{lc($parent)}}, $feature_clone);
+								push (@{$omniscient->{"level3"}{$primary_tag}{lc($parent)}}, $feature_clone);
+							}
+							# It is the first parent. Do not clone the feature
+							else{
+								create_or_replace_tag($feature,'Parent',$parent); #modify Parent To keep only one
+								push (@{$omniscient->{"level3"}{$primary_tag}{lc($parent)}}, $feature);
+							}
 						}
-						# It has only one parent 
-						else{
-							create_or_replace_tag($feature,'Parent',$parent); #modify Parent To keep only one
+						else{ #the simpliest case. One parent only
 							push (@{$omniscient->{"level3"}{$primary_tag}{lc($parent)}}, $feature);
 						}
 					}
@@ -328,8 +344,7 @@ sub manage_one_feature{
 
 				#get ID
 		    	if($feature->has_tag('ID')){
-			    	my @values = $feature->get_tag_values('ID');
-					$id = lc(shift @values) ;
+			    	$id = lc( $feature->get_tag_values('ID') );
 				}
 				else{warn "gff3 reader error level2: No ID attribute found @ for the feature ".$feature->gff_string()."\n";
 					$id = _manage_ID($omniscient, $duplicate, $miscCount, $feature, 'level2', $source_tag);
@@ -709,6 +724,29 @@ sub check_mrna_positions{
   if($mRNA_feature->end != $exonEnd){
     $mRNA_feature->end($exonEnd);
   }
+}
+
+# @Purpose: Remove the level1 feature that havn't subfeature linked to it
+# @input: 1 => hash(omniscient hash)
+# @output: none
+sub remove_orphan_l1{
+	my ($hash_omniscient)=@_;
+
+	foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){
+	  	foreach my $id_l1 (keys %{$hash_omniscient->{'level1'}{$tag_l1}}){
+	     
+		    my $neverfound="yes";
+		    foreach my $tag_l2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
+		        if ( exists ($hash_omniscient->{'level2'}{$tag_l2}{$id_l1} ) ){
+		          $neverfound=undef;last
+		        }   
+		    }
+		    if($neverfound){
+		    	warn "WARNING gff3 reader level1 : No child feature found for the $tag_l1 with ID @ ".$id_l1.". We remove it.\n";
+		    	delete $hash_omniscient->{'level1'}{$tag_l1}{$id_l1}; # delete level1
+		    }
+	 	}
+	}
 }
 
 1;
