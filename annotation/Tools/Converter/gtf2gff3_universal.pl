@@ -6,7 +6,6 @@
 
 use strict;
 use warnings;
-use Time::HiRes;
 use Getopt::Long;
 use Clone 'clone';
 use Pod::Usage;
@@ -203,9 +202,7 @@ foreach my $parent (keys %Level2featuresNames){
               # Now print it
 
               gtf2gff_features_in_omniscient_from_level1_id_list($hash_omniscient, \@gene_id_list, $gffout);
-              my $start_time = [Time::HiRes::gettimeofday()];
               print_omniscient_from_level1_id_list($hash_omniscient, \@gene_id_list, $gffout);
-              my $diff = Time::HiRes::tv_interval($start_time);print "\nIn out $diff\n";
               $level1_alreadyAnnotated{$hash_mRNAGeneLink->{$parent}}++;
               
             }      

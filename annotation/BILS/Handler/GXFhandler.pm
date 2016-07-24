@@ -69,8 +69,7 @@ sub print_omniscient{
 						#################
 						# == LEVEL 3 == #
 						#################
-						my @temp = $feature_level2->get_tag_values('ID');
-						my $level2_ID = lc(shift @temp);
+						my $level2_ID = lc($feature_level2->_tag_value('ID'));
 
 						######
 						# FIRST EXON
@@ -236,8 +235,7 @@ sub gtf2gff_features_in_omniscient_from_level1_id_list {
 				if(! $feature_level1->has_tag('ID')){
 
 					if($feature_level1->has_tag('gene_id')){
-						my @temp = $feature_level1->get_tag_values('gene_id');
-						my $level1_ID = shift @temp;
+						my $level1_ID = $feature_level1->_tag_value('gene_id');
 						$feature_level1->add_tag_value('ID',$level1_ID)
 					}
 					else{
@@ -261,13 +259,11 @@ sub gtf2gff_features_in_omniscient_from_level1_id_list {
 							##manage ID
 							my $level2_ID;
 							if($feature_level2->has_tag('ID')){
-								my @temp = $feature_level2->get_tag_values('ID');
-								$level2_ID = shift @temp;
+								$level2_ID = $feature_level2->_tag_value('ID');
 							}
 							if(! $feature_level2->has_tag('ID')){
 								if($feature_level2->has_tag('transcript_id')){
-									my @temp = $feature_level2->get_tag_values('transcript_id');
-									$level2_ID = shift @temp;
+									$level2_ID = $feature_level2->_tag_value('transcript_id');
 									$feature_level2->add_tag_value('ID',$level2_ID)
 								}
 								else{
@@ -278,8 +274,7 @@ sub gtf2gff_features_in_omniscient_from_level1_id_list {
 							if(! $feature_level2->has_tag('Parent')){
 
 								if($feature_level2->has_tag('gene_id')){
-									my @temp = $feature_level2->get_tag_values('gene_id');
-									my $level2_Parent = shift @temp;
+									my $level2_Parent = $feature_level2->_tag_value('gene_id');
 									$feature_level2->add_tag_value('Parent',$level2_Parent)
 								}
 								else{
@@ -569,10 +564,7 @@ sub remove_omniscient_elements_from_level1_id_list {
 								#################
 								# == LEVEL 3 == #
 								#################
-								my @temp = $feature_level2->get_tag_values('ID');
-								my $level2_ID = lc(shift @temp);
-
-
+								my $level2_ID = lc($feature_level2->_tag_value('ID'));
 
 								foreach my $primary_tag_key_level3 (keys %{$hash_omniscient->{'level3'}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
 									if ( exists ($hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID} ) ){
@@ -728,12 +720,14 @@ sub create_omniscient {
 		$omniscient->{"level1"}{lc($feature->primary_tag)}{$id}=$feature;
 	}
 	foreach my $feature (@$level2){
-		my $id = lc($feature->get_tag_values('Parent'));
+		my $id = lc($feature->_tag_value('Parent'));
 		push(@{$omniscient->{"level2"}{lc($feature->primary_tag)}{$id}}, $feature);###
 	}
 	foreach my $feature (@$level3){
-		my $id = lc( $feature->get_tag_values('Parent'));
-		push(@{$omniscient->{"level3"}{lc($feature->primary_tag)}{$id}}, $feature);
+		my @parentList = lc( $feature->get_tag_values('Parent'));
+		foreach my $id (@parentList){
+			push(@{$omniscient->{"level3"}{lc($feature->primary_tag)}{$id}}, $feature);
+		}
 	}
 	return $omniscient;
 }
@@ -1689,9 +1683,7 @@ sub group_features_from_omniscient {
 						#################
 						# == LEVEL 3 == #
 						#################
-						my @temp = $feature_level2->get_tag_values('ID');
-						my $level2_ID = lc(shift @temp);
-
+						my $level2_ID = lc($feature_level2->_tag_value('ID'));
 
 						############
 						# THEN ALL THE REST
@@ -1943,13 +1935,12 @@ sub get_longest_cds_start_end {
 
   #check full CDS for each mRNA
   foreach my $mrna_feature (@{$hash_omniscient->{'level2'}{'mrna'}{lc($gene_id)}}){
-    my @values = $mrna_feature->get_tag_values('ID');
-    my $mrna_id = shift @values;
+    my $mrna_id = lc($mrna_feature->_tag_value('ID'));
     my $extrem_start=100000000000;
     my $extrem_end=0;
 
     #check all cds pieces
-    foreach my $cds_feature (@{$hash_omniscient->{'level3'}{'cds'}{lc($mrna_id)}}){
+    foreach my $cds_feature (@{$hash_omniscient->{'level3'}{'cds'}{$mrna_id}}){
       if ($cds_feature->start < $extrem_start){
         $extrem_start=$cds_feature->start;
       }
