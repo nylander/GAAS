@@ -14,7 +14,10 @@ export PERL5LIB=$PERL5LIB:/pathTo/GAAS/annotation
 
 2) Bioperl must as well be installed.
 
-3) Some specific perl module like Clone.pm have to be installed too.
+3) Some specific perl module like Clone and Moose have to be installed too. If you are using Uppmax you can just follow the 3 steps to have them:
+	- Launch the script:
+	- execute the command: source ~/.bashrc
+
 
 #################################################
 # 2) Script name and classificaiton by prefix   #
