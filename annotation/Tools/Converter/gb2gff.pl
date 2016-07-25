@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -w
+#!/usr/bin/perl -w
 
 ## BILS 2015
 ## jacques.dainat@bils.se
@@ -164,7 +164,7 @@ Means that primary tags provided by the option "prinary_tag" will be discarded.
 
 =item B<-d>
 
-Means that only primary tags provided by the option "prinary_tag" will be kept.
+Means that only primary tags provided by the option "primary_tag" will be kept.
 
 =item B<-o> , B<--output> , B<--out> , B<--outfile> or B<--gff>
 
