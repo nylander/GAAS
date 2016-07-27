@@ -43,8 +43,8 @@ That approach allows to peform more complicated task and more efficiency. Moreov
 #################################################
 # 3) What does the SLURP method for you
 #########
-**_This method create a hash structure containing all the data in memory. We call it OMNISCIENT
-The OMNISCNIENT structure is a thre level structure :_**
+**_This method create a hash structure containing all the data in memory. We call it OMNISCIENT.<br>
+The OMNISCNIENT structure is a three levels structure :_**
 
 $omniscient{level1}{level1_tag}{level1_id} = feature <= tag could be gene,etc<br>
 $omniscient{level2}{tagY}{idY} = @featureList <= tag could be mRNA,rRNA,tRNA,etc. idY is a level1_id (know as Parent attribute within the level2 feature). The @featureList is a list to be able to manage isoform cases.<br>
