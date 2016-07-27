@@ -14,8 +14,8 @@ export PERL5LIB=$PERL5LIB:/pathTo/GAAS/annotation
 
 2) Bioperl must as well be installed.
 ! If you are using Uppmax you can just execute these two commands:<br>
-	- module load bioinfo-tools
-	- module load BioPerl/1.6.922 
+	- module load bioinfo-tools<br>
+	- module load BioPerl/1.6.922 <br>
 
 3) Some specific perl modules like Clone and Moose have to be installed too. 
 ! If you are using Uppmax you can just follow the following steps to have them:<br>
@@ -32,29 +32,29 @@ For that purpose we try to use a controled vocabulary**_
 A) Script not prefixed by gff3 but only with gff means that they havn't be checked or are not compatible with the gff3 standard. In other term, it means that a file not following the gff3 standards might not work with the script prefixed by gff3. Lot of modifcation could be post process if your file don't follow the gff3 standart. We will develop that in the part 3 of this readme.
 
 
-B) _sq_ / _sp_
-B.1) _sq_ => Means SEQUENTIAL = The gff file is read and processed from top to the end. This is memory efficient !! 
+B) \_sq\_ AND \_sp\_
+B.1) \_sq\_ => Means SEQUENTIAL = The gff file is read and processed from top to the end. This is memory efficient !! 
 							 But in other hand it hard to create complex script. Moreover, If data are not written sorted (e.g an exon of a gene located in the middle of the descritpion of another gene) some troubles could occur.
 
-B.2)_sp_ => Means SLURP = The gff file will be saved in memory before to process it. This is handle by the slurp_gff3_file_JD method. It has a memory cost. So if your gff3 files are over Gb size and your computer do not have enough ram memory, it might crash. 
+B.2) \_sp\_ => Means SLURP = The gff file will be saved in memory before to process it. This is handle by the slurp_gff3_file_JD method. It has a memory cost. So if your gff3 files are over Gb size and your computer do not have enough ram memory, it might crash. 
 That approach allows to peform more complicated task and more efficiency. Moreover, it allows to fix/correct, in the limit of the possibilities given by the format, the issues present in the gff you give in input. See part 3 for more information about it.
 
 
 #################################################
 # 3) What does the SLURP method for you
 #########
-This method create a hash structure containing all the data in memory. We call it OMNISCIENT
-The OMNISCNIENT structure is a thre level structure :
+**_This method create a hash structure containing all the data in memory. We call it OMNISCIENT
+The OMNISCNIENT structure is a thre level structure :_**
 
-$omniscient{level1}{level1_tag}{level1_id} = feature <= tag could be gene,etc
-$omniscient{level2}{tagY}{idY} = @featureList <= tag could be mRNA,rRNA,tRNA,etc. idY is a level1_id (know as Parent attribute within the level2 feature). The @featureList is a list to be able to manage isoform cases.
-$omniscient{level3}{tagZ}{idZ} =  @featureList <= tag could be exon,cds,utr3,utr5,etc. idZ is the ID of a level2 feature (know as Parent attribute within the level3 feature). The @featureList is a list to be able to put all the feature of a same tag together .
+$omniscient{level1}{level1_tag}{level1_id} = feature <= tag could be gene,etc<br>
+$omniscient{level2}{tagY}{idY} = @featureList <= tag could be mRNA,rRNA,tRNA,etc. idY is a level1_id (know as Parent attribute within the level2 feature). The @featureList is a list to be able to manage isoform cases.<br>
+$omniscient{level3}{tagZ}{idZ} =  @featureList <= tag could be exon,cds,utr3,utr5,etc. idZ is the ID of a level2 feature (know as Parent attribute within the level3 feature). The @featureList is a list to be able to put all the feature of a same tag together.<br>
 
 
-It creates an ID attribute if missing (It)
-It check for duplicated features (same position, same ID, same Parent)
-It expand level3 features (e.g. exon) sharing multiple mRNA (Parent attributes contains multiple parental mRNA). One exon by parental mRNA will be created.
-If a level 2 feature  doesn t have parent feature but has the attribute we create the level1 feature.
-If a feature  doesn t have the parent attribute we create the attribute !! But not the feature in the case of a parent of a level 3 feature. ( Ciould be implemented )
+It creates an ID attribute if missing (It)<br>
+It check for duplicated features (same position, same ID, same Parent)<br>
+It expand level3 features (e.g. exon) sharing multiple mRNA (Parent attributes contains multiple parental mRNA). One exon by parental mRNA will be created.<br>
+If a level 2 feature  doesn t have parent feature but has the attribute we create the level1 feature.<br>
+If a feature  doesn t have the parent attribute we create the attribute !! But not the feature in the case of a parent of a level 3 feature. ( Could be implemented )<br>
 
-INFO:Access to element of an omniscient is most of time from level1 to level3. Consequently if a level3 feature don't have any parent,  it will not be printed.
+INFO:Access to element of an omniscient is most of time from level1 to level3. Consequently if a level3 feature don't have any parent,  it will not be printed.<br>
