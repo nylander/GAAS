@@ -2,6 +2,7 @@
 ---------------------------
 
 Bench of tool to handle gff3 files.
+To know more about gff3 format it's over there => https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md
 
 ###################
 # 1) PREREQUISITE #
@@ -46,12 +47,12 @@ That approach allows to peform more complicated task and more efficiency. Moreov
 **_This method create a hash structure containing all the data in memory. We call it OMNISCIENT.<br>
 The OMNISCNIENT structure is a three levels structure :_**
 
-$omniscient{level1}{level1_tag}{level1_id} = feature <= tag could be gene,etc<br>
-$omniscient{level2}{tagY}{idY} = @featureList <= tag could be mRNA,rRNA,tRNA,etc. idY is a level1_id (know as Parent attribute within the level2 feature). The @featureList is a list to be able to manage isoform cases.<br>
-$omniscient{level3}{tagZ}{idZ} =  @featureList <= tag could be exon,cds,utr3,utr5,etc. idZ is the ID of a level2 feature (know as Parent attribute within the level3 feature). The @featureList is a list to be able to put all the feature of a same tag together.<br>
+$omniscient{level1}{tag_l1}{level1_id} = feature <= tag could be gene,etc<br>
+$omniscient{level2}{tag_l2}{idY} = @featureList <= tag could be mRNA,rRNA,tRNA,etc. idY is a level1_id (know as Parent attribute within the level2 feature). The @featureList is a list to be able to manage isoform cases.<br>
+$omniscient{level3}{tag_l3}{idZ} =  @featureList <= tag could be exon,cds,utr3,utr5,etc. idZ is the ID of a level2 feature (know as Parent attribute within the level3 feature). The @featureList is a list to be able to put all the feature of a same tag together.<br>
 
 
-It creates an ID attribute if missing (It)<br>
+It creates an ID attribute if missing <br>
 It check for duplicated features (same position, same ID, same Parent)<br>
 It expand level3 features (e.g. exon) sharing multiple mRNA (Parent attributes contains multiple parental mRNA). One exon by parental mRNA will be created.<br>
 If a level 2 feature  doesn t have parent feature but has the attribute we create the level1 feature.<br>
