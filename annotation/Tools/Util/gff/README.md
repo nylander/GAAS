@@ -8,22 +8,26 @@ Bench of tool to handle gff3 files.
 ###################
 
 1) Most of tool use the BILS librairy that can be found here: GAAS/annotation/BILS
-Consequently, in order to use those script, you must add it to your path like that:
+Consequently, in order to use those scripts, you must add it to your path like that:
 
 export PERL5LIB=$PERL5LIB:/pathTo/GAAS/annotation
 
 2) Bioperl must as well be installed.
+! If you are using Uppmax you can just execute these two commands:<br>
+	- module load bioinfo-tools
+	- module load BioPerl/1.6.922 
 
-3) Some specific perl module like Clone and Moose have to be installed too. If you are using Uppmax you can just follow the 3 steps to have them:
-	- Launch the script:
-	- execute the command: source ~/.bashrc
+3) Some specific perl modules like Clone and Moose have to be installed too. 
+! If you are using Uppmax you can just follow the following steps to have them:<br>
+	- Launch the script: /proj/b2011210/annotation/lib/install_perllib_missing.sh <br>
+	- execute the command: source ~/.bash_profile <br>
 
 
 #################################################
 # 2) Script name and classificaiton by prefix   #
-#											    #
-# As most as possible we will try to name the script with understandable names.
-# For that purpose we try to use a controled vocabulary
+					
+_**As most as possible we will try to name the script with understandable names.
+For that purpose we try to use a controled vocabulary**_
 
 A) Script not prefixed by gff3 but only with gff means that they havn't be checked or are not compatible with the gff3 standard. In other term, it means that a file not following the gff3 standards might not work with the script prefixed by gff3. Lot of modifcation could be post process if your file don't follow the gff3 standart. We will develop that in the part 3 of this readme.
 
