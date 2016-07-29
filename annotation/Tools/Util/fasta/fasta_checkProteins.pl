@@ -76,7 +76,7 @@ while( my $line = <FIC> ) {
                 
         		if ($sequence =~ m/^M/){
 					$nbProtWithStart++;
-					if ($sequence =~ m/\.$/){
+					if (($sequence =~ m/\.$/) or ($sequence =~ m/X$/) ){
 						$nbProtWithStop++;
 						$nbProtWithStopStart++;
         			}
@@ -84,7 +84,7 @@ while( my $line = <FIC> ) {
 
         		}
         		else{$nbProtWithoutStart++;
-        			if ($sequence =~ m/\.$/){
+        			if ( ($sequence =~ m/\.$/) or ($sequence =~ m/X$/) ){
         				$nbProtWithStop++;
 						$nbProtWithoutStartWithStop++;
 					}
@@ -107,14 +107,14 @@ if ($sequence =~ m/^L/){
 }
 if ($sequence =~ m/^M/){
     $nbProtWithStart++;
-    if ($sequence =~ m/\.$/){
+    if ( ($sequence =~ m/\.$/) or ($sequence =~ m/X$/) ){
         $nbProtWithStop++;
         $nbProtWithStopStart++;
     }
     else{$nbProtWithStartWithoutStop++;$nbProtWithoutStop++;}
 }
 else{$nbProtWithoutStart++;
-    if ($sequence =~ m/\.$/){
+    if ( ($sequence =~ m/\.$/) or ($sequence =~ m/X$/) ){
         $nbProtWithStop++;
         $nbProtWithoutStartWithStop++;
     }
@@ -142,12 +142,12 @@ __END__
 
 checkProteins.pl -
 The script take a fasta file as input. -
-It will check the presence of Start (M in first position) and Stop (. in last position) of each sequence.
+It will check the presence of Start (M in first position) and Stop (. or X at last position) of each sequence.
 
 =head1 SYNOPSIS
 
     ./checkProteins.pl -f=infile.fa [ -o outfile ]
-    ./addAnnieAnnotation.pl --help
+    ./checkProteins.pl --help
 
 =head1 OPTIONS
 
