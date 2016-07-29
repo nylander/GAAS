@@ -253,7 +253,7 @@ sub gtf2gff_features_in_omniscient_from_level1_id_list {
 
 							##manage primary_tag
 							if(lc($feature_level2->primary_tag) eq "transcript"){
-								$feature_level2->primary_tag('mrna');
+								$feature_level2->primary_tag('mRNA');
 							}
 
 							##manage ID
