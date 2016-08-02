@@ -120,61 +120,25 @@ __END__
 
 =head1 NAME
 
-gff3_extract_cds_sequences.pl -
-This script extract sequence in feasta format from gff file. You can extract the fasta of any kind of feature define by the 2th column in the gff file.
-The result is written to the specified output file, or to STDOUT.
-
-The Header are formated like that:
->mRNA_ID|gene_ID|Name=NAME|Seq_id=Chromosome_ID|type=cds|5'extra=VALUE
-
-/!\ mRNA_ID not displayed when extracting gene. 
-Name is optional and will be written only if the Name attribute exists in th gff.
-type will be the feature type extracted. 
-5'extra or 3'extra is otpional, according to the use of the upstream and downstream option.
+fasta_extract_sequences.pl -
+This script extract sequence in fasta format from a fasta file. You can extract one fasta sequence providing a sequence name or the name of a file containing a list of sequence name (one by line)
 
 =head1 SYNOPSIS
 
-    ./gff3_extract_cds_sequences.pl -g=infile.gff -f=infile.fasta  [ -o outfile ]
-    ./gff3_extract_cds_sequences.pl --help
+    ./fasta_extract_sequences.pl -f=infile.fasta -n sequence1 [ -o outfile ]
+    ./fasta_extract_sequences.pl --help
 
 =head1 OPTIONS
 
 =over 8
 
-=item B<-g>, B<--gff> or B<-ref>
-
-Input GFF3 file that will be read (and sorted)
-
 =item B<-f> or B<--fasta> 
 
 Input fasta file.
 
-=item B<-t> 
+=item B<-n>, B<--name>
 
-Define the feature you want to extract the sequnce from. By deafault it's 'cds'. Most common choice are: gene,mrna,exon,cds,trna,three_prime_utr,five_prime_utr.
-
-=item B<-p>, B<--protein> or B<--aa>
-
-Will translate the extracted sequence in Amino acid.
-
-=item B<-e> or B<--ext>
-
-This option called "extremities" allows dealing with multifeature like cds or exon, to extract the full sequence from start extremity to the end extremity, i.e with introns.
-Use of that option with exon will give the same result as extract the mrna sequence.
-Use of that option on cds will give the cdna wihtout the untraslated sequences.
-
-=item B<-u>, B<--up>, B<-5>, B<--five> or B<-upstream>
-
-Integer. It will take that number of nucleotide in more at the 5' extremity. Option "e" must be activated to use this option (Why ? to avoid to extract intronic/overlaping sequence in case of feature spread over several locations (exon,cds,utrs)).
-
-
-=item B<-d>, B<--do>, B<-3>, B<--three>, B<-down> or B<-downstream>
-
-Integer. It will take that number of nucleotide in more at the 3' extremity. Option "e" must be activated to use this option (Why ? to avoid to extract intronic/overlaping sequence in case of feature spread over several locations (exon,cds,utrs)).
-
-=item B<--cdna>
-
-This extract the cdna sequence (i.e transcribed sequence (devoid of introns, but containing untranslated exons)). It correspond to extract the exons sequences.
+Could be a sequence name to retrieve in the fasta file, or a file containing a list of sequence name (one by line).
 
 =item B<-o> or B<--output>
 
