@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 use Scalar::Util qw(looks_like_number);
-use Data::Dumper;
+#use Data::Dumper;
 use Bio::DB::Taxonomy;
 use Bio::TreeIO;
 use Bio::Tree::Tree;
