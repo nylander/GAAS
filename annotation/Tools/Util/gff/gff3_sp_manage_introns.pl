@@ -1,9 +1,5 @@
 #!/usr/bin/env perl
 
-#####################################################################
-# maker_checkFusionSplitBetweenTwoBuilds v1 - Jacques Dainat 10/2014 #
-#####################################################################
-
 use strict;
 use warnings;
 use POSIX qw(strftime);
@@ -22,7 +18,7 @@ use BILS::GFF3::Statistics qw(:Ok);
 
 my $header = qq{
 ########################################################
-# BILS 2015 - Sweden                                   #  
+# BILS 2016 - Sweden                                   #  
 # jacques.dainat\@bils.se                               #
 # Please cite BILS (www.bils.se) when using this tool. #
 ########################################################
@@ -30,16 +26,16 @@ my $header = qq{
 
 
 my @opt_files;
-my $opt_plot;
 my $opt_output=undef;
 my $opt_breaks;
+my $Xpercent=1;
 my $opt_help = 0;
 
 my @copyARGV=@ARGV;
 if ( !GetOptions( 'f|gff|ref|reffile=s' => \@opt_files,
                   'o|out|output=s' => \$opt_output,
-                  'w|window=i'      => \$opt_breaks,
-                  'p|plot' => \$opt_plot,
+                  'w|window|b|break|breaks=i'      => \$opt_breaks,
+                  'x|p=i'      => \$Xpercent,
                   'h|help!'         => \$opt_help ) )
 {
     pod2usage( { -message => 'Failed to parse command line',
@@ -104,10 +100,10 @@ if (defined($opt_output) ) {
   if (-f $opt_output){
       print "Cannot create a directory with the name $opt_output because a file with this name already exists.\n";exit();
   }
- $outputPDF=$opt_output."pdf";   
+ $outputPDF=$opt_output."/intronPlot.pdf";   
 }
 else{
-  $outputPDF="outputPlot.pdf";
+  $outputPDF="intronPlot.pdf";
 }
 
 # Check R is available. If not we try to load it through Module software
@@ -133,14 +129,6 @@ else {
                                                       #######################
                                                       #        MAIN         #
 #                     >>>>>>>>>>>>>>>>>>>>>>>>>       #######################       <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-
-########## constant #############
-my $R_command;
-my $nbFile=0;
-my @listTmpFile;
-#Choose a title:
-my $title="Intron distribution";
 
 #PART 1
 ###################################
@@ -171,8 +159,6 @@ foreach my $file (@opt_files){
     print $ostreamReport "\n";
   }
 
-
-  
 
   ######################
   ### Parse GFF input #
@@ -233,7 +219,7 @@ foreach my $file (@opt_files){
   }
 }
 
-#PART 2
+# PART 2
 ###############################
 my $biggest_value=0;
 my $pathIntron="tmp_intron.txt";
@@ -255,14 +241,23 @@ foreach  my $value (@sorted_intron){
 }
 $ostreamAED->close();
 
-
-#Calcul longest after remove X percent
-my $Xpercent=1;
+# Part 3
+#########################################
+#Calcul longest after remove X percent  #
 my $lastIndex = $#introns;
 my $nbValueToRemove = int(($Xpercent*($lastIndex+1))/100);
 my $resu =  $sorted_intron[$lastIndex-$nbValueToRemove];
 
-print "Removing $Xpercent percent of the highest values ($nbValueToRemove values) give you $resu as the longest intron. It's a good choice for MAKER ;-) \n";
+my $stringPrint =  "Removing $Xpercent percent of the highest values ($nbValueToRemove values) gives you $resu as the longest intron. It's a good choice for MAKER ;-) \n";
+
+print $ostreamReport $stringPrint;
+if($opt_output){print $stringPrint;}
+
+# Part 4
+#########
+# PLOT  #
+#Choose a title:
+my $title="Intron distribution";
 
 ## check using R
 my $R = Statistics::R->new() or die "Problem with R : $!\n";
@@ -312,24 +307,30 @@ __END__
 
 =head1 NAME
  
-gff3_sp_manage_introns.pl - 
+gff3_sp_manage_introns.pl - This script give some information about introns (longest, shortest size mean ...) using the statisticmethod, 
+then plot all the intron size values to get an overview of the introns size distribution.
+It gives you as well the value of the longest intron after removing X percent(s) of the longest (rmoving potential biais / false positive).
 
 =head1 SYNOPSIS
 
-    ./gff3_sp_manage_introns.pl --ref=infile --out=outFile 
+    ./gff3_sp_manage_introns.pl --gff=infile --out=outFile 
     ./gff3_sp_manage_introns.pl --help
 
 =head1 OPTIONS
 
 =over 8
 
-=item B<--gff>, B<-f>, B<--ref> or B<-f>
+=item B<--gff>, B<-f>, B<--ref> or B<-reffile>
 
-Input GFF3 file correponding to gene build.
+Input GFF3 file correponding to gene build. You can use several input files by doing: -f file1 -f file2 -f file3
 
-=item  B<--p>, B<--plot> or B<-o>
+=item  B<-w>, B<--window>, B<--break>, B<--breaks> or B<-b>
 
-Allows to create an histogram in pdf of UTR sizes distribution.
+It the number of break used within the histogram plot. By default it's 1000. You can modify the value to get something more or less precise.
+
+=item  B<-x>, B<--p>
+
+Allows to modify the X values to calculate the percentage of the longest introns to remove. By default the value is 1 (We remove 1 percent of the longest).
 
 =item  B<--out>, B<--output> or B<-o>
 
