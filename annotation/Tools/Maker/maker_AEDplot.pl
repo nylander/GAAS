@@ -105,7 +105,7 @@ my $title="AED distribution";
 ###################################
 # Read input gff3 files one by one and save value in hash of list
 my %hashOfList;
-for my $file (@opt_files){
+foreach my $file (@opt_files){
 
   my $gffio = Bio::Tools::GFF->new(-file => $file, -gff_version => 3);
   
