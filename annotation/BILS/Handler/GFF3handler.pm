@@ -51,8 +51,8 @@ sub slurp_gff3_file_JD {
   	########### END WARNING LOCAL METHOD
 
 
-	my %mRNAGeneLink;
-	my %omniscient;
+	my %mRNAGeneLink; #Hast that keep track about link between l2 and l1
+	my %omniscient; #Hast where all the feature will be saved
 	my %duplicate;# Hash to store any counter. Will be use to create a new uniq ID 
 	my %miscCount;# Hash to store any counter. Will be use to create a new uniq ID
 
@@ -125,12 +125,12 @@ sub manage_one_feature{
 		####################################################
 	    ########## Manage feature WITHOUT parent ###########	== LEVEL1 ==
 	    ####################################################
-	    if ($primary_tag eq "gene" ) {
+	    if ($primary_tag eq "gene" or $primary_tag eq "sts" ) {
 	    	#get ID
 	    	if($feature->has_tag('ID')){
 	    		$id = lc($feature->_tag_value('ID')) ;
 	    	}
-	    	else{warn "gff3 reader error level2: No ID attribute found @ for the feature ".$feature->gff_string()."\n";
+	    	else{warn "gff3 reader error level2: No ID attribute found @ for the feature: ".$feature->gff_string()."\n";
 	    		$id = _manage_ID($omniscient, $duplicate, $miscCount, $feature, 'level1', $primary_tag);
 			}
     	
@@ -156,7 +156,7 @@ sub manage_one_feature{
 
       		# manage ID
       		if(! $feature->has_tag('ID')){
-      			warn "WARNING gff3 reader level3: No ID attribute found @ for the feature".$feature->gff_string()."\n";
+      			warn "WARNING gff3 reader level3: No ID attribute found @ for the feature: ".$feature->gff_string()."\n";
 				$id = _manage_ID($omniscient, $duplicate, $miscCount, $feature, 'level3', $primary_tag);	
 			}
 
@@ -166,7 +166,7 @@ sub manage_one_feature{
       			@parentList = $feature->get_tag_values('Parent');
 			}
 			else{ # In that case we create a uniq parent ID to create a preper omniscient structure. But the feature itself stay intact without parentID.
-				warn "WARNING gff3 reader level3: No Parent attribute found @ for the feature".$feature->gff_string()."\n";
+				warn "WARNING gff3 reader level3: No Parent attribute found @ for the feature: ".$feature->gff_string()."\n";
 				$miscCount->{'noParent'}{$primary_tag}++;
 				$parent = $primary_tag."-".$miscCount->{'noParent'}{$primary_tag};
 				create_or_replace_tag($feature,'Parent',$parent); #add parent attribute
@@ -281,7 +281,7 @@ sub manage_one_feature{
 		    	$id = lc($feature->_tag_value('ID'));
 			}
 
-			else{warn "gff3 reader error level2: No ID attribute found @ for the feature ".$feature->gff_string()."\n";
+			else{warn "gff3 reader error level2: No ID attribute found @ for the feature: ".$feature->gff_string()."\n";
 				$id = _manage_ID($omniscient, $duplicate, $miscCount, $feature, 'level2', $primary_tag);
 			}
 
@@ -289,7 +289,7 @@ sub manage_one_feature{
 			if($feature->has_tag('Parent')){
 				$parent = lc($feature->_tag_value('Parent'));
 			}
-			else{warn "WARNING gff3 reader level2 : No Parent attribute found for @ the feature".$feature->gff_string()."\n";
+			else{warn "WARNING gff3 reader level2 : No Parent attribute found for @ the feature: ".$feature->gff_string()."\n";
 				$miscCount->{'noParent'}{$primary_tag}++;
 				$parent = $primary_tag."-".$miscCount->{'noParent'}{$primary_tag};	
 				$feature->add_tag_value('Parent', $parent);
@@ -328,7 +328,7 @@ sub manage_one_feature{
 		    	if($feature->has_tag('ID')){
 		    		$id = lc($feature->_tag_value('ID')) ;
 		    	}
-		    	else{warn "gff3 reader error level2: No ID attribute found @ for the feature ".$feature->gff_string()."\n";
+		    	else{warn "gff3 reader error level2: No ID attribute found @ for the feature: ".$feature->gff_string()."\n";
 					$id = _manage_ID($omniscient, $duplicate, $miscCount, $feature, 'level1', $source_tag);
 				}
 	    	
@@ -346,7 +346,7 @@ sub manage_one_feature{
 		    	if($feature->has_tag('ID')){
 			    	$id = lc( $feature->get_tag_values('ID') );
 				}
-				else{warn "gff3 reader error level2: No ID attribute found @ for the feature ".$feature->gff_string()."\n";
+				else{warn "gff3 reader error level2: No ID attribute found @ for the feature: ".$feature->gff_string()."\n";
 					$id = _manage_ID($omniscient, $duplicate, $miscCount, $feature, 'level2', $source_tag);
 				}
 
@@ -354,7 +354,7 @@ sub manage_one_feature{
 				if($feature->has_tag('Parent')){
 					$parent = lc($feature->_tag_value('Parent'));
 				}
-				else{warn "WARNING gff3 reader level2 : No Parent attribute found for @ the feature".$feature->gff_string()."\n";
+				else{warn "WARNING gff3 reader level2 : No Parent attribute found for @ the feature: ".$feature->gff_string()."\n";
 					$miscCount->{'noParent'}{$source_tag}++;
 					$parent = $source_tag."-".$miscCount->{'noParent'}{$source_tag};
 					$feature->add_tag_value('Parent', $parent);	
@@ -389,7 +389,7 @@ sub manage_one_feature{
 ##==============================================================
 
 # This method is called when no ID exist for the feature. It creates one with a prefix and number and add it to the attribute ID.
-# This check if the feature already exists without ID but with same parent
+# This check if the feature already exists without ID but with same parent (when parent exists)
 sub _manage_ID{
 	my	($omniscient, $duplicate, $miscCount, $feature, $level, $tag)=@_;
 
@@ -405,23 +405,28 @@ sub _manage_ID{
 			$parent = "undef"; 
 		}
 		else{
-			warn "WARNING _manage_ID : No Parent attribute found for @ the feature".$feature->gff_string()."\n";
+			warn "WARNING _manage_ID : No Parent attribute found for @ the feature: ".$feature->gff_string()."\n";
 		}
 	}
-	#Check if feature ducplicated
-	if(exists_keys($omniscient,($level,$tag,lc($parent)))){
-		if(_feature_is_duplicated(\@{$omniscient->{$level}{$tag}{lc($parent)}}, $feature, $miscCount, $tag)){
-			#feature identic already exists
-		     push (@{$duplicate->{$level}{$tag}{lc($parent)}}, $feature);
+	if($parent){
+		#Check if feature duplicated
+		if(exists_keys($omniscient,($level,$tag,lc($parent)))){
+			if(_feature_is_duplicated(\@{$omniscient->{$level}{$tag}{lc($parent)}}, $feature, $miscCount, $tag)){
+				#feature identic already exists
+			     push (@{$duplicate->{$level}{$tag}{lc($parent)}}, $feature);
+			}
+			else{ # Similar ID found,  No similar feature found
+			    my $feature_clone=clone($feature);
+			    _create_ID($miscCount, $feature, $tag);
+			    warn "WARNING _manage_ID : Duplicate ID found @ for the feature: ".$feature_clone->gff_string().". We change it !\n";
+			}
 		}
-		else{ # Similar ID found,  No similar feature found
-		    my $feature_clone=clone($feature);
-		    _create_ID($miscCount, $feature, $tag);
-		    warn "WARNING _manage_ID : Duplicate ID found @ for the feature ".$feature_clone->gff_string().". We change it !\n";
+		# No similar ID found
+		else{ #create the ID
+			_create_ID($miscCount, $feature, $tag);
 		}
 	}
-	# No similar ID found
-	else{ #create the ID
+	else{ #create the ID - Case where no parent
 		_create_ID($miscCount, $feature, $tag);
 	}
 }
