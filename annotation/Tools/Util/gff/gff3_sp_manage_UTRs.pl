@@ -250,7 +250,7 @@ if($opt_utr3 or $opt_utr5 or $opt_bst){
   foreach my $key (keys %UTRoverview) {
      $stringPrint.="There is $UTRoverview{$key} $key\n";
     my $total=0;
-    foreach my $value  ( sort {$b <=> $a} keys $UTRdistribution{$key}){
+    foreach my $value  ( sort {$b <=> $a} keys ${$UTRdistribution{$key}}){
       if($value >= $opt_nbUTR){
         $total+=$UTRdistribution{$key}{$value};
       }
