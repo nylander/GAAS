@@ -266,7 +266,7 @@ if($opt_utr3 or $opt_utr5 or $opt_bst){
  my @listIDl2discarded;
   my @listIDlok;
   foreach my $tag (keys %UTRbymRNA) {
-    foreach my $id_level2 (keys $UTRbymRNA{$tag}){
+    foreach my $id_level2 (keys %{$UTRbymRNA{$tag}}){
 
       # case only opt_utr3
       if ($opt_utr3 and $tag eq "three_prime_utr"){
@@ -345,7 +345,7 @@ if ($opt_plot){
     #print file thtat will be read by R
     open(FH, ">".$txtFile) || die "Erreur E/S:$!\n";
     my $firstLine="yes";
-    foreach my $value (keys $UTRdistribution{$utr_type}) {
+    foreach my $value (keys %{$UTRdistribution{$utr_type}}) {
       if($firstLine){
          print FH $value."\t".$UTRdistribution{$utr_type}{$value};
       }else{
