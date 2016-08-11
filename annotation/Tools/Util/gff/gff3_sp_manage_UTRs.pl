@@ -8,9 +8,9 @@ use strict;
 use warnings;
 use POSIX qw(strftime);
 use Carp;
-use Getopt::Long;
 use IO::File;
 use Pod::Usage;
+use Getopt::Long qw(:config no_auto_abbrev);
 use Statistics::R;
 use BILS::Handler::GFF3handler qw(:Ok);
 use BILS::Handler::GXFhandler qw(:Ok);
@@ -36,13 +36,14 @@ my $opt_help = 0;
 my $DefaultUTRnb=5;
 
 my @copyARGV=@ARGV;
+print "ARG  @copyARGV\n";
 if ( !GetOptions( 'f|gff|ref|reffile=s' => \$opt_reffile,
-                  'n|nb|number=i' => \$opt_nbUTR,
-                  '3|three|tree_prime_utr' => \$opt_utr3,
-                  '5|five|five_prime_utr' => \$opt_utr5,
-                  'b|both|bs' => \$opt_bst,
+                  'n|t|nb|number=i' => \$opt_nbUTR,
+                  '3|three|three_prime_utr!' => \$opt_utr3,
+                  '5|five|five_prime_utr!' => \$opt_utr5,
+                  'b|both|bs!' => \$opt_bst,
                   'o|out|output=s' => \$opt_output,
-                  'p|plot' => \$opt_plot,
+                  'p|plot!' => \$opt_plot,
                   'h|help!'         => \$opt_help ) )
 {
     pod2usage( { -message => 'Failed to parse command line',
@@ -120,41 +121,59 @@ if (defined($opt_output) ) {
   $file_in =~ s/.gff.*//g;
   
   #manage name output
-  my $utr_type=undef;
+  my $utr_type_under=undef;
+  my $utr_type_over=undef;
   # case no filter so we don't create discarded file output.
-  if (! ($opt_utr3 and $opt_utr5 and $opt_bst)){
-    $utr_type = $file_in;
-     my $nameUTRok=$opt_output."/".$utr_type.".gff";
-    $ostreamUTR = Bio::Tools::GFF->new(-file => ">".$nameUTRok) or croak( sprintf( "Can not open '%s' for writing %s", $nameUTRok, $! ) );
+  if (! ($opt_utr3 or $opt_utr5 or $opt_bst)){
+
+    $utr_type_under = $file_in;
+    $utr_type_over = $file_in;
+    my $nameUTRok=$opt_output."/".$file_in.".gff";
+    open(my $fhUTRok, '>', $nameUTRok) or die "Could not open file '$nameUTRok' $!";
+    $ostreamUTR = Bio::Tools::GFF->new(-fh => $fhUTRok, -gff_version => 3);
   }
   else{  # case with filter so we create discarded file output and a of file output.
     if ($opt_utr3){
-      $utr_type = $file_in."3_under".$opt_nbUTR;
+      $utr_type_under = $file_in."_UTR3_under".$opt_nbUTR;
+      $utr_type_over = $file_in."_UTR3_over".$opt_nbUTR;
     }
     if ($opt_utr5){
-      if($utr_type){
-         $utr_type.="and_5_under".$opt_nbUTR;
-      }else{$utr_type=$file_in."5_under".$opt_nbUTR;}
+      if($utr_type_under){
+         $utr_type_under.="_and_UTR5_under".$opt_nbUTR;
+         $utr_type_over.="_and_UTR5_over".$opt_nbUTR;
+      }
+      else{
+        $utr_type_under=$file_in."_UTR5_under".$opt_nbUTR;
+        $utr_type_over=$file_in."_UTR5_over".$opt_nbUTR;
+      }
     }
     if ($opt_bst){
-      if($utr_type){
-         $utr_type.="and_bothSides_under".$opt_nbUTR;
-      }else{$utr_type=$file_in."bothSides_under".$opt_nbUTR;}
+      if($utr_type_under){
+         $utr_type_under.="_and_bothSides_under".$opt_nbUTR;
+         $utr_type_over.="_and_bothSides_over".$opt_nbUTR;
+      }
+      else{
+        $utr_type_under=$file_in."_bothSides_under".$opt_nbUTR;
+        $utr_type_over=$file_in."_bothSides_over".$opt_nbUTR;
+      }
     }
 
-  my $nameUTRok=$opt_output."/".$utr_type.".gff";
-  $ostreamUTR = Bio::Tools::GFF->new(-file => ">".$nameUTRok) or croak( sprintf( "Can not open '%s' for writing %s", $nameUTRok, $! ) );
-  my $ostreamUTRdiscarded=$opt_output."/".$utr_type."over".$opt_nbUTR."s.gff";
-  $ostreamUTRdiscarded = Bio::Tools::GFF->new(-file => ">".$ostreamUTRdiscarded) or croak( sprintf( "Can not open '%s' for writing %s", $ostreamUTRdiscarded, $! ) );
+    my $nameUTRok=$opt_output."/".$utr_type_under.".gff";
+    open(my $fhUTRok, '>', $nameUTRok) or die "Could not open file '$nameUTRok' $!";
+    $ostreamUTR = Bio::Tools::GFF->new(-fh => $fhUTRok, -gff_version => 3);
+
+    my $nameUTRdiscarded=$opt_output."/".$utr_type_over.".gff";
+    open(my $fhUTRdiscarded, '>', $nameUTRdiscarded) or die "Could not open file '$nameUTRdiscarded' $!";
+    $ostreamUTRdiscarded = Bio::Tools::GFF->new(-fh => $fhUTRdiscarded, -gff_version => 3) ;
   }
 }
 else { # No output provided, we print everything on screen
   my $ostream  = IO::File->new();
   $ostream->fdopen( fileno(STDOUT), 'w' ) or croak( sprintf( "Can not open STDOUT for writing: %s", $! ) );
-  $ostreamUTR = Bio::Tools::GFF->new( -fh => $ostream ) or croak( sprintf( "Can not open STDOUT for writing: %s", $! ) );
+  $ostreamUTR = Bio::Tools::GFF->new( -fh => $ostream, -gff_version => 3) or croak( sprintf( "Can not open STDOUT for writing: %s", $! ) );
   my $ostream_d  = IO::File->new();
   $ostream_d->fdopen( fileno(STDOUT), 'w' ) or croak( sprintf( "Can not open STDOUT for writing: %s", $! ) );
-  $ostreamUTRdiscarded = Bio::Tools::GFF->new( -fh => $ostream ) or croak( sprintf( "Can not open STDOUT for writing: %s", $! ) );
+  $ostreamUTRdiscarded = Bio::Tools::GFF->new( -fh => $ostream, -gff_version => 3 ) or croak( sprintf( "Can not open STDOUT for writing: %s", $! ) );
 }
 
 ######################
@@ -248,7 +267,7 @@ if($opt_utr3 or $opt_utr5 or $opt_bst){
   # print preliminary results
   my $stringPrint="";
   foreach my $key (keys %UTRoverview) {
-     $stringPrint.="There is $UTRoverview{$key} $key\n";
+    $stringPrint.="There is $UTRoverview{$key} $key\n";
     my $total=0;
     foreach my $value  ( sort {$b <=> $a} keys %{$UTRdistribution{$key}}){
       if($value >= $opt_nbUTR){
@@ -259,11 +278,9 @@ if($opt_utr3 or $opt_utr5 or $opt_bst){
     $stringPrint.= "There is $total $key cases that have over or equal $opt_nbUTR exons.\n";
   }
 
-
-
-###########################
-# Main compute
- my @listIDl2discarded;
+  ###########################
+  # Main compute
+  my @listIDl2discarded;
   my @listIDlok;
   foreach my $tag (keys %UTRbymRNA) {
     foreach my $id_level2 (keys %{$UTRbymRNA{$tag}}){
@@ -332,24 +349,49 @@ if ($opt_plot){
     
     my $txtFile;
     my $outPlot;
+    my $txtFileOver;
     my $outPlotOver;
     if($opt_output){
       $txtFile = $opt_output."/".$utr_type.".txt";
       $outPlot = $opt_output."/".$utr_type.".pdf";
-      $outPlotOver = $opt_output."/".$utr_type."over".$opt_nbUTR.".pdf";
+      if($opt_utr3 or $opt_utr5 or $opt_bst){
+        $txtFileOver = $opt_output."/".$utr_type."_over".$opt_nbUTR.".txt";
+        $outPlotOver = $opt_output."/".$utr_type."_over".$opt_nbUTR.".pdf";
+      }
     }else{
       $txtFile = $utr_type.".txt";
       $outPlot = $utr_type.".pdf";
-      $outPlotOver = $utr_type."over".$opt_nbUTR."pdf";
+      if($opt_utr3 or $opt_utr5 or $opt_bst){
+        $txtFileOver = $utr_type."_over".$opt_nbUTR."txt";
+        $outPlotOver = $utr_type."_over".$opt_nbUTR."pdf";
+      }
     }
     #print file thtat will be read by R
     open(FH, ">".$txtFile) || die "Erreur E/S:$!\n";
+    if($opt_utr3 or $opt_utr5 or $opt_bst){
+      open(FH_filter, ">".$txtFileOver) || die "Erreur E/S:$!\n";
+    }
     my $firstLine="yes";
+    my $firstLineOver="yes";
     foreach my $value (keys %{$UTRdistribution{$utr_type}}) {
+
+      if($opt_utr3 or $opt_utr5 or $opt_bst){ #we have a filter
+        if($value >= $opt_nbUTR){
+          if($firstLineOver){
+            print FH_filter $value."\t".$UTRdistribution{$utr_type}{$value};
+            $firstLineOver=undef;
+          }
+          else{
+            print FH_filter "\n".$value."\t".$UTRdistribution{$utr_type}{$value};
+          }
+        }
+
+      }
       if($firstLine){
-         print FH $value."\t".$UTRdistribution{$utr_type}{$value};
+        print FH $value."\t".$UTRdistribution{$utr_type}{$value};
+        $firstLine=undef;
       }else{
-         print FH "\n".$value."\t".$UTRdistribution{$utr_type}{$value};
+        print FH "\n".$value."\t".$UTRdistribution{$utr_type}{$value};
       }
     }
     close FH;
@@ -377,7 +419,9 @@ if ($opt_plot){
 
   # Delete temporary file
   unlink "$txtFile";
-
+  if($opt_utr3 or $opt_utr5 or $opt_bst){
+    unlink "$txtFileOver";
+  }
   }
 
 }
@@ -405,7 +449,7 @@ __END__
 =head1 NAME
 
 maker_manageUTR.pl - Detect the genes containing too much UTR's exon according to a choosen threshold.
-If no UTR option (3, 5, 3 and 5, both) is given the threshold will be not used. 
+If no UTR option (3, 5, 3 and 5, both) is given the threshold will be not used.
 option 3 and 5 together is different of "both". In the first case the gene is discarded if either the 3' or the 5' UTR contains more exon than the threshold given.
 In the second case, will be discarded only the genes where the addition of UTR's exon of both side is over the threshold given.
 
@@ -422,7 +466,7 @@ In the second case, will be discarded only the genes where the addition of UTR's
 
 Input GFF3 file correponding to gene build.
 
-=item B<-n>, B<--nb> or B<--number>
+=item B<-n>, B<-t>, B<--nb> or B<--number>
 
 Threshold of exon's number of the UTR. Over or equal to this threshold, the UTR will be discarded. Default value is 5.
 
