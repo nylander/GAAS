@@ -135,26 +135,26 @@ if (defined($opt_output) ) {
   else{  # case with filter so we create discarded file output and a of file output.
     if ($opt_utr3){
       $utr_type_under = $file_in."_UTR3_under".$opt_nbUTR;
-      $utr_type_over = $file_in."_UTR3_over".$opt_nbUTR;
+      $utr_type_over = $file_in."_UTR3_overORequal".$opt_nbUTR;
     }
     if ($opt_utr5){
       if($utr_type_under){
          $utr_type_under.="_and_UTR5_under".$opt_nbUTR;
-         $utr_type_over.="_and_UTR5_over".$opt_nbUTR;
+         $utr_type_over.="_and_UTR5_overORequal".$opt_nbUTR;
       }
       else{
         $utr_type_under=$file_in."_UTR5_under".$opt_nbUTR;
-        $utr_type_over=$file_in."_UTR5_over".$opt_nbUTR;
+        $utr_type_over=$file_in."_UTR5_overORequal".$opt_nbUTR;
       }
     }
     if ($opt_bst){
       if($utr_type_under){
          $utr_type_under.="_and_bothSides_under".$opt_nbUTR;
-         $utr_type_over.="_and_bothSides_over".$opt_nbUTR;
+         $utr_type_over.="_and_bothSides_overORequal".$opt_nbUTR;
       }
       else{
         $utr_type_under=$file_in."_bothSides_under".$opt_nbUTR;
-        $utr_type_over=$file_in."_bothSides_over".$opt_nbUTR;
+        $utr_type_over=$file_in."_bothSides_overORequal".$opt_nbUTR;
       }
     }
 
@@ -282,6 +282,8 @@ if($opt_utr3 or $opt_utr5 or $opt_bst){
   # Main compute
   my @listIDl2discarded;
   my @listIDlok;
+  my %geneName;
+  my %geneName_ok;
   foreach my $tag (keys %UTRbymRNA) {
     foreach my $id_level2 (keys %{$UTRbymRNA{$tag}}){
 
@@ -289,24 +291,33 @@ if($opt_utr3 or $opt_utr5 or $opt_bst){
       if ($opt_utr3 and $tag eq "three_prime_utr"){
         if ($UTRbymRNA{$tag}{$id_level2} >= $opt_nbUTR){
           push @listIDl2discarded, $id_level2 ;
+          $geneName{$hash_mRNAGeneLink->{$id_level2}}++;
         }
-        else{push @listIDlok, $id_level2 ;
+        else{
+          push @listIDlok, $id_level2 ;
+          $geneName_ok{$hash_mRNAGeneLink->{$id_level2}}++;
         }
       }
       # case only opt_utr5
       if ($opt_utr5 and $tag eq "five_prime_utr"){
         if ($UTRbymRNA{$tag}{$id_level2} >=  $opt_nbUTR){
           push @listIDl2discarded, $id_level2 ;
+          $geneName{$hash_mRNAGeneLink->{$id_level2}}++;
         }
-        else{push  @listIDlok, $id_level2;
+        else{
+          push  @listIDlok, $id_level2;
+          $geneName_ok{$hash_mRNAGeneLink->{$id_level2}}++;
         }
       }                                           ### REMOVE OPTION BOTH ?
       # case both side together (when added) should be over $opt_nbUTR) 
       if ($opt_bst and $tag eq "both"){
         if ($UTRbymRNA{$tag}{$id_level2} >=  $opt_nbUTR){
           push @listIDl2discarded, $id_level2;
+          $geneName{$hash_mRNAGeneLink->{$id_level2}}++;
         }
-        else{push @listIDlok, $id_level2 ;
+        else{
+          push @listIDlok, $id_level2 ;
+          $geneName_ok{$hash_mRNAGeneLink->{$id_level2}}++;
         }
       }
       # case both side independant (side 3 and and5 should be over $opt_nbUTR) 
@@ -314,6 +325,7 @@ if($opt_utr3 or $opt_utr5 or $opt_bst){
       # case no option print all so put all in @listIDlok
       if(! $opt_utr3 and ! $opt_utr5 and ! $opt_bst) { # in case where no option, We do by default side3 side5 idependant. On sufficiant to discard the mRNA
           push @listIDlok, $id_level2 ;
+          $geneName_ok{$hash_mRNAGeneLink->{$id_level2}}++;
       }
     }
   }
@@ -321,17 +333,28 @@ if($opt_utr3 or $opt_utr5 or $opt_bst){
   # remove duplicate in case several option tends to give the same case
   if(@listIDl2discarded){
     my $sizeList= @listIDl2discarded;
-    $stringPrint.= "$sizeList gene discarded\n";
+    my $nbGene = keys %geneName;
+    $stringPrint.= "$sizeList RNA discarded from $nbGene genes\n";
     my @listIDl2discardedUniq = uniq(@listIDl2discarded);
     my $omniscient_discarded = create_omniscient_from_idlevel2list($hash_omniscient, $hash_mRNAGeneLink, \@listIDl2discarded);
     print_omniscient($omniscient_discarded, $ostreamUTRdiscarded);
   }
   if(@listIDlok){
     my $sizeList= @listIDlok;
-    $stringPrint.= "$sizeList genes that reach you quality request.\n";
+    my $nbGeneOk = keys %geneName_ok;
+    $stringPrint.= "$sizeList RNA from $nbGeneOk gene that reach your request.\n";
     my @listIDlokUniq = uniq(@listIDlok);
     my $omniscient_ok = create_omniscient_from_idlevel2list($hash_omniscient, $hash_mRNAGeneLink, \@listIDlokUniq);
     print_omniscient($omniscient_ok, $ostreamUTR);
+  }
+  if(@listIDl2discarded and @listIDlok){
+    my $union=0;
+    foreach my $name (keys %geneName){
+      if (exists ($geneName_ok{$name}) ){
+        $union++;
+      }
+    }
+     $stringPrint.= "$union genes have RNA isoform that reach you request and RNA discarded.\n";
   }
 
   #Print Info OUtput
@@ -352,11 +375,15 @@ if ($opt_plot){
     my $txtFileOver;
     my $outPlotOver;
     if($opt_output){
-      $txtFile = $opt_output."/".$utr_type.".txt";
-      $outPlot = $opt_output."/".$utr_type.".pdf";
       if($opt_utr3 or $opt_utr5 or $opt_bst){
-        $txtFileOver = $opt_output."/".$utr_type."_over".$opt_nbUTR.".txt";
-        $outPlotOver = $opt_output."/".$utr_type."_over".$opt_nbUTR.".pdf";
+        $txtFileOver = $opt_output."/".$utr_type."_overORequal".$opt_nbUTR.".txt";
+        $outPlotOver = $opt_output."/".$utr_type."_overORequal".$opt_nbUTR.".pdf";
+        $txtFile = $opt_output."/".$utr_type."_under".$opt_nbUTR.".txt";
+        $outPlot = $opt_output."/".$utr_type."_under".$opt_nbUTR.".pdf";
+      }
+      else{
+        $txtFile = $opt_output."/".$utr_type.".txt";
+        $outPlot = $opt_output."/".$utr_type.".pdf";
       }
     }else{
       $txtFile = $utr_type.".txt";
@@ -376,7 +403,7 @@ if ($opt_plot){
     foreach my $value (keys %{$UTRdistribution{$utr_type}}) {
 
       if($opt_utr3 or $opt_utr5 or $opt_bst){ #we have a filter
-        if($value >= $opt_nbUTR){
+        if($value >= $opt_nbUTR){ #print utr over threshold
           if($firstLineOver){
             print FH_filter $value."\t".$UTRdistribution{$utr_type}{$value};
             $firstLineOver=undef;
@@ -385,13 +412,25 @@ if ($opt_plot){
             print FH_filter "\n".$value."\t".$UTRdistribution{$utr_type}{$value};
           }
         }
+        else{ #print utr under threshold
+          if($firstLine){ 
+            print FH $value."\t".$UTRdistribution{$utr_type}{$value};
+            $firstLine=undef;
+          }
+          else{
+            print FH "\n".$value."\t".$UTRdistribution{$utr_type}{$value};
+          }
+        }
 
       }
-      if($firstLine){
-        print FH $value."\t".$UTRdistribution{$utr_type}{$value};
-        $firstLine=undef;
-      }else{
-        print FH "\n".$value."\t".$UTRdistribution{$utr_type}{$value};
+      else{ # no filter we print everything
+        if($firstLine){
+          print FH $value."\t".$UTRdistribution{$utr_type}{$value};
+          $firstLine=undef;
+        }
+        else{
+          print FH "\n".$value."\t".$UTRdistribution{$utr_type}{$value};
+        }
       }
     }
     close FH;
