@@ -360,7 +360,12 @@ sub _info_shortest {
 
 	#print level3
 	foreach my $tag_l3 (sort keys %{$all_info->{'level3'}}){
-	    push @resu, sprintf("%-45s%d%s", "Shortest $tag_l3"."s", $all_info->{'level3'}{$tag_l3}{'shortest'},"\n");
+		if( ! exists($all_info->{'level3'}{$tag_l3}{'shortest'}) or $all_info->{'level3'}{$tag_l3}{'shortest'} == 0 ) {
+			print "No shortest for $tag_l3\n";
+		}
+		else{
+	    	push @resu, sprintf("%-45s%d%s", "Shortest $tag_l3"."s", $all_info->{'level3'}{$tag_l3}{'shortest'},"\n");
+		}
 	}
 
 	return \@resu;
@@ -385,7 +390,12 @@ sub _info_longest {
 
 	#print level3
 	foreach my $tag_l3 (sort keys %{$all_info->{'level3'}}){
-	    push @resu, sprintf("%-45s%d%s", "Longest $tag_l3"."s", $all_info->{'level3'}{$tag_l3}{'longest'},"\n");
+		if( ! exists($all_info->{'level3'}{$tag_l3}{'longest'}) or $all_info->{'level3'}{$tag_l3}{'longest'} == 0 ) {
+			print "No longest for $tag_l3\n";
+		}
+		else{
+	    	push @resu, sprintf("%-45s%d%s", "Longest $tag_l3"."s", $all_info->{'level3'}{$tag_l3}{'longest'},"\n");
+		}
 	}
 
 	return \@resu;
@@ -459,8 +469,13 @@ sub _info_mean_length {
 
 	#print level3
 	foreach my $tag_l3 (sort keys %{$all_info->{'level3'}}){
-		my $meanl= $all_info->{'level3'}{$tag_l3}{'size_feat'}/$all_info->{'level3'}{$tag_l3}{'nb_feat'};
-	    push @resu, sprintf("%-45s%d%s", "mean $tag_l3 length", $meanl,"\n");
+		if( ($all_info->{'level3'}{$tag_l3}{'size_feat'} == 0) or ($all_info->{'level3'}{$tag_l3}{'nb_feat'} == 0) ) {
+			print "No size_feat for $tag_l3\n";
+		}
+		else{
+			my $meanl= $all_info->{'level3'}{$tag_l3}{'size_feat'}/$all_info->{'level3'}{$tag_l3}{'nb_feat'};
+		    push @resu, sprintf("%-45s%d%s", "mean $tag_l3 length", $meanl,"\n");
+		}
 	}
 
 	return \@resu;
