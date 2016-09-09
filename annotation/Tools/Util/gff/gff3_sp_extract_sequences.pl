@@ -11,6 +11,7 @@ use BILS::Handler::GFF3handler qw(:Ok);
 
 
 my $start_run = time();
+my $codonTable=1;
 my $opt_gfffile;
 my $opt_fastafile;
 my $opt_output;
@@ -39,6 +40,7 @@ if ( !GetOptions( 'g|gff=s' => \$opt_gfffile,
                   'protein|p|aa' => \$opt_AA,
                   'cdna' => \$opt_cdna,
                   'ext|e' => \$opt_extermityOnly,
+                  'table|codon|ct=i' => \$codonTable,
                   'up|5|five|upstream=i'      => \$opt_upstreamRegion,
                   'do|3|three|down|downstream=i'      => \$opt_downRegion,
                   'o|output=s'      => \$opt_output,
@@ -87,6 +89,10 @@ if( ($opt_upstreamRegion or $opt_downRegion)  and ! $opt_extermityOnly){print "I
 print "We will extract the $opt_type sequences.\n";
 $opt_type=lc($opt_type);
 
+if($codonTable<0 and $codonTable>25){
+  print "$codonTable codon table is not a correct value. It should be between 0 and 25 (0,23 and 25 can be problematic !)\n";
+}
+
 
 ##### MAIN ####
 #### read gff file and save info in memory
@@ -134,7 +140,7 @@ foreach my $seqname (keys %{$hash_l1_grouped}) {
       }
       $seqObj->id($header);
 
-      print_seqObj($ostream, $seqObj, $opt_AA);
+      print_seqObj($ostream, $seqObj, $opt_AA, $codonTable);
     }
 
     #################
@@ -170,7 +176,7 @@ foreach my $seqname (keys %{$hash_l1_grouped}) {
             }
             $seqObj->id($header);
             
-            print_seqObj($ostream, $seqObj, $opt_AA);
+            print_seqObj($ostream, $seqObj, $opt_AA, $codonTable);
           }
 
           #################
@@ -186,7 +192,7 @@ foreach my $seqname (keys %{$hash_l1_grouped}) {
                 }
                 $seqObj->id($header);
                 #print 
-                print_seqObj($ostream,, $seqObj, $opt_AA);
+                print_seqObj($ostream, $seqObj, $opt_AA, $codonTable);
               }
             }
           }
@@ -304,12 +310,12 @@ sub extract_sequence{
 }
 
 sub print_seqObj{
-  my($ostream, $seqObj, $opt_AA) = @_;
+  my($ostream, $seqObj, $opt_AA, $codonTable) = @_;
 
   $nbFastaSeq++;
   
   if($opt_AA){ #translate if asked
-      my $transObj = $seqObj->translate();
+      my $transObj = $seqObj->translate(-CODONTABLE_ID => $codonTable);
       $ostream->write_seq($transObj);  
    }
   else{
@@ -357,7 +363,11 @@ Define the feature you want to extract the sequnce from. By deafault it's 'cds'.
 
 =item B<-p>, B<--protein> or B<--aa>
 
-Will translate the extracted sequence in Amino acid.
+Will translate the extracted sequence in Amino acid. By default the codon table used is the 1 (Standard). See codon table option for more options.
+
+=item B<--codon>, B<--table> or B<--ct>
+
+Allow to choose another type of codon table for the translation.
 
 =item B<-e> or B<--ext>
 
@@ -368,7 +378,6 @@ Use of that option on cds will give the cdna wihtout the untraslated sequences.
 =item B<-u>, B<--up>, B<-5>, B<--five> or B<-upstream>
 
 Integer. It will take that number of nucleotide in more at the 5' extremity. Option "e" must be activated to use this option (Why ? to avoid to extract intronic/overlaping sequence in case of feature spread over several locations (exon,cds,utrs)).
-
 
 =item B<-d>, B<--do>, B<-3>, B<--three>, B<-down> or B<-downstream>
 
