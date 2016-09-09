@@ -49,6 +49,7 @@ my $nbGeneName;
 my $nbmRNAname;
 my $nbCDSname;
 my $nbExonName;
+my $nbOTHERName;
 my $nbUTRName;
 my $nbRepeatName;
 # END ID name
@@ -93,6 +94,7 @@ if ( !GetOptions( 'f|ref|reffile|gff|gff3=s' => \$opt_reffile,
                   'cf=i'      => \$nbCDSname,
                   'ef=i'      => \$nbExonName,
                   'uf=i'      => \$nbUTRName,
+                  'of=i'      => \$nbOTHERName,
                   'rf=i'      => \$nbRepeatName,
                   'ff'      => \$optFillFrame,
                   's'      => \$optOnlyStat,
@@ -125,6 +127,7 @@ if (! $nbmRNAname){$nbmRNAname=1};
 if (! $nbCDSname){$nbCDSname=1};
 if (! $nbExonName){$nbExonName=1};
 if (! $nbUTRName){$nbUTRName=1};
+if (! $nbOTHERName){$nbOTHERName=1};
 if (! $nbRepeatName){$nbRepeatName=1};
 
 
@@ -565,7 +568,10 @@ if ($opt_nameU || $opt_name ){#|| $opt_BlastFile || $opt_InterproFile){
                         create_or_replace_tag($feature_level3, 'Parent', $newID_level2);
                       }
                       else{
-                        print "What that one ? $primary_tag_level3\n";
+                        my $newID = manageID($prefixName,$nbOTHERName,'U');
+                        if($opt_nameU){$nbOTHERName++;}
+                        create_or_replace_tag($feature_level3, 'ID', $newID);
+                        create_or_replace_tag($feature_level3, 'Parent', $newID_level2);                        
                       }
                       push (@{$hash_ref->{'level3'}{$primary_tag_level3}{lc($newID_level2)}}, $feature_level3);
                     }
