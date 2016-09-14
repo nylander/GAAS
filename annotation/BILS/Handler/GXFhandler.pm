@@ -1488,7 +1488,7 @@ sub check_level1_positions {
 	my $check_existence_feature_l2=undef;
 
 	foreach my $tag_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
-    	if ( exists ($hash_omniscient->{'level2'}{$tag_level2}{$level1_feature_name} ) ){
+    	if ( exists_keys ($hash_omniscient, ('level2', $tag_level2, $level1_feature_name) ) ){
     		$check_existence_feature_l2=1;
 
 	    	my $extrem_start_A=1000000000000;
