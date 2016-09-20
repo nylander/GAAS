@@ -88,29 +88,36 @@ if(! $primaryTag or $primaryTag eq "all"){
 my %attListOk;
 my @attListPair;
 if ($attributes){
-  @attListPair= split(/,/, $attributes);
-  my $nbAtt=$#attListPair+1;
-  
-  foreach my $attributeTuple (@attListPair){ 
-    my @attList= split(/\//, $attributeTuple);
-    if($#attList == 0){ # Attribute alone
-      #check for ID attribute
-      if(lc($attList[0]) eq "id"){print "It's forbidden to remove the ID attribute in a gff3 file !\n";exit;}
-      #check for Parent attribute
-      if(lc($attList[0]) eq "parent"){
-        foreach my $tag (@ptagList){
-          if($tag ne "gene" and $tag ne "level1"){
-            print "It's forbidden to remove the $attList[0] attribute to a $tag feature in a gff3 file !\n";
-            exit;
+
+  if ($attributes eq "all_attributes"){
+    print "All attributes will be removed except ID and Parent attributes !\n";
+    $attListOk{"all_attributes"}++;
+  }
+  else{
+    @attListPair= split(/,/, $attributes);
+    my $nbAtt=$#attListPair+1;
+    
+    foreach my $attributeTuple (@attListPair){ 
+      my @attList= split(/\//, $attributeTuple);
+      if($#attList == 0){ # Attribute alone
+        #check for ID attribute
+        if(lc($attList[0]) eq "id"){print "It's forbidden to remove the ID attribute in a gff3 file !\n";exit;}
+        #check for Parent attribute
+        if(lc($attList[0]) eq "parent"){
+          foreach my $tag (@ptagList){
+            if($tag ne "gene" and $tag ne "level1"){
+              print "It's forbidden to remove the $attList[0] attribute to a $tag feature in a gff3 file !\n";
+              exit;
+            }
           }
         }
+        $attListOk{$attList[0]}="null";
+        print "$attList[0] attribute will be removed.\n";
       }
-      $attListOk{$attList[0]}="null";
-      print "$attList[0] attribute will be removed.\n";
-    }
-    else{ # Attribute we have to replace by a new name
-      $attListOk{$attList[0]}=$attList[1];
-      print "$attList[0] attribute will be replaced by $attList[1].\n";
+      else{ # Attribute we have to replace by a new name
+        $attListOk{$attList[0]}=$attList[1];
+        print "$attList[0] attribute will be replaced by $attList[1].\n";
+      }
     }
   }
   print "\n";
@@ -201,18 +208,28 @@ sub  manage_attributes{
 sub remove_tag_from_list{
   my  ($feature, $attListOk)=@_;
 
-  foreach my $att (keys %{$attListOk}){
-    if ($feature->has_tag($att)){
+  if (exists ($attListOk{"all_attributes"} ) ){ # all attributes removed except ID and Parent 
+    my @list_att = $feature->get_all_tags;
+    foreach my $tag (@list_att){
+      if(lc($tag) ne "id" and lc($tag) ne "parent"){
+        $feature->remove_tag($tag);        
+      }
+    }
+  }
+  else{
+    foreach my $att (keys %{$attListOk}){
+      if ($feature->has_tag($att)){
 
-      if ($attListOk{$att} eq "null" ){ # the attribute name is kept inctact
-        $feature->remove_tag($att);
-      }
-      else{ # We replace the attribute name
-        my @values=$feature->get_tag_values($att);
-        my $newAttributeName=$attListOk{$att};
-        create_or_replace_tag($feature,$newAttributeName, @values);
-      }
-    } 
+        if ($attListOk{$att} eq "null" ){ # the attribute name is kept inctact
+          $feature->remove_tag($att);
+        }
+        else{ # We replace the attribute name
+          my @values=$feature->get_tag_values($att);
+          my $newAttributeName=$attListOk{$att};
+          create_or_replace_tag($feature,$newAttributeName, @values);
+        }
+      } 
+    }
   }
 }
 
@@ -251,7 +268,8 @@ By default all feature are taking in account. fill the option by the value "all"
 
 Attributes specified, will be removed from the feature type specified by the option p (primary tag). List of attributes must be coma separated.
 /!\\ You must use "" if name contains spaces.
-Instead to remove an attribute, you can replace its name by a new attribute name using this formuation attributeName/newAttributeName.
+Instead to remove an attribute, you can replace its name by a new attribute name using this formulation attributeName/newAttributeName.
+To remove all attributes non mandatory (only ID and Parent are mandatory) you can use the option with all_attributes parameter.
 
 =item B<-o> , B<--output> , B<--out> or B<--outfile>
 
