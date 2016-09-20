@@ -69,9 +69,11 @@ my $nbGeneNameInBlast=0;
 
 # FOR FUNCTIONS INTERPRO#
 my %TotalTerm;
+my %finalID;
 my %GeneAssociatedToTerm;
 my %mRNAAssociatedToTerm;
 my %functionData;
+my %functionOutput;
 my %functionStreamOutput;
 my %geneWithoutFunction;
 my %geneWithFunction;
@@ -487,6 +489,7 @@ if ($opt_nameU || $opt_name ){#|| $opt_BlastFile || $opt_InterproFile){
       foreach my $id_level1 (keys %{$hash_ref ->{'level1'}{$primary_tag_level1}}){
         
         my $feature_level1=$hash_ref->{'level1'}{$primary_tag_level1}{$id_level1};
+        my $level1_ID = $feature_level1->_tag_value('ID');
         my $newID_level1;
 
         #keep track of Maker ID
@@ -505,6 +508,7 @@ if ($opt_nameU || $opt_name ){#|| $opt_BlastFile || $opt_InterproFile){
           create_or_replace_tag($feature_level1, 'ID', $newID_level1);
         }
 
+        $finalID{$feature_level1->_tag_value('ID')}=$newID_level1;
         #################
         # == LEVEL 2 == #
         #################
@@ -513,7 +517,7 @@ if ($opt_nameU || $opt_name ){#|| $opt_BlastFile || $opt_InterproFile){
           if ( exists ($hash_ref->{'level2'}{$primary_tag_key_level2}{$id_level1} ) ){
             foreach my $feature_level2 ( @{$hash_ref->{'level2'}{$primary_tag_key_level2}{$id_level1}}) {
 
-              my $level2_ID = lc($feature_level2->_tag_value('ID'));
+              my $level2_ID = $feature_level2->_tag_value('ID');
               my $newID_level2;
               
               #keep track of Maker ID
@@ -530,7 +534,8 @@ if ($opt_nameU || $opt_name ){#|| $opt_BlastFile || $opt_InterproFile){
                 create_or_replace_tag($feature_level2, 'ID', $newID_level2);
                 create_or_replace_tag($feature_level2, 'Parent', $newID_level1);
               }
-        
+              
+              $finalID{$level2_ID}=$newID_level2;
               #################
               # == LEVEL 3 == #
               #################
@@ -547,33 +552,36 @@ if ($opt_nameU || $opt_name ){#|| $opt_BlastFile || $opt_InterproFile){
                         create_or_replace_tag($feature_level3, 'makerName', $level3_ID);
                       }
 
+                      my $newID_level3 ="";
                       if($primary_tag_level3 =~ /exon/ ){
-                        my $newID = manageID($prefixName,$nbExonName,'E'); 
-                          $nbExonName++;
-                          create_or_replace_tag($feature_level3, 'ID', $newID);
-                          create_or_replace_tag($feature_level3, 'Parent', $newID_level2);
+                        $newID_level3 = manageID($prefixName,$nbExonName,'E'); 
+                        $nbExonName++;
+                        create_or_replace_tag($feature_level3, 'ID', $newID_level3);
+                        create_or_replace_tag($feature_level3, 'Parent', $newID_level2);
 
                       }
                       elsif($primary_tag_level3 =~ /cds/){
-                        my $newID = manageID($prefixName,$nbCDSname,'C'); 
+                        $newID_level3 = manageID($prefixName,$nbCDSname,'C'); 
                         if($opt_nameU){$nbCDSname++;}
-                        create_or_replace_tag($feature_level3, 'ID', $newID);
+                        create_or_replace_tag($feature_level3, 'ID', $newID_level3);
                         create_or_replace_tag($feature_level3, 'Parent', $newID_level2);
                       }
 
                       elsif($primary_tag_level3 =~ /utr/){
-                        my $newID = manageID($prefixName,$nbUTRName,'U');
+                        my $newID_level3 = manageID($prefixName,$nbUTRName,'U');
                         if($opt_nameU){$nbUTRName++;}
-                        create_or_replace_tag($feature_level3, 'ID', $newID);
+                        create_or_replace_tag($feature_level3, 'ID', $newID_level3);
                         create_or_replace_tag($feature_level3, 'Parent', $newID_level2);
                       }
                       else{
-                        my $newID = manageID($prefixName,$nbOTHERName,'U');
+                        $newID_level3 = manageID($prefixName,$nbOTHERName,'O');
                         if($opt_nameU){$nbOTHERName++;}
-                        create_or_replace_tag($feature_level3, 'ID', $newID);
+                        create_or_replace_tag($feature_level3, 'ID', $newID_level3);
                         create_or_replace_tag($feature_level3, 'Parent', $newID_level2);                        
                       }
+                      
                       push (@{$hash_ref->{'level3'}{$primary_tag_level3}{lc($newID_level2)}}, $feature_level3);
+                      $finalID{$level3_ID}=$newID_level3;
                     }
                   }
                   if ($opt_name and  $primary_tag_level3 =~ /utr/){$nbUTRName++;} # with this option we increment UTR name only for each UTR 
@@ -591,10 +599,27 @@ if ($opt_nameU || $opt_name ){#|| $opt_BlastFile || $opt_InterproFile){
 # RESULT PRINTING
 ###########################
 
-
-
 ##############################
 # print FUNCITONAL INFORMATION
+
+# first table name\tfunction
+if($opt_output){
+  foreach my $function_type (keys %functionOutput){
+    my $streamOutput=$functionStreamOutput{$function_type};
+    foreach my $ID (keys $functionOutput{$function_type}){
+
+      if ($opt_nameU || $opt_name ){
+        print $streamOutput  $finalID{$ID}."\t".$functionOutput{$function_type}{$ID}."\n";
+      }
+      else{
+        print $streamOutput  $ID."\t".$functionOutput{$function_type}{$ID}."\n";
+      }
+    }
+  }
+}
+
+
+# NOW summerize
 $stringPrint =""; # reinitialise (use at the beginning)
 if ($opt_InterproFile){
   #print INFO
@@ -771,10 +796,9 @@ sub addFunctions{
       }
 
       if ($opt_output){
-          my $streamOut=$functionStreamOutput{$function_type};
           my $ID = $feature->_tag_value('ID');
           chop $data_list;
-          print $streamOut "$ID\t$data_list\n";
+          $functionOutput{$function_type}{$ID}=$data_list;
         }
     }
   }
