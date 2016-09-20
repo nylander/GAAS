@@ -537,12 +537,12 @@ if ($opt_nameU || $opt_name ){#|| $opt_BlastFile || $opt_InterproFile){
              
               foreach my $primary_tag_level3 (keys %{$hash_ref->{'level3'}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
                 
-                  if ( exists ($hash_ref->{'level3'}{$primary_tag_level3}{$level2_ID} ) ){
+                  if ( exists_keys ($hash_ref,('level3',$primary_tag_level3, $level2_ID) ) ){
 
                     foreach my $feature_level3 ( @{$hash_ref->{'level3'}{$primary_tag_level3}{$level2_ID}}) {
-                      
+
                       #keep track of Maker ID
-                      my $level3_ID = lc($feature_level2->_tag_value('ID'));
+                      my $level3_ID = lc($feature_level3->_tag_value('ID'));
                       if($opt_InterproFile){#In that case the name given by Maker is removed from ID and from Name. We have to kee a track
                         create_or_replace_tag($feature_level3, 'makerName', $level3_ID);
                       }
