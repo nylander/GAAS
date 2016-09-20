@@ -53,17 +53,17 @@ sub print_omniscient{
 	#################
 	# == LEVEL 1 == #
 	#################
-	foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
-		foreach my $id_tag_key_level1 (keys %{$hash_omniscient->{'level1'}{$primary_tag_key_level1}}){
-			$gffout->write_feature($hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1}); # print feature
+	foreach my $primary_tag_l1 ( sort {$a <=> $b} keys %{$hash_omniscient->{'level1'}}){ # primary_tag_l1 = gene or repeat etc...
+		foreach my $id_tag_key_level1 (sort {$a <=> $b} keys %{$hash_omniscient->{'level1'}{$primary_tag_l1}}){
+			$gffout->write_feature($hash_omniscient->{'level1'}{$primary_tag_l1}{$id_tag_key_level1}); # print feature
 
 			#################
 			# == LEVEL 2 == #
 			#################
-			foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
+			foreach my $primary_tag_l2 (sort {$a <=> $b} keys %{$hash_omniscient->{'level2'}}){ # primary_tag_l2 = mrna or mirna or ncrna or trna etc...
 
-				if ( exists ($hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1} ) ){
-					foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1}}) {
+				if ( exists ($hash_omniscient->{'level2'}{$primary_tag_l2}{$id_tag_key_level1} ) ){
+					foreach my $feature_level2 ( sort {$a->_tag_value('ID') <=> $b->_tag_value('ID')} @{$hash_omniscient->{'level2'}{$primary_tag_l2}{$id_tag_key_level1}}) {
 						$gffout->write_feature($feature_level2);
 
 						#################
@@ -74,24 +74,24 @@ sub print_omniscient{
 						######
 						# FIRST EXON
 						if ( exists ($hash_omniscient->{'level3'}{'exon'}{$level2_ID} ) ){
-							foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{'exon'}{$level2_ID}}) {
+							foreach my $feature_level3 ( sort {$a->_tag_value('ID') <=> $b->_tag_value('ID')} @{$hash_omniscient->{'level3'}{'exon'}{$level2_ID}}) {
 								$gffout->write_feature($feature_level3);
 							}
 						}
 						###########
 						# SECOND CDS
 						if ( exists ($hash_omniscient->{'level3'}{'cds'}{$level2_ID} ) ){
-							foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{'cds'}{$level2_ID}}) {
+							foreach my $feature_level3 ( sort {$a->_tag_value('ID') <=> $b->_tag_value('ID')} @{$hash_omniscient->{'level3'}{'cds'}{$level2_ID}}) {
 								$gffout->write_feature($feature_level3);
 							}
 						}
 
 						############
 						# THEN ALL THE REST
-						foreach my $primary_tag_key_level3 (keys %{$hash_omniscient->{'level3'}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
-							if (($primary_tag_key_level3 ne 'cds') and ($primary_tag_key_level3 ne 'exon')) {
-								if ( exists ($hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID} ) ){
-									foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID}}) {
+						foreach my $primary_tag_l3 (sort {$a <=> $b} keys %{$hash_omniscient->{'level3'}}){ # primary_tag_l3 = cds or exon or start_codon or utr etc...
+							if (($primary_tag_l3 ne 'cds') and ($primary_tag_l3 ne 'exon')) {
+								if ( exists ($hash_omniscient->{'level3'}{$primary_tag_l3}{$level2_ID} ) ){
+									foreach my $feature_level3 ( sort {$a->_tag_value('ID') <=> $b->_tag_value('ID')} @{$hash_omniscient->{'level3'}{$primary_tag_l3}{$level2_ID}}) {
 										$gffout->write_feature($feature_level3);
 									}
 								}
@@ -1100,7 +1100,7 @@ sub uri_decode_one_feature {
 sub check_if_feature_overlap{
 	my($feature1, $feature2)=@_;
 	my $result=undef;
-	if (($feature1->start <= $feature2->end) or ($feature1->end >= $feature2->start)){
+	if (($feature1->start <= $feature2->end) and ($feature1->end >= $feature2->start)){
 		$result="true";
 	}
 
@@ -1459,22 +1459,32 @@ sub info_omniscient {
 #============
 #check if reference exists in hash. Deep infinite : hash{a} or hash{a}{b} or hash{a}{b}{c}, etc.
 # usage example: exists_keys($hash_omniscient,('level3','cds',$level2_ID)
-sub _exists {
-    my ($hash, @keys, @exists) = @_;
-
-    foreach my $el (@keys){ #test all keys... no more !
-    	if (exists $hash->{$keys[0]}) {
-
-    	    my $key = shift @keys;
-    	    push @exists, 1, _exists($hash->{$key}, @keys);
-   		}
-	}
-    return @exists;
-}
-
 sub exists_keys {
-    return &_exists == $#_ ? 1 : ();
+    my ($hash, $key, @keys) = @_;
+
+    if (ref $hash eq 'HASH' && exists $hash->{$key}) {
+        if (@keys) {
+            return exists_keys($hash->{$key}, @keys);
+        }
+        return 1;
+    }
+    return '';
 }
+
+# sub _exists {
+#     my ($hash, @keys, @exists) = @_;
+
+#     	if (ref $hash eq 'HASH' && exists $hash->{$keys[0]}) {
+#     	    my $key = shift @keys;
+#     	    push @exists, 1, _exists($hash->{$key}, @keys);
+#    		}
+   		
+#     return @exists;
+# }
+
+# sub exists_keys {
+#     return &_exists == $#_ ? 1 : ();
+# }
 #============
 
 # Check the start and end of level1 feature based on all features level2;
@@ -1540,17 +1550,18 @@ sub check_level2_positions {
 	foreach my $tag_level3 (keys %{$hash_omniscient->{'level3'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
     	my $extrem_start_A=1000000000000;
 		my $extrem_end_A=0;
-  		foreach my $feature ( @{$hash_omniscient->{'level3'}{$tag_level3}{$level2_feature_name}}) {
-   			my $start=$feature->start();
-   			my $end=$feature->end();
-   			if ($start < $extrem_start_A){
-   				$extrem_start_A=$start;
-   			}
-   			if($end > $extrem_end_A){
-      			$extrem_end_A=$end;
-   			}
-   		}
-
+		if( exists_keys ($hash_omniscient, ('level3', $tag_level3, $level2_feature_name) ) ){
+	  		foreach my $feature ( @{$hash_omniscient->{'level3'}{$tag_level3}{$level2_feature_name}}) {
+	   			my $start=$feature->start();
+	   			my $end=$feature->end();
+	   			if ($start < $extrem_start_A){
+	   				$extrem_start_A=$start;
+	   			}
+	   			if($end > $extrem_end_A){
+	      			$extrem_end_A=$end;
+	   			}
+	   		}
+	   	}
    		if ($extrem_start_A < $extrem_start){
     		$extrem_start=$extrem_start_A;
     	}
