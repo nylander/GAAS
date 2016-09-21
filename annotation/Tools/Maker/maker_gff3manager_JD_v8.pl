@@ -494,7 +494,7 @@ if ($opt_nameU || $opt_name ){#|| $opt_BlastFile || $opt_InterproFile){
 
         #keep track of Maker ID
         if($opt_BlastFile){#In that case the name given by Maker is removed from ID and from Name. We have to kee a track
-          create_or_replace_tag($feature_level1, 'makerName', $id_level1);
+          create_or_replace_tag($feature_level1, 'makerName', $level1_ID);
         }
 
         if(lc($primary_tag_level1) =~ /repeat/ ){
