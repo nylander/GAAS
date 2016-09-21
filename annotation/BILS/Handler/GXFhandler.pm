@@ -832,6 +832,16 @@ sub append_omniscient {
 	}
 }
 
+###############################
+# METHOD RELATED TO WEBAPOLLO #
+###############################
+	####################
+	  ###############
+	  	###########
+	  	  #######
+	  	    ###
+
+use constant CWA_skip_feature => { "non_canonical_three_prime_splice_site" => 1 , "non_canonical_five_prime_splice_site" => 2};
 #Transform omniscient data to be Webapollo compliant
 sub webapollo_compliant {
 		my ($hash_omniscient) = @_  ;
@@ -839,17 +849,18 @@ sub webapollo_compliant {
 	#################
 	# == LEVEL 1 == #
 	#################
-	foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
-		foreach my $id_tag_key_level1 (keys %{$hash_omniscient->{'level1'}{$primary_tag_key_level1}}){
-			webapollo_rendering($hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1});
+	foreach my $primary_tag_l1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_l1 = gene or repeat etc...
+		if(exists (CWA_skip_feature->{$primary_tag_l1})){delete $hash_omniscient->{'level1'}{$primary_tag_l1}; next;}
+		foreach my $id_l1 (keys %{$hash_omniscient->{'level1'}{$primary_tag_l1}}){
+			webapollo_rendering($hash_omniscient->{'level1'}{$primary_tag_l1}{$id_l1});
 
 			#################
 			# == LEVEL 2 == #
 			#################
-			foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
-
-				if ( exists ($hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1} ) ){
-					foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1}}) {
+			foreach my $primary_tag_l2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_l2 = mrna or mirna or ncrna or trna etc...
+				if(exists (CWA_skip_feature->{$primary_tag_l2})){delete $hash_omniscient->{'level2'}{$primary_tag_l2}; next;}
+				if ( exists ($hash_omniscient->{'level2'}{$primary_tag_l2}{$id_l1} ) ){
+					foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_l2}{$id_l1}}) {
 						webapollo_rendering($feature_level2);
 
 						#################
@@ -857,10 +868,10 @@ sub webapollo_compliant {
 						#################
 						my $level2_ID  = lc($feature_level2->_tag_value('ID'));
 
-						foreach my $primary_tag_key_level3 (keys %{$hash_omniscient->{'level3'}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
-
-							if ( exists ($hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID} ) ){
-								foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID}}) {
+						foreach my $primary_tag_l3 (keys %{$hash_omniscient->{'level3'}}){ # primary_tag_l3 = cds or exon or start_codon or utr etc...
+							if(exists (CWA_skip_feature->{$primary_tag_l3})){delete $hash_omniscient->{'level3'}{$primary_tag_l3}; next;}
+							if ( exists ($hash_omniscient->{'level3'}{$primary_tag_l3}{$level2_ID} ) ){
+								foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{$primary_tag_l3}{$level2_ID}}) {
 									webapollo_rendering($feature_level3);
 								}
 							}
