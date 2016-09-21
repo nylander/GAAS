@@ -606,7 +606,7 @@ if ($opt_nameU || $opt_name ){#|| $opt_BlastFile || $opt_InterproFile){
 if($opt_output){
   foreach my $function_type (keys %functionOutput){
     my $streamOutput=$functionStreamOutput{$function_type};
-    foreach my $ID (keys $functionOutput{$function_type}){
+    foreach my $ID (keys %{$functionOutput{$function_type}}){
 
       if ($opt_nameU || $opt_name ){
         print $streamOutput  $finalID{$ID}."\t".$functionOutput{$function_type}{$ID}."\n";
