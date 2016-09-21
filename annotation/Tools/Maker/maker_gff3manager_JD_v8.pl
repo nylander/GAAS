@@ -541,10 +541,10 @@ if ($opt_nameU || $opt_name ){#|| $opt_BlastFile || $opt_InterproFile){
               #################
              
               foreach my $primary_tag_level3 (keys %{$hash_ref->{'level3'}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
-                
-                  if ( exists_keys ($hash_ref,('level3',$primary_tag_level3, $level2_ID) ) ){
 
-                    foreach my $feature_level3 ( @{$hash_ref->{'level3'}{$primary_tag_level3}{$level2_ID}}) {
+                  if ( exists_keys ($hash_ref,('level3',$primary_tag_level3, lc($level2_ID)) ) ){
+
+                    foreach my $feature_level3 ( @{$hash_ref->{'level3'}{$primary_tag_level3}{lc($level2_ID)}}) {
 
                       #keep track of Maker ID
                       my $level3_ID = $feature_level3->_tag_value('ID');
@@ -580,9 +580,11 @@ if ($opt_nameU || $opt_name ){#|| $opt_BlastFile || $opt_InterproFile){
                         create_or_replace_tag($feature_level3, 'Parent', $newID_level2);                        
                       }
                       
+                      
                       push (@{$hash_ref->{'level3'}{$primary_tag_level3}{lc($newID_level2)}}, $feature_level3);
                       $finalID{$level3_ID}=$newID_level3;
                     }
+                    delete $hash_ref->{'level3'}{$primary_tag_level3}{lc($level2_ID)} # delete 
                   }
                   if ($opt_name and  $primary_tag_level3 =~ /utr/){$nbUTRName++;} # with this option we increment UTR name only for each UTR 
                   if ($opt_name and  $primary_tag_level3 =~ /cds/){$nbCDSname++;} # with this option we increment cds name only for each cds 
