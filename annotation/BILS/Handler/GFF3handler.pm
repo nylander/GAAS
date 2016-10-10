@@ -144,7 +144,7 @@ print "next5\n\n";
 sub manage_one_feature{
 	
 	my ($feature, $omniscient, $mRNAGeneLink, $duplicate, $miscCount, $uniqID, $locusTAG_uniq, $infoSequential, $comonTagAttribute, $last_locusTAGvalue, $last_l1_f, $last_l2_f, $last_l3_f, $debug)=@_;
-		print "Info before start: last_locusTAGvalue = $last_locusTAGvalue -- last_l2_f = $last_l2_f\n";
+		#print "Info before start: last_locusTAGvalue = $last_locusTAGvalue -- last_l2_f = $last_l2_f\n";
 		my $seq_id = $feature->seq_id;					#col1
 		my $source_tag = lc($feature->source_tag);		#col2
 		my $primary_tag = lc($feature->primary_tag);	#col3
@@ -218,7 +218,7 @@ sub manage_one_feature{
       		##########
 			# get ID #
 	    	$id = _check_uniq_id($miscCount, $uniqID, $feature);
-
+	    	print "id= $id || ".$feature->gff_string."\n";
 	    	##############
 			# get Parent #
 			my @parentList;
@@ -303,24 +303,29 @@ sub manage_one_feature{
 					
 					# It is a multiple parent case
 					if($allParent > 1){
+						
 						# Not the first parent, we have to clone the feature !!
 						if($cptParent > 1){ 
 							my $feature_clone=clone($feature);
 							create_or_replace_tag($feature_clone,'Parent',$parent); #modify Parent To keep only one
 
 							#As we cloned the feature, we have to take care of ID to have uniq one (case of exon,etc...)
-							if( ($primary_tag ne "cds") and (index($primary_tag, 'utr') == -1) ){ #avoid case where we can have the same ID (multi-feature)
-								my $substr = $feature->_tag_value('Parent');
-								my $clone_id=$feature->_tag_value('ID');
-								$clone_id=~ s/$substr//;
-								if($clone_id eq $feature->_tag_value('ID')){#Substring didn't work
-									$clone_id=$feature->_tag_value('ID')."$cptParent";
-								}else{$clone_id="$parent$clone_id";}
-								create_or_replace_tag($feature_clone,'ID',$clone_id); #modify Parent To keep only one
-							}
+							# if( ($primary_tag ne "cds") and (index($primary_tag, 'utr') == -1) ){ #avoid case where we can have the same ID (multi-feature)
+							# 	my $substr = $feature->_tag_value('Parent');
+							# 	my $clone_id=$feature->_tag_value('ID');
+							# 	$clone_id=~ s/$substr//;
+							# 	if($clone_id eq $feature->_tag_value('ID')){#Substring didn't work
+							# 		$clone_id=$feature->_tag_value('ID')."$cptParent";
+							# 	}else{$clone_id="$parent$clone_id";}
+							# 	create_or_replace_tag($feature_clone,'ID',$clone_id); #modify Parent To keep only one
+							# }
+
+							_check_uniq_id($miscCount, $uniqID, $feature_clone); #Will change the ID if needed
+
 							if($debug){print "Push-L3-omniscient-4 level3 || $primary_tag || ".lc($parent)." == feature_clone\n";}
 							push (@{$omniscient->{"level3"}{$primary_tag}{lc($parent)}}, $feature_clone);
 						}
+						
 						# It is the first parent. Do not clone the feature
 						else{
 							create_or_replace_tag($feature,'Parent',$parent); #modify Parent To keep only one
@@ -336,31 +341,33 @@ sub manage_one_feature{
 				#Level3 key exists
 				else{  # If not the first feature level3 with this primary_tag linked to the level2 feature
 					# check among list of feature level3 already exits with an identical ID.
-					my $is_dupli=undef;
-					foreach my $feat ( @{ $omniscient->{"level3"}{$primary_tag}{lc($parent)} } ) {
-						# case where same feature is spread on different location (i.e utr, cds). In that case, following the gff3 gene ontologie specification, the ID can be share by all "peace of feature" building the feature entity.
-						if( _it_is_duplication($duplicate, $omniscient, $uniqID, $feature) ){
-								$is_dupli=1;
-								last;
-						}# case where a feature are an uniq element (exon, etc.)
-						elsif( lc($feat->_tag_value('ID')) eq lc($feature->_tag_value('ID')) ){
-							my $id = $feature->_tag_value('ID');
+					# my $is_dupli=undef;
+					# foreach my $feat ( @{ $omniscient->{"level3"}{$primary_tag}{lc($parent)} } ) {
+					# 	# case where same feature is spread on different location (i.e utr, cds). In that case, following the gff3 gene ontologie specification, the ID can be share by all "peace of feature" building the feature entity.
+					# 	if( _it_is_duplication($duplicate, $omniscient, $uniqID, $feature) ){
+					# 			print "it is duplicated\n";
+					# 			$is_dupli=1;
+					# 			last;
+					# 	}# case where a feature are an uniq element (exon, etc.)
+					# 	elsif( lc($feat->_tag_value('ID')) eq lc($feature->_tag_value('ID')) ){
+					# 		my $id = $feature->_tag_value('ID');
 
-							if( $feat->start() == $feature->start() and $feat->end() == $feature->end() ){
-								if($debug){print "Push-L3-duplicate-7 level3 || $primary_tag || ".lc($id)." == feature\n";}
-								push ( @{$duplicate->{"level3"}{$primary_tag}{lc($id)}}, $feature );
-								$is_dupli=1;
-								last;
-							}
-							else{ #case we have to change name ! GFF3 NON CONFORME
-								$miscCount->{$id}++;
-								$id=$id."-".$miscCount->{$id};
-								create_or_replace_tag($feature,'ID',$id); #modify Parent To keep only one
-							}
-						}
-					}
+					# 		if( $feat->start() == $feature->start() and $feat->end() == $feature->end() ){
+					# 			if($debug){print "Push-L3-duplicate-7 level3 || $primary_tag || ".lc($id)." == feature\n";}
+					# 			push ( @{$duplicate->{"level3"}{$primary_tag}{lc($id)}}, $feature );
+					# 			$is_dupli=1;
+					# 			last;
+					# 		}
+					# 		else{ #case we have to change name ! GFF3 NON CONFORME
+					# 			$miscCount->{$id}++;
+					# 			$id=$id."-".$miscCount->{$id};
+					# 			create_or_replace_tag($feature,'ID',$id); #modify Parent To keep only one
+					# 		}
+					# 	}
+					# }
 					#It is not a duplicated feature => save it in omniscient
-					if(! $is_dupli){
+					#if(! $is_dupli){
+					if( ! _it_is_duplication($duplicate, $omniscient, $uniqID, $feature) ){
 						# It is a multiple parent case
 						if($allParent > 1){
 							# Not the first parent, we have to clone the feature !!
@@ -368,16 +375,18 @@ sub manage_one_feature{
 								my $feature_clone=clone($feature);
 								create_or_replace_tag($feature_clone,'Parent',$parent); #modify Parent To keep only one
 								
-								#Take care of ID to have uniq one (case of exon,etc...)
-								if( ($primary_tag ne "cds") and (index($primary_tag, 'utr') == -1) ){
-									my $substr = $feature->_tag_value('Parent');
-									my $clone_id=$feature->_tag_value('ID');
-									$clone_id=~ s/$substr//;
-									if($clone_id eq $feature->_tag_value('ID')){#Substring didn't work
-										$clone_id=$feature->_tag_value('ID')."$cptParent";
-									}else{$clone_id="$parent$clone_id";}
-									create_or_replace_tag($feature_clone,'ID',$clone_id); #modify Parent To keep only one
-								}
+								# #Take care of ID to have uniq one (case of exon,etc...)
+								# if( ($primary_tag ne "cds") and (index($primary_tag, 'utr') == -1) ){
+								# 	my $substr = $feature->_tag_value('Parent');
+								# 	my $clone_id=$feature->_tag_value('ID');
+								# 	$clone_id=~ s/$substr//;
+								# 	if($clone_id eq $feature->_tag_value('ID')){#Substring didn't work
+								# 		$clone_id=$feature->_tag_value('ID')."$cptParent";
+								# 	}else{$clone_id="$parent$clone_id";}
+								# 	create_or_replace_tag($feature_clone,'ID',$clone_id); #modify Parent To keep only one
+								# }
+								_check_uniq_id($miscCount, $uniqID, $feature_clone); #Will change the ID if needed
+
 								if($debug){print "Push-L3-omniscient-8 level3 || $primary_tag || ".lc($parent)." == feature_clone\n";}
 								push (@{$omniscient->{"level3"}{$primary_tag}{lc($parent)}}, $feature_clone);
 							}
@@ -521,7 +530,7 @@ sub _get_comon_tag_value{
 #feature is not yet saved in omniscient !
 sub _it_is_duplication{
 	my ($duplicate, $omniscient, $uniqID, $feature)=@_;
-
+	print $feature->gff_string."\n";
 	my $is_dupli=undef;
 	my $potentialList=undef;
 
@@ -530,15 +539,35 @@ sub _it_is_duplication{
 
 	my $id = $uniqID->{$feature->_tag_value('ID')}; # check the original ID
 
-	if(! exists_keys($omniscient,($level, $primary_tag, $id))){
-	     return $is_dupli;
+	if($level eq "level1"){
+		if(! exists_keys($omniscient,($level, $primary_tag, lc($id) ))){
+			return $is_dupli; #return is not a dupli
+		}
+		else{
+			$potentialList=$omniscient->{$level}{$primary_tag}{$id}; #push the feature L1 in potentialList
+		}
 	}
-	else{
-		$potentialList=$omniscient->{$level}{$primary_tag}{$id}; #could be a feature if level1 or a list if level2/level3
+	else{ #feature l2 or l3
+
+		my @parent = $feature->get_tag_values('Parent');
+		foreach my $one_parent_ID (@parent){
+			my $one_parent_uID = lc($uniqID->{$one_parent_ID}); # check the original ID
+
+			foreach my $primary_tag ( keys %{$omniscient->{$level}} ){
+				if (exists_keys($omniscient,($level, $primary_tag, $one_parent_uID))){
+					push @{$potentialList}, @{$omniscient->{$level}{$primary_tag}{$one_parent_uID}};
+				}
+			}	
+		}
+		if(! $potentialList){ #potential list empty
+		    return $is_dupli; #return is not a dupli
+		}
 	}
+
 
 	#check if list is a feature or a reference of a list of feature
 	my @list_feature; # will be a list of feature.
+
 	if(ref($potentialList) eq 'ARRAY'){
 		@list_feature=@$potentialList; #it's a reference of a list of feature
 	}
@@ -550,7 +579,7 @@ sub _it_is_duplication{
 	#Check all the level2 list element
 	foreach my $feature_in_omniscient ( @list_feature ){
 
-		my $string=_create_string($feature_in_omniscient);
+		my $string=_create_string($uniqID, $feature_in_omniscient);
 		if($current_string eq $string){
 			$is_dupli=1;
 			push (@{$duplicate->{$level}{$primary_tag}{$id}}, $feature);
@@ -565,6 +594,7 @@ sub _it_is_duplication{
 	return $is_dupli;
 }
 
+# find the level of the feature tested
 sub _get_level{
 	my ($feature)=@_;
 
@@ -584,10 +614,11 @@ sub _get_level{
 	}
 }
 
+#create string that should be uniq by feature
 sub _create_string{
 	my ($uniqID, $feature)=@_;
 
-	my $string=$feature->seq_id().$feature->start().$feature->end();
+	my $string=$feature->seq_id().$feature->primary_tag().$feature->start().$feature->end();
 
 	my $primary_tag = lc($feature->primary_tag);
 	if ( exists(LEVEL1->{$primary_tag}) ){
@@ -1070,7 +1101,7 @@ sub check_sequential{ # Goes through from L3 to l1
 	 								$parentID = lc($infoSequential->{$comonTag}{'level1'});
 	 							}
 								else{
-									my $IDgoodCast = id_exists_in_l1_omniscient($omniscient, $comonTag);
+									my $IDgoodCast = _id_exists_in_l1_omniscient($omniscient, $comonTag);
 									if($IDgoodCast){
 											$parentID = $IDgoodCast;
 									}
