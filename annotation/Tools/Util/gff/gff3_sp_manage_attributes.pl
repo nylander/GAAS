@@ -25,10 +25,12 @@ my $help= 0;
 my $primaryTag=undef;
 my $attributes=undef;
 my $outfile=undef;
+my $add = undef;
 
 if ( !GetOptions(
     "help|h" => \$help,
     "gff|f=s" => \$gff,
+    "add" => \$add,
     "p|t|l=s" => \$primaryTag,
     "attributes|a|att=s" => \$attributes,
     "output|outfile|out|o=s" => \$outfile))
@@ -90,6 +92,9 @@ my @attListPair;
 if ($attributes){
 
   if ($attributes eq "all_attributes"){
+    if($add){
+      print "You cannot use the all_attributes value with the add option. Please change the parameters !\n";exit;
+    }
     print "All attributes will be removed except ID and Parent attributes !\n";
     $attListOk{"all_attributes"}++;
   }
@@ -101,9 +106,9 @@ if ($attributes){
       my @attList= split(/\//, $attributeTuple);
       if($#attList == 0){ # Attribute alone
         #check for ID attribute
-        if(lc($attList[0]) eq "id"){print "It's forbidden to remove the ID attribute in a gff3 file !\n";exit;}
+        if(lc($attList[0]) eq "id" and ! $add){print "It's forbidden to remove the ID attribute in a gff3 file !\n";exit;}
         #check for Parent attribute
-        if(lc($attList[0]) eq "parent"){
+        if(lc($attList[0]) eq "parent" and ! $add){
           foreach my $tag (@ptagList){
             if($tag ne "gene" and $tag ne "level1"){
               print "It's forbidden to remove the $attList[0] attribute to a $tag feature in a gff3 file !\n";
@@ -112,7 +117,12 @@ if ($attributes){
           }
         }
         $attListOk{$attList[0]}="null";
-        print "$attList[0] attribute will be removed.\n";
+        if($add){
+          print "$attList[0] attribute will be added. The value will be empty.\n";
+        }
+        else{
+          print "$attList[0] attribute will be removed.\n";          
+        }
       }
       else{ # Attribute we have to replace by a new name
         $attListOk{$attList[0]}=$attList[1];
@@ -227,6 +237,11 @@ sub remove_tag_from_list{
           my @values=$feature->get_tag_values($att);
           my $newAttributeName=$attListOk{$att};
           create_or_replace_tag($feature,$newAttributeName, @values);
+        }
+      }
+      elsif($add){
+        if ($attListOk{$att} eq "null" ){ # the attribute name is kept inctact
+          create_or_replace_tag($feature,$att,'empty');
         }
       } 
     }
