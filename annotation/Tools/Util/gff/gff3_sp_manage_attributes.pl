@@ -26,13 +26,15 @@ my $primaryTag=undef;
 my $attributes=undef;
 my $outfile=undef;
 my $add = undef;
+my $cp = undef;
 
 if ( !GetOptions(
     "help|h" => \$help,
     "gff|f=s" => \$gff,
     "add" => \$add,
-    "p|t|l=s" => \$primaryTag,
-    "attributes|a|att=s" => \$attributes,
+    "cp" => \$cp,
+    "p|type|l=s" => \$primaryTag,
+    "tag|att=s" => \$attributes,
     "output|outfile|out|o=s" => \$outfile))
 
 {
@@ -124,7 +126,7 @@ if ($attributes){
           print "$attList[0] attribute will be removed.\n";          
         }
       }
-      else{ # Attribute we have to replace by a new name
+      else{ # Attribute will be replaced/copied with a new tag name
         $attListOk{$attList[0]}=$attList[1];
         print "$attList[0] attribute will be replaced by $attList[1].\n";
       }
@@ -228,17 +230,23 @@ sub remove_tag_from_list{
   }
   else{
     foreach my $att (keys %{$attListOk}){
+      
       if ($feature->has_tag($att)){
 
         if ($attListOk{$att} eq "null" ){ # the attribute name is kept inctact
           $feature->remove_tag($att);
         }
         else{ # We replace the attribute name
+
           my @values=$feature->get_tag_values($att);
           my $newAttributeName=$attListOk{$att};
           create_or_replace_tag($feature,$newAttributeName, @values);
+          if(! $cp){
+            $feature->remove_tag($att); #remove old attribute if it is not the cp option
+          }
         }
       }
+
       elsif($add){
         if ($attListOk{$att} eq "null" ){ # the attribute name is kept inctact
           create_or_replace_tag($feature,$att,'empty');
@@ -270,7 +278,7 @@ The script allows to remove choosen attributes to choosen features.
 
 Input GFF3 file that will be read (and sorted)
 
-=item B<-p>,  B<-t> or  B<-l>
+=item B<-p>,  B<--type> or  B<-l>
 
 primary tag option, case insensitive, list. Allow to specied the feature types that will be handled. 
 You can specified a specific feature by given its primary tag name (column 3) as: cds, Gene, MrNa
@@ -279,12 +287,21 @@ You can specify directly all the feature of a particular level:
       level3=CDS,exon,UTR,etc
 By default all feature are taking in account. fill the option by the value "all" will have the same behaviour.
 
-=item B<-attributes>, B<--att>, B<-a>
+=item B<--tag>, B<--att>
 
-Attributes specified, will be removed from the feature type specified by the option p (primary tag). List of attributes must be coma separated.
+Attributes with the tag specified will be removed from the feature type specified by the option p (primary tag). List of tag must be coma separated.
 /!\\ You must use "" if name contains spaces.
-Instead to remove an attribute, you can replace its name by a new attribute name using this formulation attributeName/newAttributeName.
-To remove all attributes non mandatory (only ID and Parent are mandatory) you can use the option with all_attributes parameter.
+Instead to remove an attribute, you can replace its Tag by a new Tag using this formulation tagName/newTagName.
+To remove all attributes non mandatory (only ID and Parent are mandatory) you can use the option with <all_attributes> parameter.
+
+=item B<--add>
+
+Attribute specified will be added if doesn't exist. The value will be 'empty'.
+
+=item B<--cp>
+
+When attributes specied are with this form: tagName/newTagName. By using this <cp> parameter, the tag will not be modified but duplicated with the new
+tagName.
 
 =item B<-o> , B<--output> , B<--out> or B<--outfile>
 
