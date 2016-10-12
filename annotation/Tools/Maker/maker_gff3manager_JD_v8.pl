@@ -568,14 +568,13 @@ if ($opt_nameU || $opt_name ){#|| $opt_BlastFile || $opt_InterproFile){
                       }
 
                       elsif($primary_tag_level3 =~ /utr/){
-                        my $newID_level3 = manageID($prefixName,$nbUTRName,'U');
+                        $newID_level3 = manageID($prefixName,$nbUTRName,'U');
                         if($opt_nameU){$nbUTRName++;}
                         create_or_replace_tag($feature_level3, 'ID', $newID_level3);
                         create_or_replace_tag($feature_level3, 'Parent', $newID_level2);
                       }
                       else{
                         $newID_level3 = manageID($prefixName,$nbOTHERName,'O');
-                        if($opt_nameU){$nbOTHERName++;}
                         create_or_replace_tag($feature_level3, 'ID', $newID_level3);
                         create_or_replace_tag($feature_level3, 'Parent', $newID_level2);                        
                       }
