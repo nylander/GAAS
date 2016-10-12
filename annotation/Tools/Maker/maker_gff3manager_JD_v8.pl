@@ -575,6 +575,7 @@ if ($opt_nameU || $opt_name ){#|| $opt_BlastFile || $opt_InterproFile){
                       }
                       else{
                         $newID_level3 = manageID($prefixName,$nbOTHERName,'O');
+                        $nbOTHERName++;
                         create_or_replace_tag($feature_level3, 'ID', $newID_level3);
                         create_or_replace_tag($feature_level3, 'Parent', $newID_level2);                        
                       }
