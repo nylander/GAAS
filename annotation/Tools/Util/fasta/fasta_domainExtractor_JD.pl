@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 ###################################################
 # domainExtractor.pl - Jacques Dainat 01/2015     #

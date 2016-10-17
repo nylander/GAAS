@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 ## if IUPAC:
 ## We consider a stop only if we are sure it is one

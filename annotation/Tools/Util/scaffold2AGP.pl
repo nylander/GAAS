@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 # 
 # Creates a AGP-file needed by e.g. EMBL for a scaffolded assembly
 # 

@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 # jgi2gff.pl ; from gtf2gff.pl
 # d.gilbert; 2006 - update 2007 for stop_codon insert to CDS
 

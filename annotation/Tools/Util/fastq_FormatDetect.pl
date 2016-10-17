@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 # Author: Martin Dahlo / modified Jacques Dainat
 #
 # Usage:  perl scriptname.pl <infile> [-a -t <max seconds to search>]

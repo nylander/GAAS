@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 ## TO DO:
 ## Need to build UTR features from the difference

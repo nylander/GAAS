@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 # Takes a fasta-file (usually a genomic or transcriptomic assembly) and checks for
 # potential problems as well as calculates a few basic statistics.
 # 

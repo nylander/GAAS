@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 ## BILS 2015
 ## jacques.dainat@bils.se

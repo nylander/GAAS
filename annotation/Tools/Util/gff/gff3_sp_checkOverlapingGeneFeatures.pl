@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 ## merge gene feature if they have CDSs that overlap
 # 2015-07

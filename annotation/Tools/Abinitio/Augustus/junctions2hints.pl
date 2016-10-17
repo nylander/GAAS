@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 # A script to convert a junction.bed output from Tophat to a gff format to be used as an intronhints file in Augustus
 # If you have several junctions.bed files, concatenate these first
 # usage: perl junctions2hints.pl --infile junctions.bed
