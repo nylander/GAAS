@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 use strict;
 use Pod::Usage;
@@ -113,7 +113,7 @@ print ("Genome fasta parsed\n");
 
 foreach my $seqname (keys %{$hash_l1_grouped}) {
   foreach my $feature_l1 (@{$hash_l1_grouped->{$seqname}}) {
-    my $id_l1=lc($feature_l1->_tag_value('ID'));
+    my $id_l1=$feature_l1->_tag_value('ID');
     my $name=undef;
 
     if ($feature_l1->has_tag('Name')){
@@ -148,11 +148,11 @@ foreach my $seqname (keys %{$hash_l1_grouped}) {
     #################
     foreach my $ptag_l2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
          
-      if ( exists ($hash_omniscient->{'level2'}{$ptag_l2}{$id_l1} ) ){
-        foreach my $feature_l2 ( @{$hash_omniscient->{'level2'}{$ptag_l2}{$id_l1}}) {
+      if ( exists ($hash_omniscient->{'level2'}{$ptag_l2}{lc($id_l1)} ) ){
+        foreach my $feature_l2 ( @{$hash_omniscient->{'level2'}{$ptag_l2}{lc($id_l1)}}) {
 
           #For Header
-          my $id_l2  = lc($feature_l2->_tag_value('ID'));
+          my $id_l2  = $feature_l2->_tag_value('ID');
           if ($feature_l2->has_tag('Name') and ! $name){
             $name = $feature_l2->_tag_value('Name');
           }
@@ -183,10 +183,10 @@ foreach my $seqname (keys %{$hash_l1_grouped}) {
           # == LEVEL 3 == #
           #################
           foreach my $ptag_l3 (keys %{$hash_omniscient->{'level3'}}){
-            if ( exists ($hash_omniscient->{'level3'}{$ptag_l3}{$id_l2} ) ){
+            if ( exists ($hash_omniscient->{'level3'}{$ptag_l3}{lc($id_l2)} ) ){
               
               if( $opt_type eq $ptag_l3 ){
-                my ($seqObj, $info) = extract_sequence(\@{$hash_omniscient->{'level3'}{$ptag_l3}{$id_l2}}, $db, $opt_extermityOnly, $opt_upstreamRegion, $opt_downRegion);
+                my ($seqObj, $info) = extract_sequence(\@{$hash_omniscient->{'level3'}{$ptag_l3}{lc($id_l2)}}, $db, $opt_extermityOnly, $opt_upstreamRegion, $opt_downRegion);
                 if($info){
                   $header.="|".$info;
                 }

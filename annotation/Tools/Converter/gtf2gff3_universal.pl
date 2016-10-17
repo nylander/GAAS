@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 ## TO DO:
 ## Dont manage if some isoform (not all) should be modelate for a same gene. (gene will appear 2 times)
