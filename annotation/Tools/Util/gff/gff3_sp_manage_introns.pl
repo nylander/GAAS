@@ -188,15 +188,14 @@ foreach my $file (@opt_files){
         ######
         #get all level3
         my $id_l2=lc($feature_l2->_tag_value('ID'));
-        foreach my $tag_l3 (keys %{$hash_omniscient->{'level3'}}){
 
-          if(exists ($hash_omniscient->{'level3'}{$tag_l3}{$id_l2})){
+          if(exists_keys($hash_omniscient,('level3','exon',$id_l2))){
 
           my $counterL3=-1;
           #Initialize intron to 0 to avoid error during printing results
-          my $indexLast = $#{$hash_omniscient->{'level3'}{$tag_l3}{$id_l2}};
+          my $indexLast = $#{$hash_omniscient->{'level3'}{'exon'}{$id_l2}};
           
-          my @sortedList = sort {$a->start <=> $b->start} @{$hash_omniscient->{'level3'}{$tag_l3}{$id_l2}};
+          my @sortedList = sort {$a->start <=> $b->start} @{$hash_omniscient->{'level3'}{'exon'}{$id_l2}};
           
             foreach my $feature_l3 ( @sortedList ){
 
@@ -214,7 +213,6 @@ foreach my $file (@opt_files){
             }# END FOREACH L3
           }
         }
-      }# END all feature level 3
     }
   }
 }
@@ -307,9 +305,9 @@ __END__
 
 =head1 NAME
  
-gff3_sp_manage_introns.pl - This script give some information about introns (longest, shortest size mean ...) using the statisticmethod, 
+gff3_sp_manage_introns.pl - This script give some information about introns (longest, shortest size mean ...) using the statistic method, 
 then plot all the intron size values to get an overview of the introns size distribution.
-It gives you as well the value of the longest intron after removing X percent(s) of the longest (rmoving potential biais / false positive).
+It gives you as well the value of the longest intron after removing X percent(s) of the longest (removing potential biais / false positive).
 
 =head1 SYNOPSIS
 

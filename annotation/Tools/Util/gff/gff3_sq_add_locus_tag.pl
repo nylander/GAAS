@@ -81,7 +81,6 @@ while (my $feature = $ref_in->next_feature() ) {
 
     if( lc($feature->primary_tag) eq "gene"){
       $geneName=$feature->_tag_value('ID');
-      print "$geneName $locus_tag\n";
       $feature->add_tag_value($locus_tag, $geneName);
     }
     elsif($geneName){
