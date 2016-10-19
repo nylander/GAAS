@@ -891,7 +891,7 @@ sub check_exons{
  	  			if( ! exists_keys(\%checked,($id_l2)) ){ #l2 already checked
 
  	  				#Case where No exon feature among L3
-	 	  			if( ! exists_keys($hash_omniscient,('level3','exon', $id_l2)) ){ #l3 feature but no exon among them... need to recreate them.
+	 	  			#if( ! exists_keys($hash_omniscient,('level3','exon', $id_l2)) ){ #l3 feature but no exon among them... need to recreate them.
 
 	 	  				my $feature_example=undef; # will be used to create the exon features
 	 	  				my $list_location=[];
@@ -906,12 +906,12 @@ sub check_exons{
 				 	  					$feature_example=$l3_feature;
 				 	  				}
 				 	  				my $locationRefList=[[$l3_feature->start, $l3_feature->end]];
-				 	  				$list_location = _manage_location($locationRefList, $list_location);
+				 	  				$list_location = _manage_location($locationRefList, $list_location, 1);
 				 	  			}
 				 	  		}
 				 	  	}
 				 	  	$checked{$id_l2}++;
-
+				 	  	print  "LEst continue: ".Dumper($list_location);exit;
 				 	  	foreach my $location (@{$list_location}){
 				 	  		my $feature_exon = clone($feature_example);#create a copy of a random feature l3;
 							$feature_exon->start($location->[0]);
@@ -922,7 +922,7 @@ sub check_exons{
 							#save new feature L2
 							push (@{$hash_omniscient->{"level3"}{'exon'}{$id_l2}}, $feature_exon);
 				 	  	} 
-	 	  			}
+	 	  		#	}
 	 	  		}
  	  		}
  	  	}
@@ -935,7 +935,7 @@ sub check_exons{
 sub _manage_location{
 	my ($locationRefList, $locationTargetList, $verbose) = @_;
 
-	if($verbose){print Dumper($locationRefList)."\n"; print Dumper($locationTargetList)."\n";}
+	if($verbose){print "Enter Ref: ".Dumper($locationRefList)."\n"; print "Enter Target: ".Dumper($locationTargetList)."\n";}
 
 	my @new_location_list; #new location list that will be returned once filled
 	
@@ -1005,9 +1005,10 @@ sub _manage_location{
 		}
 	}
 	else{#check number of location -> none
+		if($verbose){print "returnA: ".Dumper($locationRefList)."\n";}
 		return $locationRefList;
 	}
-	
+	if($verbose){print "returnB: ".Dumper(\@new_location_list)."\n";}
 	return \@new_location_list;
 }
 

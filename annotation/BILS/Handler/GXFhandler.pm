@@ -63,8 +63,8 @@ sub print_omniscient{
 			#################
 			foreach my $primary_tag_l2 (sort {$a <=> $b} keys %{$hash_omniscient->{'level2'}}){ # primary_tag_l2 = mrna or mirna or ncrna or trna etc...
 
-				if ( exists ($hash_omniscient->{'level2'}{$primary_tag_l2}{$id_tag_key_level1} ) ){
-					foreach my $feature_level2 ( sort {$a->_tag_value('ID') <=> $b->_tag_value('ID')} @{$hash_omniscient->{'level2'}{$primary_tag_l2}{$id_tag_key_level1}}) {
+				if ( exists_keys( $hash_omniscient, ('level2', $primary_tag_l2, $id_tag_key_level1) ) ){
+					foreach my $feature_level2 ( sort {$a->start <=> $b->start} @{$hash_omniscient->{'level2'}{$primary_tag_l2}{$id_tag_key_level1}}) {
 						$gffout->write_feature($feature_level2);
 
 						#################
@@ -74,15 +74,15 @@ sub print_omniscient{
 
 						######
 						# FIRST EXON
-						if ( exists ($hash_omniscient->{'level3'}{'exon'}{$level2_ID} ) ){
-							foreach my $feature_level3 ( sort {$a->_tag_value('ID') <=> $b->_tag_value('ID')} @{$hash_omniscient->{'level3'}{'exon'}{$level2_ID}}) {
+						if ( exists_keys( $hash_omniscient, ('level3', 'exon', $level2_ID) ) ){
+							foreach my $feature_level3 ( sort {$a->start <=> $b->start} @{$hash_omniscient->{'level3'}{'exon'}{$level2_ID}}) {
 								$gffout->write_feature($feature_level3);
 							}
 						}
 						###########
 						# SECOND CDS
-						if ( exists ($hash_omniscient->{'level3'}{'cds'}{$level2_ID} ) ){
-							foreach my $feature_level3 ( sort {$a->_tag_value('ID') <=> $b->_tag_value('ID')} @{$hash_omniscient->{'level3'}{'cds'}{$level2_ID}}) {
+						if ( exists_keys( $hash_omniscient, ('level3', 'cds', $level2_ID) ) ){
+							foreach my $feature_level3 ( sort {$a->start <=> $b->start} @{$hash_omniscient->{'level3'}{'cds'}{$level2_ID}}) {
 								$gffout->write_feature($feature_level3);
 							}
 						}
@@ -91,8 +91,8 @@ sub print_omniscient{
 						# THEN ALL THE REST
 						foreach my $primary_tag_l3 (sort {$a <=> $b} keys %{$hash_omniscient->{'level3'}}){ # primary_tag_l3 = cds or exon or start_codon or utr etc...
 							if (($primary_tag_l3 ne 'cds') and ($primary_tag_l3 ne 'exon')) {
-								if ( exists ($hash_omniscient->{'level3'}{$primary_tag_l3}{$level2_ID} ) ){
-									foreach my $feature_level3 ( sort {$a->_tag_value('ID') <=> $b->_tag_value('ID')} @{$hash_omniscient->{'level3'}{$primary_tag_l3}{$level2_ID}}) {
+								if ( exists_keys( $hash_omniscient, ('level3', $primary_tag_l3, $level2_ID) ) ){
+									foreach my $feature_level3 ( sort {$a->start <=> $b->start} @{$hash_omniscient->{'level3'}{$primary_tag_l3}{$level2_ID}}) {
 										$gffout->write_feature($feature_level3);
 									}
 								}
