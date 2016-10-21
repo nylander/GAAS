@@ -32,6 +32,7 @@ sub slurp_gff3_file_JD {
 	
 	my $gffio = Bio::Tools::GFF->new(-file => $file, -gff_version => 3);	
 
+	my $start_run = time();
 
 	### Handle to not print to much warning
 	my %WARNS;
@@ -88,6 +89,8 @@ sub slurp_gff3_file_JD {
   		}	
   	}
 
+  	print "Parsing done in ", time() - $start_run," seconds\n\n\n";
+  	
     #return
 	return \%omniscient, \%mRNAGeneLink	;
 }
