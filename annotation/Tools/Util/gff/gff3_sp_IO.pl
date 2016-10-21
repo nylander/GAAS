@@ -17,7 +17,8 @@ use Bio::Tools::GFF;
 my $start_run = time();
 my $opt_gfffile;
 my $opt_comonTag=undef;
-my $opt_verbose;
+my $opt_verbose=undef;
+my $opt_deep=undef;
 my $opt_output;
 my $opt_help = 0;
 
@@ -25,6 +26,7 @@ my $opt_help = 0;
 if ( !GetOptions( 'g|gff=s' => \$opt_gfffile,
                   'c|ct=s'      => \$opt_comonTag,
                   'v'      => \$opt_verbose,
+                  'd'      => \$opt_deep,
                   'o|output=s'      => \$opt_output,
                   'h|help!'         => \$opt_help ) )
 {
@@ -65,6 +67,7 @@ else{
 
 ######################
 ### Parse GFF input #
+if($opt_verbose and $opt_deep) {$opt_verbose = 2 ;}
 my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GFF3handler->slurp_gff3_file_JD($opt_gfffile, $opt_comonTag, $opt_verbose);
 print ("GFF3 file parsed\n");
 
