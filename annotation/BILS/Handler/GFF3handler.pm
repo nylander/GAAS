@@ -25,6 +25,9 @@ our %EXPORT_TAGS = ( DEFAULT => [qw()],
 
 =cut	
 
+#===== TO  DO
+#	HANDLE check and creation of UTR if we have exon and CDS
+
 ##########################
 #### DEFINE CONSTANT #####
 use constant LEVEL1 => { "gene" => 1, "sts" => 2, "match" => 3, "pseudogene" => 4,  "processed_pseudogene" => 4 };
@@ -32,6 +35,7 @@ use constant LEVEL2 => { "mrna" => 1, "ncrna" => 2, "mirna" => 3, "lcrna" => 4, 
 use constant LEVEL3 => { "cds" => 1, "exon" => 2, "stop_codon" => 3, "start_codon" => 4, "three_prime_utr" => 5, "five_prime_utr" => 6, "utr" => 7, "selenocysteine" => 8, "non_canonical_three_prime_splice_site" => 8, "non_canonical_five_prime_splice_site" => 10,
 						"stop_codon_read_through" => 11, "sig_peptide" => 12, "tss" => 13, "tts" => 14, "intron" => 15 };
 use constant SPREADFEATURE => {"cds" => 1, "three_prime_utr" => 2, "five_prime_utr" => 3, "utr" => 4};
+use constant PREFIXL2 => "nbis_noL2id";
 
 # Save in omniscient hash (sorted in a specific way (3 levels)) a whole gff3 file
 # Parser phylosophy: Parse by Parent/child ELSE 
@@ -41,7 +45,7 @@ use constant SPREADFEATURE => {"cds" => 1, "three_prime_utr" => 2, "five_prime_u
 sub slurp_gff3_file_JD {
 	
 	my ($self, $file, $comonTagAttribute, $verbose) = @_  ;
-	
+	#$verbose=2;
 	my $start_run = time();
 	my $previous_time = undef;
 	my $verbose2 = $verbose if ($verbose and $verbose == 2);
@@ -97,7 +101,7 @@ sub slurp_gff3_file_JD {
 
     #Check sequential if we can fix cases. Hash to be done first, else is risky that we remove orphan L1 feature ... that are not yet linked to a sequential bucket
 	if( keys %infoSequential ){ #hash is not empty
-    	_check_sequential(\%infoSequential, \%omniscient, \%miscCount, \%uniqID, \%mRNAGeneLink, $verbose2);
+    	_check_sequential(\%infoSequential, \%omniscient, \%miscCount, \%uniqID, \%locusTAG, \%mRNAGeneLink, $verbose2);
     }
     else{ print "Nothing to check as sequential !\n" if($verbose) }
 	if($verbose) {print "      done in ",time() - $previous_time," seconds\n\n\n"; $previous_time = time();}
@@ -126,6 +130,11 @@ sub slurp_gff3_file_JD {
 	# Check gene positions compared to its l2 features
 	_check_level1_positions(\%omniscient, $verbose2);
 	if($verbose) {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
+	#_printSurrounded("Check7: ",30,"*") if $verbose;
+
+	#check loci names (when overlap should be the same if type is the same)
+	#_check_overlap_name_diff(\%omniscient);
+    #if($verbose) {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
 
     # To keep track of How many Warnings we got....
     foreach my $thematic (keys %WARNS){
@@ -142,32 +151,32 @@ sub slurp_gff3_file_JD {
 }
 
 #
-sub create_omniscient_from_feature_list {
-	my ($ref_featureList)=@_;
+# sub create_omniscient_from_feature_list {
+# 	my ($ref_featureList)=@_;
 
-	my %mRNAGeneLink; #Hast that keep track about link between l2 and l1
-	my %omniscient; #Hast where all the feature will be saved
-	my %duplicate;# Hash to store any counter. Will be use to create a new uniq ID 
-	my %miscCount;# Hash to store any counter. Will be use to create a new uniq ID
-	my %uniqID;# Hash to follow up with an uniq identifier every feature
-	my %locusTAG;
-	my %infoSequential;# Hash to store any counter. Will be use to create a new uniq ID
-	my $locusTAGvalue=undef;
-	my $last_l1_f=undef;
-	my $last_l2_f=undef;
-	my $last_l3_f=undef;
+# 	my %mRNAGeneLink; #Hast that keep track about link between l2 and l1
+# 	my %omniscient; #Hast where all the feature will be saved
+# 	my %duplicate;# Hash to store any counter. Will be use to create a new uniq ID 
+# 	my %miscCount;# Hash to store any counter. Will be use to create a new uniq ID
+# 	my %uniqID;# Hash to follow up with an uniq identifier every feature
+# 	my %locusTAG;
+# 	my %infoSequential;# Hash to store any counter. Will be use to create a new uniq ID
+# 	my $locusTAGvalue=undef;
+# 	my $last_l1_f=undef;
+# 	my $last_l2_f=undef;
+# 	my $last_l3_f=undef;
 
-	foreach my $feature (@{$ref_featureList}) {
-		($locusTAGvalue, $last_l1_f, $last_l2_f, $last_l3_f) = manage_one_feature($feature, \%omniscient, \%mRNAGeneLink, \%duplicate, \%miscCount, \%uniqID, \%locusTAG, \%infoSequential, [], $locusTAGvalue, $last_l1_f, $last_l2_f, $last_l3_f, undef);
-    }
-	return \%omniscient, \%mRNAGeneLink	;
-}
+# 	foreach my $feature (@{$ref_featureList}) {
+# 		($locusTAGvalue, $last_l1_f, $last_l2_f, $last_l3_f) = manage_one_feature($feature, \%omniscient, \%mRNAGeneLink, \%duplicate, \%miscCount, \%uniqID, \%locusTAG, \%infoSequential, [], $locusTAGvalue, $last_l1_f, $last_l2_f, $last_l3_f, undef);
+#     }
+# 	return \%omniscient, \%mRNAGeneLink	;
+# }
 
 # The method read a gff3 feature (one line), Check for correctly formated gff3 feature (ID and Parent attribute) 
 sub manage_one_feature{
 	
 	my ($feature, $omniscient, $mRNAGeneLink, $duplicate, $miscCount, $uniqID, $locusTAG_uniq, $infoSequential, $comonTagAttribute, $last_locusTAGvalue, $last_l1_f, $last_l2_f, $last_l3_f, $verbose)=@_;
-		#print "Info before start: last_locusTAGvalue = $last_locusTAGvalue -- last_l2_f = $last_l2_f\n";
+
 		my $seq_id = $feature->seq_id;					#col1
 		my $source_tag = lc($feature->source_tag);		#col2
 		my $primary_tag = lc($feature->primary_tag);	#col3
@@ -207,17 +216,17 @@ sub manage_one_feature{
 	    		################
 	    		# Save feature #
 	    		$last_l1_f = $feature;
-	    		print "Push-L1-omniscient level1 || $primary_tag || $id = feature\n" if $verbose;
+	    		print "Push-L1-omniscient level1 || $primary_tag || $id = ".$feature->gff_string()."\n" if $verbose;
     			$omniscient->{"level1"}{$primary_tag}{$id}=$feature;
- 	       		$locusTAG_uniq->{$id}=$id;
+ 	       		$locusTAG_uniq->{'level1'}{$id}=$id;
 
  	       		#############
  	       		# COMON TAG #
-		        $locusTAGvalue =_get_comon_tag_value(\@comonTagList, $feature, $locusTAG_uniq);
+		        $locusTAGvalue =_get_comon_tag_value(\@comonTagList, $feature, $locusTAG_uniq, 'level1');
 
 				if($locusTAGvalue){
 					print "Push-L1-sequential $locusTAGvalue || level1 == $id\n" if $verbose;
-					$locusTAG_uniq->{$locusTAGvalue}=$id;
+					$locusTAG_uniq->{'level1'}{$locusTAGvalue}=$id;
 		    		$infoSequential->{$id}{'level1'}=$id;
 		    	}
 		    	else{
@@ -254,34 +263,68 @@ sub manage_one_feature{
 				
 				#################
 				# COMON TAG PART1 
-				$locusTAGvalue =_get_comon_tag_value(\@comonTagList, $feature, $locusTAG_uniq);
+				$locusTAGvalue =_get_comon_tag_value(\@comonTagList, $feature, $locusTAG_uniq, 'level3');
 
 				######################
 				# NEED THE LEVEL2 ID #
 				my $l2_id="";
+				
+				#To keep track of locus tag that has been spread over the file, and a piece is found later
+				my $skip_last_l2=undef;
+				if($last_l2_f and $locusTAGvalue){
+					if(exists_keys ($locusTAG_uniq, ('linkl2l1', lc($last_l2_f->_tag_value('ID') ) ) ) ){
+						if (lc($locusTAG_uniq->{'linkl2l1'}{lc( $last_l2_f->_tag_value('ID') )}) ne lc($locusTAGvalue)){
+							$skip_last_l2=1;
+						}
+					}
+				}
+
+				# Just to avoid to have parent undef in case there is no parent feature define for the last_l2_f 
+				my $parent_of_last_l2 = "@@@@";
+				if($last_l2_f and $last_l2_f->has_tag('Parent')){ $parent_of_last_l2 = lc($last_l2_f->_tag_value('Parent')); }
+
+
 				# case where No level2 feature defined yet - I will need a bucketL2 
 				# OR comon tag changed (= level1/level2 different) so we have to create a new level2 tag - but only if the last_comon tag is different as the parent of the last_l2_f (In that case we can use the last L2 feature. It was missing the comon tag in it). 
-				if(! $last_l2_f or ($locusTAGvalue and ($locusTAGvalue ne $last_locusTAGvalue) and $last_locusTAGvalue ne lc($last_l2_f->_tag_value('Parent')) ) ){
+				if(! $last_l2_f or ($locusTAGvalue and ($locusTAGvalue ne $last_locusTAGvalue) and $last_locusTAGvalue ne $parent_of_last_l2 or $skip_last_l2)  ){
 					print "Create L2 feature $locusTAGvalue ne $last_locusTAGvalue !\n" if $verbose;
-					# In case where no parent, no comon tag, and no sequential, we cannot deal at all with it !!!!
-					if(! _get_comon_tag_value(\@comonTagList, $feature, $locusTAG_uniq) and ! $last_l1_f ){
-						 print "Are you kiding ? ".$feature->gff_string()." is not a gff3 feature => BIG mistake ! this file cannot be parsed correclty. Eihter sequentialy or using comon tag.\n You could try to provide a correct comon tag (default is 'locus_tag')\n";
+					
+					#######################
+					# Change referenrtiel => based on the last L2 link to this locus
+					#######################
+					if(exists_keys ($locusTAG_uniq, ('level2',$locusTAGvalue) ) ){ #first of
+						print "It happens \n";
+						$last_l2_f = @{$locusTAG_uniq->{'level2'}{$locusTAGvalue}}[$#{$locusTAG_uniq->{'level2'}{$locusTAGvalue}}]; # case were locus already met before (feature are spred within the file), we link the L3 to the last l2 of this locus.
+						$l2_id = $last_l2_f->_tag_value('ID');
+						foreach my $tag_l1 (keys %{$omniscient->{'level1'}}){
+							if(exists_keys ($omniscient,('level1', $tag_l1, $locusTAG_uniq->{'linkl2l1'}{lc($l2_id)}))){
+								$last_l1_f = $omniscient->{'level1'}{$tag_l1}{$locusTAG_uniq->{'linkl2l1'}{lc($l2_id)}};
+							}
+						}
 					}
+					else{
+						# In case where no parent, no comon tag, and no sequential, we cannot deal at all with it !!!!
+						if(! _get_comon_tag_value(\@comonTagList, $feature, $locusTAG_uniq, 'level3') and ! $last_l1_f ){
+							 print "Are you kiding ? ".$feature->gff_string()." is not a gff3 feature => BIG mistake ! this file cannot be parsed correclty. Eihter sequentialy or using comon tag.\n You could try to provide a correct comon tag (default is 'locus_tag')\n";
+						}
 
-					$l2_id = _create_ID($miscCount, $uniqID, $primary_tag, $id, "nbis_noL2id");					
-					$last_l2_f = clone($feature);
-					create_or_replace_tag($last_l2_f,'ID',$l2_id); #modify Parent To keep only one
-					$last_l2_f->primary_tag('RNA');
+						$l2_id = _create_ID($miscCount, $uniqID, $primary_tag, $id, PREFIXL2);					
+						$last_l2_f = clone($feature);
+						create_or_replace_tag($last_l2_f,'ID',$l2_id); #modify Parent To keep only one
+						$last_l2_f->primary_tag('RNA');
+					}
 				}
 				else{ # case where previous level2 exists
 					$l2_id=$last_l2_f->_tag_value('ID');
 				}
+
 				create_or_replace_tag($feature,'Parent',$l2_id); #modify Parent To keep only one
 
 				#############
  	       		# COMON TAG  Part2
 				if($locusTAGvalue){ #Previous Level up feature had a comon tag					
 					print "Push-L3-sequential-1 $locusTAGvalue || ".lc($l2_id)." || level3 == ".$feature->gff_string."\n" if $verbose;
+					### TAKE LAST L2 of the locus tag iF exist !
 		    		push( @{$infoSequential->{$locusTAGvalue}{lc($l2_id)}{'level3'}}, $feature );
 			    	return $locusTAGvalue, $last_l1_f, $last_l2_f, $feature;								#### STOP HERE AND RETURN
 				}
@@ -408,7 +451,7 @@ sub manage_one_feature{
 
 				#################
  	       		# COMON TAG PART1
-				$locusTAGvalue =_get_comon_tag_value(\@comonTagList, $feature, $locusTAG_uniq);
+				$locusTAGvalue =_get_comon_tag_value(\@comonTagList, $feature, $locusTAG_uniq, 'level2');
 
 
 				######################
@@ -433,20 +476,19 @@ sub manage_one_feature{
 				if($locusTAGvalue){ #Previous Level up feature had a comon tag
 					print "Push-L2-Sequential-1 $locusTAGvalue || ".lc($id)." || level2 == ".$feature->gff_string."\n" if $verbose;
 		    		$infoSequential->{$locusTAGvalue}{lc($id)}{'level2'} = $feature ;
-		    		# keep track of link between level2->leve1 # Why using it ?
-	  				#if (! exists ($mRNAGeneLink->{lc($id)})){ 
-					#	$mRNAGeneLink->{lc($id)}=lc($locusTAGvalue);
-		 			#}			
+		
 			    	return $locusTAGvalue, $last_l1_f, $feature, $last_l3_f;								#### STOP HERE AND RETURN
 				}
 				else{					
-					#$infoSequential->{lc($l1_ID)}{lc($id)}{'level2'} = $feature ;
+					
 					print "Push-L2-omniscient-2: level2 || ".$primary_tag." || ".lc($l1_ID)." == ".$feature->gff_string."\n" if $verbose;
 					push (@{$omniscient->{"level2"}{$primary_tag}{lc($l1_ID)}}, $feature);
+					
 					# keep track of link between level2->leve1 #
 	  				if (! exists ($mRNAGeneLink->{lc($id)})){ 
 						$mRNAGeneLink->{lc($id)}=lc($l1_ID);
 		 			}	
+
 					return lc($l1_ID) , $last_l1_f, $feature, $last_l3_f;								#### STOP HERE AND RETURN
 				}
 			}
@@ -484,22 +526,35 @@ sub manage_one_feature{
 #check if the comom tag is present among the attributes
 # return lower case value
 sub _get_comon_tag_value{
-	my ($comonTagList, $feature, $locusTAG_uniq)=@_;
+	my ($comonTagList, $feature, $locusTAG_uniq, $level)=@_;
 
-	my $result=undef;
+	my $locusName=undef;
+
    	foreach my $tag (@$comonTagList){
+
+   		#check if we hace the tag
 		if($feature->has_tag($tag)){
-		    $result=lc($feature->_tag_value($tag));
-		    if(exists ($locusTAG_uniq->{$result}) ){
-		    	return $locusTAG_uniq->{$result};
+		    $locusName=lc($feature->_tag_value($tag)); #get the value
+		    
+		    if(exists_keys ($locusTAG_uniq, ('level1',$locusName) ) ){
+		    	$locusName = $locusTAG_uniq->{'level1'}{$locusName};
+		    	last;
 		    }
 		    else{
-		    	$locusTAG_uniq->{$result} = $result;
-		    	return $result;
+		    	$locusTAG_uniq->{'level1'}{$locusName} = $locusName; #save it
+		    	last;
 			}
 		}
 	}
-	return $result;
+
+	if($level eq 'level2' and $locusName){
+		if(! exists_keys ($locusTAG_uniq, ('level2',$locusName, lc($feature->_tag_value('ID'))) ) ){
+			push @{$locusTAG_uniq->{'level2'}{$locusName}}, $feature;
+			$locusTAG_uniq->{'linkl2l1'}{lc($feature->_tag_value('ID'))} =  $locusName;
+		}
+	}
+
+	return $locusName;
 }
 
 #feature is not yet saved in omniscient !
@@ -731,8 +786,8 @@ sub _remove_orphan_l1{
  		    	#check refseq case // Follw the gff3 standard but gap for feature L2 
      			if ( ! refseq_case($hash_omniscient, $hash_omniscient->{'level1'}{$tag_l1}{$id_l1}, $miscCount, $uniqID, $mRNAGeneLink, $verbose)){
      				warn "WARNING gff3 reader level1 : No child feature found for the $tag_l1 with ID @ ".$id_l1.".\n";
+     				print "One orphan removed \n" if ($verbose);
      			}
-     			print "One orphan removed \n" if ($verbose);
  			    delete $hash_omniscient->{'level1'}{$tag_l1}{$id_l1}; # delete level1 // In case of refseq the thin has been cloned and modified, it is why we nevertheless remove it
 		    }
  	 	}
@@ -770,7 +825,7 @@ sub refseq_case{ # refseq case as example
 
  				  	#fill the $mRNAGeneLink hash
  				  	$mRNAGeneLink->{lc($id_l2)} = lc($l1_ID); # Always need to keep track about l2->l1, else the method _check_l3_link_to_l2 will recreate a l1 thinking this relationship is not fill
- 				  	print "One L1 and L2 feature created (RefSeq case)\n" if($verbose);
+ 				  	print "L1 child was directly linked to L3. Corrected by removing the L1 and creating new L1 and L2 features\n" if($verbose);
 
  				  	return 1;
  		    }
@@ -867,7 +922,7 @@ sub _check_exons{
 				 	  				}
 				 	  				#print "NOEXONFeature= ".$l3_feature->gff_string."\n";
 				 	  				my $locationRefList=[[int($l3_feature->start), int($l3_feature->end)]];
-				 	  				$list_location_NoExon = _manage_location($locationRefList, $list_location_NoExon, $verbose);
+				 	  				$list_location_NoExon = _manage_location($locationRefList, $list_location_NoExon, undef);
 				 	  			}
 				 	  		}
 				 	  	}
@@ -989,8 +1044,6 @@ sub _check_exons{
 	 	  					}
 	 	  				}
 	 	  			}
-	 	  			
-
 				 	#keep track of l2 checked (as we loop over L3, we meet several time the same l2)
 		 	  		$checked{$id_l2}++;
 	 	  		}
@@ -1129,35 +1182,105 @@ sub _manage_location_lowLevel{
 	return $new_location, $overlap;
 }
 
-# # All Level1 feature are for sure in omniscient, we have only the ID in sequential, other level feature are in sequential only if no parent has been found
+
+#============================================================================================================
+#Explanation: Case where part of the locus BBBBBB has been seen before to meet the its Parent feature (see below) = a parent feature ID has been created on the fly during the parsing.
+#			  We now need to remove the wrong Parent ID and link them to the correct one.
+#seq1	maker	CDS	561401	561519	.	+	2	ID=CLUHART00000006146:cds;locus_tag=AAAAA
+#seq1	maker	UTR	337818	337914	.	+	.	ID=CLUHART00000008717:five_prime_utr;locus_tag=BBBBBB
+#seq1	maker	UTR	343034	343277	.	+	.	ID=CLUHART00000008717:three_prime_utr;locus_tag=BBBBBB
+#seq1	maker	CDS	564171	564235	.	+	0	ID=CLUHART00000006146:cds;locus_tag=AAAAA
+#...
+#seq1	maker	gene	337818	343277	.	+	.	ID=CLUHARG00000005458;locus_tag=BBBBBB
+#
+# 
+#
+# => Improve something ??????
+sub _cleanSequentialIncase{
+	my ($infoSequential, $locusTAGuniq) = @_;
+
+	foreach my $locusNameHIS (keys %{$infoSequential} ){
+
+	 	if(exists_keys($locusTAGuniq,('level1', $locusNameHIS))){
+	 		
+	 		my $locusNameUniq = $locusTAGuniq->{'level1'}{$locusNameHIS};
+	 		if($locusNameHIS ne $locusNameUniq ){
+	 			
+	 			print "$locusNameHIS  ne $locusNameUniq\n";
+	 			if(exists_keys ($infoSequential,($locusNameUniq) ) ){
+	 				print "Already exist !\n";
+	 				
+	 				foreach my $bucket (keys %{$infoSequential->{$locusNameHIS}} ){
+	 					if ($bucket eq 'level1'){next;}
+	 					
+	 					my $prefix= lc(PREFIXL2); #when a l2 start with this prefix it means we created the l2 on the fly (the real l2 if exists, had not been met yet)
+	 					if($bucket =~ /^$prefix/i){
+	 						my $idok=undef;
+	 						foreach my $feature ( @{$locusTAGuniq->{'level2'}{ $locusNameUniq}}){	 							
+	 							if(lc($feature->_tag_value('ID')) !~ /^$prefix/i){
+	 								$idok = lc( $feature->_tag_value('ID') ); # @{$locusTAGuniq->{'level2'}{ $locusNameUniq }}[$cpt] is the first l2 feature that has been realy met 
+	 																		  # We make the assumption that the pieces of the locus that were lost before to describe its real l2 is part of the forst real l2 met.
+	 																	      # ====================================================================================================================================						
+	 							}
+	 						}
+	 				 		print "start with prefix: $bucket === $idok\n";
+	 				 		if(exists_keys ($infoSequential,($locusNameUniq, $idok) ) ){
+	 				 			
+	 				 			print "we are in this case\n";
+	 				 			foreach my $level (keys %{$infoSequential->{$locusNameHIS}{$bucket}} ){
+	 				 				push @{$infoSequential->{$locusNameUniq}{$idok}{$level}}, @{$infoSequential->{$locusNameHIS}{$bucket}{$level}};
+	 				 				print "je met infoSequential $locusNameUniq $idok $level dans $locusNameHIS $bucket $level\n";
+	 				 			}
+	 				 			delete $infoSequential->{$locusNameHIS}{$bucket};
+	 				 			if(! %{$infoSequential->{$locusNameHIS}}){delete $infoSequential->{$locusNameHIS};} # remove because nothing linked to it anymore
+	 				 		}
+	 				 		else{
+	 				 		  $infoSequential->{$locusNameUniq}{$idok} = delete $infoSequential->{$locusNameHIS}{$bucket}; #delete the lod key but transfer the data to a new key
+	 				 		}
+	 				 	}
+	 			 	}
+	 			}
+	 			else{
+	 				$infoSequential->{$locusNameUniq} = delete $infoSequential->{$locusNameHIS}; # link to the first l2 #delete the lod key but transfer the data to a new key
+	 			}
+			}
+	 	}
+	}
+}
+
+#
+#
+# All Level1 feature are for sure in omniscient, we have only the ID in sequential, other level feature are in sequential only if no parent has been found
 sub _check_sequential{ # Goes through from L3 to l1
- 	my ($infoSequential, $omniscient, $miscCount, $uniqID, $mRNAGeneLink, $verbose) = @_;
+ 	my ($infoSequential, $omniscient, $miscCount, $uniqID, $locusTAGuniq, $mRNAGeneLink, $verbose) = @_;
+ 	print Dumper($locusTAGuniq);
+ 	_cleanSequentialIncase($infoSequential, $locusTAGuniq); # PART OF LOCUS LOST BEFORE TO MEET IT L2 or L1 ... we catch them and re-link everythong as it should be
+ 	#print Dumper($infoSequential);
+ 	foreach my $locusNameHIS (keys %{$infoSequential} ){ #comon tag was l1 id wheb no real comon tag present
 
- 	foreach my $comonTag (keys %{$infoSequential} ){ #comon tag was l1 id wheb no real comon tag present
-
- 		foreach my $bucket (keys %{$infoSequential->{$comonTag} } ){ #bucket = level1 or Id L2
- 			print "\n
- 			comonTag $comonTag bucket $bucket\n" if ($verbose);
+ 		foreach my $bucket (keys %{$infoSequential->{$locusNameHIS} } ){ #bucket = level1 or Id L2
+ 			print "\nlocusNameHIS $locusNameHIS bucket $bucket\n\n" if ($verbose);
+ 			
  			if ($bucket eq 'level1'){next;} #skip case level1 - structure of the hash different
 
  			my $must_create_l2=undef;
  			my $feature_l2 = undef;
 
 			#Bucket is an uniq ID created during the reading process. So it can be used as uniq ID.
- 			if(! exists_keys($infoSequential,($comonTag, $bucket, 'level3') ) ){
+ 			if(! exists_keys($infoSequential,($locusNameHIS, $bucket, 'level3') ) ){
  				warn "Not normal, we had feature L1 or L2  without L3 feature associated. We skip it.\n"; #We cannot guess the structure except if it is prokaryote... should we improve that ?
  				next;
  			}
 			else{
- 				foreach my $feature_L3 (@{$infoSequential->{$comonTag}{$bucket}{'level3'}} ){
+ 				foreach my $feature_L3 (@{$infoSequential->{$locusNameHIS}{$bucket}{'level3'}} ){
 
- 					if(! exists_keys($infoSequential,($comonTag, $bucket,'level2'))  ){
+ 					if(! exists_keys($infoSequential,($locusNameHIS, $bucket,'level2'))  ){
  						print "_check_sequential level2 does not exits in sequential !\n" if($verbose);
 
  						#take L2 from omniscient if already exits
  						if(exists($mRNAGeneLink->{lc($bucket)}) ){
 
- 							my $l1_id = $mRNAGeneLink->{lc($bucket)};
+ 							my $l1_id = $mRNAGeneLink->{$bucket};
  							foreach my $tag_l2 (keys %{$omniscient->{'level2'}}){
  								if(exists_keys($omniscient, ('level2', $tag_l2, lc($l1_id) ) ) ){
 		 							foreach my $featureL2 (@{$omniscient->{'level2'}{$tag_l2}{lc($l1_id)}}){
@@ -1170,16 +1293,16 @@ sub _check_sequential{ # Goes through from L3 to l1
 		 							if($feature_l2){last;}
 		 						}
 	 						}
- 							$infoSequential->{$comonTag}{$bucket}{'level2'} = $feature_l2;
+ 							$infoSequential->{$locusNameHIS}{$bucket}{'level2'} = $feature_l2;
 						}
  						else{#create l2
  							print "create level2  !\n" if($verbose);
 	 						$must_create_l2=1;
-	 						$feature_l2 = clone($infoSequential->{$comonTag}{$bucket}{'level3'}[0]);#create a copy of the first mRNA feature;
+	 						$feature_l2 = clone($infoSequential->{$locusNameHIS}{$bucket}{'level3'}[0]);#create a copy of the first mRNA feature;
 							
 							#manage primary tag
 							my $primary_tag_l2='RNA';
-							foreach my $feature_L3 (@{$infoSequential->{$comonTag}{$bucket}{'level3'}} ){
+							foreach my $feature_L3 (@{$infoSequential->{$locusNameHIS}{$bucket}{'level3'}} ){
 
 	 							if ( lc($feature_L3->primary_tag) eq 'cds'){
 	 								$primary_tag_l2 ='mRNA';
@@ -1192,11 +1315,11 @@ sub _check_sequential{ # Goes through from L3 to l1
 								create_or_replace_tag($feature_l2,'ID', $bucket); #modify ID to replace by parent value
 							#Manage Parent
 								my $parentID = undef;
-							 	if( exists_keys($infoSequential,($comonTag,'level1'))  ){
-	 								$parentID = lc($infoSequential->{$comonTag}{'level1'});
+							 	if( exists_keys($infoSequential,($locusNameHIS,'level1'))  ){
+	 								$parentID = lc($infoSequential->{$locusNameHIS}{'level1'});
 	 							}
 								else{
-									my $IDgoodCast = _id_exists_in_l1_omniscient($omniscient, $comonTag);
+									my $IDgoodCast = _id_exists_in_l1_omniscient($omniscient, $locusNameHIS);
 									if($IDgoodCast){
 											$parentID = $IDgoodCast;
 									}
@@ -1206,22 +1329,23 @@ sub _check_sequential{ # Goes through from L3 to l1
 						 				$parentID =  _create_ID($miscCount, $uniqID, 'gene', "gene-1", 'nbis_NEW');
 						 			}
 						 		}
-						 		print "_check_sequential Parent ID created = $parentID\n" if ($verbose);
+						 		print "_check_sequential Parent ID created for level2 = $parentID\n" if ($verbose);
 					 			create_or_replace_tag($feature_l2,'Parent', $parentID ); # change parentID 
 
+					 		print "push-omniscient: level2 || ".$primary_tag_l2." || ".lc($parentID)." == ".$feature_l2->gff_string."\n" if ($verbose);
 					 		push (@{$omniscient->{"level2"}{lc($primary_tag_l2)}{lc($parentID)}}, $feature_l2);
-					 		$mRNAGeneLink->{lc($bucket)} = lc($parentID); # Always need to keep track about l2->l1, else the method check_l3_link_to_l2 will recreate a l1 thinking this relationship is not fill
-					 		$infoSequential->{$comonTag}{$bucket}{'level2'} = $feature_l2;
+					 		$mRNAGeneLink->{$bucket} = lc($parentID); # Always need to keep track about l2->l1, else the method check_l3_link_to_l2 will recreate a l1 thinking this relationship is not fill
+					 		$infoSequential->{$locusNameHIS}{$bucket}{'level2'} = $feature_l2;
 					 	}
  					}
 					else{
 						
 						#MUST push L2 in omniscient if absent !
-						$feature_l2=$infoSequential->{$comonTag}{$bucket}{'level2'};
-						#print "level2 exits in sequential - $comonTag $bucket! ".$feature_l2->gff_string."\n";
+						$feature_l2=$infoSequential->{$locusNameHIS}{$bucket}{'level2'};
+						print "level2 exits in sequential - $locusNameHIS $bucket! ".$feature_l2->gff_string."\n" if ($verbose);
 
-						if(! exists($mRNAGeneLink->{lc($bucket)}) ){
-							#print "level2 does not exits in mRNAGeneLink(omniscient) !".$feature_l2->gff_string."\n";
+						if(! exists($mRNAGeneLink->{$bucket}) ){
+							print "level2 does not exits in mRNAGeneLink(omniscient) !".$feature_l2->gff_string."\n" if ($verbose);
 							push (@{$omniscient->{"level2"}{lc($feature_l2->primary_tag)}{lc($feature_l2->_tag_value('Parent'))} }, $feature_l2);
 							$mRNAGeneLink->{lc($feature_l2->_tag_value('ID'))} = lc($feature_l2->_tag_value('Parent'));
 						}
@@ -1229,8 +1353,8 @@ sub _check_sequential{ # Goes through from L3 to l1
  					my $primary_tag_L3 =  lc($feature_L3->primary_tag);
  					create_or_replace_tag($feature_L3,'Parent', $feature_l2->_tag_value('ID')); #modify ID to replace by parent value
 
- 					print "push-omniscient: level3 || ".$primary_tag_L3." || ".lc($bucket)." == ".$feature_L3->gff_string."\n" if ($verbose);
- 					push (@{$omniscient->{"level3"}{$primary_tag_L3}{lc($bucket)}}, $feature_L3);
+ 					print "push-omniscient: level3 || ".$primary_tag_L3." || ".$bucket." == ".$feature_L3->gff_string."\n" if ($verbose);
+ 					push (@{$omniscient->{"level3"}{$primary_tag_L3}{$bucket}}, $feature_L3);
  				}
  			}
 
@@ -1240,7 +1364,6 @@ sub _check_sequential{ # Goes through from L3 to l1
  		}
  		#LEVEL 1 IS taking care later
  	}
- 	#print Dumper($omniscient)."dumper omniscient\n";
 }
 
 #print return ID if exists original cast
@@ -1334,6 +1457,80 @@ sub check_mrna_positions{
   if($mRNA_feature->end != $exonEnd){
     $mRNA_feature->end($exonEnd);
   }
+}
+
+#
+# LocusID->level->typeFeature->Parent->[ID,start,end]
+#
+sub _check_overlap_name_diff{
+	my ($omniscient) = @_;
+
+	my $sortBySeq = _sort_by_seq($omniscient);
+
+	foreach my $tag_l1 ( keys %{$omniscient->{'level1'}}){ # tag_l1 = gene or repeat etc...
+		foreach my $id_l1 ( keys %{$omniscient->{'level1'}{$tag_l1}} ) { #sort by position
+			
+
+			#################
+			# == LEVEL 2 == #
+			#################
+			foreach my $tag_l2 ( keys %{$omniscient->{'level2'}}){ # tag_l2 = mrna or mirna or ncrna or trna etc...
+
+				if ( exists_keys( $omniscient, ('level2', $tag_l2, $id_l1) ) ){
+					foreach my $feature_level2 ( @{$omniscient->{'level2'}{$tag_l2}{$id_l1}}) {
+						my $level2_ID = lc($feature_level2->_tag_value('ID'));
+
+						############
+						# THEN ALL THE REST
+						foreach my $tag_l3 (keys %{$omniscient->{'level3'}}){ # 
+							if ( exists_keys( $omniscient, ('level3', $tag_l3, $level2_ID) ) ){
+								foreach my $feature_level3 ( @{$omniscient->{'level3'}{$tag_l3}{$level2_ID}}) {
+									
+							
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+#
+# Sort locus by seq_id and direction if there is a CDS linked (could be improved to work for other features)
+#	
+#
+sub _sort_by_seq{
+	my ($omniscient) = @_;
+
+	my %hash_sortBySeq;
+  
+  	foreach my $tag_level1 (keys %{$omniscient->{'level1'}}){
+    	foreach my $level1_id (keys %{$omniscient->{'level1'}{$tag_level1}}){
+	    	my $level1_feature = $omniscient->{'level1'}{$tag_level1}{$level1_id};
+
+	    	my $found=0;
+	    	foreach my $tag_level2 (keys %{$omniscient->{'level2'}}){
+        		if (exists_keys($omniscient, ('level2', $tag_level2, $level1_id)) ){ # check if they have mRNA avoiding autovivifcation
+       				foreach my $feature_level2 ( @{$omniscient->{'level2'}{$tag_level2}{$level1_id}}) {
+
+       					my $l2_ID = lc($feature_level2->_tag_value('ID'));
+
+      					if (exists_keys($omniscient, ('level3', 'cds', $l2_ID)) ){
+
+					    	my $position=$level1_feature->seq_id."".$level1_feature->strand;
+				        	push (@{$hash_sortBySeq{$tag_level1}{$position}}, $level1_feature);
+				        	$found=1;
+				        	last;
+				        }
+       				}
+       			}
+       			if($found){last;}
+       		}
+        }
+	}
+	return \%hash_sortBySeq;
 }
 
 #
