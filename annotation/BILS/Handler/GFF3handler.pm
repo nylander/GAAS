@@ -1466,7 +1466,6 @@ sub _check_overlap_name_diff{
 	my ($omniscient) = @_;
 
 	my $sortBySeq = _sort_by_seq($omniscient);
-	my sortINFO; 
 
 	foreach my $tag_l1 ( keys %{$omniscient->{'level1'}}){ # tag_l1 = gene or repeat etc...
 		foreach my $id_l1 ( keys %{$omniscient->{'level1'}{$tag_l1}} ) { #sort by position
@@ -1512,7 +1511,7 @@ sub _sort_by_seq{
 	    	my $level1_feature = $omniscient->{'level1'}{$tag_level1}{$level1_id};
 	    	my $position_l1=$level1_feature->seq_id."".$level1_feature->strand;
 
-	    	$hash_sortBySeq->{$position_l1}{"level1"}{$tag_level1}{$level1_id}=[$level1_feature = [$level1_id, $level1_feature->start, $level1_feature->end];
+	    	$hash_sortBySeq{$position_l1}{"level1"}{$tag_level1}{$level1_id} = [$level1_id, $level1_feature->start, $level1_feature->end];
 
 	    	foreach my $tag_level2 (keys %{$omniscient->{'level2'}}){
         		if (exists_keys($omniscient, ('level2', $tag_level2, $level1_id)) ){ # check if they have mRNA avoiding autovivifcation
@@ -1521,18 +1520,18 @@ sub _sort_by_seq{
        					my $l2_ID = lc($feature_level2->_tag_value('ID'));
        					my $position_l2=$feature_level2->seq_id."".$feature_level2->strand;
 
-       					push (@{ hash_sortBySeq->{$position_l2}{"level2"}{$tag_level2}{$level1_id}, [$l2_ID, $feature_level2->start, $feature_level2->end]);
+       					push ( @{ $hash_sortBySeq{$position_l2}{"level2"}{$tag_level2}{$level1_id}} , [$l2_ID, $feature_level2->start, $feature_level2->end] );
 
       					############
 						# THEN ALL THE REST
 						foreach my $tag_l3 (keys %{$omniscient->{'level3'}}){ # 
-							if ( exists_keys( $omniscient, ('level3', $tag_l3, $level2_ID) ) ){
-								foreach my $feature_level3 ( @{$omniscient->{'level3'}{$tag_l3}{$level2_ID}}) {
+							if ( exists_keys( $omniscient, ('level3', $tag_l3, $l2_ID) ) ){
+								foreach my $feature_level3 ( @{$omniscient->{'level3'}{$tag_l3}{$l2_ID}}) {
 					    			
 					    			my $l3_ID = lc($feature_level3->_tag_value('ID'));
 					    			my $position_l3=$feature_level3->seq_id."".$feature_level3->strand;
 				        			
-				        			push (@{$hash_sortBySeq->{$position_l3}{"level3"}{$tag_l3}{$l2_ID}}, [$l3_ID, $feature_level3->start, $feature_level3->end] );
+				        			push (@{$hash_sortBySeq{$position_l3}{"level3"}{$tag_l3}{$l2_ID}}, [$l3_ID, $feature_level3->start, $feature_level3->end] );
 				        		}
 				        	}
 				        }
