@@ -20,18 +20,18 @@ our %EXPORT_TAGS = ( DEFAULT => [qw()],
 
 =head1 DESCRIPTION
 
-	A library to convert handle gff3 file and save it in memory 
-	Inherits from 
+	A library to convert handle any kind of gff file and save it in memory 
 
 =cut	
 
-#===== TO  DO
+#===== TO  DO ===== 
 #	HANDLE check and creation of UTR if we have exon and CDS
+# Check gene overlap
 
 ##########################
 #### DEFINE CONSTANT #####
-use constant LEVEL1 => { "gene" => 1, "sts" => 2, "match" => 3, "pseudogene" => 4,  "processed_pseudogene" => 4 };
-use constant LEVEL2 => { "mrna" => 1, "ncrna" => 2, "mirna" => 3, "lcrna" => 4, "rrna" => 5, "srp_rna" => 6, "snrna" => 7, "lincrna" => 8, "trna" => 9, "trna_pseudogene" => 10, "snorna" => 11, "misc_rna" => 12, "rnase_p_rna" => 13, "tmrna" => 14, "match_part" => 15, "similarity" => 16, "rna" => 17, "pseudogenic_transcript" => 18, "transcript" => 19, "processed_transcript" => 20, "nmd_transcript_variant" => 21};
+use constant LEVEL1 => { "gene" => 1, "sts" => 2, "match" => 3, "pseudogene" => 4, "lincrna_gene" => 6, "mirna_gene" => 7, "snrna_gene" => 8, "snorna_gene" => 9, "rrna_gene" => 10 };
+use constant LEVEL2 => { "mrna" => 1, "ncrna" => 2, "mirna" => 3, "lcrna" => 4, "rrna" => 5, "srp_rna" => 6, "snrna" => 7, "lincrna" => 8, "trna" => 9, "trna_pseudogene" => 10, "snorna" => 11, "misc_rna" => 12, "rnase_p_rna" => 13, "tmrna" => 14, "match_part" => 15, "similarity" => 16, "rna" => 17, "pseudogenic_transcript" => 18, "transcript" => 19, "processed_transcript" => 20, "nmd_transcript_variant" => 21, "aberrant_processed_transcript" => 22, "nc_primary_transcript" => 23, "processed_pseudogene" => 24};
 use constant LEVEL3 => { "cds" => 1, "exon" => 2, "stop_codon" => 3, "start_codon" => 4, "three_prime_utr" => 5, "five_prime_utr" => 6, "utr" => 7, "selenocysteine" => 8, "non_canonical_three_prime_splice_site" => 8, "non_canonical_five_prime_splice_site" => 10,
 						"stop_codon_read_through" => 11, "sig_peptide" => 12, "tss" => 13, "tts" => 14, "intron" => 15 };
 use constant SPREADFEATURE => {"cds" => 1, "three_prime_utr" => 2, "five_prime_utr" => 3, "utr" => 4};
@@ -44,17 +44,24 @@ use constant PREFIXL2 => "nbis_noL2id";
 #Priority Parent > locus_tag.
 sub slurp_gff3_file_JD {
 	
-	my ($self, $file, $comonTagAttribute, $verbose) = @_  ;
-	#$verbose=2;
+	my ($self, $file, $comonTagAttribute, $gffVersion, $verbose) = @_  ;
+
 	my $start_run = time();
 	my $previous_time = undef;
 	my $verbose2 = $verbose if ($verbose and $verbose == 2);
 
-	my $gffio = Bio::Tools::GFF->new(-file => $file, -gff_version => 3);	
+	#GFF format used for parser
+	my $format;
+	if($gffVersion){$format = $gffVersion;}
+	else{ $format = _select_gff_format($file);}
+
+	print "=>GFF version parser used: $format\n";
+
+	my $gffio = Bio::Tools::GFF->new(-file => $file, -gff_version => $format);	
 
 	### Handle to not print to much warning
 	my %WARNS;
-	my $nbWarnLimit=5;
+	my $nbWarnLimit=100;
   	local $SIG{__WARN__} = sub {
     my $message = shift;
     my @thematic=split /@/,$message ;
@@ -86,6 +93,7 @@ sub slurp_gff3_file_JD {
 
 	#read every lines
 	while( my $feature = $gffio->next_feature()) {
+		if($format eq "1"){_gff1_corrector($feature);} # case where gff1 has been used to parse.... we have to do some attribute manipulations
 		($locusTAGvalue, $last_l1_f, $last_l2_f, $last_l3_f) = manage_one_feature($feature, \%omniscient, \%mRNAGeneLink, \%duplicate, \%miscCount, \%uniqID, \%locusTAG, \%infoSequential, $comonTagAttribute, $locusTAGvalue, $last_l1_f, $last_l2_f, $last_l3_f, $verbose2);
     }
     #close the file
@@ -195,8 +203,8 @@ sub manage_one_feature{
 		####################################################
 	    ########## Manage feature WITHOUT parent ###########	== LEVEL1 ==
 	    ####################################################
-	    if (exists(LEVEL1->{$primary_tag}) ) {
-	    	print "\nLEVEL1 case\n" if $verbose;
+	    if( _get_level($feature) eq 'level1' ) {
+	    	print "\nLEVEL1 case".$feature->gff_string."\n" if $verbose;
 	    	################
 	    	# REPEATS case #
 	    	if($primary_tag eq "match"){ #Manage REPEATS // Protein2genome // stuff in match/matchpart ###########	/!\ NO level3 features /!\ Compare to gene stuff we replace primary_tag by source_tag when filling the omniscient hash
@@ -245,7 +253,7 @@ sub manage_one_feature{
       	###################################################
       	########## Manage feature WITHout CHILD  ##########		== LEVEL3 ==
       	###################################################
-      	elsif ( exists(LEVEL3->{$primary_tag}) ){
+      	elsif ( _get_level($feature) eq 'level3' ){
       		print "\nLEVEL3 case\n" if $verbose;
       		##########
 			# get ID #
@@ -303,10 +311,6 @@ sub manage_one_feature{
 						}
 					}
 					else{
-						# In case where no parent, no comon tag, and no sequential, we cannot deal at all with it !!!!
-						if(! _get_comon_tag_value(\@comonTagList, $feature, $locusTAG_uniq, 'level3') and ! $last_l1_f ){
-							 print "Are you kiding ? ".$feature->gff_string()." is not a gff3 feature => BIG mistake ! this file cannot be parsed correclty. Eihter sequentialy or using comon tag.\n You could try to provide a correct comon tag (default is 'locus_tag')\n";
-						}
 
 						$l2_id = _create_ID($miscCount, $uniqID, $primary_tag, $id, PREFIXL2);					
 						$last_l2_f = clone($feature);
@@ -429,7 +433,7 @@ sub manage_one_feature{
       	##############################################
       	########## Manage feature the rest  ##########		== LEVEL2 ==
       	##############################################
-      	elsif ( exists(LEVEL2->{$primary_tag}) ) {
+      	elsif ( _get_level($feature) eq 'level2' ) {
     		if ($primary_tag eq "match_part" or $primary_tag eq "similarity") { ########## Manage REPEATS // Protein2genome // stuff in match/matchpart ###########	/!\ NO level3 features /!\ Compare to gene stuff we replace primary_tag by source_tag when filling the omniscient hash       	
 				$primary_tag=$source_tag;  
     		}
@@ -518,7 +522,7 @@ sub manage_one_feature{
       		return $locusTAGvalue, $last_l1_f, $last_l2_f, $last_l3_f;
       	}	
 
-    print "Qrriver la cpas normal !!\n";exit;
+    print "Read this line is not normal !! Please contact the developer.\n";exit;
 }
 
 ##==============================================================
@@ -554,6 +558,11 @@ sub _get_comon_tag_value{
 		}
 	}
 
+	# In case where no parent, no comon tag, and no sequential, we cannot deal at all with it !!!!
+	if(! $locusName and $level ne 'level1'){
+		warn "WARNING gff3 reader: Hmmm, be aware that your feature doesn't contain any Parent and locus tag. No worries, we will handle it by considered it as striclty sequential. If you are not ok with that, provide an ID or a comon tag by locus. @ the feature is:\n".$feature->gff_string()."\n";
+	}
+
 	return $locusName;
 }
 
@@ -574,7 +583,7 @@ sub _it_is_duplication{
 			return $is_dupli; #return is not a dupli
 		}
 		else{
-			$potentialList=$omniscient->{$level}{$primary_tag}{$id}; #push the feature L1 in potentialList
+			$potentialList=$omniscient->{$level}{$primary_tag}{lc($id)}; #push the feature L1 in potentialList
 		}
 	}
 	else{ #feature l2 or l3
@@ -632,9 +641,24 @@ sub _it_is_duplication{
 sub _get_level{
 	my ($feature)=@_;
 
+	my $source_tag = lc($feature->source_tag);	
 	my $primary_tag = lc($feature->primary_tag);
 
-	if (exists(LEVEL1->{$primary_tag}) ) {
+	my $level=undef;
+
+	#########################################
+	## PECULIARITIES FROM HAVANA / ENSEMBL ##
+	if ($source_tag eq "ensembl" ){
+		if ( $primary_tag eq "rna" ) {return 'level1';} #particularity ENSEMBL
+	}
+	if ( ($source_tag =~ "havana" or $source_tag =~ "ensembl") and ($primary_tag eq  "processed_transcript" or $primary_tag eq  "pseudogene" ) ){ #By default processed_transcript is l2 and pseudogene is l1
+		if ($feature->has_tag('Parent')){return "level2" ;}
+		else{return "level1" ;}
+	}
+	## PECULIARITIES FROM HAVANA / ENSEMBL ##
+	#########################################
+
+	if (exists(LEVEL1->{$primary_tag}) ){
 		return 'level1';
 	}
 	elsif(exists(LEVEL2->{$primary_tag}) ){
@@ -642,9 +666,6 @@ sub _get_level{
 	}
 	elsif(exists(LEVEL3->{$primary_tag}) ){
 		return 'level3';
-	}
-	else{
-		print "Error - cannot get the level of this feature !!";exit;
 	}
 }
 
@@ -674,12 +695,18 @@ sub _create_string{
 sub _check_uniq_id{
 	my	($miscCount, $uniqID, $feature)=@_;
 	
-	my $id=undef;
 	my $uID=undef;
 	my $primary_tag = lc($feature->primary_tag);
 
+	my $id=undef;
 	if($feature->has_tag('ID')){ #has the tag
 		$id = $feature->_tag_value('ID');
+	}
+	elsif($feature->has_tag($primary_tag."_id") ){
+		$id = $feature->has_tag($primary_tag."_id");
+	}
+
+	if($id){	
 		if(! SPREADFEATURE->{$primary_tag}){ #avoid CDS and UTR that can share identical IDs
 			$uID = _create_ID($miscCount, $uniqID, $primary_tag, $id, 'nbis_NEW'); #method will push the uID
 			if(	$id ne $uID ){ #push the new ID if there is one
@@ -906,7 +933,6 @@ sub _check_exons{
 
  	  				my $feature_example=undef; # will be used to create the exon features
 	 	  			my $list_location_Exon=[];
-	 	  			my $list_location_Exon_withID=[];
 	 	  			my $list_location_NoExon=[];
 	 	  			
 	 	  			foreach my $tag_l3 (keys %{$hash_omniscient->{'level3'}}){
@@ -921,7 +947,7 @@ sub _check_exons{
 				 	  					$feature_example=$l3_feature;
 				 	  				}
 				 	  				#print "NOEXONFeature= ".$l3_feature->gff_string."\n";
-				 	  				my $locationRefList=[[int($l3_feature->start), int($l3_feature->end)]];
+				 	  				my $locationRefList=[[[$l3_feature->_tag_value('ID')] ,int($l3_feature->start), int($l3_feature->end)]];
 				 	  				$list_location_NoExon = _manage_location($locationRefList, $list_location_NoExon, undef);
 				 	  			}
 				 	  		}
@@ -937,8 +963,7 @@ sub _check_exons{
 				 	  					$feature_example=$l3_feature;
 				 	  				}
 				 	  				#print "exonFeature= ".$l3_feature->gff_string."\n";
-				 	  				push $list_location_Exon, [int($l3_feature->start), int($l3_feature->end)] ;
-				 	  				push $list_location_Exon_withID, [$l3_feature->_tag_value('ID'), int($l3_feature->start), int($l3_feature->end)] ;
+				 	  				push $list_location_Exon, [ [$l3_feature->_tag_value('ID')], int($l3_feature->start), int($l3_feature->end)] ;
 				 	  			}
 				 	  		}				 	  		
 				 	  	}
@@ -954,25 +979,23 @@ sub _check_exons{
 						if(Dumper($list_location_Exon) ne Dumper($list_location_NoExon) and @$list_location_NoExon > @$list_location_Exon){
 							warn "_check_exons EXON MISSING ! Let's correct that !! \n";
 		 	  				
-		 	  				foreach my $location (sort {$a->[0] <=> $b->[0] } @{$list_location_NoExon}){
+		 	  				foreach my $location (sort {$a->[1] <=> $b->[1] } @{$list_location_NoExon}){
 		 	  					
 		 	  					my $create_exon=1;
 		 	  					my $new_location;
 		 	  					my $overlap;
-		 	  					foreach my $exon_location (sort {$a->[1] <=> $b->[1] } @{$list_location_Exon_withID}){
+		 	  					foreach my $exon_location (sort {$a->[1] <=> $b->[1] } @{$list_location_Exon}){
 		 	  						
-		 	  						my $real_exon_location_obj=[$exon_location->[1], $exon_location->[2]]; #to remove ID added previously
+		 	  						($new_location, $overlap) = _manage_location_lowLevel($exon_location, $location);
 
-		 	  						($new_location, $overlap) = _manage_location_lowLevel($real_exon_location_obj, $location);
-
-		 	  						if($new_location->[0] != $location->[0] or $new_location->[1] != $location->[1] ){ #An exon location modifies a non-exon location... We have to remodelate the exon location to take the modification into account
+		 	  						if($new_location->[1] != $location->[1] or $new_location->[2] != $location->[2] ){ #An exon location modifies a non-exon location... We have to remodelate the exon location to take the modification into account
 			 	  						print "We modify the location of the existing exon !! ".$exon_location->[1]." ".$exon_location->[2]."\n" if $verbose;
 			 	  						
 			 	  						foreach my $l3_feature (@{$hash_omniscient->{'level3'}{'exon'}{$id_l2} } ){
-			 	  							if($l3_feature->_tag_value('ID') eq $exon_location->[0]){
-			 	  								print "Exon location modified: = ".$l3_feature->gff_string."\nnew location:".$location->[0]." ".$location->[1]."\n" if $verbose;
-			 	  								$l3_feature->start($location->[0]);
-			 	  								$l3_feature->end($location->[1]);
+			 	  							if($l3_feature->_tag_value('ID') eq $exon_location->[1]){
+			 	  								print "Exon location modified: = ".$l3_feature->gff_string."\nnew location:".$location->[1]." ".$location->[2]."\n" if $verbose;
+			 	  								$l3_feature->start($location->[1]);
+			 	  								$l3_feature->end($location->[2]);
 			 	  								last;
 			 	  							}
 			 	  						}
@@ -995,8 +1018,8 @@ sub _check_exons{
 				 	  	foreach my $location (@{$list_location}){
 				 	  		print "_check_exons Create one Exon !\n" if $verbose;
 				 	  		my $feature_exon = clone($feature_example);#create a copy of a random feature l3;
-							$feature_exon->start($location->[0]);
-				 	  		$feature_exon->end($location->[1]);
+							$feature_exon->start($location->[1]);
+				 	  		$feature_exon->end($location->[2]);
 				 	  		$feature_exon->primary_tag('exon');
 				 	  		my $uID = _check_uniq_id($miscCount, $uniqID, $feature_exon);
 				 	  		create_or_replace_tag($feature_exon, 'ID', $uID); # remove parent ID because, none.
@@ -1073,7 +1096,7 @@ sub _manage_location{
 			my %locationSaved=();
 			foreach my $location_from_ref_list (@{$locationRefList}){
 
-				if($verbose){print "\n==Location REF:".$location_from_ref_list->[0]." ".$location_from_ref_list->[1]."==\n";}
+				if($verbose){print "\n==Location REF:".$location_from_ref_list->[1]." ".$location_from_ref_list->[2]."==\n";}
 				my $location_skipped=undef; #keep track for later. If it has never been further, we will not save it later, because it will cause duplicates
 				
 				foreach my $location_from_target_list (@{$locationTargetList}){
@@ -1097,7 +1120,7 @@ sub _manage_location{
 
 					my $loc = join(' ', @$new_location);
 					if(! exists_keys (\%locationSaved,($loc) ) ){ #If location already saved--- we skip it
-						if($verbose){print "          push1:".$new_location->[0]." ".$new_location->[1]."\n\n";}
+						if($verbose){print "          push1:".$new_location->[1]." ".$new_location->[2]."\n\n";}
 						
 						#TO PUSH THE TARGET, MODIFIED OR INTACT
 						push @new_location_list, [@$new_location];
@@ -1115,9 +1138,9 @@ sub _manage_location{
 					my $TargetTargetString = join(' ', @tuple);
 					$tupleChecked{$TargetTargetString}++;
 
-					if( ($new_location->[0] !=  $location_from_target_list->[0] or $new_location->[1] !=  $location_from_target_list->[1]) ){ # location has been modified or not modifier but overlap (It means overlap completly ... it is included in)
+					if( ($new_location->[1] !=  $location_from_target_list->[1] or $new_location->[2] !=  $location_from_target_list->[2]) ){ # location has been modified or not modifier but overlap (It means overlap completly ... it is included in)
 						$check_list=1;
-						if($verbose){print "LOCATION MODIFIED: ".$new_location->[0]." ".$new_location->[1]."\n";}
+						if($verbose){print "LOCATION MODIFIED: ".$new_location->[2]." ".$new_location->[2]."\n";}
 					}
 					elsif($overlap){#position not modified but overlap (A is completely included in B); Need to keep track of it to not save the position when we are out of the loop
 						$location_skipped=1; 
@@ -1159,7 +1182,7 @@ sub _manage_location{
 }
 
 # @Purpose: Modify the location2 if it overlap the location1 by keeping the extrem values. Return the location2 intact if no overlap.
-# @input: 2 =>  integer tuple [X,Y],  list of integer tuple
+# @input: 2 =>  integer tuple [[ID],X,Y],  list of integer tuple
 # @output: 2 => ref of a list of 2 element, boolean
 sub _manage_location_lowLevel{
 	my ($location, $location2) = @_;
@@ -1167,15 +1190,15 @@ sub _manage_location_lowLevel{
 	my $new_location = [@{$location2}];
 	my $overlap=undef;
 
-	if ( ($location2->[0] <= $location->[1]+1) and ($location2->[1]+1 >= $location->[0]) ){ #it overlap or are consecutive
+	if ( ($location2->[1] <= $location->[2]+1) and ($location2->[2]+1 >= $location->[1]) ){ #it overlap or are consecutive
 
 		$overlap=1;
 
-		if($location2->[0] > $location->[0]){
-			$new_location->[0]=$location->[0];
-		}
-		if($location->[1] > $location2->[1]){
+		if($location2->[1] > $location->[1]){
 			$new_location->[1]=$location->[1];
+		}
+		if($location->[2] > $location2->[2]){
+			$new_location->[2]=$location->[2];
 		}
 	}
 
@@ -1465,41 +1488,46 @@ sub check_mrna_positions{
 sub _check_overlap_name_diff{
 	my ($omniscient) = @_;
 
-	my $sortBySeq = _sort_by_seq($omniscient);
+	# my $sortBySeq = _sort_by_seq($omniscient);
+	# my %alreadyChecked;
 
-	foreach my $tag_l1 ( keys %{$omniscient->{'level1'}}){ # tag_l1 = gene or repeat etc...
-		foreach my $id_l1 ( keys %{$omniscient->{'level1'}{$tag_l1}} ) { #sort by position
-			
+	# foreach my $locusID ( keys %{$sortBySeq}){ # tag_l1 = gene or repeat etc...
+	# 	if ( exists_keys( $sortBySeq, ( $locusID, 'level3', 'cds') ) ){
+		
+	# 		foreach my $id_l2 ( keys %{$sortBySeq->{$locusID}{'level3'}{'cds'} ) { #sort by position
+				
 
-			#################
-			# == LEVEL 2 == #
-			#################
-			foreach my $tag_l2 ( keys %{$omniscient->{'level2'}}){ # tag_l2 = mrna or mirna or ncrna or trna etc...
+	# 		#################
+	# 		# == LEVEL 2 == #
+	# 		#################
+	# 		foreach my $tag_l2 ( keys %{$omniscient->{'level2'}}){ # tag_l2 = mrna or mirna or ncrna or trna etc...
 
-				if ( exists_keys( $omniscient, ('level2', $tag_l2, $id_l1) ) ){
-					foreach my $feature_level2 ( @{$omniscient->{'level2'}{$tag_l2}{$id_l1}}) {
-						my $level2_ID = lc($feature_level2->_tag_value('ID'));
+	# 			if ( exists_keys( $omniscient, ('level2', $tag_l2, $id_l1) ) ){
+	# 				foreach my $feature_level2 ( @{$omniscient->{'level2'}{$tag_l2}{$id_l1}}) {
+	# 					my $level2_ID = lc($feature_level2->_tag_value('ID'));
 
-						############
-						# THEN ALL THE REST
-						foreach my $tag_l3 (keys %{$omniscient->{'level3'}}){ # 
-							if ( exists_keys( $omniscient, ('level3', $tag_l3, $level2_ID) ) ){
-								foreach my $feature_level3 ( @{$omniscient->{'level3'}{$tag_l3}{$level2_ID}}) {
+	# 					############
+	# 					# THEN ALL THE REST
+	# 					foreach my $tag_l3 (keys %{$omniscient->{'level3'}}){ # 
+	# 						if ( exists_keys( $omniscient, ('level3', $tag_l3, $level2_ID) ) ){
+	# 							foreach my $feature_level3 ( @{$omniscient->{'level3'}{$tag_l3}{$level2_ID}}) {
 									
 							
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
+	# 							}
+	# 						}
+	# 					}
+	# 				}
+	# 			}
+	# 		}
+	# 	}
+	# }
 }
 
 #
-# Sort locus by seq_id and direction if there is a CDS linked (could be improved to work for other features)
-# LocusID->level->typeFeature->Parent->[ID,start,end]
+# Sort by locusID !!!!
+# LocusID->level->typeFeature->Parent =[ID,start,end]
+# LocusID->level->typeFeature->Parent->ID = [ID,start,end]
+#
 #
 sub _sort_by_seq{
 	my ($omniscient) = @_;
@@ -1531,7 +1559,7 @@ sub _sort_by_seq{
 					    			my $l3_ID = lc($feature_level3->_tag_value('ID'));
 					    			my $position_l3=$feature_level3->seq_id."".$feature_level3->strand;
 				        			
-				        			push (@{$hash_sortBySeq{$position_l3}{"level3"}{$tag_l3}{$l2_ID}}, [$l3_ID, $feature_level3->start, $feature_level3->end] );
+				        			push (@{$hash_sortBySeq{$position_l3}{"level3"}{$tag_l3}{$l2_ID}{$l3_ID}}, [$l3_ID, $feature_level3->start, $feature_level3->end] );
 				        		}
 				        	}
 				        }
@@ -1748,6 +1776,8 @@ sub _print_duplicates {
 	return $string;
 }
 
+
+# allows to add a frame to a string to print
 sub _printSurrounded{
   my ($term,$size,$char) = @_;
 
@@ -1778,6 +1808,106 @@ sub _printSurrounded{
 	}
 	$result .= "$frame";
 	print $result;
+}
+
+#GFF format guess
+# Input: filename
+# Output: Integer (1,2 or 3)
+sub _select_gff_format{
+    my ($file) = @_;
+
+    #HANDLE format
+    my $format=3;
+    my $problem3=undef;
+    my $nbLineChecked=100; #number line to use to check the formnat
+    my $cpt=0;
+    
+    open(my $fh, '<', $file) or die "cannot open file $file";
+    {
+        while(<$fh>){
+            $cpt++;
+            if($cpt > $nbLineChecked){
+                    _printSurrounded("Dosn't look as a GFF file\nLet's see what the Bioperl parser can do with that...",100,"!");  
+                    last;
+            }
+            if($_ =~ /^.*\t.*\t.*\t.*\t.*\t.*\t.*\t.*\t(.*)/){
+                if(length($1) < 1){next;}
+                
+                my $string = $1;
+                if($string =~ /=/  and $string =~ /;/ ){ last; };
+
+                if($string !~ /=/  and $string !~ /;/ ){  
+                        $format=1;
+                        #_printSurrounded("Problem detected wihtin the 9th colum of the gff file\nYou cannot have space between attributes and between tag and values.\nAll your attributes will be gathered within the GROUP tag",100,"!");  
+                        last;
+                }
+                elsif($string !~ /=/  and $string =~ /;/ ){       
+                                $format=2;
+                                last;
+                }
+                my $c = () = $string =~ /=/g;
+                my $d = () = $string =~ /\ /g;
+                if($c > 1 and $d > 1  and $string !~ /;/ ){
+                       $problem3=1;
+                }
+     	   }
+        }
+    }
+    close($fh);
+    if($problem3){
+        _printSurrounded("Thre is a problem with your GFF format.\nThis format is wrong: tag=value tag=value.\nYou should have: tag=value;tag=value or tag value ; tag value\nThe best parser we can use will keep only the first attribute.",100,"!");  
+    	$format=1;
+    }
+    return $format;
+}
+
+# We modify the attributes: group=gene_id "e_gw1.5.2.1" protein_id 335805 exonNumber 1
+# in order to get : gene_id=e_gw1.5.2.1;protein_id=335805;exonNumber=1
+sub _gff1_corrector{
+	my ($feat)=@_;
+
+	if($feat->has_tag('group')){
+		my @attribs = $feat->get_tag_values('group');
+		my $attribs = join ' ', @attribs;
+		my @parsed;
+		my $flag = 0; # this could be changed to a bit and just be twiddled
+
+	    # run through each character one at a time and check it
+	    # NOTE: changed to foreach loop which is more efficient in perl
+	    # --jasons
+	    my $previousChar=undef;
+	    my $string="";
+	    for my $a ( split //, $attribs ) { 
+	    	$string.=$a;
+	        # flag up on entering quoted text, down on leaving it
+	        if( $a eq '"') { $flag = ( $flag == 0 ) ? 1:0 } #active deactive the flag
+	        if ($previousChar and $previousChar eq '"' and $flag == 0){ # case we have to strip the " characters
+	        	chop $string;
+	        	chop $string;
+	        	$string = reverse($string);
+    			chop($string);
+    			$string= reverse($string);
+	        	push @parsed, $string;
+	        	$string="";
+	        }
+	        elsif( $a eq " " and $flag == 0){
+	        	chop $string;
+	        	push @parsed, $string;
+	        	$string="";
+	        }
+	        $previousChar = $a;
+	    }
+
+	    if($string != ""){ if($previousChar eq " "){chop $string;} push @parsed, $string;}
+	    while (@parsed){
+	    	my $value = pop @parsed;
+	    	my $tag = pop @parsed;
+	    	$feat->add_tag_value($tag, $value);
+	    }
+	    #remove it   
+		$feat->remove_tag('group');
+    }
+   
 }
 
 1;
