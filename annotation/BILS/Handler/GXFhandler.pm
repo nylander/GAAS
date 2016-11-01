@@ -25,7 +25,7 @@ our %EXPORT_TAGS = ( DEFAULT => [qw()],
 	Dont take in account repeat and multi parent feature!!!
 
 =cut
-
+use constant SPREADFEATURE => {"cds" => 1, "three_prime_utr" => 2, "five_prime_utr" => 3, "utr" => 4};
 
 ###################
 #
@@ -89,7 +89,7 @@ sub print_omniscient{
 
 						############
 						# THEN ALL THE REST
-						foreach my $primary_tag_l3 (sort {$a <=> $b} keys %{$hash_omniscient->{'level3'}}){ # primary_tag_l3 = cds or exon or start_codon or utr etc...
+						foreach my $primary_tag_l3 (sort {$a <=> $b or $a cmp $b} keys %{$hash_omniscient->{'level3'}}){ # primary_tag_l3 = cds or exon or start_codon or utr etc...
 							if (($primary_tag_l3 ne 'cds') and ($primary_tag_l3 ne 'exon')) {
 								if ( exists_keys( $hash_omniscient, ('level3', $primary_tag_l3, $level2_ID) ) ){
 									foreach my $feature_level3 ( sort {$a->start <=> $b->start} @{$hash_omniscient->{'level3'}{$primary_tag_l3}{$level2_ID}}) {
