@@ -16,13 +16,18 @@ use Bio::Tools::GFF;
 
 my $start_run = time();
 my $opt_gfffile;
+my $opt_comonTag=undef;
+my $opt_verbose=undef;
+my $opt_deep=undef;
 my $opt_output;
 my $opt_help = 0;
 
 # OPTION MANAGMENT
 if ( !GetOptions( 'g|gff=s' => \$opt_gfffile,
+                  'c|ct=s'      => \$opt_comonTag,
+                  'v'      => \$opt_verbose,
+                  'd'      => \$opt_deep,
                   'o|output=s'      => \$opt_output,
-
                   'h|help!'         => \$opt_help ) )
 {
     pod2usage( { -message => 'Failed to parse command line',
@@ -62,7 +67,8 @@ else{
 
 ######################
 ### Parse GFF input #
-my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GFF3handler->slurp_gff3_file_JD($opt_gfffile);
+if($opt_verbose and $opt_deep) {$opt_verbose = 2 ;}
+my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GFF3handler->slurp_gff3_file_JD($opt_gfffile, $opt_comonTag, undef, $opt_verbose);
 print ("GFF3 file parsed\n");
 
 ###
@@ -93,6 +99,14 @@ The result is written to the specified output file, or to STDOUT.
 =item B<-g>, B<--gff> or B<-ref>
 
 Input GFF3 file that will be read (and sorted)
+
+=item B<-c> or B<--ct> 
+
+When the gff file provided is not correcly formated and features are linked to each other by a comon tag (by default locus_tag), this tag can be provided to parse the file correctly.
+
+=item B<-v> 
+
+Verbose option to see the warning messages when parsing the gff file.
 
 =item B<-o> or B<--output>
 
