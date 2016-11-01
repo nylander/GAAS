@@ -10,9 +10,9 @@ use Bio::Seq;
 
 our $VERSION     = 1.00;
 our @ISA         = qw(Exporter);
-our @EXPORT_OK   = qw(nb_feature_level1 check_gene_positions find_overlap_between_geneFeature_and_sortBySeqId sort_by_seq_id webapollo_compliant extract_cds_sequence group_l1features_from_omniscient create_omniscient_from_idlevel2list get_feature_l2_from_id_l2_l1 remove_omniscient_elements_from_level2_feature_list featuresList_identik fill_omniscient_from_other_omniscient group_features_from_omniscient featuresList_overlap check_level1_positions check_level2_positions info_omniscient fil_cds_frame exists_keys gtf2gff_features_in_omniscient_from_level1_id_list _group_features_by_transcript_and_seq_id reconstruct_locus_without_transcripts_with_seq_id remove_element_from_omniscient append_omniscient merge_omniscients remove_omniscient_elements_from_level1_id_list fill_omniscient_from_other_omniscient_level1_id print_omniscient_from_level1_id_list check_if_feature_overlap remove_tuple_from_omniscient print_ref_list_feature print_omniscient create_or_replace_tag);
+our @EXPORT_OK   = qw(print_omniscient_as_match nb_feature_level1 check_gene_positions find_overlap_between_geneFeature_and_sortBySeqId sort_by_seq_id webapollo_compliant extract_cds_sequence group_l1features_from_omniscient create_omniscient_from_idlevel2list get_feature_l2_from_id_l2_l1 remove_omniscient_elements_from_level2_feature_list featuresList_identik fill_omniscient_from_other_omniscient group_features_from_omniscient featuresList_overlap check_level1_positions check_level2_positions info_omniscient fil_cds_frame exists_keys gtf2gff_features_in_omniscient_from_level1_id_list _group_features_by_transcript_and_seq_id reconstruct_locus_without_transcripts_with_seq_id remove_element_from_omniscient append_omniscient merge_omniscients remove_omniscient_elements_from_level1_id_list fill_omniscient_from_other_omniscient_level1_id print_omniscient_from_level1_id_list check_if_feature_overlap remove_tuple_from_omniscient print_ref_list_feature print_omniscient create_or_replace_tag);
 our %EXPORT_TAGS = ( DEFAULT => [qw()],
-                 Ok    => [qw(nb_feature_level1 check_gene_positions find_overlap_between_geneFeature_and_sortBySeqId sort_by_seq_id webapollo_compliant extract_cds_sequence group_l1features_from_omniscient create_omniscient_from_idlevel2list get_feature_l2_from_id_l2_l1 remove_omniscient_elements_from_level2_feature_list featuresList_identik fill_omniscient_from_other_omniscient group_features_from_omniscient featuresList_overlap check_level1_positions check_level2_positions info_omniscient fil_cds_frame exists_keys gtf2gff_features_in_omniscient_from_level1_id_list _group_features_by_transcript_and_seq_id reconstruct_locus_without_transcripts_with_seq_id remove_element_from_omniscient append_omniscient merge_omniscients remove_omniscient_elements_from_level1_id_list fill_omniscient_from_other_omniscient_level1_id print_omniscient_from_level1_id_list check_if_feature_overlap remove_tuple_from_omniscient print_ref_list_feature print_omniscient create_or_replace_tag)]);
+                 Ok    => [qw(print_omniscient_as_match nb_feature_level1 check_gene_positions find_overlap_between_geneFeature_and_sortBySeqId sort_by_seq_id webapollo_compliant extract_cds_sequence group_l1features_from_omniscient create_omniscient_from_idlevel2list get_feature_l2_from_id_l2_l1 remove_omniscient_elements_from_level2_feature_list featuresList_identik fill_omniscient_from_other_omniscient group_features_from_omniscient featuresList_overlap check_level1_positions check_level2_positions info_omniscient fil_cds_frame exists_keys gtf2gff_features_in_omniscient_from_level1_id_list _group_features_by_transcript_and_seq_id reconstruct_locus_without_transcripts_with_seq_id remove_element_from_omniscient append_omniscient merge_omniscients remove_omniscient_elements_from_level1_id_list fill_omniscient_from_other_omniscient_level1_id print_omniscient_from_level1_id_list check_if_feature_overlap remove_tuple_from_omniscient print_ref_list_feature print_omniscient create_or_replace_tag)]);
 =head1 SYNOPSIS
 
 
@@ -104,6 +104,50 @@ sub print_omniscient{
 		}
 	}
 }
+
+# omniscient is a hash containing a whole gXf file in memory sorted in a specific way (3 levels)
+sub print_omniscient_as_match{
+
+	my ($hash_omniscient, $gffout) = @_  ;
+
+	#uri_decode_omniscient($hash_omniscient);
+
+	#################
+	# == LEVEL 1 == #
+	#################
+	foreach my $primary_tag_l1 ( sort {$a <=> $b or $a cmp $b} keys %{$hash_omniscient->{'level1'}}){ # primary_tag_l1 = gene or repeat etc...
+		foreach my $id_tag_key_level1 ( sort { $hash_omniscient->{'level1'}{$primary_tag_l1}{$a}->start <=> $hash_omniscient->{'level1'}{$primary_tag_l1}{$b}->start } keys %{$hash_omniscient->{'level1'}{$primary_tag_l1}} ) { #sort by position
+
+			#################
+			# == LEVEL 2 == #
+			#################
+			foreach my $primary_tag_l2 (sort {$a <=> $b} keys %{$hash_omniscient->{'level2'}}){ # primary_tag_l2 = mrna or mirna or ncrna or trna etc...
+
+				if ( exists_keys( $hash_omniscient, ('level2', $primary_tag_l2, $id_tag_key_level1) ) ){
+					foreach my $feature_level2 ( sort {$a->start <=> $b->start} @{$hash_omniscient->{'level2'}{$primary_tag_l2}{$id_tag_key_level1}}) {
+						$feature_level2->primary_tag('match');
+						$gffout->write_feature($feature_level2);
+
+						#################
+						# == LEVEL 3 == #
+						#################
+						my $level2_ID = lc($feature_level2->_tag_value('ID'));
+
+						######
+						# EXON
+						if ( exists_keys( $hash_omniscient, ('level3', 'exon', $level2_ID) ) ){
+							foreach my $feature_level3 ( sort {$a->start <=> $b->start} @{$hash_omniscient->{'level3'}{'exon'}{$level2_ID}}) {
+								$feature_level3->primary_tag('match_part');
+								$gffout->write_feature($feature_level3);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 # omniscient is a hash containing a whole gXf file in memory sorted in a specific way (3 levels)
 sub print_omniscient_from_level1_id_list {
 
