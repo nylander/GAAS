@@ -47,11 +47,17 @@ use constant LEVEL3 => { "cds" => 1, "exon" => 2, "stop_codon" => 3, "start_codo
 use constant SPREADFEATURE => {"cds" => 1, "three_prime_utr" => 2, "five_prime_utr" => 3, "utr" => 4};
 use constant PREFIXL2 => "nbis_noL2id";
 
+# ====== PURPOSE =======:
 # Save in omniscient hash (sorted in a specific way (3 levels)) a whole gff3 file
 # Parser phylosophy: Parse by Parent/child ELSE 
 #						Parse by comon_tag  ELSE
 #							Parse by sequential (mean group feattures in a bucket, and the bucket change at each level2 feature, and bucket are join in a comon tag at each new L1 feature)
 #Priority Parent > locus_tag > sequential
+# ====== INPUT =======:
+# $file => string (file)
+# $comonTagAttribute => list of tags to consider for gathering features
+# $gffVersion => Int (if is used, force the parser to use this gff parser instead of guessing)
+# $verbose =>define the deep of verbosity
 sub slurp_gff3_file_JD {
 	
 	my ($self, $file, $comonTagAttribute, $gffVersion, $verbose) = @_  ;
