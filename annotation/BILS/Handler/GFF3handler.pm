@@ -1054,7 +1054,7 @@ sub _check_exons{
 				 	  					$feature_example=$l3_feature;
 				 	  				}
 				 	  				#print "exonFeature= ".$l3_feature->gff_string."\n";
-				 	  				push $list_location_Exon, [ [$l3_feature->_tag_value('ID')], int($l3_feature->start), int($l3_feature->end)] ;
+				 	  				push @{$list_location_Exon}, [ [$l3_feature->_tag_value('ID')], int($l3_feature->start), int($l3_feature->end)] ;
 				 	  			}
 				 	  		}				 	  		
 				 	  	}
@@ -1101,7 +1101,7 @@ sub _check_exons{
 			 	  				}
 
 			 	  				if($create_exon){
-			 	  					push $list_exon_to_create, $new_location;
+			 	  					push @{$list_exon_to_create}, $new_location;
 			 	  				}
 	 						}
 	 					}
@@ -1230,7 +1230,7 @@ sub _check_utrs{
 				 	  					$feature_example=$l3_feature;
 				 	  				}
 				 	  				#print "exonFeature= ".$l3_feature->gff_string."\n";
-				 	  				push $list_location_Exon, [ [$l3_feature->_tag_value('ID')], int($l3_feature->start), int($l3_feature->end)] ;
+				 	  				push @{$list_location_Exon}, [ [$l3_feature->_tag_value('ID')], int($l3_feature->start), int($l3_feature->end)] ;
 				 	  			}
 				 	  		}				 	  		
 				 	  	}
@@ -1261,13 +1261,13 @@ sub _check_utrs{
 								
 								if($new_location->[1] != $exon_location->[1] and $new_location->[2] != $exon_location->[2] ){ #two UTR expected        =========================  exon
 									print "creation utr push1\n" if($verbose);
-									push $list_location_UTR_expected, [undef, $exon_location->[1], $location_cds->[1]];				#								=======			CDS
-									push $list_location_UTR_expected, [undef, $exon_location->[2], $location_cds->[2]];
+									push @{$list_location_UTR_expected}, [undef, $exon_location->[1], $location_cds->[1]];				#								=======			CDS
+									push @{$list_location_UTR_expected}, [undef, $exon_location->[2], $location_cds->[2]];
 									last;
 								}	
 								elsif($new_location->[1] != $exon_location->[1] or $new_location->[2] != $exon_location->[2] ){ #two UTR expected  {
 									print "creation utr push2\n".Dumper($new_location)."\n" if($verbose);
-									push $list_location_UTR_expected, $new_location;
+									push @{$list_location_UTR_expected}, $new_location;
 									last;
 								}
 							}
@@ -1312,7 +1312,7 @@ sub _check_utrs{
 			 	  				}
 
 			 	  				if($create_utr){
-			 	  					push $list_utr_to_create, $new_location;
+			 	  					push @{$list_utr_to_create}, $new_location;
 			 	  				}
 		 					}
 		 				}
