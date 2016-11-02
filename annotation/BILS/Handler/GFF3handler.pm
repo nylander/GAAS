@@ -1816,7 +1816,6 @@ sub _check_all_level2_positions{
 							}
 						}
 						if(scalar(@feature_list) > 0){ #could be emtpy like in match match_part features
-							print "coucoucocuocu\n";
 							check_mrna_positions($mRNA_feature, \@feature_list, $verbose);
 						}
 					}
