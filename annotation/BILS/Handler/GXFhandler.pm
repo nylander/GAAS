@@ -117,7 +117,9 @@ sub print_omniscient_as_match{
 	#################
 	foreach my $primary_tag_l1 ( sort {$a <=> $b or $a cmp $b} keys %{$hash_omniscient->{'level1'}}){ # primary_tag_l1 = gene or repeat etc...
 		foreach my $id_tag_key_level1 ( sort { $hash_omniscient->{'level1'}{$primary_tag_l1}{$a}->start <=> $hash_omniscient->{'level1'}{$primary_tag_l1}{$b}->start } keys %{$hash_omniscient->{'level1'}{$primary_tag_l1}} ) { #sort by position
-
+			if($primary_tag_l1 =~ "match"){
+				$gffout->write_feature($hash_omniscient->{'level1'}{$primary_tag_l1}{$id_tag_key_level1}); # print feature
+			}
 			#################
 			# == LEVEL 2 == #
 			#################
@@ -125,20 +127,37 @@ sub print_omniscient_as_match{
 
 				if ( exists_keys( $hash_omniscient, ('level2', $primary_tag_l2, $id_tag_key_level1) ) ){
 					foreach my $feature_level2 ( sort {$a->start <=> $b->start} @{$hash_omniscient->{'level2'}{$primary_tag_l2}{$id_tag_key_level1}}) {
-						$feature_level2->primary_tag('match');
-						$gffout->write_feature($feature_level2);
+						
+						if($primary_tag_l2 =~ "match"){
+							$gffout->write_feature($feature_level2);
+						}	
+						else{
+							$feature_level2->primary_tag('match');
+							$gffout->write_feature($feature_level2);
 
-						#################
-						# == LEVEL 3 == #
-						#################
-						my $level2_ID = lc($feature_level2->_tag_value('ID'));
+							#################
+							# == LEVEL 3 == #
+							#################
+							my $level2_ID = $feature_level2->_tag_value('ID');
 
-						######
-						# EXON
-						if ( exists_keys( $hash_omniscient, ('level3', 'exon', $level2_ID) ) ){
-							foreach my $feature_level3 ( sort {$a->start <=> $b->start} @{$hash_omniscient->{'level3'}{'exon'}{$level2_ID}}) {
-								$feature_level3->primary_tag('match_part');
-								$gffout->write_feature($feature_level3);
+							######
+							# EXON
+							if ( exists_keys( $hash_omniscient, ('level3', 'exon', lc($level2_ID)) ) ){
+								my $current_start=0;
+								foreach my $feature_level3 ( sort {$a->start <=> $b->start} @{$hash_omniscient->{'level3'}{'exon'}{lc($level2_ID)}}) {
+									
+									$current_start++;
+									my $end=($feature_level3->end - $feature_level3->start)+$current_start;
+									$feature_level3->primary_tag('match_part');
+									
+									if(! $feature_level3->has_tag('Target')){
+										my @target=($level2_ID,$current_start,$end,"+");
+										create_or_replace_tag($feature_level3, "Target", \@target); # Target has value has to be a list correctly formated
+									}
+									$current_start=$end;
+
+									$gffout->write_feature($feature_level3);
+								}
 							}
 						}
 					}
@@ -1163,16 +1182,28 @@ sub check_if_feature_overlap{
 return $result
 }
 
+# INPUT: feature object, String tag, String or Array ref;
+# Output: None
 sub create_or_replace_tag{
 
 	my ($feature, $tag, $value)=@_;
 
 	if ($feature->has_tag($tag) ) {
 			$feature->remove_tag($tag);
-        	$feature->add_tag_value($tag,$value);
+			if(ref($value) eq "ARRAY"){
+				$feature->add_tag_value($tag,@{$value});
+			}
+			else{
+        		$feature->add_tag_value($tag,$value);
+        	}
 	}
 	else{
-		$feature->add_tag_value($tag,$value);
+		if(ref($value) eq "ARRAY"){
+			$feature->add_tag_value($tag,@{$value});
+		}
+		else{
+			$feature->add_tag_value($tag,$value);
+		}
 	}
 }
 
