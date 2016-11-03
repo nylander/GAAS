@@ -270,11 +270,6 @@ sub manage_one_feature{
 	    ####################################################
 	    if( _get_level($feature) eq 'level1' ) {
 	    	print "\nLEVEL1 case".$feature->gff_string."\n" if $verbose;
-	    	################
-	    	# REPEATS case #
-	    	if($primary_tag eq "match"){ #Manage REPEATS // Protein2genome // stuff in match/matchpart ###########	/!\ NO level3 features /!\ Compare to gene stuff we replace primary_tag by source_tag when filling the omniscient hash
-	    		$primary_tag=$source_tag;
-	    	}
 
 	    	##########
 			# get ID #
@@ -499,9 +494,7 @@ sub manage_one_feature{
       	########## Manage feature the rest  ##########		== LEVEL2 ==
       	##############################################
       	elsif ( _get_level($feature) eq 'level2' ) {
-    		if ($primary_tag eq "match_part" or $primary_tag eq "similarity") { ########## Manage REPEATS // Protein2genome // stuff in match/matchpart ###########	/!\ NO level3 features /!\ Compare to gene stuff we replace primary_tag by source_tag when filling the omniscient hash       	
-				$primary_tag=$source_tag;  
-    		}
+
     		print "\nLEVEL2 case\n" if $verbose;
     		#reinitialization
     		$last_l3_f=undef;

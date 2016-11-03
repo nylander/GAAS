@@ -117,6 +117,7 @@ sub print_omniscient_as_match{
 	#################
 	foreach my $primary_tag_l1 ( sort {$a <=> $b or $a cmp $b} keys %{$hash_omniscient->{'level1'}}){ # primary_tag_l1 = gene or repeat etc...
 		foreach my $id_tag_key_level1 ( sort { $hash_omniscient->{'level1'}{$primary_tag_l1}{$a}->start <=> $hash_omniscient->{'level1'}{$primary_tag_l1}{$b}->start } keys %{$hash_omniscient->{'level1'}{$primary_tag_l1}} ) { #sort by position
+
 			if($primary_tag_l1 =~ "match"){
 				$gffout->write_feature($hash_omniscient->{'level1'}{$primary_tag_l1}{$id_tag_key_level1}); # print feature
 			}
@@ -133,6 +134,10 @@ sub print_omniscient_as_match{
 						}	
 						else{
 							$feature_level2->primary_tag('match');
+							if( $feature_level2->has_tag('Parent')){
+								$feature_level2->remove_tag('Parent');
+							}
+
 							$gffout->write_feature($feature_level2);
 
 							#################
@@ -151,8 +156,8 @@ sub print_omniscient_as_match{
 									$feature_level3->primary_tag('match_part');
 									
 									if(! $feature_level3->has_tag('Target')){
-										my @target=($level2_ID,$current_start,$end,"+");
-										create_or_replace_tag($feature_level3, "Target", \@target); # Target has value has to be a list correctly formated
+										my @target=();
+										create_or_replace_tag($feature_level3, "Target", "$level2_ID $current_start $end +"); # Target has value has to be a list correctly formated
 									}
 									$current_start=$end;
 
