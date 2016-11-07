@@ -95,6 +95,7 @@ sub gff3_statistics {
 
 	    	#####
 	    	# get all level2
+	    	my $counterL2_match=-1;
 	    	my $All_l2_single=1;
 			foreach my $feature_l2 ( @{$hash_omniscient->{'level2'}{$tag_l2}{$id_l1}} ){
 				#print $feature_l2->gff_string()."\n";
@@ -110,6 +111,34 @@ sub gff3_statistics {
 				# grab shorter
 				if ((! $all_info{$tag_l2}{'level2'}{$tag_l2}{'shortest'}) or ($all_info{$tag_l2}{'level2'}{$tag_l2}{'shortest'} > $sizeFeature)){
 					$all_info{$tag_l2}{'level2'}{$tag_l2}{'shortest'}=$sizeFeature;
+				}
+
+				####
+				# Special case match match_part => calcul the introns
+				if($tag_l2 =~ "match"){
+					my @sortedList = sort {$a->start <=> $b->start} @{$hash_omniscient->{'level2'}{$tag_l2}{$id_l1}};
+					if(! exists ($all_info{$tag_l2}{'level2'}{'intron'}{'nb_feat'}))	{$all_info{$tag_l2}{'level2'}{'intron'}{'nb_feat'}=0;}
+					if(! exists ($all_info{$tag_l2}{'level2'}{'intron'}{'size_feat'}))	{$all_info{$tag_l2}{'level2'}{'intron'}{'size_feat'}=0;}
+					my $indexLastL2 = $#{$hash_omniscient->{'level2'}{$tag_l2}{$id_l1}};
+					$counterL2_match++;
+
+					if($counterL2_match > 0 and $counterL2_match <= $indexLastL2){
+		    			my $intronSize= $sortedList[$counterL2_match]->start - $sortedList[$counterL2_match-1]->end;
+		    			#compute feature size
+		    			$all_info{$tag_l2}{'level2'}{'intron'}{'size_feat'}+=$intronSize;
+		    			# grab longest
+			    	  	if ((! $all_info{$tag_l2}{'level2'}{'intron'}{'longest'}) or ($all_info{$tag_l2}{'level2'}{'intron'}{'longest'} < $intronSize)){
+    						$all_info{$tag_l2}{'level2'}{'intron'}{'longest'}=$intronSize;
+    					}
+    					# grab shorter
+			    		if ((! $all_info{$tag_l2}{'level2'}{'intron'}{'shortest'}) or ($all_info{$tag_l2}{'level2'}{'intron'}{'shortest'} > $intronSize)){
+			    			$all_info{$tag_l2}{'level2'}{'intron'}{'shortest'}=$intronSize;
+			    		}
+		    			#Count number
+			    		$all_info{$tag_l2}{'level2'}{'intron'}{'nb_feat'}+=1;
+
+    				}
+
 				}
 
 				######
@@ -463,8 +492,14 @@ sub _info_mean_length {
 
 	#print level2
 	foreach my $tag_l2 (sort keys %{$all_info->{'level2'}}){
-		my $meanl= $all_info->{'level2'}{$tag_l2}{'size_feat'}/$all_info->{'level2'}{$tag_l2}{'nb_feat'};
-	    push @resu, sprintf("%-45s%d%s", "mean $tag_l2 length", $meanl,"\n");
+		my $size_feat = $all_info->{'level2'}{$tag_l2}{'size_feat'};
+		my $nb_feat = $all_info->{'level2'}{$tag_l2}{'nb_feat'};
+
+		if($size_feat !=0 and $nb_feat != 0){
+			my $meanl= $all_info->{'level2'}{$tag_l2}{'size_feat'}/$all_info->{'level2'}{$tag_l2}{'nb_feat'};
+		    push @resu, sprintf("%-45s%d%s", "mean $tag_l2 length", $meanl,"\n");
+		}
+		else{warn "Problem in the calcul of level2 - $tag_l2 - size_feat";}
 	 }
 
 	#print level3

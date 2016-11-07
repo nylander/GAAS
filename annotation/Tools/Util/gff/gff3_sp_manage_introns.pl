@@ -183,19 +183,34 @@ foreach my $file (@opt_files){
       #####
       # get all level2
       my $All_l2_single=1;
+      my $counterL2_match=-1;
       foreach my $feature_l2 ( @{$hash_omniscient->{'level2'}{$tag_l2}{$id_l1}} ){
+
+        #MATCH CASE - We ahve to count the L2 match features
+        if($tag_l2 =~ "match"){
+          my @sortedList = sort {$a->start <=> $b->start} @{$hash_omniscient->{'level2'}{$tag_l2}{$id_l1}};
+          my $indexLastL2 = $#{$hash_omniscient->{'level2'}{$tag_l2}{$id_l1}};
+          $counterL2_match++;
+
+          if($counterL2_match > 0 and $counterL2_match <= $indexLastL2){
+            my $intronSize = $sortedList[$counterL2_match]->start - $sortedList[$counterL2_match-1]->end;
+            push @introns, $intronSize;
+          }
+        }
 
         ######
         #get all level3
         my $id_l2=lc($feature_l2->_tag_value('ID'));
 
-          if(exists_keys($hash_omniscient,('level3','exon',$id_l2))){
+        foreach my $tag_l3 ( keys %{$hash_omniscient->{'level3'}} ){
+
+          if(exists_keys($hash_omniscient,('level3',$tag_l3, $id_l2))){
 
           my $counterL3=-1;
           #Initialize intron to 0 to avoid error during printing results
-          my $indexLast = $#{$hash_omniscient->{'level3'}{'exon'}{$id_l2}};
+          my $indexLast = $#{$hash_omniscient->{'level3'}{$tag_l3}{$id_l2}};
           
-          my @sortedList = sort {$a->start <=> $b->start} @{$hash_omniscient->{'level3'}{'exon'}{$id_l2}};
+          my @sortedList = sort {$a->start <=> $b->start} @{$hash_omniscient->{'level3'}{$tag_l3}{$id_l2}};
           
             foreach my $feature_l3 ( @sortedList ){
 
@@ -213,6 +228,7 @@ foreach my $file (@opt_files){
             }# END FOREACH L3
           }
         }
+      }
     }
   }
 }
