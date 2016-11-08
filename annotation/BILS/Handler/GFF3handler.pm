@@ -1971,7 +1971,7 @@ sub _check_overlap_name_diff{
 							if($overlap){
 
 								#let's check at CDS level
-								if(_two_features_overlap($omniscient,  $id_l1, $id2_l1)){
+								if(two_features_overlap_at_cds_level($omniscient,  $id_l1, $id2_l1)){
 									#they overlap in the CDS we should give them the same name
 									$resume_case++;
 									$alreadyChecked{$id_l1}++;
@@ -2483,7 +2483,7 @@ sub _l2_identical{
 }
 
 #Check if two genes have at least one L2 isoform which overlap at cds level.
-sub _two_features_overlap{
+sub two_features_overlap_at_cds_level{
   my  ($hash_omniscient,$gene_id, $gene_id2)=@_;
   my $resu=undef;
 

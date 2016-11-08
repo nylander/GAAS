@@ -30,3 +30,5 @@ for i in {1..20}_*;do
 		fi
 	fi
 done
+rm test.gff
+rm test2.gff
