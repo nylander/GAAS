@@ -364,7 +364,7 @@ sub manage_one_feature{
 					# Change referenrtiel => based on the last L2 link to this locus
 					#######################
 					if(exists_keys ($locusTAG_uniq, ('level2',$locusTAGvalue) ) ){ #first of
-						print "It happens \n";
+
 						$last_l2_f = @{$locusTAG_uniq->{'level2'}{$locusTAGvalue}}[$#{$locusTAG_uniq->{'level2'}{$locusTAGvalue}}]; # case were locus already met before (feature are spred within the file), we link the L3 to the last l2 of this locus.
 						$l2_id = $last_l2_f->_tag_value('ID');
 						foreach my $tag_l1 (keys %{$omniscient->{'level1'}}){
@@ -1099,8 +1099,6 @@ sub _check_exons{
 	 	  				# If overlap:  Redefine internal exon ; Redfine external exon only if too short.
 						if($list_location_Exon_joined ne $list_location_NoExon_joined ){
 							print "_check_exons EXON MISSING ! Let's check that !! \n" if ($verbose >= 2);
-							print $list_location_Exon_joined."\n";
-							print $list_location_NoExon_joined."\n";
 
 							my $location_cpt=0;
 		 	  				foreach my $location (sort {$a->[1] <=> $b->[1] } @{$list_location_NoExon}){
