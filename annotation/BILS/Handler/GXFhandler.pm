@@ -1362,8 +1362,8 @@ sub _check_utrs{
 								
 								if($new_location->[1] != $exon_location->[1] and $new_location->[2] != $exon_location->[2] ){ #two UTR expected        =========================  exon
 									print "creation utr push1\n" if($verbose >= 3);
-									push @{$list_location_UTR_expected}, [undef, $exon_location->[1], $location_cds->[1]];				#								=======			CDS
-									push @{$list_location_UTR_expected}, [undef, $exon_location->[2], $location_cds->[2]];
+									push @{$list_location_UTR_expected}, [undef, $exon_location->[1], $location_cds->[1]-1];				#								=======			CDS
+									push @{$list_location_UTR_expected}, [undef, $location_cds->[2]+1, $exon_location->[2]];
 									last;
 								}	
 								elsif($new_location->[1] != $exon_location->[1] or $new_location->[2] != $exon_location->[2] ){ #two UTR expected  {
@@ -1379,7 +1379,8 @@ sub _check_utrs{
 		 	  			# Compare UTR Present and UTR expected
 	 	  				my $list_utr_to_create=undef;
 
-	 	  				if($#{$list_location_UTR} != -1){ #List UTR not empty				
+	 	  				if($list_location_UTR){ #List UTR not empty
+	
 			 	  			foreach my $UTRexp_location (sort {$a->[1] <=> $b->[1] } @{$list_location_UTR_expected} ){
 			 	  					
 		 	  					my $create_utr=1;
@@ -1387,7 +1388,7 @@ sub _check_utrs{
 		 	  					my $overlap;
 		 	  					foreach my $UTR_location (sort {$a->[1] <=> $b->[1] } @{$list_location_UTR}){
 		 	  						
-		 	  						my ($new_location, $overlap) = _manage_location_lowLevel_inversed($UTR_location, $UTRexp_location, $verbose); #just to check that it overlaps
+		 	  						($new_location, $overlap) = _manage_location_lowLevel_inversed($UTR_location, $UTRexp_location, $verbose); #just to check that it overlaps
 
 		 	  						if($overlap and ( $UTR_location->[1] != $UTRexp_location->[1] or $UTR_location->[2] != $UTRexp_location->[2] ) ){ #It overlaps and at least one location is different. We have to re-modelate the utr location to take the modification into account
 			 	  						print "We modify the location of the existing utr: ".$UTR_location->[0][0]."  ".$UTR_location->[1]." ".$UTR_location->[2]." to ".$UTRexp_location->[1]." ".$UTRexp_location->[2]."\n" if ($verbose >= 3);
@@ -1399,7 +1400,7 @@ sub _check_utrs{
 			 	  								if( exists_keys($hash_omniscient,('level3', $tag_l3, $id_l2)) ){
 						 	  						foreach my $l3_feature (@{$hash_omniscient->{'level3'}{$tag_l3}{$id_l2} } ){
 						 	  							if($l3_feature->_tag_value('ID') eq $UTR_location->[0][0]){
-						 	  								print "Exon location modified: = ".$l3_feature->gff_string."\nnew location:".$UTRexp_location->[1]." ".$UTRexp_location->[2]."\n" if ($verbose >= 2);
+						 	  								print "UTR location modified: = ".$l3_feature->gff_string."\nnew location:".$UTRexp_location->[1]." ".$UTRexp_location->[2]."\n" if ($verbose >= 3);
 						 	  								$l3_feature->start($UTRexp_location->[1]);
 						 	  								$l3_feature->end($UTRexp_location->[2]);
 						 	  								last;
@@ -1419,8 +1420,11 @@ sub _check_utrs{
 			 	  				}
 		 					}
 		 				}
-	 					else{$list_utr_to_create=$list_location_UTR_expected;} # no UTR exists, we have to create all of them
- 
+	 					else{
+	 						if($list_location_UTR_expected){ 
+	 							$list_utr_to_create=$list_location_UTR_expected;# no UTR exists, we have to create all of them
+	 						} 
+ 						}
  						print "list_utr_to_create: ".Dumper($list_utr_to_create) if ($verbose >= 3); 
 
 						# NOW CREATE UTR IF NECESSARY
@@ -1430,7 +1434,7 @@ sub _check_utrs{
 						my $extremRightCDS = $cds_sorted[$#cds_sorted]->[2];
 
 						if($list_utr_to_create){
-							
+							print Dumper($list_utr_to_create)."\n";
 					 	  	foreach my $location (@{$list_utr_to_create}){
 					 	  		$resume_case++;
 					 	  		print "_check_utrs Create one UTR !\n" if ($verbose >= 2);
