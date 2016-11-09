@@ -463,31 +463,35 @@ sub manage_one_feature{
 
 				#Level3 key exists
 				else{
-					#It is not a duplicated feature => save it in omniscient
-					if( ! _it_is_duplication($duplicate, $omniscient, $uniqID, $feature) ){
-						# It is a multiple parent case
-						if($allParent > 1){
-							# Not the first parent, we have to clone the feature !!
-							if($cptParent > 1){
+					
+					# It is a multiple parent case # Not the first parent, we have to clone the feature !!
+					if($cptParent > 1){ #several parent, and we are not looking the first one
+						
+						my $feature_clone=clone($feature);
+						create_or_replace_tag($feature_clone,'Parent',$parent); #modify Parent To keep only one
+						_check_uniq_id($omniscient, $miscCount, $uniqID, $uniqIDtoType, $feature_clone); #Will change the ID if needed
 
-								my $feature_clone=clone($feature);
-								create_or_replace_tag($feature_clone,'Parent',$parent); #modify Parent To keep only one
-								_check_uniq_id($omniscient, $miscCount, $uniqID, $uniqIDtoType, $feature_clone); #Will change the ID if needed
-
-								print "Push-L3-omniscient-8 level3 || $primary_tag || ".lc($parent)." == feature_clone\n" if ($verbose >=2);
-								push (@{$omniscient->{"level3"}{$primary_tag}{lc($parent)}}, $feature_clone);
-							}
-							# It is the first parent. Do not clone the feature
-							else{
-								create_or_replace_tag($feature,'Parent',$parent); #modify Parent To keep only one
-								print "Push-L3-omniscient-9 level3 || $primary_tag || ".lc($parent)." == feature\n" if ($verbose >=2);
-								push (@{$omniscient->{"level3"}{$primary_tag}{lc($parent)}}, $feature);
-							}
+						if( ! _it_is_duplication($duplicate, $omniscient, $uniqID, $feature_clone) ){
+							print "Push-L3-omniscient-8 level3 || $primary_tag || ".lc($parent)." == feature_clone\n" if ($verbose >=2);
+							push (@{$omniscient->{"level3"}{$primary_tag}{lc($parent)}}, $feature_clone);
 						}
-						else{ #the simpliest case. One parent only
-							print "Push-L3-omniscient-10 level3 || $primary_tag || ".lc($parent)." == feature\n".$feature->gff_string."\n" if ($verbose >=2);
+								
+					}
+					elsif($allParent > 1){ # It is a multiple parent case #several parent, but we are looking the first one
+
+						# It is the first parent. Do not clone the feature
+						create_or_replace_tag($feature,'Parent',$parent); #modify Parent To keep only one	
+						if( ! _it_is_duplication($duplicate, $omniscient, $uniqID, $feature) ){
+							print "Push-L3-omniscient-9 level3 || $primary_tag || ".lc($parent)." == feature\n" if ($verbose >=2);
 							push (@{$omniscient->{"level3"}{$primary_tag}{lc($parent)}}, $feature);
 						}
+
+					}
+					#It is not a duplicated feature => save it in omniscient
+					elsif( ! _it_is_duplication($duplicate, $omniscient, $uniqID, $feature) ){
+ 						#the simpliest case. One parent only
+						print "Push-L3-omniscient-10 level3 || $primary_tag || ".lc($parent)." == feature\n".$feature->gff_string."\n" if ($verbose >=2);
+						push (@{$omniscient->{"level3"}{$primary_tag}{lc($parent)}}, $feature);
 					}
 				}
       		}
@@ -1490,8 +1494,8 @@ sub _check_utrs{
 sub _manage_location{
 	my ($locationRefList, $locationTargetList, $method, $verbose) = @_;
 
-	_printSurrounded("Enter",25,"+","\n\n") if ($verbose >= 3); 
-	print "Enter Ref: ".Dumper($locationRefList)."\nEnter Target: ".Dumper($locationTargetList) if ($verbose >= 3); 
+	_printSurrounded("Enter",25,"+","\n\n") if ($verbose >= 4); 
+	print "Enter Ref: ".Dumper($locationRefList)."\nEnter Target: ".Dumper($locationTargetList) if ($verbose >= 4); 
 
 	my @new_location_list; #new location list that will be returned once filled
 	
@@ -1506,11 +1510,11 @@ sub _manage_location{
 			my %locationSaved=();
 			foreach my $location_from_ref_list (@{$locationRefList}){
 
-				if($verbose >= 3){print "\n==Location REF:".$location_from_ref_list->[1]." ".$location_from_ref_list->[2]."==\n";}
+				if($verbose >= 4){print "\n==Location REF:".$location_from_ref_list->[1]." ".$location_from_ref_list->[2]."==\n";}
 				my $location_skipped=undef; #keep track for later. If it has never been further, we will not save it later, because it will cause duplicates
 				
 				foreach my $location_from_target_list (@{$locationTargetList}){
-					if($verbose >= 3){print "location_from_ref_list:".Dumper($location_from_ref_list)."\nAGAINST\nlocation_from_target_list:".Dumper($location_from_target_list)."\n";}
+					if($verbose >= 4){print "location_from_ref_list:".Dumper($location_from_ref_list)."\nAGAINST\nlocation_from_target_list:".Dumper($location_from_target_list)."\n";}
 
 					#skip case test already done
 					my @tuple = sort {$a->[1] <=> $b->[1]} ($location_from_ref_list,$location_from_target_list);
@@ -1518,7 +1522,7 @@ sub _manage_location{
 					my $tupleString = join(' ', @tuple_ok);
 
 					if(exists_keys (\%tupleChecked,($tupleString) ) ) {
-						if($verbose >= 3){print "skip tested: $tupleString\n";}
+						if($verbose >= 4){print "skip tested: $tupleString\n";}
 						$location_skipped=1;
 						next;
 					}
@@ -1536,7 +1540,7 @@ sub _manage_location{
 
 					my $loc = join(' ', @$new_location);
 					if(! exists_keys (\%locationSaved,($loc) ) ){ #If location already saved--- we skip it
-						if($verbose >= 3){print "          push1:".$new_location->[1]." ".$new_location->[2]."\n\n";}
+						if($verbose >= 4){print "          push1:".$new_location->[1]." ".$new_location->[2]."\n\n";}
 						
 						#TO PUSH THE TARGET, MODIFIED OR INTACT
 						push @new_location_list, [@$new_location];
@@ -1558,7 +1562,7 @@ sub _manage_location{
 
 					if( ($new_location->[1] !=  $location_from_target_list->[1] or $new_location->[2] !=  $location_from_target_list->[2]) ){ # location has been modified or not modifier but overlap (It means overlap completly ... it is included in)
 						$check_list=1;
-						if($verbose >= 3){print "LOCATION MODIFIED: ".$location_from_target_list->[2]." ".$new_location->[2]."\n";}
+						if($verbose >= 4){print "LOCATION MODIFIED: ".$location_from_target_list->[2]." ".$new_location->[2]."\n";}
 					}
 					elsif($overlap){#position not modified but overlap (A is completely included in B); Need to keep track of it to not save the position when we are out of the loop
 						$location_skipped=1; 
@@ -1570,7 +1574,7 @@ sub _manage_location{
 					my $loc = join(' ', @$location_from_ref_list);
 
 					if(! exists_keys (\%locationSaved,($loc) ) ){
-						if($verbose >= 3){print " push LocationREF = add new value !!\n";}
+						if($verbose >= 4){print " push LocationREF = add new value !!\n";}
 						push @new_location_list, [@{$location_from_ref_list}];
 					}
 				}
@@ -1585,7 +1589,7 @@ sub _manage_location{
 				else{
 					$locationTargetList = [@new_location_list];
 					$locationRefList = [@new_location_list];
-					if($verbose >= 3){print "Location in memory:".@new_location_list." ".Dumper(\@new_location_list)." NNNNNNNNNNNNNNNNNNNNNNNow check aginst itself !\n";}
+					if($verbose >= 4){print "Location in memory:".@new_location_list." ".Dumper(\@new_location_list)." NNNNNNNNNNNNNNNNNNNNNNNow check aginst itself !\n";}
 					@new_location_list=();
 					%tupleChecked=();
 				}					
@@ -1593,12 +1597,12 @@ sub _manage_location{
 		}
 	}
 	else{#check number of location -> none
-		_printSurrounded("Return",25,"-","\n\n") if ($verbose >= 3);
-		if($verbose >= 3){print "returnA: ".Dumper($locationRefList)."\n\n\n";}
+		_printSurrounded("Return",25,"-","\n\n") if ($verbose >= 4);
+		if($verbose >= 4){print "returnA: ".Dumper($locationRefList)."\n\n\n";}
 		return \@{$locationRefList};
 	}
-	_printSurrounded("Return",25,"-","\n\n") if ($verbose >= 3); 
-	if($verbose >= 3){print "returnB: ".Dumper(\@new_location_list)."\n\n\n";}
+	_printSurrounded("Return",25,"-","\n\n") if ($verbose >= 4); 
+	if($verbose >= 4){print "returnB: ".Dumper(\@new_location_list)."\n\n\n";}
 	return \@new_location_list;
 }
 
