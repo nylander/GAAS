@@ -18,8 +18,8 @@ use Bio::Tools::GFF;
 use Bio::DB::Fasta;
 #use Bio::Seq;
 use Bio::SeqIO;
-use BILS::Handler::GXFhandler qw(:Ok);
 use BILS::Handler::GFF3handler qw(:Ok);
+use BILS::Handler::GXFhandler qw(:Ok);
 use BILS::Plot::R qw(:Ok);
 
 my $start_run = time();
@@ -112,7 +112,7 @@ else{ print "You didn't use the option stranded. We will look for fusion in all 
 
 ######################
 ### Parse GFF input #
-my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GFF3handler->slurp_gff3_file_JD($gff);
+my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($gff);
 print ("GFF3 file parsed\n");
 
 ####################

@@ -14,8 +14,8 @@ use Getopt::Long;
 use Bio::DB::Fasta;
 use IO::File ;
 use Bio::Tools::GFF;
-use BILS::Handler::GXFhandler qw(:Ok);
 use BILS::Handler::GFF3handler qw(:Ok);
+use BILS::Handler::GXFhandler qw(:Ok);
 
 my $start_run = time();
 

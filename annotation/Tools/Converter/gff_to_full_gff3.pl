@@ -10,8 +10,8 @@ use Clone 'clone';
 use Pod::Usage;
 use Bio::Tools::GFF;
 use BILS::Handler::GTFhandler qw(:Ok);
-use BILS::Handler::GXFhandler qw(:Ok);
 use BILS::Handler::GFF3handler qw(:Ok);
+use BILS::Handler::GXFhandler qw(:Ok);
 use Data::Dumper;
 
 my $header = qq{
@@ -94,7 +94,7 @@ if ($attributes){
 
 
 ### Parse GFF input file and add annotations
-my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GFF3handler->slurp_gff3_file_JD($gff);
+my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($gff);
 
 ## Check duplication
 #my $size = keys %$hash_duplicatedFeature;

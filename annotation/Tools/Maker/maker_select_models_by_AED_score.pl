@@ -7,8 +7,8 @@ use List::MoreUtils qw(uniq);
 use Pod::Usage;
 use Bio::Tools::GFF;
 use IO::File;
-use BILS::Handler::GFF3handler qw(:Ok);
 use BILS::Handler::GXFhandler qw(:Ok);
+use BILS::Handler::GFF3handler qw(:Ok);
 
 my $header = qq{
 ########################################################
@@ -103,7 +103,7 @@ $stringPrint .= "\nusage: $0 @copyARGV\n";
 
 ######################
 ### Parse GFF input #
-my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GFF3handler->slurp_gff3_file_JD($opt_gff);
+my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($opt_gff);
 print("Parsing Finished\n\n");
 ### END Parse GFF input #
 #########################

@@ -8,8 +8,8 @@ use Carp;
 use Getopt::Long;
 use Pod::Usage;
 use Clone 'clone';
-use BILS::Handler::GFF3handler qw(:Ok);
 use BILS::Handler::GXFhandler qw(:Ok);
+use BILS::Handler::GFF3handler qw(:Ok);
 use Bio::Tools::GFF;
 use BILS::GFF3::Statistics qw(:Ok);
 
@@ -83,7 +83,7 @@ else{
 
   ######################
   ### Parse GFF input #
-  my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GFF3handler->slurp_gff3_file_JD($opt_file);
+  my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($opt_file);
   print("Parsing Finished\n\n");
   ### END Parse GFF input #
   #########################

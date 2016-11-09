@@ -11,8 +11,8 @@ use Pod::Usage;
 use Statistics::R;
 use BILS::CheckModule qw(:Ok);
 use BILS::Plot::R qw(:Ok);
-use BILS::Handler::GFF3handler qw(:Ok);
 use BILS::Handler::GXFhandler qw(:Ok);
+use BILS::Handler::GFF3handler qw(:Ok);
 use Bio::Tools::GFF;
 use BILS::GFF3::Statistics qw(:Ok);
 
@@ -144,7 +144,7 @@ foreach my $file (@opt_files){
 
   ######################
   ### Parse GFF input #
-  my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GFF3handler->slurp_gff3_file_JD($file);
+  my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($file);
   print("Parsing Finished\n\n");
   ### END Parse GFF input #
   #########################

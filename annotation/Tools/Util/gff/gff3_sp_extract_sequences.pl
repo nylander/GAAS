@@ -6,8 +6,8 @@ use Getopt::Long;
 use Bio::SeqIO ;
 use Bio::DB::Fasta;
 use Bio::Tools::GFF;
-use BILS::Handler::GXFhandler qw(:Ok);
 use BILS::Handler::GFF3handler qw(:Ok);
+use BILS::Handler::GXFhandler qw(:Ok);
 
 
 my $start_run = time();
@@ -99,7 +99,7 @@ if($codonTable<0 and $codonTable>25){
 ######################
 ### Parse GFF input #
 print "Reading file $opt_gfffile\n";
-my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GFF3handler->slurp_gff3_file_JD($opt_gfffile);
+my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($opt_gfffile);
 print "Parsing Finished\n";
 ### END Parse GFF input #
 #########################

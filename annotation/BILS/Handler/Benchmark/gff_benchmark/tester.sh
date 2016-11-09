@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for i in {1..20}_*;do
+for i in {1..30}_*;do
 	if [[ -f $i ]];then
 		if [[ ! $i =~ ^[1-9]+_correct ]];then
 			echo -e "\nTest of $i";

@@ -7,8 +7,8 @@ use strict;
 use Pod::Usage;
 use Getopt::Long;
 use Bio::Tools::GFF;
-use BILS::Handler::GFF3handler qw(:Ok);
 use BILS::Handler::GXFhandler qw(:Ok);
+use BILS::Handler::GFF3handler qw(:Ok);
 
 my $header = qq{
 ########################################################
@@ -71,7 +71,7 @@ if(! $att){
   }
 }
 else{ # rebuild gene_id and transcript_id feature;
-  my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GFF3handler->slurp_gff3_file_JD($gff);
+  my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($gff);
   
   my $gene_id=undef;
   #################

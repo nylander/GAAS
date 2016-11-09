@@ -13,8 +13,8 @@ use Getopt::Long;
 use IO::File;
 use Pod::Usage;
 use Statistics::R;
-use BILS::Handler::GFF3handler qw(:Ok);
 use BILS::Handler::GXFhandler qw(:Ok);
+use BILS::Handler::GFF3handler qw(:Ok);
 use Bio::OntologyIO;
 use Bio::Tools::GFF;
 
@@ -120,7 +120,7 @@ print $ostreamReport $string1;
 
 ######################
 ### Parse GFF input #
-my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GFF3handler->slurp_gff3_file_JD($opt_reffile);
+my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($opt_reffile);
 print("Parsing Finished\n\n");
 ### END Parse GFF input #
 #########################

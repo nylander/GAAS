@@ -12,8 +12,8 @@ use IO::File;
 use Pod::Usage;
 use Getopt::Long qw(:config no_auto_abbrev);
 use Statistics::R;
-use BILS::Handler::GFF3handler qw(:Ok);
 use BILS::Handler::GXFhandler qw(:Ok);
+use BILS::Handler::GFF3handler qw(:Ok);
 use Bio::Tools::GFF;
 
 my $header = qq{
@@ -178,7 +178,7 @@ else { # No output provided, we print everything on screen
 
 ######################
 ### Parse GFF input #
-my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GFF3handler->slurp_gff3_file_JD($opt_reffile);
+my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($opt_reffile);
 print("Parsing Finished\n\n");
 ### END Parse GFF input #
 #########################

@@ -11,8 +11,8 @@ use Clone 'clone';
 use Pod::Usage;
 use Bio::Tools::GFF;
 use BILS::Handler::GTFhandler qw(:Ok);
-use BILS::Handler::GXFhandler qw(:Ok);
 use BILS::Handler::GFF3handler qw(:Ok);
+use BILS::Handler::GXFhandler qw(:Ok);
 use Data::Dumper;
 
 my $header = qq{
@@ -363,6 +363,155 @@ sub lift_all_attributes{
     if(lc($tag) ne "id" and lc($tag) ne "parent"){
       my @values=$feature->get_tag_values($tag);
       create_or_replace_tag($newfeat,$tag, @values);
+    }
+  }
+}
+
+# omniscient is a hash containing a whole gXf file in memory sorted in a specific way (3 levels)
+sub gtf2gff_features_in_omniscient_from_level1_id_list {
+
+  my ($hash_omniscient, $level_id_list, $gffout) = @_  ;
+
+  #################
+  # == LEVEL 1 == #
+  #################
+  foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
+    foreach my $id_tag_key_level1 (@$level_id_list){
+
+      if(exists ($hash_omniscient->{'level1'}{$primary_tag_key_level1}{lc($id_tag_key_level1)})){
+        my $feature_level1 = $hash_omniscient->{'level1'}{$primary_tag_key_level1}{lc($id_tag_key_level1)};
+        if(! $feature_level1->has_tag('ID')){
+
+          if($feature_level1->has_tag('gene_id')){
+            my $level1_ID = $feature_level1->_tag_value('gene_id');
+            $feature_level1->add_tag_value('ID',$level1_ID)
+          }
+          else{
+            warn "Cannot retrieve the id feature of the following feature: ".gff_string($feature_level1);
+          }
+        }
+
+        #################
+        # == LEVEL 2 == #
+        #################
+        foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
+
+          if ( exists ($hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1} ) ){
+            foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1}}) {
+
+              ##manage primary_tag
+              if(lc($feature_level2->primary_tag) eq "transcript"){
+                $feature_level2->primary_tag('mRNA');
+              }
+
+              ##manage ID
+              my $level2_ID;
+              if($feature_level2->has_tag('ID')){
+                $level2_ID = $feature_level2->_tag_value('ID');
+              }
+              if(! $feature_level2->has_tag('ID')){
+                if($feature_level2->has_tag('transcript_id')){
+                  $level2_ID = $feature_level2->_tag_value('transcript_id');
+                  $feature_level2->add_tag_value('ID',$level2_ID)
+                }
+                else{
+                  warn "Cannot retrieve the id feature of the following feature: ".gff_string($feature_level2);
+                }
+              }
+              ## Manage Parent
+              if(! $feature_level2->has_tag('Parent')){
+
+                if($feature_level2->has_tag('gene_id')){
+                  my $level2_Parent = $feature_level2->_tag_value('gene_id');
+                  $feature_level2->add_tag_value('Parent',$level2_Parent)
+                }
+                else{
+                  warn "Cannot retrieve the parent feature of the following feature: ".gff_string($feature_level2);
+                }
+              }
+
+              #################
+              # == LEVEL 3 == #
+              #################
+              foreach my $primary_tag_key_level3 (keys %{$hash_omniscient->{'level3'}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
+                my $feature_counter=1;
+                if ( exists ($hash_omniscient->{'level3'}{$primary_tag_key_level3}{lc($level2_ID)} ) ){
+                  foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{$primary_tag_key_level3}{lc($level2_ID)}}) {
+
+                    # Manage Parent Name
+                    if(! $feature_level3->has_tag('Parent')){
+
+                      if($feature_level3->has_tag('transcript_id')){
+                        my @temp = $feature_level3->get_tag_values('transcript_id');
+                        my $level3_Parent = shift @temp;
+                        $feature_level3->add_tag_value('Parent',$level3_Parent)
+                      }
+                      else{
+                        warn "Cannot retrieve the parent feature of the following feature: ".gff_string($feature_level2);
+                      }
+                    }
+                    # Manage ID
+                    if(! $feature_level3->has_tag('ID')){
+                      if (lc($primary_tag_key_level3) eq "exon"){
+
+                        if($feature_level3->has_tag('exon_id')){
+                          my @temp = $feature_level3->get_tag_values('exon_id');
+                          my $level3_ID = shift @temp;
+                          $feature_level3->add_tag_value('ID',$level3_ID)
+                        }
+                        else{
+
+                          if($feature_level3->has_tag('transcript_id')){
+                            my @temp = $feature_level3->get_tag_values('transcript_id');
+                            my $level3_ID = shift @temp;
+                            $feature_level3->add_tag_value('ID',$level3_ID."-". $feature_level3->primary_tag . "-" . $feature_counter );
+                            $feature_counter++;
+                          }
+                          else{
+                            warn "Cannot retrieve the ID feature of the following feature: ".gff_string($feature_level3);
+                          }
+                        }
+                      }
+                      elsif(lc($primary_tag_key_level3) eq "cds"){
+
+                        if($feature_level3->has_tag('protein_id')){
+                          my @temp = $feature_level3->get_tag_values('protein_id');
+                          my $level3_ID = shift @temp;
+                          $feature_level3->add_tag_value('ID',$level3_ID)
+                        }
+                        else{
+
+                          if($feature_level3->has_tag('transcript_id')){
+                            my @temp = $feature_level3->get_tag_values('transcript_id');
+                            my $level3_ID = shift @temp;
+                            $feature_level3->add_tag_value('ID',$level3_ID."-". $feature_level3->primary_tag . "-" . $feature_counter );
+                            $feature_counter++;
+                          }
+                          else{
+                            warn "Cannot retrieve the ID feature of the following feature: ".gff_string($feature_level3);
+                          }
+                        }
+                      }
+                      else{
+
+                        if($feature_level3->has_tag('transcript_id')){
+                          my @temp = $feature_level3->get_tag_values('transcript_id');
+                          my $level3_ID = shift @temp;
+                          $feature_level3->add_tag_value('ID',$level3_ID."-". $feature_level3->primary_tag . "-" . $feature_counter );
+                          $feature_counter++;
+                        }
+                        else{
+                          warn "Cannot retrieve the ID feature of the following feature: ".gff_string($feature_level3);
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

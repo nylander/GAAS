@@ -21,3 +21,4 @@ This is an explanations of the differents test files used to check the GFF3 pars
 18: features spread
 19: some have locus tag, some have Parent
 20: 4 Exon are missing
+21: Two exon badly defined, they are overlaping. One has to have its location modified and the other one ahas to be completey removed

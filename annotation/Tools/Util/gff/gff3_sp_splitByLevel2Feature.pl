@@ -12,8 +12,8 @@ my $header = qq{
 use strict;
 use Pod::Usage;
 use Getopt::Long;
-use BILS::Handler::GFF3handler qw(:Ok);
 use BILS::Handler::GXFhandler qw(:Ok);
+use BILS::Handler::GFF3handler qw(:Ok);
 use Bio::Tools::GFF;
 
 my $start_run = time();
@@ -70,7 +70,7 @@ mkdir $opt_output;
 
 ######################
 ### Parse GFF input #
-my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GFF3handler->slurp_gff3_file_JD($opt_gfffile);
+my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($opt_gfffile);
 print ("GFF3 file parsed\n");
 
 

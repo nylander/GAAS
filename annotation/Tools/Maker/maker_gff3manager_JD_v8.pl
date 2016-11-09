@@ -15,9 +15,9 @@ use IO::File;
 use Pod::Usage;
 use List::MoreUtils qw(uniq);
 use Bio::Tools::GFF;
-use BILS::Handler::GXFhandler qw(:Ok);
-use BILS::GFF3::Statistics qw(:Ok);
 use BILS::Handler::GFF3handler qw(:Ok);
+use BILS::GFF3::Statistics qw(:Ok);
+use BILS::Handler::GXFhandler qw(:Ok);
 # END libraries
 
 my $header = qq{
@@ -251,7 +251,7 @@ if($opt_output){print "$stringPrint";} # When ostreamReport is a file we have to
 
 ######################
 ### Parse GFF input #
-my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GFF3handler->slurp_gff3_file_JD($opt_reffile);
+my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($opt_reffile);
 print("Parsing Finished\n\n");
 ### END Parse GFF input #
 #########################
