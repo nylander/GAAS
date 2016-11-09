@@ -1287,9 +1287,9 @@ sub _check_utrs{
  	  			if( ! exists_keys(\%checked,($id_l2)) ){ #l2 already checked
 
  	  				my $feature_example=undef; # will be used to create the exon features
-	 	  			my $list_location_Exon=[];
-	 	  			my $list_location_CDS=[];
-	 	  			my $list_location_UTR=[];
+	 	  			my $list_location_Exon=undef;
+	 	  			my $list_location_CDS=undef;
+	 	  			my $list_location_UTR=undef;
 	 	  			
 #				 	+-----------------------------------------------------
 #					| 			Go through l3 and save info needed		 |
@@ -1344,7 +1344,7 @@ sub _check_utrs{
 					if( exists_keys($hash_omniscient,('level3','cds', $id_l2)) ){ #Check UTR only if CDS exists
 
 						# Create list of UTR expected:
-						my $list_location_UTR_expected=[];
+						my $list_location_UTR_expected=undef;
 						my $expected_utr=1;
 						
 						foreach my $exon_location (sort {$a->[1] <=> $b->[1] } @{$list_location_Exon}){
@@ -1377,7 +1377,7 @@ sub _check_utrs{
 						print "list_location_UTR_expected: ".Dumper($list_location_UTR_expected) if ($verbose >= 3);  
  	  				
 		 	  			# Compare UTR Present and UTR expected
-	 	  				my $list_utr_to_create=[];
+	 	  				my $list_utr_to_create=undef;
 
 	 	  				if($#{$list_location_UTR} != -1){ #List UTR not empty				
 			 	  			foreach my $UTRexp_location (sort {$a->[1] <=> $b->[1] } @{$list_location_UTR_expected} ){
@@ -1429,7 +1429,8 @@ sub _check_utrs{
 						my $extremLeftCDS = $cds_sorted[0]->[1];
 						my $extremRightCDS = $cds_sorted[$#cds_sorted]->[2];
 
-						if(@$list_utr_to_create >= 1){
+						if($list_utr_to_create){
+							
 					 	  	foreach my $location (@{$list_utr_to_create}){
 					 	  		$resume_case++;
 					 	  		print "_check_utrs Create one UTR !\n" if ($verbose >= 2);
@@ -1490,7 +1491,7 @@ sub _manage_location{
 
 	my @new_location_list; #new location list that will be returned once filled
 	
-	if (@$locationTargetList >= 1){ #check number of location -> List not empty
+	if ($locationTargetList){ #check number of location -> List not empty
 		
 		my $check_list=1;
 
