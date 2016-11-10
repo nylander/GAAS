@@ -1355,6 +1355,7 @@ sub _check_utrs{
 
 			 	  			my $new_location;
 			 	  			my $overlap;
+			 	  			my $never_overlap="yes";
 							foreach my $location_cds (sort {$a->[1] <=> $b->[1] } @{$list_location_CDS}){
 
 								if( $location_cds->[1] > $exon_location->[2]){last;}
@@ -1362,67 +1363,75 @@ sub _check_utrs{
 
 								($new_location, $overlap) = _manage_location_lowLevel_inversed($location_cds, $exon_location, $verbose);
 
-								if($overlap eq "perfect"){$expected_utr=undef;last;}
+								if($overlap eq "perfect"){ $never_overlap=undef; $expected_utr=undef;last;}
 								
 								if($new_location->[1] != $exon_location->[1] and $new_location->[2] != $exon_location->[2] ){ #two UTR expected        =========================  exon
 									print "creation utr push1\n" if($verbose >= 3);
 									push @{$list_location_UTR_expected}, [undef, $exon_location->[1], $location_cds->[1]-1];				#								=======			CDS
 									push @{$list_location_UTR_expected}, [undef, $location_cds->[2]+1, $exon_location->[2]];
+									$never_overlap=undef;
 									last;
 								}	
 								elsif($new_location->[1] != $exon_location->[1] or $new_location->[2] != $exon_location->[2] ){ #two UTR expected  {
 									print "creation utr push2\n".Dumper($new_location)."\n" if($verbose >= 3);
 									push @{$list_location_UTR_expected}, $new_location;
+									$never_overlap=undef;
 									last;
 								}
 							}
+							if($never_overlap){ #case of UTR that match++ fully the exon
+								push @{$list_location_UTR_expected}, $exon_location;
+							}
 						}
 
-						print "list_location_UTR_expected: ".Dumper($list_location_UTR_expected) if ($verbose >= 3);  
+						print "list_location_UTR_expected: ".Dumper($list_location_UTR_expected) if ($verbose >= 3);
+						print "list_location_UTR: ".Dumper($list_location_UTR) if ($verbose >= 3);  
  	  				
 		 	  			# Compare UTR Present and UTR expected
 	 	  				my $list_utr_to_create=undef;
 
 	 	  				if($list_location_UTR){ #List UTR not empty
-	
-			 	  			foreach my $UTRexp_location (sort {$a->[1] <=> $b->[1] } @{$list_location_UTR_expected} ){
-			 	  					
-		 	  					my $create_utr=1;
-		 	  					my $new_location;
-		 	  					my $overlap;
-		 	  					foreach my $UTR_location (sort {$a->[1] <=> $b->[1] } @{$list_location_UTR}){
-		 	  						
-		 	  						($new_location, $overlap) = _manage_location_lowLevel_inversed($UTR_location, $UTRexp_location, $verbose); #just to check that it overlaps
+							if($list_location_UTR_expected){ #List UTR not empty
+				 	  			foreach my $UTRexp_location (sort {$a->[1] <=> $b->[1] } @{$list_location_UTR_expected} ){
+				 	  					
+			 	  					my $create_utr=1;
+			 	  					my $new_location;
+			 	  					my $overlap;
+			 	  					foreach my $UTR_location (sort {$a->[1] <=> $b->[1] } @{$list_location_UTR}){
+			 	  						
+			 	  						($new_location, $overlap) = _manage_location_lowLevel_inversed($UTR_location, $UTRexp_location, $verbose); #just to check that it overlaps
 
-		 	  						if($overlap and ( $UTR_location->[1] != $UTRexp_location->[1] or $UTR_location->[2] != $UTRexp_location->[2] ) ){ #It overlaps and at least one location is different. We have to re-modelate the utr location to take the modification into account
-			 	  						print "We modify the location of the existing utr: ".$UTR_location->[0][0]."  ".$UTR_location->[1]." ".$UTR_location->[2]." to ".$UTRexp_location->[1]." ".$UTRexp_location->[2]."\n" if ($verbose >= 3);
-			 	  						$resume_case2++;
-			 	  						$create_utr=undef;
+			 	  						if($overlap and ( $UTR_location->[1] != $UTRexp_location->[1] or $UTR_location->[2] != $UTRexp_location->[2] ) ){ #It overlaps and at least one location is different. We have to re-modelate the utr location to take the modification into account
+				 	  						print "We modify the location of the existing utr: ".$UTR_location->[0][0]."  ".$UTR_location->[1]." ".$UTR_location->[2]." to ".$UTRexp_location->[1]." ".$UTRexp_location->[2]."\n" if ($verbose >= 3);
+				 	  						$resume_case2++;
+				 	  						$create_utr=undef;
 
-			 	  						foreach my $tag_l3 (keys %{$hash_omniscient->{'level3'} } ){
-			 	  							if($tag_l3 =~"utr"){
-			 	  								if( exists_keys($hash_omniscient,('level3', $tag_l3, $id_l2)) ){
-						 	  						foreach my $l3_feature (@{$hash_omniscient->{'level3'}{$tag_l3}{$id_l2} } ){
-						 	  							if($l3_feature->_tag_value('ID') eq $UTR_location->[0][0]){
-						 	  								print "UTR location modified: = ".$l3_feature->gff_string."\nnew location:".$UTRexp_location->[1]." ".$UTRexp_location->[2]."\n" if ($verbose >= 3);
-						 	  								$l3_feature->start($UTRexp_location->[1]);
-						 	  								$l3_feature->end($UTRexp_location->[2]);
-						 	  								last;
-						 	  							}
-						 	  						}
-						 	  					}
-						 	  				}
-						 	  			}
-			 	  					}
-			 	  					elsif($overlap and $overlap eq "perfect"){ #An UTR that match perfectly already exists !
-			 	  						$create_utr=undef;
-			 	  					}
-			 	  				}
+				 	  						foreach my $tag_l3 (keys %{$hash_omniscient->{'level3'} } ){
+				 	  							if($tag_l3 =~"utr"){
+				 	  								if( exists_keys($hash_omniscient,('level3', $tag_l3, $id_l2)) ){
+							 	  						foreach my $l3_feature (@{$hash_omniscient->{'level3'}{$tag_l3}{$id_l2} } ){
+							 	  							if($l3_feature->_tag_value('ID') eq $UTR_location->[0][0]){
+							 	  								print "UTR location modified: = ".$l3_feature->gff_string."\nnew location:".$UTRexp_location->[1]." ".$UTRexp_location->[2]."\n" if ($verbose >= 3);
+							 	  								$l3_feature->start($UTRexp_location->[1]);
+							 	  								$l3_feature->end($UTRexp_location->[2]);
+							 	  								last;
+							 	  							}
+							 	  						}
+							 	  					}
+							 	  				}
+							 	  			}
+				 	  					}
+				 	  					elsif($overlap and $overlap eq "perfect"){ #An UTR that match perfectly already exists !
+				 	  						$create_utr=undef;
+				 	  					}
+				 	  				}
 
-			 	  				if($create_utr){
-			 	  					push @{$list_utr_to_create}, $new_location;
-			 	  				}
-		 					}
+				 	  				if($create_utr){
+				 	  					push @{$list_utr_to_create}, $new_location;
+				 	  				}
+			 					}
+			 				}
+			 				else{print "How is it possible ? \n".$id_l2."\n";exit;}
 		 				}
 	 					else{
 	 						if($list_location_UTR_expected){ 
@@ -1438,7 +1447,7 @@ sub _check_utrs{
 						my $extremRightCDS = $cds_sorted[$#cds_sorted]->[2];
 
 						if($list_utr_to_create){
-							print Dumper($list_utr_to_create)."\n";
+
 					 	  	foreach my $location (@{$list_utr_to_create}){
 					 	  		$resume_case++;
 					 	  		print "_check_utrs Create one UTR !\n" if ($verbose >= 2);
@@ -1502,6 +1511,7 @@ sub _manage_location{
 	if ($locationTargetList){ #check number of location -> List not empty
 		
 		my $check_list=1;
+		my $nb_ref = $#{$locationRefList};
 
 		while($check_list){
 			$check_list=undef;
@@ -1586,13 +1596,15 @@ sub _manage_location{
 				if (scalar @new_location_list == 1){
 					$check_list = undef; #Do not check the list if it is size one ! Because we will be stuck => case test againt himself is skipped !
 				}
-				else{
-					$locationTargetList = [@new_location_list];
+				elsif($nb_ref > 0){ #Case where the target list as input was more than 1 element, we have to check all against all  due to case like Ref=> -------    ---------
+					$locationTargetList = [@new_location_list];																						# Tearget ------------
 					$locationRefList = [@new_location_list];
+					$nb_ref = $#{$locationRefList}; #reinitialise the value
 					if($verbose >= 4){print "Location in memory:".@new_location_list." ".Dumper(\@new_location_list)." NNNNNNNNNNNNNNNNNNNNNNNow check aginst itself !\n";}
 					@new_location_list=();
 					%tupleChecked=();
-				}					
+				}
+				else{$check_list=undef;}					
 			}
 		}
 	}
