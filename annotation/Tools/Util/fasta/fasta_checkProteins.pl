@@ -76,7 +76,7 @@ while( my $line = <FIC> ) {
                 
         		if ($sequence =~ m/^M/){
 					$nbProtWithStart++;
-					if (($sequence =~ m/\.$/) or ($sequence =~ m/X$/) ){
+					if ( $sequence =~ m/[\.X\*]$/ ){
 						$nbProtWithStop++;
 						$nbProtWithStopStart++;
         			}
@@ -84,7 +84,7 @@ while( my $line = <FIC> ) {
 
         		}
         		else{$nbProtWithoutStart++;
-        			if ( ($sequence =~ m/\.$/) or ($sequence =~ m/X$/) ){
+        			if ( $sequence =~ m/[\.X\*]$/) {
         				$nbProtWithStop++;
 						$nbProtWithoutStartWithStop++;
 					}
@@ -107,14 +107,14 @@ if ($sequence =~ m/^L/){
 }
 if ($sequence =~ m/^M/){
     $nbProtWithStart++;
-    if ( ($sequence =~ m/\.$/) or ($sequence =~ m/X$/) ){
+    if ( $sequence =~ m/[\.X\*]$/ ) {
         $nbProtWithStop++;
         $nbProtWithStopStart++;
     }
     else{$nbProtWithStartWithoutStop++;$nbProtWithoutStop++;}
 }
 else{$nbProtWithoutStart++;
-    if ( ($sequence =~ m/\.$/) or ($sequence =~ m/X$/) ){
+    if ( $sequence =~ m/[\.X\*]$/ ) {
         $nbProtWithStop++;
         $nbProtWithoutStartWithStop++;
     }
@@ -131,7 +131,7 @@ $Result .= "?.....  We have $nbProtWithoutStop proteins without a stop at the la
 $Result .= "......  We have $nbProtWithoutStartStop proteins without a start at the first position and without stop at the last position\n\n";
 $Result .= "M.....  start wihtout stop= $nbProtWithStartWithoutStop\n";
 $Result .= ".....X  stop wihtout start= $nbProtWithoutStartWithStop\n";
-print "$Result";
+print "$Result" if($output);
 print $output $Result; 
 
 my $prop = ($specialStart*100)/$nbProtWithoutStart;
@@ -142,7 +142,7 @@ __END__
 
 checkProteins.pl -
 The script take a fasta file as input. -
-It will check the presence of Start (M in first position) and Stop (. or X at last position) of each sequence.
+It will check the presence of Start (M in first position) and Stop (. or X or * at last position) of each sequence.
 
 =head1 SYNOPSIS
 
