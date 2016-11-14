@@ -329,7 +329,7 @@ __END__
 =head1 NAME
 
 gff3_extract_cds_sequences.pl -
-This script extract sequence in feasta format from gff file. You can extract the fasta of any kind of feature define by the 2th column in the gff file.
+This script extract sequence in feasta format from gff file. You can extract the fasta of any kind of feature define by the 3th column in the gff file.
 The result is written to the specified output file, or to STDOUT.
 
 The Header are formated like that:
@@ -360,6 +360,7 @@ Input fasta file.
 =item B<-t> 
 
 Define the feature you want to extract the sequnce from. By deafault it's 'cds'. Most common choice are: gene,mrna,exon,cds,trna,three_prime_utr,five_prime_utr.
+When you chose exon (or cds,utr,etc.), all the exon related to a same L2 feature are attached together before to extract the exon. (It doesnt provide one sequence by exon !!)
 
 =item B<-p>, B<--protein> or B<--aa>
 
