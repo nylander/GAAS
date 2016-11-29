@@ -13,7 +13,7 @@ use Pod::Usage;
 #VERIABLE DECLARATION
 my $opt_reffile;
 my $opt_help;
-my $opt_output;
+my $opt_output=undef;
 my $nbProt=0;
 
 # OPTION MANAGMENT
@@ -44,7 +44,7 @@ my $ostream     = IO::File->new();
 if ($opt_output){
         $ostream->open( $opt_output, 'w' ) or
         croak(
-            sprintf( "Can not open '%s' for writing %s", $opt_output."/GOFeatures.gff", $! )
+            sprintf( "Can not open '%s' for writing %s", $opt_output, $! )
         );
 }
 else{
@@ -131,7 +131,7 @@ $Result .= "?.....  We have $nbProtWithoutStop proteins without a stop at the la
 $Result .= "......  We have $nbProtWithoutStartStop proteins without a start at the first position and without stop at the last position\n\n";
 $Result .= "M.....  start wihtout stop= $nbProtWithStartWithoutStop\n";
 $Result .= ".....X  stop wihtout start= $nbProtWithoutStartWithStop\n";
-print "$Result" if($output);
+print "$Result" if($opt_output);
 print $output $Result; 
 
 my $prop = ($specialStart*100)/$nbProtWithoutStart;
