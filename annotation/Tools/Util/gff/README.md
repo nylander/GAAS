@@ -19,10 +19,11 @@ export PERL5LIB=$PERL5LIB:/pathTo/GAAS/annotation
 	- module load BioPerl/1.6.922 <br>
 
 3) Some specific perl modules like Clone and Moose have to be installed too. 
-! If you are using Uppmax you can just follow the following steps to have them:<br>
-	- Launch the script: /proj/b2011210/annotation/lib/install_perllib_missing.sh <br>
-	- execute the command: source ~/.bash_profile <br>
-
+! If you are using Uppmax these packages should be included within perl_modules/5.18.4:<br>
+	- execute the command: perl_modules/5.18.4 <br>
+	Otherwise follow the instructions: http://www.uppmax.uu.se/support/faq/software-faq/installing-local-perl-packages/ <br>
+! For non Uppmax user, use your favorite package manager (cpan, cpanm, etc)
+	- e.g: cpanm Moose
 
 #################################################
 # 2) Script name and classificaiton by prefix   #
