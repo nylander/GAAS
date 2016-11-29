@@ -69,21 +69,26 @@ else{
 
 ########################
 ### Manage INPUT FILES #
-
-my $ID_list  = IO::File->new("<".$file2);
-
-##############
-#### MAIN ####
-
 my $nbToExclude;
 my %list_to_exclude;
-# create hash of ID to remove
-while ( <$ID_list> ) {
-  chomp;
-  if(! $_ =~ /^\s*$/){
-    $list_to_exclude{$_}++;
-    $nbToExclude++;
-  }
+if (-f $file2){
+	my $ID_list  = IO::File->new("<".$file2);
+
+	##############
+	#### MAIN ####
+
+	# create hash of ID to remove
+	while ( <$ID_list> ) {
+	  chomp;
+	  if(! $_ =~ /^\s*$/){
+	    $list_to_exclude{$_}++;
+	    $nbToExclude++;
+	  }
+	}
+}
+else{
+	$list_to_exclude{$file2}++;
+        $nbToExclude++;
 }
 print "You want to removed $nbToExclude sequence from $file1\n";
 
@@ -91,7 +96,7 @@ print "You want to removed $nbToExclude sequence from $file1\n";
 my $fasta1  = Bio::SeqIO->new(-file => $file1 , -format => 'Fasta');
 my $nbRemoved=0;
 while ( my $seq = $fasta1->next_seq() ) {
- if(! exists($list_to_exclude{$seq->id})){
+if(! exists($list_to_exclude{$seq->id})){
     $fastaout->write_seq($seq);
  }
  else{$nbRemoved++;}
