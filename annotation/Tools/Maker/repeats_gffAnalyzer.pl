@@ -185,7 +185,7 @@ The script allows to generate a tabulated format report of repeats annotated fro
 
 =item B<-i>, B<--gff>, B<--file> or B<--input>
 
-STRING: Input gff file that will be read.
+STRING: Input gff file that will be read. Several files can be processed at once: -i file1 -i file2
 
 =item B<-g>, B<--genome>
 
