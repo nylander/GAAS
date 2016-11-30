@@ -19,13 +19,13 @@ use BILS::Handler::GXFhandler qw(:Ok);
 
 my $start_run = time();
 
-my $inputFile;
+my @inputFile;
 my $outputFile;
 my $genome;
 my $opt_help = 0;
 
 Getopt::Long::Configure ('bundling');
-if ( !GetOptions ('i|file|input|gff=s' => \$inputFile,
+if ( !GetOptions ('i|file|input|gff=s' => \@inputFile,
       'o|output=s' => \$outputFile,
       'g|genome=s' => \$genome,
       'h|help!'         => \$opt_help )  )
@@ -40,16 +40,13 @@ if ($opt_help) {
                  -exitval => 0 } );
 }
 
-if ((!defined($inputFile)) ){
-   pod2usage( { -message => 'at least 1 parameter is mandatory: -i',
+if (! @inputFile ){
+   pod2usage( { -message => 'at least 1 input file is mandatory',
                  -verbose => 1,
                  -exitval => 1 } );
 }
 
 my $ostream     = IO::File->new();
-
-# Manage input fasta file
-my $ref_in = Bio::Tools::GFF->new(-file => $inputFile, -gff_version => 3);
 
 # Manage Output
 if(defined($outputFile))
@@ -80,45 +77,51 @@ my $genomeSize=undef;
   }
 
 #time to calcul progression
-my $startP=time;
-my $nbLine=`wc -l < $inputFile`;
-$nbLine =~ s/ //g;
-chomp $nbLine;
-print "$nbLine line to process...\n";
-my $line_cpt=0;
-
 my $type_count;
 my $type_bp;
-my %check; #track the repeat already annotated to not. Allopw to skip already read repeats
+my %check; #track the repeat already annotated to not. Allow to skip already read repeats
 
-local $| = 1; # Or use IO::Handle; STDOUT->autoflush; Use to print progression bar
-while (my $feature = $ref_in->next_feature() ) {
-  $line_cpt++;
-  my $type = lc($feature->primary_tag);
-  ## repeatMasker or repeatRunner
-  if (($type eq 'match') or ($type eq 'protein_match')){
+foreach my $file (@inputFile){
+# Manage input fasta file
+  print "Reading $file\n";
+  my $ref_in = Bio::Tools::GFF->new(-file => $file, -gff_version => 3);
 
-    my $position=$feature->seq_id."".$feature->start()."".$feature->end(); #uniq position
-    if(exists ($check{$position} ) ){next;}
-    else{
+  my $startP=time;
+  my $nbLine=`wc -l < $file`;
+  $nbLine =~ s/ //g;
+  chomp $nbLine;
+  print "$nbLine line to process...\n";
+  my $line_cpt=0;
 
-     my $nameAtt=$feature->_tag_value('Name');
-     my $genus=(split ":", (split /\|/, (split /\s+/,$nameAtt)[0])[-1])[-1];
-     $type_count->{$genus}++;
-     $type_bp->{$genus}+=($feature->end()-$feature->start())+1;
-     $check{$position}++;
+  local $| = 1; # Or use IO::Handle; STDOUT->autoflush; Use to print progression bar
+  while (my $feature = $ref_in->next_feature() ) {
+    $line_cpt++;
+    my $type = lc($feature->primary_tag);
+    ## repeatMasker or repeatRunner
+    if (($type eq 'match') or ($type eq 'protein_match')){
+
+      my $position=$feature->seq_id."".$feature->start()."".$feature->end(); #uniq position
+      if(exists ($check{$position} ) ){next;}
+      else{
+
+       my $nameAtt=$feature->_tag_value('Name');
+       my $genus=(split ":", (split /\|/, (split /\s+/,$nameAtt)[0])[-1])[-1];
+       $type_count->{$genus}++;
+       $type_bp->{$genus}+=($feature->end()-$feature->start())+1;
+       $check{$position}++;
+      }
+    }
+
+    #Display progression
+    if ((30 - (time - $startP)) < 0) {
+      my $done = ($line_cpt*100)/$nbLine;
+      $done = sprintf ('%.0f', $done);
+          print "\rProgress : $done %";
+      $startP= time;
     }
   }
-
-  #Display progression
-  if ((30 - (time - $startP)) < 0) {
-    my $done = ($line_cpt*100)/$nbLine;
-    $done = sprintf ('%.0f', $done);
-        print "\rProgress : $done %";
-    $startP= time;
-  }
+  print "\rProgress : 100 %\n";
 }
-print "\rProgress : 100 %\n";
 
 my $totalNumber=0;
 my $totalSize=0;
