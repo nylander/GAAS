@@ -59,14 +59,19 @@ You can install them by using your  favorite package manager (cpan, cpanm, etc).
 _**As most as possible we will try to name the script with understandable names.
 For that purpose we try to use a controled vocabulary**_
 
-A) Script not prefixed by gff3 but only with gff means that they havn't be checked or are not compatible with the gff3 standard. In other term, it means that a file not following the gff3 standards might not work with the script prefixed by gff3. Lot of modifcation could be post process if your file don't follow the gff3 standart. We will develop that in the part 3 of this readme.
+##A) Script not prefixed by gff3 but only with gff means that they havn't be checked or are not compatible with the gff3 standard. In other term, it means that a file not following the gff3 standards might not work with the script prefixed by gff3. Lot of modifcation could be post process if your file don't follow the gff3 standart. We will develop that in the part 3 of this readme.
 
 
-B) \_sq\_ AND \_sp\_
-B.1) \_sq\_ => Means SEQUENTIAL = The gff file is read and processed from top to the end. This is memory efficient !! 
-							 But in other hand it hard to create complex script. Moreover, If data are not written sorted (e.g an exon of a gene located in the middle of the descritpion of another gene) some troubles could occur.
+##B) \_sq\_ AND \_sp\_
 
-B.2) \_sp\_ => Means SLURP = The gff file will be saved in memory before to process it. This is handle by the slurp_gff3_file_JD method. It has a memory cost. So if your gff3 files are over Gb size and your computer do not have enough ram memory, it might crash. 
+###B.1) \_sq\_ => Means SEQUENTIAL
+
+The gff file is read and processed from top to the end. This is memory efficient !! 
+But in other hand it hard to create complex script. Moreover, If data are not written sorted (e.g an exon of a gene located in the middle of the descritpion of another gene) some troubles could occur.
+
+###B.2) \_sp\_ => Means SLURP
+
+The gff file will be saved in memory before to process it. This is handle by the slurp_gff3_file_JD method. It has a memory cost. So if your gff3 files are over Gb size and your computer do not have enough ram memory, it might crash. 
 That approach allows to peform more complicated task and more efficiency. Moreover, it allows to fix/correct, in the limit of the possibilities given by the format, the issues present in the gff you give in input. See part 3 for more information about it.
 
 
