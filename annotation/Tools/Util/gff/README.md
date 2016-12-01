@@ -5,28 +5,56 @@ Bench of tool to handle gff3 files.
 To know more about gff3 format it's over there => https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md
 
 ###################
-# 1) PREREQUISITE #
+# I) PREREQUISITE #
 ###################
 
-1) Most of tool use the BILS librairy that can be found here: GAAS/annotation/BILS
-Consequently, in order to use those scripts, you must add it to your path like that:
+Once you cloned the git repositpry you have to configure your installation as explained below:
 
-export PERL5LIB=$PERL5LIB:/pathTo/GAAS/annotation
+##1) Most of scripts use the BILS librairy which is located here: GAAS/annotation/BILS
+Consequently, in order to use those scripts, you must add the library location to your path like that:
 
-2) Bioperl must as well be installed.
-! If you are using Uppmax you can just execute these two commands:<br>
-	- module load bioinfo-tools<br>
-	- module load BioPerl/1.6.922 <br>
+	export PERL5LIB=$PERL5LIB:/pathTo/GAAS/annotation
 
-3) Some specific perl modules like Clone and Moose have to be installed too. 
-! If you are using Uppmax these packages should be included within perl_modules/5.18.4:<br>
-	- execute the command: perl_modules/5.18.4 <br>
-	Otherwise follow the instructions: http://www.uppmax.uu.se/support/faq/software-faq/installing-local-perl-packages/ <br>
-! For non Uppmax user, use your favorite package manager (cpan, cpanm, etc)
-	- e.g: cpanm Moose
+##2) Bioperl must as well be installed as well as sepcific perl modules often not included by default (Moose,Clone)
+
+###2.1) Uppmax user (Swedish research cluster)=> This will be easy for you, It's a lucky day ;)
+Just load the needed modules by executing these commands:<br>
+
+	module load bioinfo-tools 
+	module load BioPerl/1.6.922 
+	module load perl_modules/5.18.4  # This module contains the Moose and Clone librairy
+
+P.S: Instead to use the perl_modules/5.18.4 module you may also install your own local perl librairy by following these instructions: http://www.uppmax.uu.se/support/faq/software-faq/installing-local-perl-packages/  <br>
+
+###2.2) For non-uppmax user please follow these instructions:
+
+During the below processes, if you encountered right problem, use the "super user" command to do the installation as administrator.
+
+	e.g: sudo cpanm bioperl 
+	
+In that case you will be prompt to type the super user paswword. Obviously you need to have that privilege.
+
+####2.2.1) Bioperl
+
+The easiest way to have bioperl is to clone the bioperl-live project here => https://github.com/bioperl/bioperl-live
+and add the path to it within your PERL5LIB path.
+
+	export PERL5LIB=$PERL5LIB:/pathTo/bioperl-live 
+
+Otherwise you should be able to install bioperl using your favorite package manager (cpan, cpanm, etc).
+
+	e.g: cpanm bioperl
+
+####2.2.2) Other mandatory modules
+You must install the Moose and Clone librairy.
+You can install them by using your  favorite package manager (cpan, cpanm, etc).
+
+	e.g: cpanm Clone
+	e.g: cpanm Moose
+
 
 #################################################
-# 2) Script name and classificaiton by prefix   #
+# II) Script name and classificaiton by prefix   #
 					
 _**As most as possible we will try to name the script with understandable names.
 For that purpose we try to use a controled vocabulary**_
@@ -43,7 +71,7 @@ That approach allows to peform more complicated task and more efficiency. Moreov
 
 
 #################################################
-# 3) What does the SLURP method for you
+# III) What does the SLURP method for you
 #########
 **_This method create a hash structure containing all the data in memory. We call it OMNISCIENT.<br>
 The OMNISCNIENT structure is a three levels structure :_**
