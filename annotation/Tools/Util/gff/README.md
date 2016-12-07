@@ -50,8 +50,8 @@ You must install the Moose and Clone librairy.
 You can install them by using your  favorite package manager (cpan, cpanm, etc).
 
 	e.g: cpanm Clone
-	e.g: cpanm Moose
-
+	e.g: cpanm Moose 
+	e.g: cpanm Graph::Directed
 
 #################################################
 # II) Script name and classificaiton by prefix   #
@@ -59,7 +59,9 @@ You can install them by using your  favorite package manager (cpan, cpanm, etc).
 _**As most as possible we will try to name the script with understandable names.
 For that purpose we try to use a controled vocabulary**_
 
-##A) Script not prefixed by gff3 but only with gff means that they havn't be checked or are not compatible with the gff3 standard. In other term, it means that a file not following the gff3 standards might not work with the script prefixed by gff3. Lot of modifcation could be post process if your file don't follow the gff3 standart. We will develop that in the part 3 of this readme.
+##A) gff vs gff3 prefix
+
+Script not prefixed by gff3 but only with gff means that they havn't be checked or are not compatible with the gff3 standard. In other term, it means that a file not following the gff3 standards might not work with the script prefixed by gff3. Lot of modifcation could be post process if your file don't follow the gff3 standart. We will develop that in the part 3 of this readme.
 
 
 ##B) \_sq\_ AND \_sp\_
