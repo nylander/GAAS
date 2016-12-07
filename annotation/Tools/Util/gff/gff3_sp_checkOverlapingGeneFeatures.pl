@@ -9,7 +9,6 @@ use Getopt::Long;
 use Data::Dumper;
 use Pod::Usage;
 use List::MoreUtils qw(uniq);
-use BILS::Handler::GTFhandler qw(:Ok);
 use BILS::Handler::GXFhandler qw(:Ok);
 use BILS::Handler::GFF3handler qw(:Ok);
 use Bio::Tools::GFF;

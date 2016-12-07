@@ -9,7 +9,6 @@ use Statistics::R;
 use Pod::Usage;
 use Bio::Tools::GFF;
 use List::MoreUtils qw(uniq);
-use BILS::Handler::GTFhandler qw(:Ok);
 use BILS::Handler::GFF3handler qw(:Ok);
 use BILS::Handler::GXFhandler qw(:Ok);
 
