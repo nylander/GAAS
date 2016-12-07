@@ -37,14 +37,16 @@ my $gff = undef;
 my $model_to_test = undef;
 my $file_fasta=undef;
 my $split_opt=undef;
+my $codonTable=1;
 my $help= 0;
 
 my @copyARGV=@ARGV;
 if ( !GetOptions(
     "help|h" => \$help,
     "gff=s" => \$gff,
-    "fasta|fa=s" => \$file_fasta,
+    "fasta|fa|f=s" => \$file_fasta,
     "split|s" => \$split_opt,
+    "table|codon|ct=i" => \$codonTable,
     "m|model=s" => \$model_to_test,
     "output|outfile|out|o=s" => \$outfile))
 
@@ -66,6 +68,10 @@ if ( ! (defined($gff)) or !(defined($file_fasta)) ){
            -message => "$header\nAt least 2 parameter is mandatory:\nInput reference gff file (--gff) and Input fasta file (--fasta)\n\n",
            -verbose => 0,
            -exitval => 1 } );
+}
+
+if($codonTable<0 and $codonTable>25){
+  print "$codonTable codon table is not a correct value. It should be between 0 and 25 (0,23 and 25 can be problematic !)\n";
 }
 
 ######################
@@ -172,7 +178,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
             $cds_obj = $cds_obj->revcom();
           }
           #translate cds in protein
-          my $original_prot_obj = $cds_obj->translate() ; #codontable_id by default=1 (Vertebrates). IUPAC => STOP codon even if not sure ...
+          my $original_prot_obj = $cds_obj->translate(-codontable_id => $codonTable) ; #codontable_id by default=1 (Vertebrates). IUPAC => STOP codon even if not sure ...
           my $cds_prot=$original_prot_obj->seq;
           my $originalProt_size=length($cds_prot);
 
@@ -194,10 +200,12 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
           my $orf_cds_region;
           my ($longest_ORF_prot_objM, $orf_cds_regionM) = translate_JD($mrna_obj, 
                                                                       -nostartbyaa => 'L',
-                                                                      -orf => 'longest');
+                                                                      -orf => 'longest',
+                                                                      -codontable_id => $codonTable);
           my ($longest_ORF_prot_objL, $orf_cds_regionL) = translate_JD($mrna_obj, 
                                                                       -nostartbyaa => 'M',
-                                                                      -orf => 'longest');
+                                                                      -orf => 'longest',
+                                                                      -codontable_id => $codonTable);
           if($longest_ORF_prot_objL->length()+$SIZE_OPT > $longest_ORF_prot_objM ){ # In a randomly generated DNA sequence with an equal percentage of each nucleotide, a stop-codon would be expected once every 21 codons. Deonier et al. 2005
             $longest_ORF_prot_obj=$longest_ORF_prot_objL;                    # As Leucine L (9/100) occur more often than Metionine M (2.4) JD arbitrary choose to use the L only if we strength the sequence more than 21 AA. Otherwise we use M start codon.
             $orf_cds_region=$orf_cds_regionL;
@@ -1042,7 +1050,7 @@ sub _find_orfs_nucleotide_JD {
 
         # if in an orf and this is either a stop codon or the last in-frame codon in the string
         if ( $current_orf_start[$frame] >= 0 ) {
-            if ( _is_ter_codon_JD( $this_codon ) ||( my $is_last_codon_in_frame = ($j >= $seqlen-5)) ) {
+            if ( $codon_table->is_ter_codon( $this_codon ) ||( my $is_last_codon_in_frame = ($j >= $seqlen-5)) ) {
                 # record ORF start, end (half-open), length, and frame
                 my @this_orf = ( $current_orf_start[$frame], $j+3, undef, $frame );
                 my $this_orf_length = $this_orf[2] = ( $this_orf[1] - $this_orf[0] );
@@ -1076,17 +1084,17 @@ sub _find_orfs_nucleotide_JD {
 }
 
 # We can be sure it's a stop codon even with IUPAC
-sub _is_ter_codon_JD{
-  my ($codon) = @_;
-  $codon=lc($codon);
-  $codon =~ tr/u/t/;
-  my $is_ter_codon=undef;
+#sub _is_ter_codon_JD{
+#  my ($codon) = @_;
+#  $codon=lc($codon);
+#  $codon =~ tr/u/t/;
+#  my $is_ter_codon=undef;
 
-  if( ($codon eq 'tga') or ($codon eq 'taa') or ($codon eq 'tag') or ($codon eq 'tar') or ($codon eq 'tra') ){
-    $is_ter_codon="yes";
-  }
-  return $is_ter_codon;
-}
+#  if( ($codon eq 'tga') or ($codon eq 'taa') or ($codon eq 'tag') or ($codon eq 'tar') or ($codon eq 'tra') ){
+#    $is_ter_codon="yes";
+#  }
+#  return $is_ter_codon;
+#}
 
 __END__
 
