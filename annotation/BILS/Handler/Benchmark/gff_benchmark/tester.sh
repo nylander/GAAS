@@ -4,7 +4,7 @@ for i in {1..30}_*;do
 	if [[ -f $i ]];then
 		if [[ ! $i =~ ^[1-9]+_correct ]];then
 			echo -e "\nTest of $i";
-			~/git/NBIS/GAAS/annotation/Tools/Util/gff/gff3_sp_IO.pl --gff $i -o test.gff  &> /dev/null  
+			~/git/NBIS/GAAS/annotation/Tools/Converter/gxf_to_gff3.pl --gff $i -o test.gff  &> /dev/null  
 			pref=$(echo $i | cut -d'_' -f1)
 			fileok=${pref}_correct_output.gff
 
@@ -20,7 +20,7 @@ for i in {1..30}_*;do
 			fi
 
 			echo "check against itsefl"
-			~/git/NBIS/GAAS/annotation/Tools/Util/gff/gff3_sp_IO.pl --gff test.gff -o test2.gff  &> /dev/null  
+			~/git/NBIS/GAAS/annotation/Tools/Converter/gxf_to_gff3.pl --gff test.gff -o test2.gff  &> /dev/null  
 			resu=$(diff test2.gff $fileok)
 			if [[ $resu != "" ]];then
 					echo "$resu"

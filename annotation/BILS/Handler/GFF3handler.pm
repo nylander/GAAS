@@ -10,9 +10,9 @@ use Bio::Seq;
 
 our $VERSION     = 1.00;
 our @ISA         = qw(Exporter);
-our @EXPORT_OK   = qw(print_omniscient_as_match nb_feature_level1 check_gene_positions find_overlap_between_geneFeature_and_sortBySeqId sort_by_seq_id webapollo_compliant extract_cds_sequence group_l1features_from_omniscient create_omniscient_from_idlevel2list get_feature_l2_from_id_l2_l1 remove_omniscient_elements_from_level2_feature_list featuresList_identik fill_omniscient_from_other_omniscient group_features_from_omniscient featuresList_overlap check_level1_positions check_level2_positions info_omniscient fil_cds_frame exists_keys _group_features_by_transcript_and_seq_id reconstruct_locus_without_transcripts_with_seq_id remove_element_from_omniscient append_omniscient merge_omniscients remove_omniscient_elements_from_level1_id_list fill_omniscient_from_other_omniscient_level1_id print_omniscient_from_level1_id_list check_if_feature_overlap remove_tuple_from_omniscient print_ref_list_feature print_omniscient create_or_replace_tag);
+our @EXPORT_OK   = qw(print_omniscient_as_match nb_feature_level1 check_gene_positions find_overlap_between_geneFeature_and_sortBySeqId sort_by_seq_id webapollo_compliant extract_cds_sequence group_l1features_from_omniscient create_omniscient_from_idlevel2list get_feature_l2_from_id_l2_l1 remove_omniscient_elements_from_level2_feature_list featuresList_identik fill_omniscient_from_other_omniscient group_features_from_omniscient featuresList_overlap check_level1_positions check_level2_positions info_omniscient fil_cds_frame exists_keys remove_element_from_omniscient append_omniscient merge_omniscients remove_omniscient_elements_from_level1_id_list fill_omniscient_from_other_omniscient_level1_id print_omniscient_from_level1_id_list check_if_feature_overlap remove_tuple_from_omniscient print_ref_list_feature print_omniscient create_or_replace_tag remove_element_from_omniscient_attributeValueBased);
 our %EXPORT_TAGS = ( DEFAULT => [qw()],
-                 Ok    => [qw(print_omniscient_as_match nb_feature_level1 check_gene_positions find_overlap_between_geneFeature_and_sortBySeqId sort_by_seq_id webapollo_compliant extract_cds_sequence group_l1features_from_omniscient create_omniscient_from_idlevel2list get_feature_l2_from_id_l2_l1 remove_omniscient_elements_from_level2_feature_list featuresList_identik fill_omniscient_from_other_omniscient group_features_from_omniscient featuresList_overlap check_level1_positions check_level2_positions info_omniscient fil_cds_frame exists_keys _group_features_by_transcript_and_seq_id reconstruct_locus_without_transcripts_with_seq_id remove_element_from_omniscient append_omniscient merge_omniscients remove_omniscient_elements_from_level1_id_list fill_omniscient_from_other_omniscient_level1_id print_omniscient_from_level1_id_list check_if_feature_overlap remove_tuple_from_omniscient print_ref_list_feature print_omniscient create_or_replace_tag)]);
+                 Ok    => [qw(print_omniscient_as_match nb_feature_level1 check_gene_positions find_overlap_between_geneFeature_and_sortBySeqId sort_by_seq_id webapollo_compliant extract_cds_sequence group_l1features_from_omniscient create_omniscient_from_idlevel2list get_feature_l2_from_id_l2_l1 remove_omniscient_elements_from_level2_feature_list featuresList_identik fill_omniscient_from_other_omniscient group_features_from_omniscient featuresList_overlap check_level1_positions check_level2_positions info_omniscient fil_cds_frame exists_keys remove_element_from_omniscient append_omniscient merge_omniscients remove_omniscient_elements_from_level1_id_list fill_omniscient_from_other_omniscient_level1_id print_omniscient_from_level1_id_list check_if_feature_overlap remove_tuple_from_omniscient print_ref_list_feature print_omniscient create_or_replace_tag remove_element_from_omniscient_attributeValueBased)]);
 =head1 SYNOPSIS
 
 
@@ -25,8 +25,6 @@ our %EXPORT_TAGS = ( DEFAULT => [qw()],
 	Dont take in account repeat and multi parent feature!!!
 
 =cut
-use constant SPREADFEATURE => {"cds" => 1, "three_prime_utr" => 2, "five_prime_utr" => 3, "utr" => 4};
-
 
 #				   +------------------------------------------------------+
 #				   |+----------------------------------------------------+|
@@ -337,26 +335,18 @@ sub webapollo_rendering {
 	## check primary tag
 	my $primary_tag = lc($feature->primary_tag);
 
-	if($primary_tag eq 'cds'){
-		$feature->primary_tag('CDS');
-	}
-	if($primary_tag eq 'exon'){
-		$feature->primary_tag('exon');
-	}
-	if($primary_tag eq 'three_prime_utr'){
-		$feature->primary_tag('three_prime_UTR');
-	}
-	if($primary_tag eq 'five_prime_utr'){
-		$feature->primary_tag('five_prime_UTR');
-	}
-	if($primary_tag eq 'utr'){
-		$feature->primary_tag('UTR');
-	}
-	if($primary_tag eq 'mrna'){
-		$feature->primary_tag('mRNA');
-	}
-	if($primary_tag eq 'gene'){
-		$feature->primary_tag('gene');
+	my %corrections = (
+			cds => 'CDS',
+			exon => 'exon',
+			three_prime_utr => 'three_prime_UTR',
+			five_prime_utr => 'five_prime_UTR',
+			utr => 'UTR',
+			mrna => 'mRNA',
+			gene => 'gene',
+
+		);
+	if ( exists $corrections{$primary_tag}) {
+		$feature->primary_tag( $corrections{$primary_tag});
 	}
 
 	## check attribute
@@ -971,6 +961,57 @@ sub remove_element_from_omniscient {
 	}
 }
 
+# $id_concern = ID of parent we will check
+# Go trhough all the element (L1 or L2 list) and check if we find one with the specied tag attribute and value attribute. In that case we remove it from the list
+sub remove_element_from_omniscient_attributeValueBased {
+
+	my ($id_concern_list, $attributeValue, $attributeTag, $hash_omniscient, $level, $bolean, $list_tag_key)=@_;
+
+	# bolean true => we remove if in list_tag_key
+	# bolean false => we remove if is not in list_tag_key
+	my $remove;
+	#Check level and tag
+	foreach my $tag_key  (keys %{$hash_omniscient->{$level}}){
+		if($bolean eq 'true'){
+			$remove="no";
+		}else{$remove="yes";}
+		foreach my $tag_key_to_match (@$list_tag_key){
+
+			if ((lc($tag_key) eq  lc($tag_key_to_match)) and ($bolean eq 'true')){
+				$remove="yes";
+			}
+			if ((lc($tag_key) eq  lc($tag_key_to_match)) and ($bolean eq 'false')){
+				$remove="no";last;
+			}
+		}
+		#Check feature id from list
+		if ($remove eq 'yes'){
+			foreach my $id_concern (@{$id_concern_list}){
+				my $mustModifyList=undef;
+				my @listok;
+
+				if(exists_keys($hash_omniscient, ($level,$tag_key,lc($id_concern)))){
+					foreach my $feature (@{$hash_omniscient->{$level}{$tag_key}{lc($id_concern)}}){
+						my $id  = lc($feature->_tag_value('ID'));
+						my $shouldremoveit=undef;
+
+						if($feature->has_tag($attributeTag)){
+							if( lc($feature->_tag_value($attributeTag)) eq lc($attributeValue) ){
+								$mustModifyList="yes"; $shouldremoveit="yes";
+							}
+							else{push(@listok, $feature);}
+						}
+						else{push(@listok, $feature);}
+					}
+					if($mustModifyList){ # at least one feature has been removed from list. Save the new list
+						@{$hash_omniscient->{$level}{$tag_key}{$id_concern}}=@listok;
+					}
+				}
+			}
+		}
+	}
+}
+
 #				   +------------------------------------------------------+
 #				   |+----------------------------------------------------+|
 #				   || 			HANDLE OMNISCIENT => CREATE				 ||
@@ -1148,7 +1189,6 @@ sub info_omniscient {
 	}
 }
 
-#============
 #check if reference exists in hash. Deep infinite : hash{a} or hash{a}{b} or hash{a}{b}{c}, etc.
 # usage example: exists_keys($hash_omniscient,('level3','cds',$level2_ID)
 sub exists_keys {
@@ -1162,22 +1202,6 @@ sub exists_keys {
     }
     return '';
 }
-
-# sub _exists {
-#     my ($hash, @keys, @exists) = @_;
-
-#     	if (ref $hash eq 'HASH' && exists $hash->{$keys[0]}) {
-#     	    my $key = shift @keys;
-#     	    push @exists, 1, _exists($hash->{$key}, @keys);
-#    		}
-   		
-#     return @exists;
-# }
-
-# sub exists_keys {
-#     return &_exists == $#_ ? 1 : ();
-# }
-#============
 
 # Check the start and end of level1 feature based on all features level2;
 sub check_level1_positions {
@@ -1689,275 +1713,5 @@ sub nb_feature_level1 {
 	}
 	return $resu;
 }
-
-############################## Based on Marc idea =====
-
-sub reconstruct_locus_without_transcripts_with_seq_id {
-my 	@gene;
-my 	@mRNA;
-	# All features belonging to the same gene
-	my ($features, $NewGeneID) = @_; #Features are
-
-	# Take all features and bin them by transcript_id
-
-	my %bin = _group_features_by_transcript_and_seq_id(@$features);
-
-	# Build transcript from all features in the group
-
-	my @answer = ();
-
-	# Some annotations (like lift-overs) can be split across scaffolds/contigs
-	my $is_split = 0;
-	my $appendix = ""; # A variable to store appendices for split genes
-	# Check wether this gene is split across scaffolds
-	if ( (keys %bin) > 1) {
-		$is_split = 1;
-	}
-
-	my $seq_counter = 0;
-	while (my ($seq_id,$transcript_hash) = each %bin) {
-
-		# !!! These are all transcripts on the same sequence !!!
-
-		# Collect transcripts for gene reconstruction
-		my @transcripts = ();
-		my $exon_counter = 0;
-
-
-		while (my ($transcript_id,$features) = each %$transcript_hash) {
-
-			my ($t_feature, $NewGeneIDtmp) = _build_transcript_from_exons_with_seq_id($features, $NewGeneID);
-			$NewGeneID=$NewGeneIDtmp; # keep track If Gene Id modified
-
-			if ($is_split == 1) {
-				my $seqid=$t_feature->seq_id();
-				$appendix = "partial_part-$seqid" ;
-				$t_feature = _update_feature_id($t_feature,$appendix) ;
-			}
-
-			push(@transcripts,$t_feature);
-			unshift (@{ $bin{$seq_id}{$transcript_id} }, $t_feature ) ;
-		}
-
-		# Build the gene container
-		my $gene_feature = _build_gene_from_transcripts_with_seq_id(@transcripts);
-
-		# Gene into array
-		push(@gene,$gene_feature);
-		push(@mRNA,@transcripts);
-
-	} # End sequence region
-
-	return \@gene,\@mRNA,$NewGeneID;
-}
-
-sub _update_feature_id {
-
-	my $feature = shift ;
-	my $appendix = shift;
-
-	my @tags = ( 'ID' , 'Parent' ) ;
-
-	foreach my $tag (@tags) {
-
-		if ($feature->has_tag($tag) ) {
-			my @temp = $feature->get_tag_values($tag);
-			my $current_id = shift @temp;
-	        	my $new_id = $current_id . "_" . $appendix ;
-			$feature->remove_tag($tag);
-        		$feature->add_tag_value($tag,$new_id);
-		}
-	}
-
-	return $feature;
-}
-
-# Deals with features across contigs
-sub _group_features_by_transcript_and_seq_id {
-
-	my @features = @_;
-
-	my %bin ;
-
-	foreach my $feature (@features) {
-
-		if ($feature->start < 1) {
-			$feature->start(1);
-		}
-
-		my $source_tag = $feature->source_tag;
-		my $primary_tag = $feature->primary_tag;
-
-		# If a gene is split across multiple sequences,
-		# we need to build separate genes for each sequence -
-		# this keeps track of that.
-
-		my $seq_id = $feature->seq_id;
-
-		# We need to reorganize feature relationships into parent/child:
-		my $this_id = undef;
-		my $parent_id = undef;
-		my $transcript_id=undef;
-
-		# We always need to know about the transcript_id, record it...
-		if($feature->has_tag('Parent')){ #gff case
-			$transcript_id = $feature->_tag_value('Parent');
-		}
-		elsif($feature->has_tag('transcript_id')){ #gtf case
-			$transcript_id = $feature->_tag_value('transcript_id');
-		}
-		else{
-			warn "No id found for this feature ".gff_string($feature);
-		}
-
-
-		# Group features by transcripts/mRNA and seq_id
-
-		if ( !exists( $bin{$seq_id} ) ) {
-			$bin{$seq_id} = {};
-		}
-
-		if ( !exists( $bin{$seq_id}{$transcript_id} ) ) {
-			$bin{$seq_id}{$transcript_id} = [];
-		}
-
-		# Some annotation files (eg. lift-overs) may
-		# included negative coordinates, need to fix
-		push( @{ $bin{$seq_id}{$transcript_id} }, $feature );
-	}
-
-	return %bin ;
-
-}
-
-sub _build_transcript_from_exons_with_seq_id {
-
-	my ($features, $NewGeneID) = @_;
-
-	my $transcript_start = 0;
-	my $transcript_end = 0;
-	my $transcript_strand = undef;
-	my $seq_id = undef;
-	my $source_tag = undef;
-	my $transcript_id = undef;
-	my $primary_tag = undef;
-	my $gene_id = undef;
-
-	# All features belonging to the same transcript_id
-	# Used to calculate transcript coordinates.
-	foreach my $f (@{$features}) {
-
-		if($f->has_tag('gene_id')){ #gtf case
-			$gene_id = $f->_tag_value('gene_id');
-		}
-		elsif($f->has_tag('Parent')){ #gff case
-			$gene_id = $f->_tag_value('Parent');
-			print "GXF check what we should do in that case\n";
-		}
-
-		if($f->has_tag('transcript_id')){ #gtf case
-			$transcript_id = $f->_tag_value('transcript_id');
-		}
-		elsif($f->has_tag('ID')){ #gff case
-			$transcript_id = $f->_tag_value('ID');
-			print "GXF check what we should do in that case2\n";
-
-		}
-		else{
-			print "GXFhandler Warning: No transcript_id neither ID attribute. So we will create one.\n";
-			print "actually it's not yet implemeted.... Sorry\n";
-		}
-		# CDS never contain more information than exons, skip
-		#if ($f->primary_tag eq 'exon') {
-			$transcript_strand = $f->strand;
-			$seq_id = $f->seq_id;
-			$source_tag = $f->source_tag;
-
-			if ($transcript_start == 0) {
-				$transcript_start = $f->start;
-				$transcript_end = $f->end;
-				$transcript_strand = $f->strand;
-				$seq_id = $f->seq_id;
-				$source_tag = $f->source_tag;
-			}
-
-			if ($transcript_start > $f->start) {
-				$transcript_start = $f->start ;
-			}
-
-			if ($transcript_end < $f->end) {
-				$transcript_end = $f->end ;
-			}
-		#}
-	} # end transcript features
-
-
-	## THIS NEEDS CHECKING!
-	# We assume that EnsEMBL source_tags comply with SO terms - except 'protein_coding'
-
-	#No gene_id ! We need one to create the mRNA
-	if(!$gene_id){ # No information we must create a new gene_id
-		print "GXFhandler Warning: No gene_id neither Parent attribute. So we will create one.\n";
-		$NewGeneID++;
-		$gene_id="gene".$NewGeneID;
-	}
-
-	if ($source_tag =~ /.*RNA.*/) {
-		$primary_tag = $source_tag ;
-	} else {
-		$primary_tag = "mRNA" ;
-	}
-
-	my $t_feature = Bio::SeqFeature::Generic->new(-start => $transcript_start, -primary_tag => $primary_tag , -frame => '.' , -end => $transcript_end, -strand => $transcript_strand , -seq_id => $seq_id, -source_tag => $source_tag, -tag => { 'ID' => $transcript_id , 'Parent' => $gene_id }) ;
-
-	return $t_feature, $NewGeneID;
-
-}
-
-sub _build_gene_from_transcripts_with_seq_id {
-
-	my @transcripts = @_ ;
-
-	# Define the gene container parameters:
-	my $gene_start = 0;
-	my $gene_end = 0;
-	my $gene_strand = undef;
-	my $gene_id = undef;
-	my $contig = undef;
-	my $source_tag = undef;
-	my $seq_id = undef;
-
-	foreach my $t_feature (@transcripts) {
-
-		$source_tag = $t_feature->source_tag;
-		$seq_id = $t_feature->seq_id;
-
-		my @gvalues = $t_feature->get_tag_values('Parent');
-		$gene_id = shift @gvalues ;
-
-		# Re-size the gene container...
-		if ($gene_start == 0) {
-			$gene_start = $t_feature->start;
-			$gene_end = $t_feature->end;
-			$gene_strand = $t_feature->strand;
-			$contig = $t_feature->seq_id;
-		}
-		if ($gene_start > $t_feature->start) {
-			$gene_start = $t_feature->start;
-		}
-
-		if ($gene_end < $t_feature->end) {
-			$gene_end = $t_feature->end;
-		} # end gene resize
-
-	}
-
-	my $gene_feature = Bio::SeqFeature::Generic->new(-start => $gene_start, -primary_tag => 'gene' , -frame => '.', -end => $gene_end, -strand => $gene_strand , -seq_id => $contig, -source_tag => $source_tag, -tag => { "ID" => $gene_id }) ;
-
-	return $gene_feature;
-
-}
-
-#============= END Marc idea develloped ===============
 
 1;
