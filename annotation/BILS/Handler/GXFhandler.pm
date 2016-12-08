@@ -89,8 +89,11 @@ sub slurp_gff3_file_JD {
 #	|	HANDLE SOFA (feature-ontology)		  |
 #	+-----------------------------------------+
 
+	my $ontology = {};
 	my $ontology_obj = _handle_ontology($file, $gff3headerInfo, $verbose);
-	my $ontology = create_term_and_id_hash($ontology_obj);
+	if($ontology_obj){
+		$ontology = create_term_and_id_hash($ontology_obj);
+	}
 	if(! keys %{$ontology} ){ #hash is empty
 		print "No data retrieved among the feature-ontology.\n";
 	}
@@ -2838,7 +2841,7 @@ sub fetcher_JD {
 sub _handle_ontology{
 	my ($file, $gff3headerInfo, $verbose) = @_ ;
 
-	my $ontology_obj;
+	my $ontology_obj=undef;
 	my $internalO=1;
 	if(ref($file) ne 'ARRAY' and ref($file) ne 'HASH'){ #when it's a string correposnding to a file, otherwise No feature-ontology coming from hash or list (at least for now, could be improved)
 		
@@ -2882,30 +2885,37 @@ sub _handle_ontology{
 	}
 
 	if($internalO){ #No URI provided for the feature-ontology(file case), or doesn't exist (hash / table case) let's use the interal one
-		my $full_path = `perldoc -lm BILS::Handler::GXFhandler`;
-		my $index = index($full_path, "BILS/");
-		$index+=5; #To not chrinck BILS/ part of the path
-		my $path_begin =  substr $full_path, 0, $index;
-		my $correct_path = $path_begin."Ontology/SOFA";
-		opendir (DIR, $correct_path) or die $!;
-		my @list_file;
+	
+		try{
+			my $full_path = `perldoc -lm BILS::Handler::GXFhandler`;
+			my $index = index($full_path, "BILS/");
+			$index+=5; #To not chrinck BILS/ part of the path
+			my $path_begin =  substr $full_path, 0, $index;
+			my $correct_path = $path_begin."Ontology/SOFA";
+			opendir (DIR, $correct_path) or die $!;
+			my @list_file;
+	
+			# list all the sofa file available
+			while (my $file = readdir(DIR)) {
+				next if($file eq "." or  $file eq "..");
+			 	push(@list_file, $file);
+		    	}
+	
+		    	#get the most recent file
+		    	my @sorted_list = sort { $a cmp $b } @list_file;
+		    	my $recent_file = pop @sorted_list;
+		    	my $sofa_file_path = $correct_path."/".$recent_file;
+		    	print "We will use the most recent SOFA feature-ontology we have localy: $recent_file\n";
 
-		# list all the sofa file available
-		while (my $file = readdir(DIR)) {
-			next if($file eq "." or  $file eq "..");
-		 	push(@list_file, $file);
-	    }
-
-	    #get the most recent file
-	    my @sorted_list = sort { $a cmp $b } @list_file;
-	    my $recent_file = pop @sorted_list;
-	    my $sofa_file_path = $correct_path."/".$recent_file;
-	    print "We will use the most recent SOFA feature-ontology we have localy: $recent_file\n";
-		
-		#parse the ontology
-		my $parser = Bio::OntologyIO->new(-format => "obo",
+			#parse the ontology
+			my $parser = Bio::OntologyIO->new(-format => "obo",
 	                                      -file => $sofa_file_path);
-		$ontology_obj = $parser->parse();
+			$ontology_obj = $parser->parse();
+		}
+		catch{
+			print "error: $_\n" if ( $verbose >= 1);
+ 			print "Let's continue without feature-ontology information.\n";
+		};
 	}
 	return $ontology_obj;
 }
