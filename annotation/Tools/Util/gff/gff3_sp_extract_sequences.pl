@@ -24,6 +24,7 @@ my $opt_downRegion=undef;
 my $opt_cdna=undef;
 my $opt_OFS=undef;
 my $opt_type = 'cds';
+my $opt_cleanStop=undef;
 my $width = 60; # line length printed
 
 my $header = qq{
@@ -42,6 +43,7 @@ if ( !GetOptions( 'g|gff=s' => \$opt_gfffile,
                   'ofs=s' => \$opt_OFS,
                   'protein|p|aa' => \$opt_AA,
                   'cdna' => \$opt_cdna,
+		  'cs'   => \$opt_cleanStop,
                   'ext|e' => \$opt_extermityOnly,
                   'table|codon|ct=i' => \$codonTable,
                   'up|5|five|upstream=i'      => \$opt_upstreamRegion,
@@ -358,6 +360,14 @@ sub print_seqObj{
   
   if($opt_AA){ #translate if asked
       my $transObj = $seqObj->translate(-CODONTABLE_ID => $codonTable);
+      if($opt_cleanStop){
+		my $lastChar = substr $transObj->seq(),-1,1;
+	        if ($lastChar eq "*"){
+			my $cleanedSeq=$transObj->seq();
+			chop $cleanedSeq;
+			$transObj->seq($cleanedSeq);
+		}
+      }	
       $ostream->write_seq($transObj);  
    }
   else{
@@ -436,6 +446,10 @@ This extract the cdna sequence (i.e transcribed sequence (devoid of introns, but
 =item B<--ofs>
 
 Output Fields Separator for the description field. By default it's a space < > but can be modified by any String or character using this option.
+
+=item B<--cs>
+
+The Clean Stop option allows removing the tranlation of stop codons that is represented by the <*> character. This character can be disturbing for many programs (e.g interproscan)
 
 =item B<-o> or B<--output>
 
