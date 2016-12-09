@@ -2,6 +2,7 @@
 
 use strict;
 use Pod::Usage;
+use Data::Dumper;
 use Getopt::Long;
 use Bio::SeqIO ;
 use Bio::DB::Fasta;
@@ -21,6 +22,7 @@ my $opt_extermityOnly=undef;
 my $opt_upstreamRegion=undef;
 my $opt_downRegion=undef;
 my $opt_cdna=undef;
+my $opt_OFS=undef;
 my $opt_type = 'cds';
 my $width = 60; # line length printed
 
@@ -37,6 +39,7 @@ my @copyARGV=@ARGV;
 if ( !GetOptions( 'g|gff=s' => \$opt_gfffile,
                   'f|fa|fasta=s' => \$opt_fastafile,
                   't=s' => \$opt_type,
+                  'ofs=s' => \$opt_OFS,
                   'protein|p|aa' => \$opt_AA,
                   'cdna' => \$opt_cdna,
                   'ext|e' => \$opt_extermityOnly,
@@ -84,7 +87,7 @@ else{
 if($opt_extermityOnly){
   print "option extremities activated => good for "
 }
-if( ($opt_upstreamRegion or $opt_downRegion)  and ! $opt_extermityOnly){print "I don't use upstream region option without the \"extermity only\" option (ext) to avoid issue with multi-features !"; exit;}
+if( ($opt_upstreamRegion or $opt_downRegion)  and ! $opt_extermityOnly){print "I don't use upstream region option without the \"extermity only\" option (ext) to avoid issue with multi-features !\nRead the help for more information\n"; exit;}
 
 print "We will extract the $opt_type sequences.\n";
 $opt_type=lc($opt_type);
@@ -93,6 +96,10 @@ if($codonTable<0 and $codonTable>25){
   print "$codonTable codon table is not a correct value. It should be between 0 and 25 (0,23 and 25 can be problematic !)\n";
 }
 
+my $OFS=" ";
+if($opt_OFS){
+  $OFS = $opt_OFS;
+}
 
 ##### MAIN ####
 #### read gff file and save info in memory
@@ -126,19 +133,23 @@ foreach my $seqname (keys %{$hash_l1_grouped}) {
     if($opt_type eq lc($feature_l1->primary_tag()) ){
 
       #Handle Header
-      my $header=$id_l1;
+      my $id_seq = clean_string($id_l1);
+      my $description="";
       if($name){
-        $header.="|Name=".$name;
+        $description.=clean_tag("name=").clean_string($name).$OFS.clean_tag("seq_id=").clean_string($seqname).$OFS.clean_tag("type=").clean_string($opt_type);
       }
-      $seqname =~ tr/|/_/;
-      $header.="|Seq_id=".$seqname."|type=".$opt_type;
+      else{
+        $description.=clean_tag("seq_id=").clean_string($seqname).$OFS.clean_tag("type=").clean_string($opt_type);
+      }
 
       my @ListSeq=($feature_l1);
       my ($seqObj, $info) = extract_sequence(\@ListSeq, $db, $opt_extermityOnly, $opt_upstreamRegion, $opt_downRegion);
       if($info){
-        $header.="|".$info;
+        $description.=$OFS.$info;
       }
-      $seqObj->id($header);
+
+      $seqObj->id($id_seq);
+      $seqObj->description($description);
 
       print_seqObj($ostream, $seqObj, $opt_AA, $codonTable);
     }
@@ -161,20 +172,22 @@ foreach my $seqname (keys %{$hash_l1_grouped}) {
           }
 
           #Handle Header
-          my $header=$id_l2."|".$id_l1;
+          my $id_seq = clean_string($id_l2);
+          my $description=clean_tag("gene=").clean_string($id_l1);
           if($name){
-            $header.="|Name=".$name;
+            $description.=$OFS.clean_tag("name=").clean_string($name);
           }
-          $seqname =~ tr/|/_/;
-          $header.="|Seq_id=".$seqname."|type=".$opt_type;
+
+          $description.=$OFS.clean_tag("seq_id=").clean_string($seqname).$OFS.clean_tag("type=").clean_string($opt_type);
 
           if($opt_type eq $ptag_l2){
             my @ListSeq=($feature_l2);
             my ($seqObj, $info) = extract_sequence(\@ListSeq, $db, $opt_extermityOnly, $opt_upstreamRegion, $opt_downRegion);
             if($info){
-              $header.="|".$info;
+              $description.=$OFS.$info;
             }
-            $seqObj->id($header);
+            $seqObj->id($id_seq);
+            $seqObj->description($description);
             
             print_seqObj($ostream, $seqObj, $opt_AA, $codonTable);
           }
@@ -188,9 +201,10 @@ foreach my $seqname (keys %{$hash_l1_grouped}) {
               if( $opt_type eq $ptag_l3 ){
                 my ($seqObj, $info) = extract_sequence(\@{$hash_omniscient->{'level3'}{$ptag_l3}{lc($id_l2)}}, $db, $opt_extermityOnly, $opt_upstreamRegion, $opt_downRegion);
                 if($info){
-                  $header.="|".$info;
+                  $description.=$OFS.$info;
                 }
-                $seqObj->id($header);
+                $seqObj->id($id_seq);
+                $seqObj->description($description);
                 #print 
                 print_seqObj($ostream, $seqObj, $opt_AA, $codonTable);
               }
@@ -234,6 +248,32 @@ print "Job done in $run_time seconds\n";
                 ####
                  ##          
 
+sub clean_string{
+  my ($string) = @_;
+
+  my $replaceBy = "_";
+  if($OFS eq "_"){$replaceBy = "-";}
+
+      if($string =~ m/\Q$OFS/){
+        print "The header has been modified !! Indeed, the Output Field Separator (OFS) <$OFS> is contained within the header so we replace it by <$replaceBy>.".
+        " If you want to keep the header intact, please chose another OFS using the option --ofs\n";
+        eval "\$string =~ tr/\Q$OFS\E/\Q$replaceBy\E/";
+      }
+  return $string
+}
+
+sub clean_tag{
+  my ($string) = @_;
+
+  my $replaceBy = "_";
+  if($OFS eq "="){$replaceBy = ":";}
+
+      if($string =~ m/\Q$OFS/){
+        eval "\$string =~ tr/\Q$OFS\E/\Q$replaceBy\E/";
+      }
+  return $string
+}
+
 sub extract_sequence{
   my($feature_list, $db, $extermityOnly, $opt_upstreamRegion, $opt_downRegion)=@_;
 
@@ -253,40 +293,42 @@ sub extract_sequence{
         
         #get info
         if($end > $db->length($sortedList[0]->seq_id) ){
-          $info.="5'extra=".($db->length($sortedList[0]->seq_id)-$end-$opt_upstreamRegion)."nt" ;
+          $info.=clean_tag("5'extra=").($db->length($sortedList[0]->seq_id)-$end-$opt_upstreamRegion)."nt" ;
         }
-        else{$info.="5'extra=".$opt_upstreamRegion."nt";}
+        else{$info.=clean_tag("5'extra=").$opt_upstreamRegion."nt";}
       }
       else{
         $start=$start-$opt_upstreamRegion;        
 
         if($start < 0){
-          $info.="5'extra=".($start+$opt_upstreamRegion)."nt";
+          $info.=clean_tag("5'extra=").($start+$opt_upstreamRegion)."nt";
         }
         else{
-          $info.="5'extra=".$opt_upstreamRegion."nt";
+          $info.=clean_tag("5'extra=").$opt_upstreamRegion."nt";
         }
       }
     }
     #3'
     if($opt_downRegion){
+      if( $info ne ""){$info.=$OFS;}
+
       if($sortedList[0]->strand eq "-1" or $sortedList[0]->strand eq "-"){   
-        $start=$start-$opt_upstreamRegion;
+        $start=$start-$opt_downRegion;
 
         #get info
         if($start < 0){
-          $info.="3'extra=".($start+$opt_upstreamRegion)."nt";
+          $info.=clean_tag("3'extra=").($start+$opt_downRegion)."nt";
         }
-        else{$info.="3'extra=".$opt_upstreamRegion."nt";}
+        else{$info.=clean_tag("3'extra=").$opt_downRegion."nt";}
       }
       else{
-        $end=$end+$opt_upstreamRegion;
+        $end=$end+$opt_downRegion;
 
         #get info
         if($end > $db->length($sortedList[0]->seq_id) ){
-          $info.="3'extra=".$db->length($sortedList[0]->seq_id)-$end-$opt_upstreamRegion."nt" ;
+          $info.=clean_tag("3'extra=").$db->length($sortedList[0]->seq_id)-$end-$opt_downRegion."nt" ;
         }
-        else{$info.="3'extra=".$opt_upstreamRegion."nt";}
+        else{$info.=clean_tag("3'extra=").$opt_downRegion."nt";}
       }
     }
 
@@ -321,6 +363,7 @@ sub print_seqObj{
   else{
     $ostream->write_seq($seqObj);                
   }
+  #print Dumper($seqObj);exit;
 }
 
 
@@ -329,16 +372,18 @@ __END__
 =head1 NAME
 
 gff3_extract_cds_sequences.pl -
-This script extract sequence in feasta format from gff file. You can extract the fasta of any kind of feature define by the 3th column in the gff file.
+This script extract sequence in fasta format from gff file. You can extract the fasta of any kind of feature define by the 3th column in the gff file.
 The result is written to the specified output file, or to STDOUT.
 
 The Header are formated like that:
->mRNA_ID|gene_ID|Name=NAME|Seq_id=Chromosome_ID|type=cds|5'extra=VALUE
+>mRNA_ID gene=gene_ID name=NAME seq_id=Chromosome_ID type=cds 5'extra=VALUE
+    ^    <----------------------------v------------------------------------>
+    ID                           description (Where the OFS can be modified)
 
-/!\ mRNA_ID not displayed when extracting gene. 
+/!\The ID will be the gene_ID extracting gene. 
 Name is optional and will be written only if the Name attribute exists in th gff.
 type will be the feature type extracted. 
-5'extra or 3'extra is otpional, according to the use of the upstream and downstream option.
+5'extra or 3'extra is otpional, according to the use of the upstream and downstream options.
 
 =head1 SYNOPSIS
 
@@ -387,6 +432,10 @@ Integer. It will take that number of nucleotide in more at the 3' extremity. Opt
 =item B<--cdna>
 
 This extract the cdna sequence (i.e transcribed sequence (devoid of introns, but containing untranslated exons)). It correspond to extract the exons sequences.
+
+=item B<--ofs>
+
+Output Fields Separator for the description field. By default it's a space < > but can be modified by any String or character using this option.
 
 =item B<-o> or B<--output>
 

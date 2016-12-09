@@ -70,7 +70,7 @@ print ("Genome fasta parsed\n");
 
 my @list_seq_result=();
 if(-f $opt_name){
-  print "It's a file you gave me... I will read line by line to take in account all the names you proveded\n";
+  print "It's a file you gave me... I will read line by line to take in account all the names you provided\n";
   print "To be implemented .... sorry\n";
 }
 else{
@@ -81,7 +81,8 @@ else{
   }
   if($db->seq($opt_name)){
     #create sequence object
-    my $seq_obj  = Bio::Seq->new( '-format' => 'fasta' , -seq => $db->seq($opt_name), -display_id => $opt_name);
+    my $seq_obj = $db->get_Seq_by_id($opt_name);
+
     push @list_seq_result, $seq_obj;
   }
 }
