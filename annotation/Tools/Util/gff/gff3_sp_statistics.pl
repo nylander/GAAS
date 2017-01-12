@@ -1,10 +1,9 @@
 #!/usr/bin/env perl
 
-use Carp;
-use Clone 'clone';
 use strict;
 use Getopt::Long;
 use Pod::Usage;
+use Statistics::R;
 use IO::File;
 use Data::Dumper;
 use List::MoreUtils qw(uniq);
@@ -12,6 +11,8 @@ use Bio::Tools::GFF;
 use BILS::Handler::GFF3handler qw(:Ok);
 use BILS::Handler::GXFhandler qw(:Ok);
 use BILS::GFF3::Statistics qw(:Ok);
+use BILS::CheckModule qw(:Ok);
+use BILS::Plot::R qw(:Ok);
 
 my $header = qq{
 ########################################################
@@ -24,11 +25,13 @@ my $header = qq{
 my $gff = undef;
 my $opt_output = undef;
 my $opt_genomeSize = undef;
+my $opt_plot = undef;
 my $help= 0;
 
 if ( !GetOptions(
     "help|h" => \$help,
     'o|output=s'      => \$opt_output,
+    'd|p'   => \$opt_plot,
     'g|gs=s' => \$opt_genomeSize,
     "gff|f=s" => \$gff))
 
@@ -52,7 +55,6 @@ if ( ! (defined($gff)) ){
            -exitval => 2 } );
 }
 
-
 #### IN / OUT
 my $out = IO::File->new();
 if ($opt_output) {
@@ -69,6 +71,38 @@ if ($opt_output) {
 else{
   $out->fdopen( fileno(STDOUT), 'w' );
 }
+
+#Manage plot folder output
+if($opt_plot){
+  if ($opt_output){
+    $opt_plot = $opt_output."_distribution_plots";
+  }
+  else{
+    $opt_plot = "distribution_plots";
+
+    if (-f $opt_plot){
+      print "Cannot create a directory with the name $opt_plot because a file with this name already exists.\n";exit();
+    }
+    if (-d $opt_plot){
+      print "The default output directory $opt_plot use to save the distribution plots already exists. Please give me another folder name.\n";exit();
+    }
+  }
+
+  # Check R is available. If not we try to load it through Module software
+  if ( system("R --version 1>/dev/null 2>/dev/null") == 0 ) {
+    print "R is available. We can continue\n";
+  }
+  else {
+    print "R is not loaded. We try to load it.\n";
+    if(module_software_installed){
+      module_load("R");
+    }
+    else{
+      print "Module tool doesn't exists. We cannot load R through it.";
+    }
+  }
+}
+
                 #####################
                 #     MAIN          #
                 #####################
@@ -94,9 +128,13 @@ my $nbLevel2 = keys %$hash_mRNAGeneLink;
 ##############
 # STATISTICS #
 my $stat;
+my $distri;
 if($opt_genomeSize){
-  $stat = gff3_statistics($hash_omniscient, $opt_genomeSize);
-}else{$stat = gff3_statistics($hash_omniscient);}
+  ($stat, $distri) = gff3_statistics($hash_omniscient, $opt_genomeSize);
+}
+else{
+  ($stat, $distri) = gff3_statistics($hash_omniscient);
+}
 
 #print statistics
 foreach my $infoList (@$stat){
@@ -108,6 +146,12 @@ foreach my $infoList (@$stat){
 
 #Check if we have isoforms
 if($nbLevel1 != $nbLevel2){
+  
+  #print distribution before removing isoforms
+  if($opt_plot){
+    print_distribution($opt_plot, "with_isoforms", $distri);
+  }
+
   print $out "\nApparently we have isoforms : Number level1 features: $nbLevel1 / Number of level2 features $nbLevel2\n";
   print $out "We will proceed to the statistics analysis using only the mRNA with the longest cds\n";
 
@@ -119,9 +163,12 @@ if($nbLevel1 != $nbLevel2){
   
   # print stats
   my $stat;
+  my $distri;
   if($opt_genomeSize){
-    $stat = gff3_statistics($omniscientNew, $opt_genomeSize);
-  }else{$stat = gff3_statistics($omniscientNew);}
+    ($stat, $distri) = gff3_statistics($omniscientNew, $opt_genomeSize);
+  }else{ 
+    ($stat, $distri) = gff3_statistics($omniscientNew);
+  }
 
   #print statistics
   foreach my $infoList (@$stat){
@@ -130,7 +177,17 @@ if($nbLevel1 != $nbLevel2){
     }
     print $out "\n";
   }
+  
+  #print distribution after having removed the isoforms
+  if($opt_plot){
+    print_distribution($opt_plot, "without_isoforms", $distri);
+  }
 
+}
+else{ #No isoforms
+  if($opt_plot){
+    print_distribution($opt_plot, "without_isoforms", $distri);
+  }
 }
 
 # END STATISTICS #
@@ -147,6 +204,42 @@ print "Bye Bye.\n";
                ######
                 ####
                  ##
+
+sub print_distribution{
+  my ($folder, $subfolder, $distri)=@_;
+
+  foreach my $type (keys %{$distri} ) {
+
+    foreach my $level (keys %{$distri->{$type}} ) {
+      foreach my $tag ( keys %{$distri->{$type}{$level}} ) {
+        if( exists_keys ($distri,($type, $level, $tag, 'whole') ) ){
+          
+          if(! -d $folder){
+            mkdir $folder;
+          }
+
+          if(! -d $folder."/".$subfolder){
+            mkdir $folder."/".$subfolder;
+          }
+
+          my $outputPDF = $folder."/".$subfolder."/".$tag.".pdf";
+          
+          #CREATE THE R COMMAND
+          #print Dumper($distri->{$type}{$level}{$tag}{'whole'});
+          my $nbValues = @{$distri->{$type}{$level}{$tag}{'whole'}};
+          my $R_command = rcc_plot_from_list($distri->{$type}{$level}{$tag}{'whole'},  undef, "histogram", "$tag"." size (nt)", "Number of $tag", "Distribution of $tag sizes\nMade with $nbValues $tag"."s", $outputPDF);
+          #EXECUTE THE R COMMAND
+          execute_R_command($R_command);
+        }
+
+        if( exists_keys ($distri,($type, $level, $tag, 'piece') ) ){
+        }
+
+      }
+    }
+  }
+}
+
 sub get_longest_cds_level2{
   my ($hash_omniscient)= @_;
 
@@ -226,6 +319,10 @@ Input GFF3 file that will be read (and sorted)
 =item B<--gs> or B<-g>
 
 This option inform about the genome size in oder to compute more statistics. You can give the size in Nucleotide or directly the fasta file.
+
+=item B<-d> or B<-p>
+
+When this option is used, an histogram of distribution of the features will be printed in pdf files. (d means distribution, p means plot).
 
 =item B<--output> or B<-o>
 

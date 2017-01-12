@@ -7,7 +7,7 @@ use warnings;
 use Data::Dumper;
 use Bio::SeqIO;
 use Clone 'clone';
-#use BILS::Handler::GXFhandler qw(:Ok);
+use BILS::Handler::GFF3handler qw(:Ok);
 use Exporter qw(import);
 
 our $VERSION     = 1.00;
@@ -21,7 +21,7 @@ our %EXPORT_TAGS = ( DEFAULT => [qw()],
 
 =head1 DESCRIPTION
 
-	A library to get statistics form gff3 file
+	A library to get statistics from an omniscient hash of a gff3 file
 
 
 	We create a complex hash of hash containing all information needeed.
@@ -41,7 +41,7 @@ sub gff3_statistics {
 	my ($hash_omniscient, $genome) = @_  ;
 
 	my @result_list;
-
+	my %distribution;
 	#my $out = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 3);
 
 	#check genome size
@@ -79,15 +79,22 @@ sub gff3_statistics {
 				}
 			}
 			if(! $feature_l1){print "Problem ! We didnt retrieve the level1 feature with id $id_l1\n";exit;}
+			
 			#count number of feature
 			$all_info{$tag_l2}{'level1'}{$tag_l1}{'nb_feat'}++;
+
 			#compute feature size
 			my $sizeFeature=($feature_l1->end-$feature_l1->start)+1;
 			$all_info{$tag_l2}{'level1'}{$tag_l1}{'size_feat'}+=$sizeFeature;
+
+			#create distribution list
+			push @{$all_info{$tag_l2}{'level1'}{$tag_l1}{'distribution'}}, $sizeFeature;
+
 	    	# grab longest
 	    	if ((! $all_info{$tag_l2}{'level1'}{$tag_l1}{'longest'}) or ($all_info{$tag_l2}{'level1'}{$tag_l1}{'longest'} < $sizeFeature)){
 	    		$all_info{$tag_l2}{'level1'}{$tag_l1}{'longest'}=$sizeFeature;
 	    	}
+
 	    	# grab shorter
 	    	if ((! $all_info{$tag_l2}{'level1'}{$tag_l1}{'shortest'}) or ($all_info{$tag_l2}{'level1'}{$tag_l1}{'shortest'} > $sizeFeature)){
 	    		$all_info{$tag_l2}{'level1'}{$tag_l1}{'shortest'}=$sizeFeature;
@@ -101,9 +108,14 @@ sub gff3_statistics {
 				#print $feature_l2->gff_string()."\n";
 				#count number of feature
 				$all_info{$tag_l2}{'level2'}{$tag_l2}{'nb_feat'}++;
+				
 				#compute feature size
 				my $sizeFeature=($feature_l2->end-$feature_l2->start)+1;
 	  			$all_info{$tag_l2}{'level2'}{$tag_l2}{'size_feat'}+=$sizeFeature;
+
+				#create distribution list
+				push @{$all_info{$tag_l2}{'level2'}{$tag_l2}{'distribution'}}, $sizeFeature;
+
 	  			# grab longest
 	  			if ((! $all_info{$tag_l2}{'level2'}{$tag_l2}{'longest'}) or ($all_info{$tag_l2}{'level2'}{$tag_l2}{'longest'} < $sizeFeature)){
 					$all_info{$tag_l2}{'level2'}{$tag_l2}{'longest'}=$sizeFeature;
@@ -124,8 +136,13 @@ sub gff3_statistics {
 
 					if($counterL2_match > 0 and $counterL2_match <= $indexLastL2){
 		    			my $intronSize= $sortedList[$counterL2_match]->start - $sortedList[$counterL2_match-1]->end;
+		    			
 		    			#compute feature size
 		    			$all_info{$tag_l2}{'level2'}{'intron'}{'size_feat'}+=$intronSize;
+
+		    			#create distribution list
+						push @{$all_info{$tag_l2}{'level2'}{'intron'}{'distribution'}}, $sizeFeature;
+		    			
 		    			# grab longest
 			    	  	if ((! $all_info{$tag_l2}{'level2'}{'intron'}{'longest'}) or ($all_info{$tag_l2}{'level2'}{'intron'}{'longest'} < $intronSize)){
     						$all_info{$tag_l2}{'level2'}{'intron'}{'longest'}=$intronSize;
@@ -169,16 +186,23 @@ sub gff3_statistics {
 		    				# We go inside this loop only if we have more than 1 feature.
 		    				if($counterL3 > 0 and $counterL3 <= $indexLast){
 		    					my $intronSize= $sortedList[$counterL3]->start - $sortedList[$counterL3-1]->end;
+		    					
 		    					#compute feature size
 		    					$all_info{$tag_l2}{'level3'}{'intron'}{'size_feat'}+=$intronSize;
-		    								    	  			# grab longest
+		    					
+		    					#create distribution list
+								push @{$all_info{$tag_l2}{'level3'}{'intron'}{'distribution'}}, $sizeFeature;
+
+		    					# grab longest
 			    	  			if ((! $all_info{$tag_l2}{'level3'}{'intron'}{'longest'}) or ($all_info{$tag_l2}{'level3'}{'intron'}{'longest'} < $intronSize)){
     								$all_info{$tag_l2}{'level3'}{'intron'}{'longest'}=$intronSize;
     							}
+    							
     							# grab shorter
 			    				if ((! $all_info{$tag_l2}{'level3'}{'intron'}{'shortest'}) or ($all_info{$tag_l2}{'level3'}{'intron'}{'shortest'} > $intronSize)){
 			    					$all_info{$tag_l2}{'level3'}{'intron'}{'shortest'}=$intronSize;
 			    				}
+		    					
 		    					#Count number
 			    				if($tag_l3 =~/exon/){ # don't count intron several times ... like between exon and between cds, because we count the sames
 			    					$all_info{$tag_l2}{'level2'}{$tag_l2}{'intron'}{'nb_feat'}+=1;
@@ -190,17 +214,35 @@ sub gff3_statistics {
 
 		    				}
 
-		    				#compute feature size
+		    				#compute cumulative feature size
 		    				my $sizeFeature=($feature_l3->end-$feature_l3->start)+1;
 		    				$all_info{$tag_l2}{'level3'}{$tag_l3}{'size_feat'}+=$sizeFeature;
 
 		    	  			if(($tag_l3 =~ /cds/) or ($tag_l3 =~ /utr/)){
 		    	  				$sizeMultiFeat+=$sizeFeature;
 		    	  				$all_info{$tag_l2}{'level3'}{$tag_l3}{'exon'}{'nb_feat'}++;
+
+		    	  				#### MANAGE piece of multi exon features (spread features) 
+
+		    	  				#create distribution list of multifeature piece
+								push @{$all_info{$tag_l2}{'level3'}{$tag_l3}{'piece'}{'distribution'}}, $sizeFeature;
+		    	  			
+								# grab longest
+			    	  			if ((! $all_info{$tag_l2}{'level3'}{$tag_l3}{'piece'}{'longest'}) or ($all_info{$tag_l2}{'level3'}{$tag_l3}{'piece'}{'longest'} < $sizeFeature)){
+    								$all_info{$tag_l2}{'level3'}{$tag_l3}{'piece'}{'longest'}=$sizeFeature;
+    							}
+    							# grab shorter
+			    				if ((! $all_info{$tag_l2}{'level3'}{$tag_l3}{'piece'}{'shortest'}) or ($all_info{$tag_l2}{'level3'}{$tag_l3}{'piece'}{'shortest'} > $sizeFeature)){
+			    					$all_info{$tag_l2}{'level3'}{$tag_l3}{'piece'}{'shortest'}=$sizeFeature;
+			    				}
 		    	  			}
 		    	  			else{
 		    	  				#count number of feature
 		    					$all_info{$tag_l2}{'level3'}{$tag_l3}{'nb_feat'}++;
+
+		    	  				#create distribution list of multifeature piece
+								push @{$all_info{$tag_l2}{'level3'}{$tag_l3}{'distribution'}}, $sizeFeature;
+
 			    	  			# grab longest
 			    	  			if ((! $all_info{$tag_l2}{'level3'}{$tag_l3}{'longest'}) or ($all_info{$tag_l2}{'level3'}{$tag_l3}{'longest'} < $sizeFeature)){
     								$all_info{$tag_l2}{'level3'}{$tag_l3}{'longest'}=$sizeFeature;
@@ -226,10 +268,15 @@ sub gff3_statistics {
 		    			if (($tag_l3 =~ /utr/) or ($tag_l3 =~ /cds/)){
 		    				#count number of feature
 		    				$all_info{$tag_l2}{'level3'}{$tag_l3}{'nb_feat'}++;
+	    				
+		    				#create distribution list
+							push @{$all_info{$tag_l2}{'level3'}{$tag_l3}{'distribution'}}, $sizeMultiFeat;
+
 		    				# grab longest
 			    	  		if ((! $all_info{$tag_l2}{'level3'}{$tag_l3}{'longest'}) or ($all_info{$tag_l2}{'level3'}{$tag_l3}{'longest'} < $sizeMultiFeat)){
     							$all_info{$tag_l2}{'level3'}{$tag_l3}{'longest'}=$sizeMultiFeat;
     						}
+    						
     						# grab shorter
 			    			if ((! $all_info{$tag_l2}{'level3'}{$tag_l3}{'shortest'}) or ($all_info{$tag_l2}{'level3'}{$tag_l3}{'shortest'} > $sizeMultiFeat)){
 			    				$all_info{$tag_l2}{'level3'}{$tag_l3}{'shortest'}=$sizeMultiFeat;
@@ -268,6 +315,7 @@ sub gff3_statistics {
 		}
 	}
 
+	# create the list of sentences that resume the results
 	foreach my $type (keys %all_info){
 		my $hashType = $all_info{$type};
 		my @result;
@@ -301,9 +349,27 @@ sub gff3_statistics {
 		push @result, @$info_shortest;
 
 		push @result_list, \@result;
+
+		#extract distribution values
+		
+		foreach my $level (keys %{$all_info{$type}} ) {
+
+			foreach my $tag ( keys %{$all_info{$type}{$level}} ) {
+
+				if( exists_keys (\%all_info,($type, $level, $tag, 'distribution')) ){
+					$distribution{$type}{$level}{$tag}{'piece'}=1;
+					#print Dumper($all_info{$type}{$level}{$tag}{'distribution'});
+					$distribution{$type}{$level}{$tag}{'whole'} =  delete $all_info{$type}{$level}{$tag}{'distribution'};
+					#print Dumper($distribution{$type}{$level}{$tag}{'whole'});exit;
+				}
+				if( exists_keys (\%all_info,($type, $level, $tag, 'piece', 'distribution') ) ){
+					$distribution{$type}{$level}{$tag}{'piece'} = delete $all_info{$type}{$level}{$tag}{'piece'}{'distribution'};
+				}
+			}
+		}
 	}
 
-return \@result_list;
+return \@result_list, \%distribution;
 }
 
 #####
@@ -397,6 +463,13 @@ sub _info_shortest {
 		}
 	}
 
+	#print level3 - spread feature cases
+	foreach my $tag_l3 (sort keys %{$all_info->{'level3'}}){
+		if( exists ($all_info->{'level3'}{$tag_l3}{'piece'} )) {
+	    	push @resu, sprintf("%-45s%d%s", "Shortest $tag_l3 piece", $all_info->{'level3'}{$tag_l3}{'piece'}{'shortest'},"\n");
+	    }
+	}
+
 	return \@resu;
 }
 
@@ -425,6 +498,13 @@ sub _info_longest {
 		else{
 	    	push @resu, sprintf("%-45s%d%s", "Longest $tag_l3"."s", $all_info->{'level3'}{$tag_l3}{'longest'},"\n");
 		}
+	}
+
+	#print level3 - spread feature cases
+	foreach my $tag_l3 (sort keys %{$all_info->{'level3'}}){
+		if( exists ($all_info->{'level3'}{$tag_l3}{'piece'} )) {
+	    	push @resu, sprintf("%-45s%d%s", "Longest $tag_l3 piece", $all_info->{'level3'}{$tag_l3}{'piece'}{'longest'},"\n");
+	    }
 	}
 
 	return \@resu;
@@ -511,6 +591,14 @@ sub _info_mean_length {
 			my $meanl= $all_info->{'level3'}{$tag_l3}{'size_feat'}/$all_info->{'level3'}{$tag_l3}{'nb_feat'};
 		    push @resu, sprintf("%-45s%d%s", "mean $tag_l3 length", $meanl,"\n");
 		}
+	}
+
+	#print level3 - multifeature cases
+	foreach my $tag_l3 (sort keys %{$all_info->{'level3'}}){
+		if( exists ($all_info->{'level3'}{$tag_l3}{'exon'} )) {
+			my $meanl= $all_info->{'level3'}{$tag_l3}{'size_feat'}/$all_info->{'level3'}{$tag_l3}{'exon'}{'nb_feat'};
+	    	push @resu, sprintf("%-45s%d%s", "mean $tag_l3 piece length", $meanl,"\n");
+	    }
 	}
 
 	return \@resu;
