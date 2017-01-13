@@ -196,7 +196,7 @@ sub slurp_gff3_file_JD {
 	    #close the file
 	    $gffio->close();
 	}
-$verbose=1;
+
     if($verbose  >= 1) {_printSurrounded("parsing done in ".(time() - $start_run)." seconds",30,".","\n"); $previous_time = time();}
 
 #	+-----------------------------------------+
@@ -2722,7 +2722,7 @@ sub two_overlap_features_must_be_merged{
 				      	}
 				    }
 				    elsif(! exists_keys($hash_omniscient,('level3', 'cds', lc($mrna_id2)))){ # No CDS at all, check at exon level and if same level2 type
-				    	foreach my $tag_l3 (keys $hash_omniscient->{'level3'}){
+				    	foreach my $tag_l3 (keys %{$hash_omniscient->{'level3'}}){
 				    		if(exists_keys($hash_omniscient,('level3', $tag_l3, lc($mrna_id1)))){
 				    			foreach my $feature1 (@{$hash_omniscient->{'level3'}{$tag_l3}{lc($mrna_id1)}}){
 									if(exists_keys($hash_omniscient,('level3', $tag_l3, lc($mrna_id2)))){
