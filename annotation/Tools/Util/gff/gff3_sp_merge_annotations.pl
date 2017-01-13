@@ -12,41 +12,22 @@ use Bio::Tools::GFF;
 use BILS::Handler::GFF3handler qw(:Ok);
 use BILS::Handler::GXFhandler qw(:Ok);
 
-my $usage = qq{
+my $header = qq{
 ########################################################
-# BILS 2015 - Sweden                                   #	
+# BILS 2016 - Sweden                                   #  
 # jacques.dainat\@bils.se                               #
 # Please cite BILS (www.bils.se) when using this tool. #
 ########################################################
-
-Usage: perl my_script.pl --gff1 Infile1 --gff2 Infile2 [--out outfile]
-  Getting help:
-    [--help]
-
-  Input:
-    [--gff1 filename1]
-		The name of the gff3 file 1 used as reference.
-
-    [--gff2 filename2]
-    The name of the gff3 file 2. This file will be used to complete the file1.
-	
-  Ouput:    
-    [--out filename]
-        The name of the output file (A GFF file).
-
-  This script merge two gff3 annotation together. If features exist in both file, only one is writen in output.
-
 };
 
 my $outfile = undef;
-my $file1 = undef;
+my @opt_files;
 my $file2 = undef;
 my $help= 0;
 
 if ( !GetOptions(
     "help|h" => \$help,
-    "gff1|f1=s" => \$file1,
-    "gff2|f2=s" => \$file2,
+    "gff|f=s" => \@opt_files,
     "output|outfile|out|o=s" => \$outfile))
 
 {
@@ -58,14 +39,13 @@ if ( !GetOptions(
 # Print Help and exit
 if ($help) {
     pod2usage( { -verbose => 2,
-                 -exitval => 0,
-                 -message => "$usage\n" } );
+                 -exitval => 2,
+                 -message => "$header\n" } );
 }
- 
-if ( ! ((defined($file1)) and (defined($file2)))){
+
+if ( ! @opt_files or (@opt_files and ($#opt_files < 1) ) ){
     pod2usage( {
-           -message => "\nAt least 2 parameter is mandatory:\nInput reference gff file1 (--gff1) and Input reference gff file2 (--gff2)\n\n".
-           "$usage\n",
+           -message => "\nAt least 2 files are mandatory:\n --gff file1 --gff file2\n\n",
            -verbose => 0,
            -exitval => 2 } );
 }
@@ -90,14 +70,26 @@ else{
 
 ######################
 ### Parse GFF input #
+
+my $file1 = shift @opt_files;
 my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($file1);
 print ("$file1 GFF3 file parsed\n");
 info_omniscient($hash_omniscient);
-my ($hash_omniscient2, $hash_mRNAGeneLink2) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($file2);
-print ("$file2 GFF3 file parsed\n");
-info_omniscient($hash_omniscient2);
-merge_omniscients($hash_omniscient2, $hash_omniscient);
-print ("$file1 and $file2 merged:\n");
+
+#Add the features of the other file in the first omniscient. It takes care of name to not have duplicates
+foreach my $next_file (@opt_files){
+  my ($hash_omniscient2, $hash_mRNAGeneLink2) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($next_file);
+  print ("$next_file GFF3 file parsed\n");
+  info_omniscient($hash_omniscient2);
+  merge_omniscients($hash_omniscient, $hash_omniscient2);
+  print ("\n$next_file added we now have:\n");
+  info_omniscient($hash_omniscient);
+}
+
+# Now all the feature are in the same omniscient
+# We have to check the omniscient to merge overlaping genes together and remove the identical ones
+my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($hash_omniscient);
+print ("\nfinal result:\n");
 info_omniscient($hash_omniscient);
 
 ########
@@ -105,3 +97,33 @@ info_omniscient($hash_omniscient);
 print_omniscient($hash_omniscient, $gffout);  
 
 __END__
+
+=head1 NAME
+ 
+gff3_sp_merge_annotations.pl - 
+This script merge different gff annotation files in gff format in one. It takes care of duplicated names, and merge overlaping genes together.
+
+=head1 SYNOPSIS
+
+    ./gff3_sp_merge_annotations.pl --gff=infile1 --gff=infile2 --out=outFile 
+    ./gff3_sp_merge_annotations.pl --help
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--gff> or B<-f>
+
+Input GFF3 file(s). You can specify as much file you want like so: -f file1 -f file2 -f file3
+
+=item  B<--out>, B<--output> or B<-o>
+
+Output gff3 file where the gene incriminated will be write.
+
+=item B<--help> or B<-h>
+
+Display this helpful text.
+
+=back
+
+=cut

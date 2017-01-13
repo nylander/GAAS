@@ -48,7 +48,8 @@ our %EXPORT_TAGS = ( DEFAULT => [qw()],
 #     DEFINE CONSTANT    # 
 #/!\ Has to be defined in lowercase !
 #level1 are features without parent
-use constant LEVEL1 => { gene => 1, ncrna_gene => 2, mirna_gene => 3, lincrna_gene => 4, rrna_gene => 5, snrna_gene => 6, snorna_gene => 7, pseudogene => 8, match => 9, sirna_gene => 10, pirna_gene => 11, sts => 12, protein_match => 13 };
+use constant LEVEL1 => { gene => 1, ncrna_gene => 2, mirna_gene => 3, lincrna_gene => 4, rrna_gene => 5, snrna_gene => 6, snorna_gene => 7, pseudogene => 8, sirna_gene => 10, pirna_gene => 11, sts => 12,
+						 match => 9, protein_match => 13,  cDNA_match => 14, EST_match => 15, translated_nucleotide_match => 16, nucleotide_to_protein_match => 17, nucleotide_motif => 18, polypeptide => 19};
 #level2 are features with parent and potentially a child (no child as example for match)
 use constant LEVEL2 => { mrna => "gene", transcript => "gene", processed_transcript => "gene", nmd_transcript_variant => "gene", aberrant_processed_transcript => "gene", rna => "gene", trna => "gene",
 						ncrna => "ncrna_gene", mirna => "mirna_gene", lcrna => "lincrna_gene", lincrna => "lincrna_gene", rrna => "rrna_gene", snrna => "snrna_gene", snorna => "snorna_gene",  
@@ -82,7 +83,7 @@ sub slurp_gff3_file_JD {
 	my $start_run = time();
 	my $previous_time = undef;	
 
-	#get header information
+	#get header information 
 	my $gff3headerInfo = _check_header($file);
 
 #	+-----------------------------------------+
@@ -90,10 +91,11 @@ sub slurp_gff3_file_JD {
 #	+-----------------------------------------+
 
 	my $ontology = {};
-	my $ontology_obj = _handle_ontology($file, $gff3headerInfo, $verbose);
+	my $ontology_obj = _handle_ontology($gff3headerInfo, $verbose);
 	if($ontology_obj){
 		$ontology = create_term_and_id_hash($ontology_obj);
 	}
+
 	if(! keys %{$ontology} ){ #hash is empty
 		print "No data retrieved among the feature-ontology.\n";
 	}
@@ -126,7 +128,7 @@ sub slurp_gff3_file_JD {
 	 };
 
 #	+-----------------------------------------+
-#	|			HANDLE FEATUTRES 			  |
+#	|			HANDLE FEATUTRES PARSING ACCORDING TO TYPE 			  |
 #	+-----------------------------------------+
 
 	my %mRNAGeneLink; #Hast that keep track about link between l2 and l1
@@ -194,7 +196,7 @@ sub slurp_gff3_file_JD {
 	    #close the file
 	    $gffio->close();
 	}
-
+$verbose=1;
     if($verbose  >= 1) {_printSurrounded("parsing done in ".(time() - $start_run)." seconds",30,".","\n"); $previous_time = time();}
 
 #	+-----------------------------------------+
@@ -270,7 +272,9 @@ sub slurp_gff3_file_JD {
 #	+-----------------------------------------+
 	if( keys %globalWARNS ){
 		if(exists($globalWARNS{"parser1"}) ) {
-			my $string = "Primary tag values (3rd column) not expected => @{$globalWARNS{parser1}}\n".
+			my %hash   = map { $_, 1 } @{$globalWARNS{parser1}};
+			my @unique = keys %hash;
+			my $string = "Primary tag values (3rd column) not expected => @unique\n".
 			"Those primary tag are not yet taken into account !\n".
 			"Please modify the code to define one of the three possible levels of this feature or provide this information on the fly through the corresponding parameter (level1, level2 or level3).\n".
 			"To resume:\n".
@@ -2157,9 +2161,11 @@ sub check_mrna_positions{
   return $result;
 }
 
-#L1: LocusID->level->typeFeature->ID->[ID,start,end]
+# L1: LocusID->level->typeFeature->ID->[ID,start,end]
 # LocusID->level->typeFeature->Parent->[ID,start,end]
-#
+# @Purpose: When to feature overlap at level3, and are the same type level 2 they have to be merged under the same level 1 feature.
+# @input: 2 =>  hash,  integer for verbosity
+# @output: 0 
 sub _check_overlap_name_diff{
 	my ($omniscient, $verbose) = @_;
 	my $resume_case=undef;
@@ -2196,7 +2202,7 @@ sub _check_overlap_name_diff{
 							if($overlap){
 
 								#let's check at CDS level
-								if(two_features_overlap_at_cds_level($omniscient,  $id_l1, $id2_l1)){
+								if(two_overlap_features_must_be_merged($omniscient,  $id_l1, $id2_l1)){ #If contains CDS it has to overlap at CDS level to be merged, otherwise any type of feature level3 overlaping is sufficient to decide to merge the level1 together
 									#they overlap in the CDS we should give them the same name
 									$resume_case++;
 									$alreadyChecked{$id_l1}++;
@@ -2260,32 +2266,6 @@ sub _sort_by_seq{
 	    	my $position_l1=$level1_feature->seq_id."".$strand;
 
 	    	$hash_sortBySeq{$position_l1}{"level1"}{$tag_level1}{$level1_id} = [$ID, int($level1_feature->start), int($level1_feature->end)];
-
-	    	# foreach my $tag_level2 (keys %{$omniscient->{'level2'}}){
-      #   		if (exists_keys($omniscient, ('level2', $tag_level2, $level1_id)) ){ # check if they have mRNA avoiding autovivifcation
-      #  				foreach my $feature_level2 ( @{$omniscient->{'level2'}{$tag_level2}{$level1_id}}) {
-
-      #  					my $l2_ID = lc($feature_level2->_tag_value('ID'));
-      #  					my $position_l2=$feature_level2->seq_id."".$strand;
-
-      #  					push ( @{ $hash_sortBySeq{$position_l2}{"level2"}{$tag_level2}{$level1_id}} , [$l2_ID, $feature_level2->start, $feature_level2->end] );
-
-      # 					############
-						# # THEN ALL THE REST
-						# foreach my $tag_l3 (keys %{$omniscient->{'level3'}}){ # 
-						# 	if ( exists_keys( $omniscient, ('level3', $tag_l3, $l2_ID) ) ){
-						# 		foreach my $feature_level3 ( @{$omniscient->{'level3'}{$tag_l3}{$l2_ID}}) {
-					    			
-					 #    			my $l3_ID = lc($feature_level3->_tag_value('ID'));
-					 #    			my $position_l3=$feature_level3->seq_id."".$strand;
-				        			
-				  #       			push (@{$hash_sortBySeq{$position_l3}{"level3"}{$tag_l3}{$l2_ID}{$l3_ID}}, [$l3_ID, $feature_level3->start, $feature_level3->end] );
-				  #       		}
-				  #       	}
-				  #       }
-      #  				}
-      #  			}
-      #  		}
         }
 	}
 	return \%hash_sortBySeq;
@@ -2669,6 +2649,9 @@ sub _keep_only_uniq_from_list2{
 		if($keep){
 			push(@new_list2, $feature2);
 		}
+		else{ # We dont keep the l2 feature so we have to remove all related features
+			remove_l2_related_feature($omniscient, $feature2, $verbose);
+		}
 	}
 	return \@new_list2;
 }
@@ -2708,7 +2691,7 @@ sub _l2_identical{
 }
 
 #Check if two genes have at least one L2 isoform which overlap at cds level.
-sub two_features_overlap_at_cds_level{
+sub two_overlap_features_must_be_merged{
   my  ($hash_omniscient,$gene_id, $gene_id2)=@_;
   my $resu=undef;
 
@@ -2717,7 +2700,7 @@ sub two_features_overlap_at_cds_level{
 		#check full CDS for each mRNA
 		if(exists_keys($hash_omniscient,('level2', $l2_type, lc($gene_id)))){
 			foreach my $mrna_feature (@{$hash_omniscient->{'level2'}{$l2_type}{lc($gene_id)}}){
-			    foreach my $mrna_feature2 (@{$hash_omniscient->{'level2'}{$l2_type}{lc($gene_id2)}}){
+			    foreach my $mrna_feature2 (@{$hash_omniscient->{'level2'}{$l2_type}{lc($gene_id2)}}){ # from here bothe feature level2 are the same type
 
 			      my $mrna_id1 = $mrna_feature->_tag_value('ID');
 
@@ -2738,16 +2721,60 @@ sub two_features_overlap_at_cds_level{
 				      		if($resu){last;}
 				      	}
 				    }
+				    elsif(! exists_keys($hash_omniscient,('level3', 'cds', lc($mrna_id2)))){ # No CDS at all, check at exon level and if same level2 type
+				    	foreach my $tag_l3 (keys $hash_omniscient->{'level3'}){
+				    		if(exists_keys($hash_omniscient,('level3', $tag_l3, lc($mrna_id1)))){
+				    			foreach my $feature1 (@{$hash_omniscient->{'level3'}{$tag_l3}{lc($mrna_id1)}}){
+									if(exists_keys($hash_omniscient,('level3', $tag_l3, lc($mrna_id2)))){
+				    					foreach my $feature2 (@{$hash_omniscient->{'level3'}{$tag_l3}{lc($mrna_id2)}}){
+
+				    						if(($feature2->start <= $feature1->end) and ($feature2->end >= $feature1->start )){ # they overlap
+						            			$resu="yes";last;
+						          			}
+						          		}
+							          	if($resu){last;}
+							        }
+							        if($resu){last;}
+							    }
+							    if($resu){last;}
+							}
+							if($resu){last;}
+						}
+						if($resu){last;}
+				    }
 				    if($resu){last;}  
 			    }
 			    if($resu){last;}  
 			}
+			if($resu){last;}
 		}
 		if($resu){last;} 
 	}
   return $resu;
 }
 
+#
+#
+#
+sub remove_l2_related_feature{
+	my ($omniscient, $feature2, $verbose) = @_;
+
+	my $l1_id = lc($feature2->_tag_value('Parent'));
+	my $l2_id = lc($feature2->_tag_value('ID'));
+
+	#remove level 1 feature
+	foreach my $tag (keys %{$omniscient->{'level1'}}){
+		if(exists_keys($omniscient, ('level1', $tag, $l1_id))){
+			delete $omniscient->{'level1'}{$tag}{$l1_id};
+			last;
+		}
+	}
+	foreach my $tag (keys %{$omniscient->{'level3'}}){
+		if(exists_keys($omniscient, ('level3', $tag, $l2_id))){
+			delete $omniscient->{'level3'}{$tag}{$l2_id};
+		}
+	}
+}
 
 # @Purpose: Create a hash containing all the name and identifier of an ontology.
 # @input: 1 =>  Object Bio::Ontology
@@ -2774,38 +2801,41 @@ sub _check_header{
     #HANDLE format
     my %headerInfo;
     
-    open(my $fh, '<', $file) or die "cannot open file $file";
-    {
-        while(<$fh>){
-            if($_ !~ /^##[^#]/) {
-                 last;
-            }
-            else{
-            	my @data = split /\s/, $_ ;
-            	my $type = shift @data;
+    #check it is a file
+    if(-f $file){
+	    open(my $fh, '<', $file) or die "cannot open file $file";
+	    {
+	        while(<$fh>){
+	            if($_ !~ /^##[^#]/) {
+	                 last;
+	            }
+	            else{
+	            	my @data = split /\s/, $_ ;
+	            	my $type = shift @data;
 
-            	if($type eq /^##gff-version/){
-            		$headerInfo{$type}=$data[0]; #1 element
-            	}
-				if($type eq "##sequence-region"){
-					$headerInfo{$type}=@data; # 3 elements
-				}
-				if($type eq "##feature-ontology"){
-					$headerInfo{$type}=$data[0] #1 element
-				}
-				if($type eq "##attribute-ontology"){
-					$headerInfo{$type}=$data[0]; #1 element
-				}
-				if($type eq "##species"){
-					$headerInfo{$type}=$data[0]; #1 element
-				}
-				if($type eq "##genome-build"){
-					$headerInfo{$type}=@data; #2 elements
-				}
+	            	if($type eq /^##gff-version/){
+	            		$headerInfo{$type}=$data[0]; #1 element
+	            	}
+					if($type eq "##sequence-region"){
+						$headerInfo{$type}=@data; # 3 elements
+					}
+					if($type eq "##feature-ontology"){
+						$headerInfo{$type}=$data[0] #1 element
+					}
+					if($type eq "##attribute-ontology"){
+						$headerInfo{$type}=$data[0]; #1 element
+					}
+					if($type eq "##species"){
+						$headerInfo{$type}=$data[0]; #1 element
+					}
+					if($type eq "##genome-build"){
+						$headerInfo{$type}=@data; #2 elements
+					}
+		        }
 	        }
-        }
-    }
-    close($fh);
+	    }
+	    close($fh);
+	}
 
     return \%headerInfo;
 }
@@ -2839,11 +2869,10 @@ sub fetcher_JD {
 # @input: 3 =>  String file, Hash, Int 
 # @output: 1 => Object Ontology
 sub _handle_ontology{
-	my ($file, $gff3headerInfo, $verbose) = @_ ;
+	my ($gff3headerInfo, $verbose) = @_ ;
 
 	my $ontology_obj=undef;
 	my $internalO=1;
-	if(ref($file) ne 'ARRAY' and ref($file) ne 'HASH'){ #when it's a string correposnding to a file, otherwise No feature-ontology coming from hash or list (at least for now, could be improved)
 		
 		if(exists_keys($gff3headerInfo, ("##feature-ontology"))){
 			
@@ -2882,7 +2911,6 @@ sub _handle_ontology{
 				}
 			}
 		}
-	}
 
 	if($internalO){ #No URI provided for the feature-ontology(file case), or doesn't exist (hash / table case) let's use the interal one
 	

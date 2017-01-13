@@ -634,91 +634,103 @@ sub fill_omniscient_from_other_omniscient {
 }
 
 # omniscient is a hash containing a whole gXf file in memory sorted in a specific way (3 levels)
-# put data from hash_omniscient1 in hash_omniscient2
-# Features are added if ID was not already existsing. Starting from level1 to level3. Each level is filled independently.
+# put data from hash_omniscient2 in hash_omniscient1
+# Features are added even if they are identical. If they have similar name, new name will be given to.
 sub merge_omniscients {
 
 	my ($hash_omniscient1, $hash_omniscient2)=@_;
 
+	my $hash_whole_IDs = get_all_IDs($hash_omniscient1);
+	my $hash2_whole_IDs = get_all_IDs($hash_omniscient2);
+	
+	my %hash_miscCount;
+	my $miscCount = \%hash_miscCount;
+
 	#################
 	# == LEVEL 1 == #
 	#################
-	foreach my $primary_tag_key_level1 (keys %{$hash_omniscient1->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
-		foreach my $id_tag_key_level1 (keys %{$hash_omniscient1->{'level1'}{$primary_tag_key_level1}}){
-			if ( ! exists ($hash_omniscient2->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1} ) ){
-					$hash_omniscient2->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1} = $hash_omniscient1->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1}; # print feature
-			}
-			else{print "INFO level1:  $id_tag_key_level1 already exist in file 1\n";}
-		}
-	}
+	foreach my $tag_l1 (keys %{$hash_omniscient2->{'level1'}}){ # tag_l1 = gene or repeat etc...
+		foreach my $id_l1 (keys %{$hash_omniscient2->{'level1'}{$tag_l1}}){
+			my $new_parent=undef;
+			my $uID = $hash_omniscient2->{'level1'}{$tag_l1}{$id_l1}->_tag_value('ID');
 
-	#################
-	# == LEVEL 2 == #
-	#################
-	foreach my $primary_tag_key_level2 (keys %{$hash_omniscient1->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
-		foreach my $id_tag_key_level2 (keys %{$hash_omniscient1->{'level2'}{$primary_tag_key_level2}}){
-
-			if (! exists ($hash_omniscient2->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level2} ) ){ #Non present in hash2, we create a list with one element
-					@{$hash_omniscient2->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level2}} = @{$hash_omniscient1->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level2}};
-			}
-			else{ # header of the list exist, does all the feature exists ?
-
-				print "INFO level2:  Parent $id_tag_key_level2 already exist in file 1. Should we add a new mRNA ?\n";
-				foreach my $feature_level2_hash1 ( @{$hash_omniscient1->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level2}}) {
-					my $level2_exists="no";
-
-					my @temp = $feature_level2_hash1->get_tag_values('ID');
-					my $level2_ID_hash1 = lc(shift @temp);
-
-					# Check if feature exists in hash2
-					foreach my $feature_level2_hash2 ( @{$hash_omniscient2->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level2}}) {
-						my @temp = $feature_level2_hash2->get_tag_values('ID');
-						my $level2_ID_hash2 = lc(shift @temp);
-						if($level2_ID_hash2 eq $level2_ID_hash1){
-							my $level2_exists="yes";
-						}
-					}
-					# feature doesnt exist in list of hash2, so we add it
-					if ($level2_exists eq "no"){
-						push (@{$hash_omniscient2->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level2}}, $feature_level2_hash1);
-					}
-				}
-			}
-		}
-	}
-
-	#################
-	# == LEVEL 3 == #
-	#################
-	foreach my $primary_tag_key_level3 (keys %{$hash_omniscient1->{'level3'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
-		foreach my $id_tag_key_level3 (keys %{$hash_omniscient1->{'level3'}{$primary_tag_key_level3}}){
-			if (! exists ($hash_omniscient2->{'level3'}{$primary_tag_key_level3}{$id_tag_key_level3} ) ){ #Non present in hash2, we create a list with one element
-					@{$hash_omniscient2->{'level3'}{$primary_tag_key_level3}{$id_tag_key_level3}} = @{$hash_omniscient1->{'level3'}{$primary_tag_key_level3}{$id_tag_key_level3}};
+			if ( ! exists ( $hash_whole_IDs->{$id_l1} ) ){
+					$hash_omniscient1->{'level1'}{$tag_l1}{$id_l1} = delete $hash_omniscient2->{'level1'}{$tag_l1}{$id_l1}; # save feature
 			}
 			else{
-				print "INFO level3:  $id_tag_key_level3 already exist in file 1. Should we add a new level3 features ?\n";
-				foreach my $feature_level3_hash1 ( @{$hash_omniscient1->{'level3'}{$primary_tag_key_level3}{$id_tag_key_level3}}) {
-					my $level3_exists="no";
+				#print "INFO level1:  Parent $id_l1 already exist. We generate a new one to avoid collision !\n";
+				my $feature = $hash_omniscient2->{'level1'}{$tag_l1}{$id_l1};
+				$uID = replace_by_uniq_ID( $feature, $hash_whole_IDs,  $hash2_whole_IDs, $miscCount);
+				$hash_omniscient1->{'level1'}{$tag_l1}{lc($uID)} = delete $hash_omniscient2->{'level1'}{$tag_l1}{$id_l1}; # save feature
+				$new_parent=1;
+			}
+			#################
+			# == LEVEL 2 == #
+			#################
+			my @new_list_l2=();
+			foreach my $tag_l2 (keys %{$hash_omniscient2->{'level2'}}){ # tag_l2 = mrna or mirna or ncrna or trna etc...
+				
+				if (exists ($hash_omniscient2->{'level2'}{$tag_l2}{$id_l1} ) ){ #Non present in hash2, we create a list with one element
+					
+					foreach my $feature_l2 ( @{$hash_omniscient2->{'level2'}{$tag_l2}{$id_l1}}) {
+						
+						my $new_parent_l2=undef;
 
-					my @temp = $feature_level3_hash1->get_tag_values('ID');
-					my $level3_ID_hash1 = lc(shift @temp);
+						if($new_parent){
+							create_or_replace_tag($feature_l2, 'Parent', $hash_omniscient1->{'level1'}{$tag_l1}{lc($uID)}->_tag_value('ID'));
+						}
 
-					# Check if feature exists in hash2
-					foreach my $feature_level3_hash2 ( @{$hash_omniscient2->{'level3'}{$primary_tag_key_level3}{$id_tag_key_level3}}) {
-						my @temp = $feature_level3_hash2->get_tag_values('ID');
-						my $level3_ID_hash2 = lc(shift @temp);
-						if($level3_ID_hash2 eq $level3_ID_hash1){
-							my $level3_exists="yes";
+						my $uID_l2 = $feature_l2->_tag_value('ID');
+						my $id_l2 = lc($uID_l2);
+
+						if ( exists ( $hash_whole_IDs->{$id_l2} ) ){
+							
+							#print "INFO level2:  Parent $id_l2 already exist. We generate a new one to avoid collision !\n";
+							$uID_l2 = replace_by_uniq_ID($feature_l2, $hash_whole_IDs,  $hash2_whole_IDs, $miscCount);	
+							$new_parent_l2=1;
+						}
+
+						push @new_list_l2, $feature_l2; # print feature
+						
+
+						#################
+						# == LEVEL 3 == #
+						#################
+						my @new_list_l3=();
+						foreach my $tag_l3 (keys %{$hash_omniscient2->{'level3'}}){ 
+
+							if (exists ($hash_omniscient2->{'level3'}{$tag_l3}{$id_l2} ) ){ 
+								
+								foreach my $feature_l3 ( @{$hash_omniscient2->{'level3'}{$tag_l3}{$id_l2}}) {
+
+									if($new_parent_l2){
+										create_or_replace_tag($feature_l3, 'Parent', $uID_l2);
+									}
+
+									my $uID_l3 = $feature_l3->_tag_value('ID');
+									my $id_l3 = lc($uID_l3);
+
+									if ( exists ( $hash_whole_IDs->{$id_l2} ) ){
+									#	print "INFO level3:  Parent $id_l3 already exist. We generate a new one to avoid collision !\n";
+										$uID_l3 = replace_by_uniq_ID($feature_l3, $hash_whole_IDs,  $hash2_whole_IDs, $miscCount);
+										
+									}
+
+									push @new_list_l3, $feature_l3; # save feature
+								}
+								#save list feature level3
+								@{$hash_omniscient1->{'level3'}{$tag_l3}{lc($uID_l2)} }= @new_list_l3;
+								@new_list_l3=();
+							}
 						}
 					}
-					# feature doesnt exist in list of hash2, so we add it
-					if ($level3_exists eq "no"){
-						push (@{$hash_omniscient2->{'level3'}{$primary_tag_key_level3}{$id_tag_key_level3}}, $feature_level3_hash1);
-					}
+					#save list feature level2
+					@{$hash_omniscient1->{'level2'}{$tag_l2}{lc($uID)}} = @new_list_l2;
 				}
 			}
 		}
 	}
+	return $hash_omniscient1;
 }
 
 sub append_omniscient {
@@ -1713,5 +1725,80 @@ sub nb_feature_level1 {
 	}
 	return $resu;
 }
+
+# @Purpose: get all the ID present in an omniscient
+# @input: 1 => hash(omniscient hash)
+# @output: hash of the whole IDs
+sub get_all_IDs{
+	my ($omniscient)=@_;
+
+	my %whole_IDs;
+
+	#################
+	# == LEVEL 1 == #
+	#################
+	foreach my $primary_tag_l1 (keys %{$omniscient->{'level1'}}){ # primary_tag_l1 = gene or repeat etc...
+		foreach my $id_l1 (keys %{$omniscient->{'level1'}{$primary_tag_l1}}){
+			$whole_IDs{$id_l1}++;
+		}
+	}
+	#################
+	# == LEVEL 2 == #
+	#################
+	foreach my $primary_tag_l2 (keys %{$omniscient->{'level2'}}){ # primary_tag_l2 = mrna or mirna or ncrna or trna etc...
+		foreach my $id_l1 ( keys %{$omniscient->{'level2'}{$primary_tag_l2}}) {
+			foreach my $feature_level2 ( @{$omniscient->{'level2'}{$primary_tag_l2}{$id_l1}}) {
+				my $level2_ID  = lc($feature_level2->_tag_value('ID'));		
+				$whole_IDs{$level2_ID}++;
+			}
+		}
+	}
+	#################
+	# == LEVEL 3 == #
+	#################
+	foreach my $primary_tag_l3 (keys %{$omniscient->{'level3'}}){ # primary_tag_l3 = cds or exon or start_codon or utr etc...
+		foreach my $level2_ID ( keys %{$omniscient->{'level3'}{$primary_tag_l3}}) {
+			foreach my $feature_level3 ( @{$omniscient->{'level3'}{$primary_tag_l3}{$level2_ID}}) {
+				my $level3_ID  = lc($feature_level3->_tag_value('ID'));		
+				$whole_IDs{$level3_ID}++;
+			}
+		}
+	}
+	return \%whole_IDs;
+}
+
+# @Purpose: Replace ID by Uniq ID and modify all parent attribute of child feature to stay in line with the modification
+# @input: 4 => feature objetc, hash of ids, hash of ids, hash of feature counted to give more rapidly a name 
+# @output: uniq ID
+sub replace_by_uniq_ID{
+	my ($feature, $hash_whole_IDs, $hash2_whole_IDs, $miscCount) = @_;
+
+	my $id = $feature->_tag_value('ID');
+	my $prefix = "IDmodified";
+	my $key;
+
+	if($prefix){
+		$key=$prefix."-".lc($feature->primary_tag);
+	}
+	else{
+		$key=lc($feature->primary_tag);
+	}
+
+	my $uID=$id;
+	while( exists_keys($hash_whole_IDs, (lc($uID)) ) or exists_keys($hash2_whole_IDs, (lc($uID)) ) ){	 #loop until we found an uniq tag	
+		$miscCount->{$key}++;
+		$uID = $key."-".$miscCount->{$key};
+	}
+
+	#push the new ID	
+	$hash_whole_IDs->{$uID}=$id;
+
+	# modify the feature ID with the correct one chosen
+	create_or_replace_tag($feature,'ID', $uID); #modify ID to replace by parent value
+
+	#Now repercute this modification to the subfeatures
+	return $uID;
+}
+
 
 1;
