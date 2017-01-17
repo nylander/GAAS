@@ -22,12 +22,13 @@ my $header = qq{
 
 my $outfile = undef;
 my @opt_files;
-my $file2 = undef;
+my $ref = undef;
 my $help= 0;
 
 if ( !GetOptions(
     "help|h" => \$help,
-    "gff|f=s" => \@opt_files,
+    "ref|r=s" => \$ref,
+    "add|a=s" => \@opt_files,
     "output|outfile|out|o=s" => \$outfile))
 
 {
@@ -43,7 +44,7 @@ if ($help) {
                  -message => "$header\n" } );
 }
 
-if ( ! @opt_files or (@opt_files and ($#opt_files < 1) ) ){
+if (! $ref or ! @opt_files ){
     pod2usage( {
            -message => "\nAt least 2 files are mandatory:\n --gff file1 --gff file2\n\n",
            -verbose => 0,
@@ -71,9 +72,8 @@ else{
 ######################
 ### Parse GFF input #
 
-my $file1 = shift @opt_files;
-my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($file1);
-print ("$file1 GFF3 file parsed\n");
+my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($ref);
+print ("$ref GFF3 file parsed\n");
 info_omniscient($hash_omniscient);
 
 #Add the features of the other file in the first omniscient. It takes care of name to not have duplicates
