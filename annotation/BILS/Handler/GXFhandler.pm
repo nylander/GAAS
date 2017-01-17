@@ -295,7 +295,7 @@ sub slurp_gff3_file_JD {
 				_printSurrounded($string,150,"*") ;
 			}
 			else{
-				my $string = "No feature-ontology available, we cannot check that the feature types (3rd column) correspond to the gff3 specifactions.";
+				my $string = "No feature-ontology was available, we haven't checked that the feature types (3rd column) correspond to the gff3 specifactions.";
 				_printSurrounded($string,150,"*") ;
 			}
 		}
@@ -2039,67 +2039,10 @@ sub _check_all_level1_positions {
 			
 			my $level1_feature = $hash_omniscient->{'level1'}{$tag_l1}{$id_l1};
 
-			$resume_case++ if(_check_level1_positions($hash_omniscient, $level1_feature, $verbose));
+			$resume_case++ if(check_level1_positions($hash_omniscient, $level1_feature, $verbose));
 		}
 	}
 	print "We fixed $resume_case wrong level1 position cases\n" if($verbose >= 1 and $resume_case);
-}
-
-#return 1 if something modified
-sub _check_level1_positions {
-	my ($hash_omniscient, $feature_l1, $verbose) = @_;
-	my $result=undef;
-
-
-	my $extrem_start=1000000000000;
-	my $extrem_end=0;
-	my $check_existence_feature_l2=undef;
-	my $id_l1 = lc($feature_l1->_tag_value('ID'));
-
-	foreach my $tag_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
-    	if ( exists_keys ($hash_omniscient, ('level2', $tag_level2, $id_l1) ) ){
-    		$check_existence_feature_l2=1;
-
-	    	my $extrem_start_A=1000000000000;
-			my $extrem_end_A=0;
-	   		foreach my $feature ( @{$hash_omniscient->{'level2'}{$tag_level2}{$id_l1}}) {
-	      		my $start=$feature->start();
-	      		my $end=$feature->end();
-	      		if ($start < $extrem_start_A){
-	       			$extrem_start_A=$start;
-	      		}
-	      		if($end > $extrem_end_A){
-	        		$extrem_end_A=$end;
-	      		}
-	      	}
-
-	    	if ($extrem_start_A < $extrem_start){
-	    		$extrem_start=$extrem_start_A;
-	    	}
-	    	if($extrem_end_A > $extrem_end){
-	    		$extrem_end=$extrem_end_A;
-	    	}
-	    }
-    }
-    if(! $check_existence_feature_l2){
-    	warn "WARNING _check_level1_positions: NO level2 feature to check positions of the level1 feature ! @\n";
-    }
-    else{
-	    # modify START if needed
-	    if($feature_l1->start != $extrem_start){
-	    	$feature_l1->start($extrem_start);
-	    	$result=1;
-	    	print "We modified the L1 LEFT extremity for the sanity the biological data!\n" if($verbose >= 3);
-	    }
-
-	    # modify END if needed
-	    if($feature_l1->end != $extrem_end){
-	    	$feature_l1->end($extrem_end);
-	    	$result=1;
-	    	print "We modified the L1 RIGHT extremity for the sanity the biological data!\n" if($verbose >= 3);
-	    }
-	}
-	return $result;
 }
 
 # Purpose: review all the feature L2 to adjust their start and stop according to the extrem start and stop from L3 sub features.
@@ -2137,6 +2080,7 @@ sub _check_all_level2_positions{
 # Check the start and end of mRNA based a list of feature like list of exon;
 sub check_mrna_positions{
   my ($mRNA_feature, $exon_list, $verbose)=@_;
+  if(! $verbose){$verbose=0;}
   my $result=undef;
 
   my @exon_list_sorted = sort {$a->start <=> $b->start} @{$exon_list};
@@ -2196,13 +2140,13 @@ sub _check_overlap_name_diff{
 							#If location_to_check start if over the end of the reference location, we stop
 							if($location_to_check->[1] > $sortBySeq->{$locusID}{'level1'}{$tag_l1}{$id_l1}[1]) {last;} 
 
-							my ($location, $overlap) = _location_overlap($location, $location_to_check); # location is updated on the fly, and the newly modified location is the one that will be used at the next loop
+							my ($location, $overlap) = location_overlap_update($location, $location_to_check); # location is updated on the fly, and the newly modified location is the one that will be used at the next loop
 							
 							# Let's check at Gene LEVEL
 							if($overlap){
 
 								#let's check at CDS level
-								if(two_overlap_features_must_be_merged($omniscient,  $id_l1, $id2_l1)){ #If contains CDS it has to overlap at CDS level to be merged, otherwise any type of feature level3 overlaping is sufficient to decide to merge the level1 together
+								if(check_gene_overlap_at_CDSthenEXON($omniscient, $omniscient , $id_l1, $id2_l1)){ #If contains CDS it has to overlap at CDS level to be merged, otherwise any type of feature level3 overlaping is sufficient to decide to merge the level1 together
 									#they overlap in the CDS we should give them the same name
 									$resume_case++;
 									$alreadyChecked{$id_l1}++;
@@ -2216,7 +2160,7 @@ sub _check_overlap_name_diff{
 										if(exists_keys($omniscient,('level2', $l2_type, $id2_l1))){
 											
 											# REMOVE THE IDENTICAL ISOFORMS
-											my $list_of_uniqs  = _keep_only_uniq_from_list2($omniscient, $omniscient->{'level2'}{$l2_type}{$id_l1}, $omniscient->{'level2'}{$l2_type}{$id2_l1}, $verbose); # remove if identical l2 exists
+											my $list_of_uniqs  = keep_only_uniq_from_list2($omniscient, $omniscient->{'level2'}{$l2_type}{$id_l1}, $omniscient->{'level2'}{$l2_type}{$id2_l1}, $verbose); # remove if identical l2 exists
 											
 											#Now manage the rest
 											foreach my $feature_l2 (@{$list_of_uniqs}){
@@ -2229,7 +2173,7 @@ sub _check_overlap_name_diff{
 											delete $omniscient->{'level2'}{$l2_type}{$id2_l1};
 										}
 									}
-									_check_level1_positions($omniscient, $omniscient->{'level1'}{$tag_l1}{$id_l1}, 3);
+									check_level1_positions($omniscient, $omniscient->{'level1'}{$tag_l1}{$id_l1}, 3);
 
 									if($omniscient->{'level1'}{$tag_l1}{$id_l1}->end > $sortBySeq->{$locusID}{'level1'}{$tag_l1}{$id_l1}[2]){
 										$sortBySeq->{$locusID}{'level1'}{$tag_l1}{$id_l1}[2] = $omniscient->{'level1'}{$tag_l1}{$id_l1}->end;
@@ -2608,172 +2552,6 @@ sub _gff1_corrector{
 	    #remove it   
 		$feat->remove_tag('group');
     } 
-}
-
-# looking the end and the start, the method check if two location overlap.
-#return the intersect of location
-sub _location_overlap{
-	my($location1, $location2)=@_;
-	my $location = $location1;
-	my $overlap = undef;
-
-	if (($location1->[1] <= $location2->[2]) and ($location1->[2] >= $location2->[1])){
-		$overlap = 1;
-		if($location2->[1] < $location1->[1]){
-			$location->[1] = $location2->[1]
-		}
-		if($location2->[2] > $location1->[2]){
-			$location->[2] = $location2->[2]
-		}
-	}
-
-	return $location, $overlap;
-}
-
-
-# @Purpose: Check 2 lists of feature L2 and remove the identical ones from the second list.
-# @input: 4 =>  omniscient Hash reference, list1 reference of L2 features,  list2 reference of L2 features, verbose option for debug
-# @output: list2 minus all the feature identical to one of the list1 feature
-sub _keep_only_uniq_from_list2{
-	my ($omniscient, $list1_l2, $list2_l2, $verbose)= @_;
-
-	my @new_list2;
-	my $keep = 1;
-
-	foreach my $feature2 ( @{$list2_l2} ){
-		foreach my $feature1 ( @{$list1_l2} ){	
-			if(_l2_identical($omniscient, $feature1, $feature2, $verbose )){
-				$keep = undef; last;
-			}
-		}
-		if($keep){
-			push(@new_list2, $feature2);
-		}
-		else{ # We dont keep the l2 feature so we have to remove all related features
-			remove_l2_related_feature($omniscient, $feature2, $verbose);
-		}
-	}
-	return \@new_list2;
-}
-
-# check if l2 are identical
-# return 1 if identical
-sub _l2_identical{
-	my ($omniscient, $feature1_l2, $feature2_l2, $verbose)= @_;
-	my $result=1;
-
-	my $id1_l2 = lc($feature1_l2->_tag_value('ID') );
-	my $id2_l2 = lc($feature2_l2->_tag_value('ID') );
-
-	foreach my $l3_type (keys %{$omniscient->{'level3'}} ){
-		if(exists_keys($omniscient,('level3', $l3_type, $id1_l2))){
-			if(exists_keys($omniscient,('level3', $l3_type, $id2_l2))){
-
-				foreach my $feature1_level3 ( sort {$a->start <=> $b->start} @{$omniscient->{'level3'}{$l3_type}{$id1_l2}}) {
-					
-					my $identik = undef;
-					foreach my $feature2_level3 ( sort {$a->start <=> $b->start} @{$omniscient->{'level3'}{$l3_type}{$id2_l2}}) {
-					
-						if( ($feature1_level3->start == $feature2_level3->start) and ($feature1_level3->end == $feature2_level3->end) ){
-							$identik=1;		
-						}
-					}
-					if(! $identik){
-						return undef;
-					}
-				}
-			}
-			else{return undef;}
-		}
-	}
-	print "The isoforms $id1_l2 and $id2_l2 are identical\n" if ($verbose >= 2 and $result);
-	return $result;
-}
-
-#Check if two genes have at least one L2 isoform which overlap at cds level.
-sub two_overlap_features_must_be_merged{
-  my  ($hash_omniscient,$gene_id, $gene_id2)=@_;
-  my $resu=undef;
-
-	foreach my $l2_type (keys %{$hash_omniscient->{'level2'}} ){
-
-		#check full CDS for each mRNA
-		if(exists_keys($hash_omniscient,('level2', $l2_type, lc($gene_id)))){
-			foreach my $mrna_feature (@{$hash_omniscient->{'level2'}{$l2_type}{lc($gene_id)}}){
-			    foreach my $mrna_feature2 (@{$hash_omniscient->{'level2'}{$l2_type}{lc($gene_id2)}}){ # from here bothe feature level2 are the same type
-
-			      my $mrna_id1 = $mrna_feature->_tag_value('ID');
-
-			      my $mrna_id2 = $mrna_feature2->_tag_value('ID');
-			   
-				    #check all cds pieces
-				    if(exists_keys($hash_omniscient,('level3', 'cds', lc($mrna_id1)))){
-				      	if(exists_keys($hash_omniscient,('level3', 'cds', lc($mrna_id2)))){
-						    foreach my $cds_feature1 (@{$hash_omniscient->{'level3'}{'cds'}{lc($mrna_id1)}}){
-						        foreach my $cds_feature2 (@{$hash_omniscient->{'level3'}{'cds'}{lc($mrna_id2)}}){
-						          
-						        	if(($cds_feature2->start <= $cds_feature1->end) and ($cds_feature2->end >= $cds_feature1->start )){ # they overlap
-						            	$resu="yes";last;
-						          	}
-						        }
-						        if($resu){last;}
-						    }
-				      		if($resu){last;}
-				      	}
-				    }
-				    elsif(! exists_keys($hash_omniscient,('level3', 'cds', lc($mrna_id2)))){ # No CDS at all, check at exon level and if same level2 type
-				    	foreach my $tag_l3 (keys %{$hash_omniscient->{'level3'}}){
-				    		if(exists_keys($hash_omniscient,('level3', $tag_l3, lc($mrna_id1)))){
-				    			foreach my $feature1 (@{$hash_omniscient->{'level3'}{$tag_l3}{lc($mrna_id1)}}){
-									if(exists_keys($hash_omniscient,('level3', $tag_l3, lc($mrna_id2)))){
-				    					foreach my $feature2 (@{$hash_omniscient->{'level3'}{$tag_l3}{lc($mrna_id2)}}){
-
-				    						if(($feature2->start <= $feature1->end) and ($feature2->end >= $feature1->start )){ # they overlap
-						            			$resu="yes";last;
-						          			}
-						          		}
-							          	if($resu){last;}
-							        }
-							        if($resu){last;}
-							    }
-							    if($resu){last;}
-							}
-							if($resu){last;}
-						}
-						if($resu){last;}
-				    }
-				    if($resu){last;}  
-			    }
-			    if($resu){last;}  
-			}
-			if($resu){last;}
-		}
-		if($resu){last;} 
-	}
-  return $resu;
-}
-
-#
-#
-#
-sub remove_l2_related_feature{
-	my ($omniscient, $feature2, $verbose) = @_;
-
-	my $l1_id = lc($feature2->_tag_value('Parent'));
-	my $l2_id = lc($feature2->_tag_value('ID'));
-
-	#remove level 1 feature
-	foreach my $tag (keys %{$omniscient->{'level1'}}){
-		if(exists_keys($omniscient, ('level1', $tag, $l1_id))){
-			delete $omniscient->{'level1'}{$tag}{$l1_id};
-			last;
-		}
-	}
-	foreach my $tag (keys %{$omniscient->{'level3'}}){
-		if(exists_keys($omniscient, ('level3', $tag, $l2_id))){
-			delete $omniscient->{'level3'}{$tag}{$l2_id};
-		}
-	}
 }
 
 # @Purpose: Create a hash containing all the name and identifier of an ontology.

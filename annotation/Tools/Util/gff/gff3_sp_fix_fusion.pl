@@ -227,7 +227,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
         $mRNACounter=$mRNACounter+$number_mrna; #add all the mRNA if at least one modified
         #save remodelate gene name
 
-        fill_omniscient_from_other_omniscient($tmpOmniscient, \%omniscient_modified_gene);
+        merge_omniscients(\%omniscient_modified_gene, $tmpOmniscient);
       }
       else{push(@intact_gene_list, $gene_id);}
     }

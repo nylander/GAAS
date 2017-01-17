@@ -81,18 +81,57 @@ foreach my $next_file (@opt_files){
   my ($hash_omniscient2, $hash_mRNAGeneLink2) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($next_file);
   print ("$next_file GFF3 file parsed\n");
   info_omniscient($hash_omniscient2);
-  
-  #merge annotation taking care of Uniq name. Does not look if mRNA are identic or so one, it will be handle later.
-  merge_omniscients($hash_omniscient, $hash_omniscient2);
-  print ("\n$next_file added we now have:\n");
-  info_omniscient($hash_omniscient);
-}
 
-# Now all the feature are in the same omniscient
-# We have to check the omniscient to merge overlaping genes together and remove the identical ones
-my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($hash_omniscient);
-print ("\nfinal result:\n");
-info_omniscient($hash_omniscient);
+  ################################
+  # First rename ID to be sure to not add feature with ID already used
+  rename_ID_existing_in_omniscient($hash_omniscient, $hash_omniscient2);
+  print ("\n$next_file IDs checked and fixed.\n");
+
+
+  # Quick stat hash before complement
+  my %quick_stat1;
+  foreach  my $tag (keys %{$hash_omniscient->{'level1'}}) {
+    my $nb_tag = keys %{$hash_omniscient->{'level1'}{$tag}};
+    $quick_stat1{$tag} = $nb_tag;
+  }
+
+  ####### COMPLEMENT #######
+  complement_omniscients($hash_omniscient, $hash_omniscient2);
+  print ("\nComplement done !\n");
+
+
+ #RESUME COMPLEMENT
+  my $complemented=undef;
+  # Quick stat hash after complement
+  my %quick_stat2;
+  foreach  my $tag (keys %{$hash_omniscient->{'level1'}}) {
+    my $nb_tag = keys %{$hash_omniscient->{'level1'}{$tag}};
+    $quick_stat2{$tag} = $nb_tag;
+  }
+
+  #About tag from hash1 added which exist in hash2
+  foreach my $tag (keys %quick_stat1){
+    if ($quick_stat1{$tag} != $quick_stat2{$tag} ){
+      print "We added ".($quick_stat2{$tag}-$quick_stat1{$tag})." $tag(s)\n";
+      $complemented=1;
+    }
+  }
+  #About tag from hash2 added which dont exist in hash1
+  foreach my $tag (keys %quick_stat2){
+    if (! exists $quick_stat1{$tag} ){
+      print "We added".$quick_stat2{$tag}."\n";
+      $complemented=1;
+    }
+  }
+  #If nothing added
+  if(! $complemented){
+    print "\nNothing has been added\n";
+  }
+  else{
+    print "\nNow the data contains:\n";
+    info_omniscient($hash_omniscient);
+  }
+}
 
 ########
 # Print results
@@ -102,13 +141,13 @@ __END__
 
 =head1 NAME
  
-gff3_sp_merge_annotations.pl - 
-This script merge different gff annotation files in gff format in one. It takes care of duplicated names to keep them uniq, and merge overlaping genes (at CDS or if no cds at exon level) together.
+gff3_sp_complement_annotations.pl - 
+This script merge different gff annotation files in gff format in one. It takes care of duplicated names, and merge overlaping genes together.
 
 =head1 SYNOPSIS
 
-    ./gff3_sp_merge_annotations.pl --gff=infile1 --gff=infile2 --out=outFile 
-    ./gff3_sp_merge_annotations.pl --help
+    ./gff3_sp_complement_annotations.pl --gff=infile1 --gff=infile2 --out=outFile 
+    ./gff3_sp_complement_annotations.pl --help
 
 =head1 OPTIONS
 
