@@ -18,7 +18,7 @@ my $header = qq{
 
 my $gff = undef;
 my $help= 0;
-my @opt_tag=undef;
+my @opt_tag=();
 my $outfile=undef;
 
 if ( !GetOptions(
@@ -100,10 +100,15 @@ foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){
   
   foreach my $id_l1 (keys %{$hash_omniscient->{'level1'}{$tag_l1}}){
     
+    my $l1_ID_modified=undef;
+
     $keepTrack{$tag_l1}++;
     if(exists ($ptagList{$tag_l1}) or  exists ($ptagList{'level1'}) ){
       my $feature_l1=$hash_omniscient->{'level1'}{$tag_l1}{$id_l1};     
       manage_attributes($feature_l1,\%keepTrack);
+
+      $l1_ID_modified=$feature_l1->_tag_value('ID');
+      $hash_omniscient->{'level1'}{$tag_l1}{lc($l1_ID_modified)} = delete $hash_omniscient->{'level1'}{$tag_l1}{$id_l1};    
     }
 
     #################
@@ -113,27 +118,51 @@ foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){
       
       if ( exists ($hash_omniscient->{'level2'}{$tag_l2}{$id_l1} ) ){
         foreach my $feature_l2 ( @{$hash_omniscient->{'level2'}{$tag_l2}{$id_l1}}) {
+          
+          my $l2_ID_modified=undef;
+          my $level2_ID = lc($feature_l2->_tag_value('ID'));
+
           $keepTrack{$tag_l2}++;
           if(exists ($ptagList{$tag_l2}) or  exists ($ptagList{'level2'}) ){
             manage_attributes($feature_l2,\%keepTrack);
+            $l2_ID_modified=$feature_l2->_tag_value('ID');
+          }
+
+          #Modify parent if necessary
+          if($l1_ID_modified){
+             create_or_replace_tag($feature_l2,'Parent', $l1_ID_modified);
           }
 
           #################
           # == LEVEL 3 == #
           #################
-          my $level2_ID = lc($feature_l2->_tag_value('ID'));
-
           foreach my $tag_l3 (keys %{$hash_omniscient->{'level3'}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
-            if ( exists ($hash_omniscient->{'level3'}{$tag_l3}{$level2_ID} ) ){
+            
+            if ( exists_keys($hash_omniscient, ('level3', $tag_l3 , $level2_ID) ) ){
+
               foreach my $feature_l3 ( @{$hash_omniscient->{'level3'}{$tag_l3}{$level2_ID}}) {
+                
                 $keepTrack{$tag_l3}++;
                 if(exists ($ptagList{$tag_l3}) or  exists ($ptagList{'level3'}) ){
                   manage_attributes($feature_l3,\%keepTrack);
                 }
+
+                #Modify parent if necessary
+                if($l2_ID_modified){
+                   create_or_replace_tag($feature_l3,'Parent', $l2_ID_modified);
+                }
+
+              }
+
+              if($l2_ID_modified){
+                $hash_omniscient->{'level3'}{$tag_l3}{lc($l2_ID_modified)} = delete $hash_omniscient->{'level3'}{$tag_l3}{$level2_ID};
               }
             }
           }
         }
+      }
+      if($l1_ID_modified){
+        $hash_omniscient->{'level2'}{$tag_l2}{lc($l1_ID_modified)} = delete $hash_omniscient->{'level2'}{$tag_l2}{$id_l1};
       }
     }
   }
