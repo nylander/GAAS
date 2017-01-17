@@ -115,7 +115,7 @@ foreach my $next_file (@opt_files){
 
   #About tag from hash1 added which exist in hash2
   foreach my $level ( ('level1', 'level2') ){
-    foreach my $tag (keys $quick_stat1{$level}){
+    foreach my $tag (keys %{$quick_stat1{$level}}){
       if ($quick_stat1{$level}{$tag} != $quick_stat2{$level}{$tag} ){
         print "We added ".($quick_stat2{$level}{$tag}-$quick_stat1{$level}{$tag})." $tag(s)\n";
         $complemented=1;
@@ -124,7 +124,7 @@ foreach my $next_file (@opt_files){
   }
   #About tag from hash2 added which dont exist in hash1
   foreach my $level ( ('level1', 'level2') ){
-    foreach my $tag (keys $quick_stat2{$level}){
+    foreach my $tag (keys %{$quick_stat2{$level}}){
       if (! exists $quick_stat1{$level}{$tag} ){
         print "We added ".$quick_stat2{$level}{$tag}." $tag(s)\n";
         $complemented=1;
