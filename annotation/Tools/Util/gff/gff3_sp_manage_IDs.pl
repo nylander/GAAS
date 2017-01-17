@@ -4,6 +4,7 @@
 use strict;
 use Getopt::Long;
 use Pod::Usage;
+use Data::Dumper;
 use Bio::Tools::GFF;
 use BILS::Handler::GFF3handler qw(:Ok);
 use BILS::Handler::GXFhandler qw(:Ok);
@@ -160,15 +161,15 @@ foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){
             }
           }
         }
-      }
-      if($l1_ID_modified){
-        $hash_omniscient->{'level2'}{$tag_l2}{lc($l1_ID_modified)} = delete $hash_omniscient->{'level2'}{$tag_l2}{$id_l1};
+        if($l1_ID_modified){
+          $hash_omniscient->{'level2'}{$tag_l2}{lc($l1_ID_modified)} = delete $hash_omniscient->{'level2'}{$tag_l2}{$id_l1};
+        }
       }
     }
   }
 }
-#print "We added $nbNameAdded Name attributes\n";
 
+# Print results
 print_omniscient($hash_omniscient, $gffout); #print gene modified
 
 
