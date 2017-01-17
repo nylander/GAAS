@@ -607,8 +607,9 @@ sub complement_omniscients {
 			foreach my $tag_l1 ( keys %{$omniscient2_sorted->{$locusID}{'level1'}} ) { 
 
 				# Go through location from left to right ### !!
-				my $take_it=1;
 				foreach my $id1_l1 ( sort {$omniscient2_sorted->{$locusID}{'level1'}{$tag_l1}{$a}[1] <=> $omniscient2_sorted->{$locusID}{'level1'}{$tag_l1}{$b}[1] } keys %{$omniscient2_sorted->{$locusID}{'level1'}{$tag_l1}} ) {
+					
+					my $take_it=1;
 					my $location = $omniscient2_sorted->{$locusID}{'level1'}{$tag_l1}{$id1_l1}; # location hash1 # This location will be updated on the fly
 
 					if( exists_keys($omniscient1_sorted, ($locusID,'level1',$tag_l1) ) ) {
@@ -625,11 +626,9 @@ sub complement_omniscients {
 
 							# Let's check at Gene LEVEL
 							if( location_overlap($location, $location2) ){ #location overlap at gene level check now level3
-
 								#let's check at CDS level (/!\ id1_l1 is corresponding to id from $omniscient2)
 								if(check_gene_overlap_at_CDSthenEXON($omniscient2, $omniscient1, $id1_l1, $id2_l1)){ #If contains CDS it has to overlap at CDS level to be merged, otherwise any type of feature level3 overlaping is sufficient to decide to merge the level1 together
-									
-									print "$id2_l1 overlaps $id1_l1, we delete it.\n" if ($verbose >= 3);
+									#print "$id2_l1 overlaps $id1_l1, we skip it.\n" if ($verbose >= 3);
 									$take_it=undef; last;
 								}
 							}
@@ -658,8 +657,9 @@ sub complement_omniscients {
 		}
 	}
 
-	#Now populate hash1 with data from hash2 
+	#Now populate hash1 with data from hash2
 	merge_omniscients($omniscient1, \%add_omniscient);
+
 	undef %add_omniscient;
 
 	return $omniscient1;

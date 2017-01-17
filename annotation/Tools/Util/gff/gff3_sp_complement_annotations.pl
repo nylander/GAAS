@@ -90,9 +90,11 @@ foreach my $next_file (@opt_files){
 
   # Quick stat hash before complement
   my %quick_stat1;
-  foreach  my $tag (keys %{$hash_omniscient->{'level1'}}) {
-    my $nb_tag = keys %{$hash_omniscient->{'level1'}{$tag}};
-    $quick_stat1{$tag} = $nb_tag;
+  foreach my $level ( ('level1', 'level2') ){
+    foreach  my $tag (keys %{$hash_omniscient->{$level}}) {
+      my $nb_tag = keys %{$hash_omniscient->{$level}{$tag}};
+      $quick_stat1{$level}{$tag} = $nb_tag;
+    }
   }
 
   ####### COMPLEMENT #######
@@ -104,23 +106,29 @@ foreach my $next_file (@opt_files){
   my $complemented=undef;
   # Quick stat hash after complement
   my %quick_stat2;
-  foreach  my $tag (keys %{$hash_omniscient->{'level1'}}) {
-    my $nb_tag = keys %{$hash_omniscient->{'level1'}{$tag}};
-    $quick_stat2{$tag} = $nb_tag;
+  foreach my $level ( ('level1', 'level2') ){
+    foreach  my $tag (keys %{$hash_omniscient->{$level}}) {
+      my $nb_tag = keys %{$hash_omniscient->{$level}{$tag}};
+      $quick_stat2{$level}{$tag} = $nb_tag;
+    }
   }
 
   #About tag from hash1 added which exist in hash2
-  foreach my $tag (keys %quick_stat1){
-    if ($quick_stat1{$tag} != $quick_stat2{$tag} ){
-      print "We added ".($quick_stat2{$tag}-$quick_stat1{$tag})." $tag(s)\n";
-      $complemented=1;
+  foreach my $level ( ('level1', 'level2') ){
+    foreach my $tag (keys $quick_stat1{$level}){
+      if ($quick_stat1{$level}{$tag} != $quick_stat2{$level}{$tag} ){
+        print "We added ".($quick_stat2{$level}{$tag}-$quick_stat1{$level}{$tag})." $tag(s)\n";
+        $complemented=1;
+      }
     }
   }
   #About tag from hash2 added which dont exist in hash1
-  foreach my $tag (keys %quick_stat2){
-    if (! exists $quick_stat1{$tag} ){
-      print "We added".$quick_stat2{$tag}."\n";
-      $complemented=1;
+  foreach my $level ( ('level1', 'level2') ){
+    foreach my $tag (keys $quick_stat2{$level}){
+      if (! exists $quick_stat1{$level}{$tag} ){
+        print "We added ".$quick_stat2{$level}{$tag}." $tag(s)\n";
+        $complemented=1;
+      }
     }
   }
   #If nothing added
