@@ -641,12 +641,16 @@ sub complement_omniscients {
 						#save level2
 						foreach my $tag_l2 (keys %{$omniscient2->{'level2'}} ){
 							if(exists_keys($omniscient2,('level2', $tag_l2, $id1_l1))){
+								# Add the level2 list data
 								$add_omniscient{'level2'}{$tag_l2}{$id1_l1} = $omniscient2->{'level2'}{$tag_l2}{$id1_l1};
-								my $id_l2 = @{$omniscient2->{'level2'}{$tag_l2}{$id1_l1}}[0]->_tag_value('ID');
-								#save level3
-								foreach my $tag_l3 (keys %{$omniscient2->{'level3'}} ){
-									if(exists_keys($omniscient2,('level3', $tag_l3, lc($id_l2)))){
-										$add_omniscient{'level3'}{$tag_l3}{lc($id_l2)} = $omniscient2->{'level3'}{$tag_l3}{lc($id_l2)};
+								# for each level2 get the level3 subfeatures 
+								foreach my $feature_l2 ( @{$omniscient2->{'level2'}{$tag_l2}{$id1_l1}} ){
+									my $id_l2 = $feature_l2->_tag_value('ID');
+									#save level3
+									foreach my $tag_l3 (keys %{$omniscient2->{'level3'}} ){
+										if(exists_keys($omniscient2,('level3', $tag_l3, lc($id_l2)))){
+											$add_omniscient{'level3'}{$tag_l3}{lc($id_l2)} = $omniscient2->{'level3'}{$tag_l3}{lc($id_l2)};
+										}
 									}
 								}
 							}
@@ -700,7 +704,7 @@ sub rename_ID_existing_in_omniscient {
 			#################
 			foreach my $tag_l2 (keys %{$hash_omniscient2->{'level2'}}){ # tag_l2 = mrna or mirna or ncrna or trna etc...
 				
-				if (exists ($hash_omniscient2->{'level2'}{$tag_l2}{$id_l1} ) ){ #Non present in hash2, we create a list with one element
+				if (exists_keys ($hash_omniscient2, ('level2', $tag_l2, $id_l1) ) ){ #Non present in hash2, we create a list with one element
 					
 					foreach my $feature_l2 ( @{$hash_omniscient2->{'level2'}{$tag_l2}{$id_l1}}) {
 						
@@ -724,7 +728,7 @@ sub rename_ID_existing_in_omniscient {
 						#################
 						foreach my $tag_l3 (keys %{$hash_omniscient2->{'level3'}}){ 
 
-							if (exists ($hash_omniscient2->{'level3'}{$tag_l3}{$id_l2} ) ){ 
+							if (exists_keys ($hash_omniscient2, ('level3', $tag_l3, $id_l2) ) ){ 
 								
 								foreach my $feature_l3 ( @{$hash_omniscient2->{'level3'}{$tag_l3}{$id_l2}}) {
 
@@ -778,6 +782,7 @@ sub merge_omniscients {
 	#################
 	foreach my $tag_l1 (keys %{$hash_omniscient2->{'level1'}}){ # tag_l1 = gene or repeat etc...
 		foreach my $id_l1 (keys %{$hash_omniscient2->{'level1'}{$tag_l1}}){
+
 			my $new_parent=undef;
 			my $uID = $hash_omniscient2->{'level1'}{$tag_l1}{$id_l1}->_tag_value('ID');
 
@@ -794,15 +799,13 @@ sub merge_omniscients {
 			#################
 			# == LEVEL 2 == #
 			#################
-			my @new_list_l2=();
 			foreach my $tag_l2 (keys %{$hash_omniscient2->{'level2'}}){ # tag_l2 = mrna or mirna or ncrna or trna etc...
 				
-				if (exists ($hash_omniscient2->{'level2'}{$tag_l2}{$id_l1} ) ){ #Non present in hash2, we create a list with one element
+				if (exists_keys ($hash_omniscient2, ('level2', $tag_l2, $id_l1) ) ){ #Non present in hash2, we create a list with one element
 					
 					foreach my $feature_l2 ( @{$hash_omniscient2->{'level2'}{$tag_l2}{$id_l1}}) {
 						
 						my $new_parent_l2=undef;
-
 						if($new_parent){
 							create_or_replace_tag($feature_l2, 'Parent', $hash_omniscient1->{'level1'}{$tag_l1}{lc($uID)}->_tag_value('ID'));
 						}
@@ -817,15 +820,12 @@ sub merge_omniscients {
 							$new_parent_l2=1;
 						}
 
-						push @new_list_l2, $feature_l2; # print feature
-
 						#################
 						# == LEVEL 3 == #
 						#################
-						my @new_list_l3=();
 						foreach my $tag_l3 (keys %{$hash_omniscient2->{'level3'}}){ 
 
-							if (exists ($hash_omniscient2->{'level3'}{$tag_l3}{$id_l2} ) ){ 
+							if (exists_keys ($hash_omniscient2, ('level3', $tag_l3, $id_l2) ) ){ 
 								
 								foreach my $feature_l3 ( @{$hash_omniscient2->{'level3'}{$tag_l3}{$id_l2}}) {
 
@@ -841,17 +841,14 @@ sub merge_omniscients {
 										$uID_l3 = replace_by_uniq_ID($feature_l3, $hash_whole_IDs,  $hash2_whole_IDs, $miscCount);
 										
 									}
-
-									push @new_list_l3, $feature_l3; # save feature
 								}
 								#save list feature level3
-								@{$hash_omniscient1->{'level3'}{$tag_l3}{lc($uID_l2)} }= @new_list_l3;
-								@new_list_l3=();
+								@{$hash_omniscient1->{'level3'}{$tag_l3}{lc($uID_l2)} } = @{ $hash_omniscient2->{'level3'}{$tag_l3}{$id_l2} };
 							}
 						}
 					}
 					#save list feature level2
-					@{$hash_omniscient1->{'level2'}{$tag_l2}{lc($uID)}} = @new_list_l2;
+					@{$hash_omniscient1->{'level2'}{$tag_l2}{lc($uID)}} = @{ $hash_omniscient2->{'level2'}{$tag_l2}{$id_l1} };
 				}
 			}
 		}
