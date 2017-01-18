@@ -118,6 +118,11 @@ my $hash_l1_grouped = group_l1features_from_omniscient($hash_omniscient);
 #### read fasta
 my $nbFastaSeq=0;
 my $db = Bio::DB::Fasta->new($opt_fastafile);
+my @ids      = $db->get_all_primary_ids;
+my %allIDs; # save ID in lower case to avoid cast problems
+foreach my $id (@ids ){$allIDs{lc($id)}=$id;}
+
+
 print ("Genome fasta parsed\n");
 
 foreach my $seqname (keys %{$hash_l1_grouped}) {
@@ -257,8 +262,8 @@ sub clean_string{
   if($OFS eq "_"){$replaceBy = "-";}
 
       if($string =~ m/\Q$OFS/){
-        print "The header has been modified !! Indeed, the Output Field Separator (OFS) <$OFS> is contained within the header so we replace it by <$replaceBy>.".
-        " If you want to keep the header intact, please chose another OFS using the option --ofs\n";
+        print "The header has been modified !! Indeed, the string <$string> contains the Output Field Separator (OFS) <$OFS>, so we replace it by <$replaceBy>.".
+        " If you want to keep the string/header intact, please chose another OFS using the option --ofs\n";
         eval "\$string =~ tr/\Q$OFS\E/\Q$replaceBy\E/";
       }
   return $string
@@ -333,12 +338,12 @@ sub extract_sequence{
         else{$info.=clean_tag("3'extra=").$opt_downRegion."nt";}
       }
     }
-
-    $sequence = $db->subseq($sortedList[0]->seq_id, $start, $end);
+    $sequence = get_sequence($db, $sortedList[0]->seq_id, $start, $end)
+    
   }
   else{
-      foreach my $feature ( @sortedList ){
-      $sequence .= $db->subseq($feature->seq_id,$feature->start,$feature->end);
+    foreach my $feature ( @sortedList ){
+      $sequence .= get_sequence($db, $feature->seq_id, $feature->start, $feature->end);
     }
   }
 
@@ -351,6 +356,31 @@ sub extract_sequence{
   }
 
   return $seq,$info ;
+}
+
+sub  get_sequence{
+  my  ($db, $seq_id, $start, $end) = @_;
+
+  my $sequence="";
+  my $seq_id_correct = undef;
+  if( exists $allIDs{lc($seq_id)}){
+      
+    $seq_id_correct = $allIDs{lc($seq_id)};
+
+    $sequence = $db->subseq($seq_id_correct, $start, $end);
+
+    if($sequence eq ""){
+      warn "Problem ! no sequence extracted for - $seq_id !\n";  exit;
+    }
+    if(length($sequence) != ($end-$start+1)){
+      warn "Problem ! The size of the sequence extracted ".length($sequence)." is different than the specified span: ".($end-$start+1).".\nThat often occurs when the fasta file does not correspond to the annotation file. Or the index file comes from another fasta file which had the same name and haven't been removed.\n";  exit;
+    }
+  }
+  else{
+    warn "Problem ! ID $seq_id not found !\n";  exit;
+  }  
+
+  return $sequence;
 }
 
 sub print_seqObj{
