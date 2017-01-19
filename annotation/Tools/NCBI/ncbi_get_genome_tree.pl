@@ -25,11 +25,8 @@ my $header = qq{
 };
 
 my $outfile = undef;
-my $format = "fasta";
-my $quiet;
-my $organisms = undef;
-my $dbs = undef;
-my $outdir = "tmp";
+my $quiet = undef;
+my $message="";
 my $taxid=undef;
 my $list;
 my $help;
@@ -37,7 +34,8 @@ my $help;
 if ( !GetOptions(
     "help|h" => \$help,
 	"t|taxid=i" => \$taxid,
-	"outdir=s" => \$outdir,
+	"q" => \$quiet,
+#	"outdir=s" => \$outdir,
     "o|output|outfile=s" => \$outfile))
 {
     pod2usage( { -message => 'Failed to parse command line',
@@ -55,13 +53,13 @@ if ($help) {
 
 # .. Create output directory
 
-runcmd("mkdir -p $outdir");
+#runcmd("mkdir -p $outdir");
 
 # .. set up log file
 
-my $logfile = "$outdir/reference_sequences.log";
-msg("Writing log to: $logfile");
-open LOG, '>', $logfile or err("Can't open logfile");
+#my $logfile = "$outdir/reference_sequences.log";
+#msg("Writing log to: $logfile");
+#open LOG, '>', $logfile or err("Can't open logfile");
 
 
 ##
@@ -80,9 +78,32 @@ my %SUBGROUP = ('Animals' => {1 => 'All', 2 => 'Amphibians', 3 => 'Birds', 4 => 
 		'Plants' => {1 => 'All', 2 => 'Green Algae', 3 => 'Land Plants', 4 => 'Other Plants'},
 		'Protists' => {1 => 'All', 2 => 'Apicomplexans', 3 => 'Kinetoplasts', 4 => 'Other Protists'});	
 
+
+###############
+# MANAGE output
+
+my $log=undef;
+if ($outfile) {
+  open($log, '>', $outfile."_report.txt") or die "Could not open file '$outfile' $!";
+}
+
+
+my $log_tree=undef;
+if ($outfile) {
+  open(my $tree, '>', $outfile."_tree.nhx") or die "Could not open file '$outfile' $!";
+  $log_tree = Bio::TreeIO->new(-fh => $tree, -format => 'nhx');
+}
+my $screenDisplayTree = Bio::TreeIO->new(
+    -format => 'nhx',
+    -fh => \*STDOUT,
+    );
+
+#############
+
+
+
 ###############
 # CREATE QUERY
-
 my $query="";
 if($taxid){
 	$query="txid".$taxid."[orgn]";
@@ -129,8 +150,10 @@ else{
 	}
 }
 	
-my @taxid_Genomes;
-## fecth database
+############################################
+# fecth the genome database using esearch
+# It will give us a list of IDs
+msg("### Now fetching ids into the genome database using esearch with the query: $query\n");
 my $factory = Bio::DB::EUtilities->new(-eutil      => 'esearch',
 		                               -email      => 'me@foo.com',
 		                               -db         => 'genome',
@@ -145,7 +168,9 @@ if ($count == 0){ # Skip if nothing was found
 	print "Nothing found"; exit ;
 }
 
+# Go trough the XML response to extract the ids 
 my $xml_data;
+my @id_Genomes;
 $factory->get_Response(-cb => sub { ($xml_data) = @_; } );
 
 my $xmldoc = XML::LibXML->load_xml(string => $xml_data);
@@ -153,38 +178,91 @@ my $xmldoc = XML::LibXML->load_xml(string => $xml_data);
 my @nodes = $xmldoc->getElementsByLocalName('Id');
 foreach my $node (@nodes){
 	my $avalue = $node->textContent;
-	push @taxid_Genomes, $avalue;
+	push @id_Genomes, $avalue;
 }
 
+
+############################################
+# link genome database with taxonomy database to fetch the taxid from the id using elink
+# It will give us a list of IDs
+msg("### Now translating ids into taxids using elink:");
+my @taxid_Genomes;
+my $xml_id;
+foreach my $id (@id_Genomes){
+
+	my $factory = Bio::DB::EUtilities->new(-eutil      => 'elink',
+		                               -email      => 'me@foo.com',
+		                               -dbfrom	   => 'genome',
+		                               -db         => 'taxonomy',
+									   -retmax 	   => [100],
+									   -id  => $id);
+
+	$factory->get_Response(-cb => sub { ($xml_id) = @_; } );
+	my $xmldoc = XML::LibXML->load_xml(string => $xml_id);
+
+	my @nodes = $xmldoc->getElementsByLocalName('Link');
+	my $taxid = undef;
+	foreach my $node (@nodes){
+		my @childnodes = $node->childNodes();
+		foreach my $childnode (@childnodes){
+			my $name = $childnode->nodeName;
+			if($name eq "Id"){
+				my $taxid = $childnode->textContent;
+				msg("id $id has been mapped to taxid $taxid");
+				push @taxid_Genomes, $taxid;
+				last;
+			}
+		}
+		last if($taxid);
+	}
+}
+ 
 ###############
 # CREATING TREE
+msg("### Now translating taxids into scientific_name using entrez:");
 my $db = Bio::DB::Taxonomy->new(-source => 'entrez');
 my @species_names;
 my $speciesTreeReady;
 foreach my $taxid (@taxid_Genomes){
-	print "ll $taxid\n";
-        my $taxon = $db->get_taxon(-taxonid => "$taxid");
-        print "$taxon\n";
-        my $spName=$taxon->scientific_name;
-#       print "$taxid = $spName\n";
-        push(@species_names, $spName);
-    }
-    $speciesTreeReady = $db->get_tree(@species_names);
-#    print $speciesTreeReady, "\n"; 
-    ## Clean Tree
-    $speciesTreeReady->contract_linear_paths();
+    my $taxon = $db->get_taxon(-taxonid => "$taxid");
+    my $spName=$taxon->scientific_name;
+    msg("$taxid = $spName\n");
+    push(@species_names, $spName);
+}
+msg("### Now creating tree\n");
+$speciesTreeReady = $db->get_tree(@species_names);
+$speciesTreeReady->contract_linear_paths();
+msg( "This is the tree of species that have whole genome sequenced:" );
 
+# PRINT THE TREE INTO A VARIABLE
+my $tree;
+do {
+    local *STDOUT;
+    open STDOUT, ">>", \$tree;
+    $screenDisplayTree->write_tree($speciesTreeReady);
+};
+msg($tree);
+# print in a file if asked
+if($log_tree){
+	$log_tree->write_tree($speciesTreeReady);
+}
 
-exit;
-
-
-
-
+#######################################################################################################################
+        ####################
+         #     METHODS    #
+          ################
+           ##############
+            ############
+             ##########
+              ########
+               ######
+                ####
+                 ##   
 
 sub msg {
   my $t = localtime;
   my $line = "[".$t->hms."] @_\n";
-  print LOG $line if openhandle(\*LOG);
+  print $log $line if $log;
   print STDERR $line unless $quiet;
 }
 
@@ -212,34 +290,22 @@ sub key_exits{
 
 =head1 NAME
 
-ncbi_get_reference_data.pl -
-The script allow to recovered information from NCBI databases.
+ncbi_get_genome_tree.pl -
+The script allow to create a tree that covers only whole genome from the genome NCBI database.
 The result is written to the specified output file, or to STDOUT.
 
 =head1 SYNOPSIS
 
-    ./ncbi_get_reference_data.pl -o species1:species2:species3 [ -o outfile ]
-    ./ncbi_get_reference_data.pl --help
+    ./ncbi_get_genome_tree.pl [ -o outfile ]
+    ./ncbi_get_genome_tree.pl --help
 
 =head1 OPTIONS
 
 =over 8
 
-=item B<-l> or B<--list>
+=item B<-q>
 
-List of all available databases
-
-=item B<-o> or B<--organisms>
-
-The names of the species to query data from. Species name format: Genus_species (e.g. Gallus_gallus). When querying several organisms please follow this nomenclature: species1:species2:species3
-
-=item B<--db> or B<--dbs>
-
-The names of the NCBI databases to query for data. Default: nucest, protein (see --list for options). When querying several databases please follow this nomenclature: db1:db2:db3
-
-=item B<-f> or B<--format>
-
-The file format to produce. Not all databases can write all formats! Default: fasta
+Quiet to avoid any print on STDOUT
 
 =item B<-o>, B<--output> or B<--outfile>
 
