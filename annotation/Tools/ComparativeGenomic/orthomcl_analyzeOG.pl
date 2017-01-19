@@ -24,6 +24,7 @@ my $header = qq{
 my $orthoMCL_file;
 my $opt_help;
 my $opt_output=undef;
+my $outFile="output";
 my $opt_tree;
 my $nbProt=0;
 my $speciesTreeString;
@@ -62,7 +63,7 @@ if ( ! (defined($orthoMCL_file) ) ){
 
 my $outReport;
 if ( $opt_output ){
-    my $outFile=$opt_output;
+    $outFile=$opt_output;
     $outFile=~ s/.gff//g;
     open($outReport, '>', $outFile."_report.txt") or die "Could not open file '$outFile' $!";
 }
@@ -94,8 +95,8 @@ if ( defined($species_opt) ){
 }
 
 #### Manage output ######
-my $outTree; my $outTreeName=$opt_output.'_gene_flux.nhx';
-my $outSpTree; my $outSpTreeName=$opt_output.'_species_tree.nhx';
+my $outTree;   my $outTreeName=$outFile.'_gene_flux.nhx';
+my $outSpTree; my $outSpTreeName=$outFile.'_species_tree.nhx';
 
 if($opt_output){
     $outTree = Bio::TreeIO->new(
@@ -644,6 +645,7 @@ sub get_taxon_efficiently{
 
     my $taxon;
     if(! exists($taxonList{$taxid})){
+        if($taxid !~ /^\d+$/){warn "taxid is expected to be a number. We got <$taxid>. Please fix your txt file to have proper taxid.";exit;}
         $taxon = $db->get_taxon(-taxonid => $taxid);
         $taxonList{$taxid} = $taxon;
     }else{
