@@ -16,9 +16,9 @@ use Exporter qw(import);
 
 our $VERSION     = 1.00;
 our @ISA         = qw(Exporter);
-our @EXPORT_OK   = qw(select_gff_format check_mrna_positions modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop slurp_gff3_file_JD);
+our @EXPORT_OK   = qw(get_level select_gff_format check_mrna_positions modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop slurp_gff3_file_JD);
 our %EXPORT_TAGS = ( DEFAULT => [qw()],
-                 	 Ok    => [qw(select_gff_format check_mrna_positions modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop slurp_gff3_file_JD)]);
+                 	 Ok    => [qw(get_level select_gff_format check_mrna_positions modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop slurp_gff3_file_JD)]);
 =head1 SYNOPSIS
 
 
@@ -373,7 +373,7 @@ sub manage_one_feature{
 #		|	MANAGE LEVEL1 => feature WITHOUT parent		|
 #		+-----------------------------------------------+
 #	+--------------------------------------------------------+
-	    if( _get_level($feature) eq 'level1' ) {
+	    if( get_level($feature) eq 'level1' ) {
 
 	    	##########
 			# get ID #
@@ -419,7 +419,7 @@ sub manage_one_feature{
 #		|	MANAGE LEVEL2 => feature WITHOUT child ad WITH parent		|
 #		+---------------------------------------------------------------+
 #	+-----------------------------------------------------------------------+
-      	elsif ( _get_level($feature) eq 'level2' ) {
+      	elsif ( get_level($feature) eq 'level2' ) {
 
     		#reinitialization
     		$last_l3_f=undef;
@@ -508,7 +508,7 @@ sub manage_one_feature{
 #		|	MANAGE LEVEL3 => feature WITHOUT child 		|
 #		+-----------------------------------------------+
 #	+--------------------------------------------------------+
-      	elsif ( _get_level($feature) eq 'level3' ){
+      	elsif ( get_level($feature) eq 'level3' ){
 
       		##########
 			# get ID #
@@ -752,7 +752,7 @@ sub _it_is_duplication{
 	my $is_dupli=undef;
 	my $potentialList=undef;
 
-	my $level = _get_level($feature);
+	my $level = get_level($feature);
 	my $primary_tag = lc($feature->primary_tag);
 
 	my $id = $uniqID->{$feature->_tag_value('ID')}; # check the original ID
@@ -817,7 +817,7 @@ sub _it_is_duplication{
 }
 
 # find the level of the feature tested
-sub _get_level{
+sub get_level{
 	my ($feature)=@_;
 
 	my $source_tag = lc($feature->source_tag);	
@@ -926,7 +926,7 @@ sub _check_uniq_id{
 		}
 	}
 	else{ #tag absent
-		my $level = _get_level($feature);
+		my $level = get_level($feature);
 		if($level ne 'level3'){
 			warn "gff3 reader error ".$level .": No ID attribute found @ for the feature: ".$feature->gff_string()."\n";
 		}
