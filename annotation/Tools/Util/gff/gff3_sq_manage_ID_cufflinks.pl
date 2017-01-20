@@ -75,20 +75,28 @@ chomp $nbLine;
 print "$nbLine line to process...\n";
 
 my $line_cpt=0;
-my %hash_IDs;
-my %featCount;
-my %mapID;
+my $previousGeneID="";
+my $gene_id=0;
+my $previousTranscriptID="";
+my $transcript_id=0;
 while (my $feature = $ref_in->next_feature() ) {
   $line_cpt++;
 
-  _uniq_ID ($feature, \%hash_IDs, \%featCount, \%mapID);
-  
-  if($feature->has_tag('Parent')){
-    my $parent = lc($feature->_tag_value('Parent'));
-    if(! exists($mapID{$parent})){
-      print "How is it possible ? This parent hasn't been seen before\n";
+  if($feature->has_tag('gene_id')){
+    my $parent = lc($feature->_tag_value('gene_id'));
+    if($parent ne $previousGeneID){
+      $gene_id++;
+      $previousGeneID=$parent;
     }
-     create_or_replace_tag($feature,'Parent', $mapID{$parent});
+     create_or_replace_tag($feature,'gene_id', $gene_id);
+  }
+  if($feature->has_tag('transcript_id')){
+    my $parent = lc($feature->_tag_value('transcript_id'));
+    if($parent ne $previousTranscriptID){
+      $transcript_id++;
+      $previousTranscriptID=$parent;
+    }
+     create_or_replace_tag($feature,'transcript_id', $gene_id);
   }
 
   $gffout->write_feature($feature);
@@ -107,29 +115,6 @@ while (my $feature = $ref_in->next_feature() ) {
 my $end_run = time();
 my $run_time = $end_run - $start_run;
 print "Job done in $run_time seconds\n";
-
-
-
-sub _uniq_ID{
-  my ($feature, $hash_IDs, $miscCount, $mapID) = @_;
-
-  
-  my  $key=lc($feature->primary_tag);
-  $miscCount->{$key}++;
-  my $id = $key."-".$miscCount->{$key};
-
-  while( exists_keys($hash_IDs, ($id) ) ){  #loop until we found an uniq tag 
-    $miscCount->{$key}++;
-    $id = $key."-".$miscCount->{$key};
-  }
-
-  #push the new ID  
-  $hash_IDs->{$id}++;
-  $mapID->{lc($feature->_tag_value('ID'))} = $id;
-
-  # modify the feature ID with the correct one chosen
-  create_or_replace_tag($feature,'ID', $id); #modify ID to replace by parent value
-}
 
 __END__
 
