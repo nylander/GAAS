@@ -16,9 +16,9 @@ use Exporter qw(import);
 
 our $VERSION     = 1.00;
 our @ISA         = qw(Exporter);
-our @EXPORT_OK   = qw(check_mrna_positions modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop slurp_gff3_file_JD);
+our @EXPORT_OK   = qw(select_gff_format check_mrna_positions modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop slurp_gff3_file_JD);
 our %EXPORT_TAGS = ( DEFAULT => [qw()],
-                 	 Ok    => [qw(check_mrna_positions modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop slurp_gff3_file_JD)]);
+                 	 Ok    => [qw(select_gff_format check_mrna_positions modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop slurp_gff3_file_JD)]);
 =head1 SYNOPSIS
 
 
@@ -182,7 +182,7 @@ sub slurp_gff3_file_JD {
 		#GFF format used for parser
 		my $format;
 		if($gffVersion){$format = $gffVersion;}
-		else{ $format = _select_gff_format($file);}
+		else{ $format = select_gff_format($file);}
 
 		print "=>GFF version parser used: $format\n";
 		my $gffio = Bio::Tools::GFF->new(-file => $file, -gff_version => $format);
@@ -2458,7 +2458,7 @@ sub _printSurrounded{
 #GFF format guess
 # Input: filename
 # Output: Integer (1,2 or 3)
-sub _select_gff_format{
+sub select_gff_format{
     my ($file) = @_;
 
     #HANDLE format
