@@ -91,7 +91,7 @@ while (my $feature = $ref_in->next_feature() ) {
      create_or_replace_tag($feature,'Parent', $mapID{$parent});
   }
 
-  print $feature->gff_string($gffout) , "\n"; 
+  $gffout->write_feature($feature);
 
   #####################
   #Display progression
