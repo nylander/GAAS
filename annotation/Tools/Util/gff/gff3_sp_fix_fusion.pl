@@ -612,11 +612,15 @@ sub split_gene_model{
                   #}
                   ###############################################
                   # modelate level3 features for new prediction #
+                  print $newPred_exon_list->[$#{$newPred_exon_list}]->end."\n";
                   my ($new_pred_utr5_list, $new_pred_cds_list, $new_pred_utr3_list) = modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop($newPred_exon_list, $realORFstart, $realORFend);
 
                   ####################################
                   #RE-SHAPE last/first exon if less than 3 nucleotides (1  or 2 must be romved) when the CDS finish 1 or 2 nuclotide before... because cannot be defined as UTR
-                  shape_exon_extremity($newPred_exon_list, $new_pred_cds_list);  
+                  if(shape_exon_extremity($newPred_exon_list, $new_pred_cds_list)){
+                    #we reshaped the exon, it means that the UTR are not correct anymore, we have to recalculate them
+                    ($new_pred_utr5_list, $new_pred_cds_list, $new_pred_utr3_list) = modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop($newPred_exon_list, $realORFstart, $realORFend);
+                  }
 
                   my @level1_list;
                   my @level2_list;
@@ -624,16 +628,17 @@ sub split_gene_model{
                   my $transcript_id = $newPred_exon_list->[0]->_tag_value('Parent');
                   #############################################
                   # Modelate gene features for new prediction #
-                  
+                  print $newPred_exon_list->[$#{$newPred_exon_list}]->end."\n";
                   # $containerUsed exist when we already use the gene container. So in the case where we have only one mRNA, the split will give 2 mRNA. One is linked to the original gene container (done before)
                   # The second must be linked to a new gene container. So, even if must_be_a_new_gene method say no, we must create it because the original one has been already used.         
                   my ($new_gene, $new_mrna, $overlaping_gene_ft, $overlaping_mrna_ft) = must_be_a_new_gene_new_mrna($tmpOmniscient, $new_pred_cds_list, $newPred_exon_list);
-                  if ( $new_gene ){
-                    #print "create_a_new_gene for ".$transcript_id." !!!! 2\n";
+                  if ( $new_gene ){      
                     $newcontainerUsed++;
+                    print $newPred_exon_list->[$#{$newPred_exon_list}]->end."\n";
                     $gene_id = take_care_gene_id($gene_id, $tmpOmniscient);
                     my $new_gene_feature = Bio::SeqFeature::Generic->new(-seq_id => $newPred_exon_list->[0]->seq_id, -source_tag => $newPred_exon_list->[0]->source_tag, -primary_tag => 'gene' , -start => $newPred_exon_list->[0]->start,  -end => $newPred_exon_list->[$#{$newPred_exon_list}]->end, -frame => $newPred_exon_list->[0]->frame, -strand => $newPred_exon_list->[0]->strand , -tag => { 'ID' => $gene_id }) ;
                     @level1_list=($new_gene_feature);
+                    print "create_a_new_gene for ".$transcript_id." !!!! - ".$new_gene_feature->gff_string."\n";
                     
                   }
                   else{ #the new mRNA still overlap an isoform. So we keep the link with the original gene  
@@ -866,20 +871,24 @@ sub must_be_a_new_gene_new_mrna{
   return $Need_new_gene, $Need_new_mRNA, $overlaping_gene_ft, $overlaping_mrna_ft;
 }
 
+#remove small remaining pieces in the of UTR in the exon shape
 sub shape_exon_extremity{
   #exon_features is a sorted list
   #cds_features is a sorted list
-
+  my $modified=undef;
   my ($exon_features,$cds_features)=@_;
 
    #test between first exon and first cds
    if( (abs($cds_features->[0]->start - $exon_features->[0]->start) < 3) and (abs($cds_features->[0]->start - $exon_features->[0]->start) > 0) ){ #We have to shape the exon start. We don't want a non multiple of 3 inferior to 3
       $exon_features->[0]->start($cds_features->[0]->start);
+      $modified=1;
    }
    #test between last exon and last cds
    if(abs($exon_features->[$#{ $exon_features }]->end - $cds_features->[$#{ $cds_features }]->end ) < 3){  #We have to shape the exon end
       $exon_features->[$#{ $exon_features }]->end($cds_features->[$#{ $cds_features }]->end);
+      $modified=1;
    }
+   return $modified;
 }
 
 sub calcul_real_orf_end_and_start{
