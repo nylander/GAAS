@@ -612,7 +612,6 @@ sub split_gene_model{
                   #}
                   ###############################################
                   # modelate level3 features for new prediction #
-                  print $newPred_exon_list->[$#{$newPred_exon_list}]->end."\n";
                   my ($new_pred_utr5_list, $new_pred_cds_list, $new_pred_utr3_list) = modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop($newPred_exon_list, $realORFstart, $realORFend);
 
                   ####################################
@@ -628,17 +627,16 @@ sub split_gene_model{
                   my $transcript_id = $newPred_exon_list->[0]->_tag_value('Parent');
                   #############################################
                   # Modelate gene features for new prediction #
-                  print $newPred_exon_list->[$#{$newPred_exon_list}]->end."\n";
+
                   # $containerUsed exist when we already use the gene container. So in the case where we have only one mRNA, the split will give 2 mRNA. One is linked to the original gene container (done before)
                   # The second must be linked to a new gene container. So, even if must_be_a_new_gene method say no, we must create it because the original one has been already used.         
                   my ($new_gene, $new_mrna, $overlaping_gene_ft, $overlaping_mrna_ft) = must_be_a_new_gene_new_mrna($tmpOmniscient, $new_pred_cds_list, $newPred_exon_list);
                   if ( $new_gene ){      
                     $newcontainerUsed++;
-                    print $newPred_exon_list->[$#{$newPred_exon_list}]->end."\n";
                     $gene_id = take_care_gene_id($gene_id, $tmpOmniscient);
                     my $new_gene_feature = Bio::SeqFeature::Generic->new(-seq_id => $newPred_exon_list->[0]->seq_id, -source_tag => $newPred_exon_list->[0]->source_tag, -primary_tag => 'gene' , -start => $newPred_exon_list->[0]->start,  -end => $newPred_exon_list->[$#{$newPred_exon_list}]->end, -frame => $newPred_exon_list->[0]->frame, -strand => $newPred_exon_list->[0]->strand , -tag => { 'ID' => $gene_id }) ;
                     @level1_list=($new_gene_feature);
-                    print "create_a_new_gene for ".$transcript_id." !!!! - ".$new_gene_feature->gff_string."\n";
+                    #print "create_a_new_gene for ".$transcript_id." !!!! - ".$new_gene_feature->gff_string."\n";
                     
                   }
                   else{ #the new mRNA still overlap an isoform. So we keep the link with the original gene  
