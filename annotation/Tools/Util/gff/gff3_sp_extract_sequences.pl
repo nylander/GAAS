@@ -24,7 +24,8 @@ my $opt_downRegion=undef;
 my $opt_cdna=undef;
 my $opt_OFS=undef;
 my $opt_type = 'cds';
-my $opt_cleanStop=undef;
+my $opt_cleanFinalStop=undef;
+my $opt_cleanInternalStop=undef;
 my $width = 60; # line length printed
 
 my $header = qq{
@@ -43,7 +44,8 @@ if ( !GetOptions( 'g|gff=s' => \$opt_gfffile,
                   'ofs=s' => \$opt_OFS,
                   'protein|p|aa' => \$opt_AA,
                   'cdna' => \$opt_cdna,
-		  'cs'   => \$opt_cleanStop,
+                  'cfs'   => \$opt_cleanFinalStop,
+		              'cis'   => \$opt_cleanInternalStop,
                   'ext|e' => \$opt_extermityOnly,
                   'table|codon|ct=i' => \$codonTable,
                   'up|5|five|upstream=i'      => \$opt_upstreamRegion,
@@ -390,14 +392,28 @@ sub print_seqObj{
   
   if($opt_AA){ #translate if asked
       my $transObj = $seqObj->translate(-CODONTABLE_ID => $codonTable);
-      if($opt_cleanStop){
-		my $lastChar = substr $transObj->seq(),-1,1;
-	        if ($lastChar eq "*"){
-			my $cleanedSeq=$transObj->seq();
-			chop $cleanedSeq;
-			$transObj->seq($cleanedSeq);
-		}
-      }	
+      
+      if($opt_cleanFinalStop){
+		    my $lastChar = substr $transObj->seq(),-1,1;
+	      
+        if ($lastChar eq "*"){
+		      my $cleanedSeq=$transObj->seq();
+		      chop $cleanedSeq;
+		      $transObj->seq($cleanedSeq);
+		    }
+      }
+
+
+      if($opt_cleanInternalStop){
+        my $lastChar = substr $transObj->seq(),-1,1;
+        
+        my $seqMinus1=$transObj->seq();
+        chop $seqMinus1;
+        $seqMinus1 =~ tr/*/X/; #X = Any / unknown Amino Acid
+        my $cleanedSeq=$seqMinus1.$lastChar;
+        $transObj->seq($cleanedSeq);
+      }
+
       $ostream->write_seq($transObj);  
    }
   else{
@@ -477,9 +493,13 @@ This extract the cdna sequence (i.e transcribed sequence (devoid of introns, but
 
 Output Fields Separator for the description field. By default it's a space < > but can be modified by any String or character using this option.
 
-=item B<--cs>
+=item B<--cis>
 
-The Clean Stop option allows removing the tranlation of stop codons that is represented by the <*> character. This character can be disturbing for many programs (e.g interproscan)
+The Clean Internal Stop option allows removing the tranlation of the stop codons present among the sequence that is represented by the <*> character. This character can be disturbing for many programs (e.g interproscan)
+
+=item B<--cfs>
+
+The Clean Final Stop option allows removing the tranlation of the final stop codons that is represented by the <*> character. This character can be disturbing for many programs (e.g interproscan)
 
 =item B<-o> or B<--output>
 
