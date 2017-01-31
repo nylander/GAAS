@@ -393,18 +393,27 @@ sub print_seqObj{
   if($opt_AA){ #translate if asked
       my $transObj = $seqObj->translate(-CODONTABLE_ID => $codonTable);
       
-      if($opt_cleanFinalStop){
+      if($opt_cleanFinalStop and $opt_cleanInternalStop){ #this case is needed to be able to remove two final stop codon in a raw when the bothotpion are activated.
+        my $lastChar = substr $transObj->seq(),-1,1;
+        my $cleanedSeq=$transObj->seq();
+        if ($lastChar eq "*"){ # if last char is a stop we remove it        
+          chop $cleanedSeq;
+        }
+        $cleanedSeq =~ tr/*/X/; #X = Any / unknown Amino Acid
+        $transObj->seq($cleanedSeq);
+      }
+
+      elsif($opt_cleanFinalStop){
 		    my $lastChar = substr $transObj->seq(),-1,1;
-	      
-        if ($lastChar eq "*"){
+
+        if ($lastChar eq "*"){ # if last char is a stop we remove it  
 		      my $cleanedSeq=$transObj->seq();
 		      chop $cleanedSeq;
 		      $transObj->seq($cleanedSeq);
 		    }
       }
 
-
-      if($opt_cleanInternalStop){
+      elsif($opt_cleanInternalStop){
         my $lastChar = substr $transObj->seq(),-1,1;
         
         my $seqMinus1=$transObj->seq();
