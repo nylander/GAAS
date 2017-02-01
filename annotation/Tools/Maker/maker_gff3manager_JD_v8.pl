@@ -349,9 +349,13 @@ foreach my $key_hash (keys %hash_of_omniscient){
   if($opt_output){print "Information about $key_hash\n";} # When ostreamReport is a file we have to also display on screen
   my $hash_ref = $hash_of_omniscient{$key_hash};
   my $stat;
+  my $distri;
   if($opt_genomeSize){
-    $stat = gff3_statistics($hash_ref, $opt_genomeSize);
-  }else{$stat = gff3_statistics($hash_ref);}
+    ($stat, $distri) = gff3_statistics($hash_ref, $opt_genomeSize);
+  }
+  else{
+    ($stat, $distri) = gff3_statistics($hash_ref);
+  }
 
   #print statistics
   foreach my $infoList (@$stat){
