@@ -27,11 +27,10 @@ my $opt_help;
 # OPTION MANAGMENT
 my @copyARGV=@ARGV;
 if ( !GetOptions( 'f|ref|reffile|gff=s' => \$opt_gff,
-                  's|score|v=f' => \$opt_score,
-                  't|test=s' => \$opt_test,
-                  'o|output=s'      => \$opt_output,
-
-                  'h|help!'         => \$opt_help ) )
+                  's|score|v=f'         => \$opt_score,
+                  't|test=s'            => \$opt_test,
+                  'o|output=s'          => \$opt_output,
+                  'h|help!'             => \$opt_help ) )
 {
     pod2usage( { -message => 'Failed to parse command line',
                  -verbose => 1,
@@ -89,8 +88,8 @@ else{
   $ostream_discarded->fdopen( fileno(STDOUT), 'w' ) or
       croak( sprintf( "Can not open STDOUT for writing: %s", $! ) );
 }
-my $gffout_ok = Bio::Tools::GFF->new( -fh => $ostream_ok ) or croak( sprintf( "Can not open STDOUT for writing: %s", $! ) );
-my $gffout_discarded = Bio::Tools::GFF->new( -fh => $ostream_discarded ) or croak( sprintf( "Can not open STDOUT for writing: %s", $! ) );
+my $gffout_ok = Bio::Tools::GFF->new( -fh => $ostream_ok , -gff_version => 3) or croak( sprintf( "Can not open STDOUT for writing: %s", $! ) );
+my $gffout_discarded = Bio::Tools::GFF->new( -fh => $ostream_discarded , -gff_version => 3) or croak( sprintf( "Can not open STDOUT for writing: %s", $! ) );
 
 
 
@@ -164,14 +163,14 @@ foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){
 # remove duplicate in case several option tends to give the same case
 if(@listIDl2ok){
   my $sizeList= @listIDl2ok;
-  $stringPrint.= "$sizeList genes that reach your quality request. ($opt_test $opt_score)\n";
+  $stringPrint.= "$sizeList RNA(s) that reach your quality request. ($opt_test $opt_score)\n";
   my @listIDl2okUniq = uniq(@listIDl2ok);
   my $omniscient_ok = create_omniscient_from_idlevel2list($hash_omniscient, $hash_mRNAGeneLink, \@listIDl2okUniq);
   print_omniscient($omniscient_ok, $gffout_ok);
 }
 if(@listIDl2discarded){
   my $sizeList= @listIDl2discarded;
-  $stringPrint.= "$sizeList gene discarded because don't reach your quality request. ($opt_test $opt_score)\n";
+  $stringPrint.= "$sizeList RNA(s) discarded because don't reach your quality request. ($opt_test $opt_score)\n";
   my @listIDl2discardedUniq = uniq(@listIDl2discarded);
   my $omniscient_discarded = create_omniscient_from_idlevel2list($hash_omniscient, $hash_mRNAGeneLink, \@listIDl2discarded);
   print_omniscient($omniscient_discarded, $gffout_discarded);

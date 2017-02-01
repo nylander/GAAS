@@ -240,60 +240,6 @@ sub print_distribution{
   }
 }
 
-sub get_longest_cds_level2{
-  my ($hash_omniscient)= @_;
-
-  my @list_id_l2;
-
-  #################
-  # == LEVEL 1 == #
-  #################
-  foreach my $primary_tag_l1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
-    foreach my $id_tag_l1 (keys %{$hash_omniscient->{'level1'}{$primary_tag_l1}}){
-
-      #################
-      # == LEVEL 2 == #
-      #################
-      foreach my $primary_tag_l2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
-        if ( exists ($hash_omniscient->{'level2'}{$primary_tag_l2}{$id_tag_l1} ) ){
-
-          #check if there is isoforms
-          ###########################
-
-          #take only le longest
-          if ($#{$hash_omniscient->{'level2'}{$primary_tag_l2}{$id_tag_l1}} > 0){
-            my $longestL2 ="";
-            my $longestCDSsize = 0;
-            foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_l2}{$id_tag_l1}}) {
-
-              my $level2_ID =   lc($feature_level2->_tag_value('ID') ) ;
-              if ( exists_keys( $hash_omniscient, ('level3','cds',$level2_ID ) ) ) {
-
-                my $cdsSize=0;
-                foreach my $cds ( @{$hash_omniscient->{'level3'}{'cds'}{$level2_ID}} ) { # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
-                  $cdsSize += ( $cds->end - $cds->start + 1 );
-                }
-                if($cdsSize > $longestCDSsize ){
-                  $longestL2 = $level2_ID;
-                }
-              }
-            }
-            push @list_id_l2,$longestL2; # push id of the longest
-          }
-          else{ #take it only of cds exits
-            my $level2_ID =  lc(@{$hash_omniscient->{'level2'}{$primary_tag_l2}{$id_tag_l1}}[0]->_tag_value('ID')) ;
-            if (exists_keys( $hash_omniscient, ('level3','cds', $level2_ID ) ) ){
-              push @list_id_l2, $level2_ID; # push the only one existing
-            } 
-          }
-        }
-      }
-    }
-  }
-
-  return \@list_id_l2;
-}
-
 __END__
 
 =head1 NAME

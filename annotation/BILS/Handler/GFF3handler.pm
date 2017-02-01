@@ -10,9 +10,9 @@ use Bio::Seq;
 
 our $VERSION     = 1.00;
 our @ISA         = qw(Exporter);
-our @EXPORT_OK   = qw(complement_omniscients rename_ID_existing_in_omniscient keep_only_uniq_from_list2 check_gene_overlap_at_CDSthenEXON location_overlap_update print_omniscient_as_match nb_feature_level1 check_gene_positions find_overlap_between_geneFeature_and_sortBySeqId sort_by_seq_id webapollo_compliant extract_cds_sequence group_l1features_from_omniscient create_omniscient_from_idlevel2list get_feature_l2_from_id_l2_l1 remove_omniscient_elements_from_level2_feature_list featuresList_identik group_features_from_omniscient featuresList_overlap check_level1_positions check_level2_positions info_omniscient fil_cds_frame exists_keys remove_element_from_omniscient append_omniscient merge_omniscients remove_omniscient_elements_from_level1_id_list fill_omniscient_from_other_omniscient_level1_id print_omniscient_from_level1_id_list check_if_feature_overlap remove_tuple_from_omniscient print_ref_list_feature print_omniscient create_or_replace_tag remove_element_from_omniscient_attributeValueBased);
+our @EXPORT_OK   = qw(complement_omniscients rename_ID_existing_in_omniscient keep_only_uniq_from_list2 check_gene_overlap_at_CDSthenEXON location_overlap_update location_overlap print_omniscient_as_match nb_feature_level1 check_gene_positions find_overlap_between_geneFeature_and_sortBySeqId sort_by_seq_id sort_by_seq webapollo_compliant extract_cds_sequence group_l1features_from_omniscient create_omniscient_from_idlevel2list get_feature_l2_from_id_l2_l1 remove_omniscient_elements_from_level2_feature_list featuresList_identik group_features_from_omniscient featuresList_overlap check_level1_positions check_level2_positions info_omniscient fil_cds_frame exists_keys remove_element_from_omniscient append_omniscient merge_omniscients remove_omniscient_elements_from_level1_id_list fill_omniscient_from_other_omniscient_level1_id print_omniscient_from_level1_id_list check_if_feature_overlap remove_tuple_from_omniscient print_ref_list_feature print_omniscient create_or_replace_tag remove_element_from_omniscient_attributeValueBased get_longest_cds_level2);
 our %EXPORT_TAGS = ( DEFAULT => [qw()],
-                 Ok    => [qw(complement_omniscients rename_ID_existing_in_omniscient keep_only_uniq_from_list2 check_gene_overlap_at_CDSthenEXON location_overlap_update print_omniscient_as_match nb_feature_level1 check_gene_positions find_overlap_between_geneFeature_and_sortBySeqId sort_by_seq_id webapollo_compliant extract_cds_sequence group_l1features_from_omniscient create_omniscient_from_idlevel2list get_feature_l2_from_id_l2_l1 remove_omniscient_elements_from_level2_feature_list featuresList_identik group_features_from_omniscient featuresList_overlap check_level1_positions check_level2_positions info_omniscient fil_cds_frame exists_keys remove_element_from_omniscient append_omniscient merge_omniscients remove_omniscient_elements_from_level1_id_list fill_omniscient_from_other_omniscient_level1_id print_omniscient_from_level1_id_list check_if_feature_overlap remove_tuple_from_omniscient print_ref_list_feature print_omniscient create_or_replace_tag remove_element_from_omniscient_attributeValueBased)]);
+                 Ok    => [qw(complement_omniscients rename_ID_existing_in_omniscient keep_only_uniq_from_list2 check_gene_overlap_at_CDSthenEXON location_overlap_update location_overlap print_omniscient_as_match nb_feature_level1 check_gene_positions find_overlap_between_geneFeature_and_sortBySeqId sort_by_seq_id sort_by_seq webapollo_compliant extract_cds_sequence group_l1features_from_omniscient create_omniscient_from_idlevel2list get_feature_l2_from_id_l2_l1 remove_omniscient_elements_from_level2_feature_list featuresList_identik group_features_from_omniscient featuresList_overlap check_level1_positions check_level2_positions info_omniscient fil_cds_frame exists_keys remove_element_from_omniscient append_omniscient merge_omniscients remove_omniscient_elements_from_level1_id_list fill_omniscient_from_other_omniscient_level1_id print_omniscient_from_level1_id_list check_if_feature_overlap remove_tuple_from_omniscient print_ref_list_feature print_omniscient create_or_replace_tag remove_element_from_omniscient_attributeValueBased get_longest_cds_level2)]);
 =head1 SYNOPSIS
 
 
@@ -610,7 +610,7 @@ sub complement_omniscients {
 				foreach my $id1_l1 ( sort {$omniscient2_sorted->{$locusID}{'level1'}{$tag_l1}{$a}[1] <=> $omniscient2_sorted->{$locusID}{'level1'}{$tag_l1}{$b}[1] } keys %{$omniscient2_sorted->{$locusID}{'level1'}{$tag_l1}} ) {
 					
 					my $take_it=1;
-					my $location = $omniscient2_sorted->{$locusID}{'level1'}{$tag_l1}{$id1_l1}; # location hash1 # This location will be updated on the fly
+					my $location = $omniscient2_sorted->{$locusID}{'level1'}{$tag_l1}{$id1_l1};
 
 					if( exists_keys($omniscient1_sorted, ($locusID,'level1',$tag_l1) ) ) {
 						
@@ -1461,6 +1461,63 @@ sub get_longest_cds_start_end {
   return $resu_start,$resu_end;
 }
 
+# @Purpose: Filter the mRNA to keep only the one containing the longest CDS per gene
+# @input: 1 => hash(omniscient hash)
+# @output: list of id level2
+sub get_longest_cds_level2{
+  my ($hash_omniscient)= @_;
+
+  my @list_id_l2;
+
+  #################
+  # == LEVEL 1 == #
+  #################
+  foreach my $primary_tag_l1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
+    foreach my $id_tag_l1 (keys %{$hash_omniscient->{'level1'}{$primary_tag_l1}}){
+
+      #################
+      # == LEVEL 2 == #
+      #################
+      foreach my $primary_tag_l2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
+        if ( exists ($hash_omniscient->{'level2'}{$primary_tag_l2}{$id_tag_l1} ) ){
+
+          #check if there is isoforms
+          ###########################
+
+          #take only le longest
+          if ($#{$hash_omniscient->{'level2'}{$primary_tag_l2}{$id_tag_l1}} > 0){
+            my $longestL2 ="";
+            my $longestCDSsize = 0;
+            foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_l2}{$id_tag_l1}}) {
+
+              my $level2_ID =   lc($feature_level2->_tag_value('ID') ) ;
+              if ( exists_keys( $hash_omniscient, ('level3','cds',$level2_ID ) ) ) {
+
+                my $cdsSize=0;
+                foreach my $cds ( @{$hash_omniscient->{'level3'}{'cds'}{$level2_ID}} ) { # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
+                  $cdsSize += ( $cds->end - $cds->start + 1 );
+                }
+                if($cdsSize > $longestCDSsize ){
+                  $longestL2 = $level2_ID;
+                }
+              }
+            }
+            push @list_id_l2,$longestL2; # push id of the longest
+          }
+          else{ #take it only of cds exits
+            my $level2_ID =  lc(@{$hash_omniscient->{'level2'}{$primary_tag_l2}{$id_tag_l1}}[0]->_tag_value('ID')) ;
+            if (exists_keys( $hash_omniscient, ('level3','cds', $level2_ID ) ) ){
+              push @list_id_l2, $level2_ID; # push the only one existing
+            } 
+          }
+        }
+      }
+    }
+  }
+
+  return \@list_id_l2;
+}
+
 # @Purpose: Counter the number of feature level in an omniscient
 # @input: 1 => hash(omniscient hash)
 # @output: integer
@@ -1691,6 +1748,7 @@ sub check_gene_overlap_at_CDSthenEXON{
 				my $mrna_id1 = $mrna_feature->_tag_value('ID');
 
 				if(exists_keys($hash_omniscient2,('level2', $l2_type, lc($gene_id2)))){
+				    
 				    foreach my $mrna_feature2 (@{$hash_omniscient2->{'level2'}{$l2_type}{lc($gene_id2)}}){ # from here bothe feature level2 are the same type
 						my $mrna_id2 = $mrna_feature2->_tag_value('ID');
 				   
@@ -1710,7 +1768,7 @@ sub check_gene_overlap_at_CDSthenEXON{
 					      		if($resu){last;}
 					      	}
 					    }
-					    elsif(! exists_keys($hash_omniscient2,('level3', 'cds', lc($mrna_id2)))){ # No CDS at all, check at exon level and if same level2 type
+					    elsif(! exists_keys($hash_omniscient2,('level3', 'cds', lc($mrna_id2)))){ # No CDS at all, check at exon / match level and if same level2 type
 					    	
 					    	foreach my $tag_l3 (keys %{$hash_omniscient->{'level3'}}){
 					    		
