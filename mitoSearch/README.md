@@ -70,3 +70,15 @@ parallel -j <cores> sourmash sbt_search organelle {} ::: *.fasta.sig > mitosearc
 grep -B2 ".fasta$" mitosearch.txt | less -S
 ```
 
+### Blasting matches to organelle sequence
+
+A match to the SBT can sometimes show a low % match to an organelle but blasting the contig shows a much higher similarity.
+
+```
+# Get the contigs that have matches
+grep -B2 ".fasta$" mitosearch.txt | grep ".fasta.sig" | sed -e 's/.sig//g' > mito_tigs.fofn
+# Print the statistics of the contigs (Output format: contig, length, #A, #C, #G, #T, #2, #3, #4, #CpG, #tv, #ts, #CpG-ts)
+parallel -a mito_tigs.fofn seqtk comp {} 
+# Blast the individual contigs
+parallel -a mito_tigs.fofn -j <cores> blastn -db nr -query {} -outfmt 5 -num_threads <threads> -evalue <evalue> -out {}.blast
+```
