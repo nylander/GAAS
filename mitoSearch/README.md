@@ -72,7 +72,7 @@ zcat draft_assembly.fasta.gz | awk 'BEGIN { RS = ">" } $0 != "" { filename=$1; g
 parallel -j <cores> sourmash compute -k21,31,51 -f -o {}.sig {} ::: *.fasta
 parallel -j <cores> sourmash sbt_search organelle {} ::: *.fasta.sig > mitosearch.txt
 grep -B2 ".fasta$" mitosearch.txt | less -S
-grep ".fasta$" mito_match.txt | cut -f2 -d" " | sort -u | parallel -j <cores> grep ">" 0R_Refseq/{}
+grep ".fasta$" mitosearch.txt | cut -f2 -d" " | sort -u | parallel -j <cores> grep ">" 0R_Reference/{}
 ```
 
 ### Blasting matches to organelle sequence
