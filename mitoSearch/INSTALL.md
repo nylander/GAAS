@@ -14,8 +14,12 @@ git clone https://github.com/dib-lab/sourmash.git -b sbt_search
 cd sourmash && make install
 ```
 ## Notes
-If Python is installed in a different location and not in your path use the following
+If Python is installed in a different location and not in your path use the following.
 ```
 export PATH="</path/to/python>/bin/:$PATH"
 export LD_LIBRARY_PATH=</path/to/python>/lib/
+```
+If the virtualenv module is not installed then you can use the following.
+```
+pip3 install --user virtualenv
 ```
