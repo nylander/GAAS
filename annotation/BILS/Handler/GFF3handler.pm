@@ -1488,6 +1488,7 @@ sub get_longest_cds_level2{
           if ($#{$hash_omniscient->{'level2'}{$primary_tag_l2}{$id_tag_l1}} > 0){
             my $longestL2 ="";
             my $longestCDSsize = 0;
+            print "lest's cehck all size !\n";
             foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_l2}{$id_tag_l1}}) {
 
               my $level2_ID =   lc($feature_level2->_tag_value('ID') ) ;
@@ -1497,8 +1498,10 @@ sub get_longest_cds_level2{
                 foreach my $cds ( @{$hash_omniscient->{'level3'}{'cds'}{$level2_ID}} ) { # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
                   $cdsSize += ( $cds->end - $cds->start + 1 );
                 }
+
                 if($cdsSize > $longestCDSsize ){
                   $longestL2 = $level2_ID;
+                  $longestCDSsize = $cdsSize;
                 }
               }
             }
