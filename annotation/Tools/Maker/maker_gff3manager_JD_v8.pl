@@ -241,7 +241,7 @@ $stringPrint .= "\n^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\n";
 
 # Display
 $outputTab[0]->print($stringPrint);
-if($opt_output){print "$stringPrint";} # When ostreamReport is a file we have to also display on screen
+if($opt_output){ print_time("$stringPrint");} # When ostreamReport is a file we have to also display on screen
 
 
 
@@ -252,7 +252,7 @@ if($opt_output){print "$stringPrint";} # When ostreamReport is a file we have to
 ######################
 ### Parse GFF input #
 my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($opt_reffile);
-print("Parsing Finished\n\n");
+print_time("Parsing Finished\n\n");
 ### END Parse GFF input #
 #########################
 
@@ -346,7 +346,7 @@ if(@list_repeatID_l1){
 # STATISTICS #
 foreach my $key_hash (keys %hash_of_omniscient){
   $outputTab[0]->print("Information about $key_hash\n");
-  if($opt_output){print "Information about $key_hash\n";} # When ostreamReport is a file we have to also display on screen
+  if($opt_output){print_time( "Information about $key_hash\n");} # When ostreamReport is a file we have to also display on screen
   my $hash_ref = $hash_of_omniscient{$key_hash};
   my $stat;
   my $distri;
@@ -361,7 +361,7 @@ foreach my $key_hash (keys %hash_of_omniscient){
   foreach my $infoList (@$stat){
     foreach my $info (@$infoList){
       $outputTab[0]->print("$info");
-      if($opt_output){print "$info";} # When ostreamReport is a file we have to also display on screen
+      if($opt_output){print_time(print "$info");} # When ostreamReport is a file we have to also display on screen
     }
     $outputTab[0]->print("\n");
     if($opt_output){print "\n";} # When ostreamReport is a file we have to also display on screen
@@ -373,14 +373,15 @@ foreach my $key_hash (keys %hash_of_omniscient){
 
 # STOP script here if option given
 if ($optOnlyStat) {
-    print "only statistics option => We stop here.\nEND";exit;
+    print_time( "only statistics option => We stop here.\nEND");exit;
 }
 
 ###################
 #Fil frame is asked
-foreach my $key_hash (keys %hash_of_omniscient){
-  my $hash_ref = $hash_of_omniscient{$key_hash};
-  if($optFillFrame){
+if($optFillFrame){
+  print_time( "fill frame information\n");
+  foreach my $key_hash (keys %hash_of_omniscient){
+    my $hash_ref = $hash_of_omniscient{$key_hash}; 
     fil_cds_frame($key_hash);
   }
 }
@@ -388,6 +389,7 @@ foreach my $key_hash (keys %hash_of_omniscient){
 ###########################
 # change FUNCTIONAL information if asked for
 if ($opt_BlastFile || $opt_InterproFile ){#|| $opt_BlastFile || $opt_InterproFile){
+    print_time( "load FUNCTIONAL information\n" );
     my $hash_ref = $hash_of_omniscient{'Coding_Gene'};
 
     #################
@@ -431,7 +433,7 @@ if ($opt_BlastFile || $opt_InterproFile ){#|| $opt_BlastFile || $opt_InterproFil
         #################
         foreach my $primary_tag_key_level2 (keys %{$hash_ref->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
           
-          if ( exists ($hash_ref->{'level2'}{$primary_tag_key_level2}{$id_level1} ) ){
+          if ( exists_keys ($hash_ref, ('level2', $primary_tag_key_level2, $id_level1) ) ){
             foreach my $feature_level2 ( @{$hash_ref->{'level2'}{$primary_tag_key_level2}{$id_level1}}) {
 
               my $level2_ID = lc($feature_level2->_tag_value('ID'));
@@ -483,6 +485,7 @@ if ($opt_BlastFile || $opt_InterproFile ){#|| $opt_BlastFile || $opt_InterproFil
 ###########################
 # change names if asked for
 if ($opt_nameU || $opt_name ){#|| $opt_BlastFile || $opt_InterproFile){
+  print_time( "load NAME information\n");
   foreach my $key_hash (keys %hash_of_omniscient){
     my $hash_ref = $hash_of_omniscient{$key_hash};
 
@@ -518,7 +521,7 @@ if ($opt_nameU || $opt_name ){#|| $opt_BlastFile || $opt_InterproFile){
         #################
         foreach my $primary_tag_key_level2 (keys %{$hash_ref->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
           
-          if ( exists ($hash_ref->{'level2'}{$primary_tag_key_level2}{$id_level1} ) ){
+          if ( exists_keys ($hash_ref, ('level2', $primary_tag_key_level2, $id_level1) ) ){
             foreach my $feature_level2 ( @{$hash_ref->{'level2'}{$primary_tag_key_level2}{$id_level1}}) {
 
               my $level2_ID = $feature_level2->_tag_value('ID');
@@ -675,7 +678,7 @@ if($opt_BlastFile){
 
 # Display
 $outputTab[0]->print("$stringPrint");
-if(defined $opt_output){print "$stringPrint";}
+if(defined $opt_output){print_time( "$stringPrint" ) ;}
 
 ####################
 # PRINT IN FILES
@@ -712,6 +715,13 @@ else{
                ######
                 ####
                  ##
+
+# print with time
+sub print_time{
+  my $t = localtime;
+  my $line = "[".$t->hms."] @_\n";
+  print $line;
+}
 
 # each mRNA of a gene has its proper gene name. Most often is the same, and annie added a number at the end. To provide only one gene name, we remove this number and then remove duplicate name (case insensitive).
 # If it stay at the end of the process more than one name, they will be concatenated together.
