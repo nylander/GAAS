@@ -77,7 +77,7 @@ grep ".fasta$" mitosearch.txt | cut -f2 -d" " | sort -u | parallel -j <cores> gr
 
 ### Blasting matches to organelle sequence
 
-A match to the SBT can sometimes show a low % match to an organelle but blasting the contig shows a much higher similarity.
+Although a match is shown to an organelle, blasting the contigs will provide additional confirmation of the contig origin.
 
 ```
 # Get the contigs that have matches
@@ -85,5 +85,9 @@ grep -B2 ".fasta$" mitosearch.txt | grep ".fasta.sig" | sed -e 's/.sig//g' > mit
 # Print the statistics of the contigs (Output format: contig, length, #A, #C, #G, #T, #2, #3, #4, #CpG, #tv, #ts, #CpG-ts)
 parallel -a mito_tigs.fofn seqtk comp {} 
 # Blast the individual contigs
-parallel -a mito_tigs.fofn -j <cores> blastn -db nr -query {} -outfmt 5 -num_threads <threads> -evalue <evalue> -out {}.blast
+parallel -a mito_tigs.fofn -j <cores> 'blastn -db $BLASTDB/nt -query {} -outfmt "6 qseqid sseqid stitle evalue" -max_hsps 1 -num_threads <threads> -evalue <evalue> | head -n1' | tee blast.log
+```
+On Milou use the following to load the necessary modules.
+```
+module load bioinfo-tools blast/2.5.0+ gnuparallel/20150522 seqtk/1.0-r68e
 ```
