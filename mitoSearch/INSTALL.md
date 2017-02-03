@@ -4,6 +4,11 @@
 Python3
 
 ## Instructions
+On Milou load the appropriate modules first
+```
+module load python/3.5.0 gcc/6.3.0
+```
+Then install.
 ```
 python3.5 -m virtualenv sbt_mash -p python3.5 --system-site-packages
 . sbt_mash/bin/activate
