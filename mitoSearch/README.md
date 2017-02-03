@@ -77,7 +77,7 @@ grep ".fasta$" mitosearch.txt | cut -f2 -d" " | sort -u | parallel -j <cores> gr
 
 ### Blasting matches to organelle sequence
 
-A match to the SBT can sometimes show a low % match to an organelle but blasting the contig shows a much higher similarity.
+Although a match is shown to an organelle, blasting the contigs will provide additional confirmation of the contig origin.
 
 ```
 # Get the contigs that have matches
