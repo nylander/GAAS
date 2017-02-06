@@ -85,7 +85,7 @@ grep -B2 ".fasta$" mitosearch.txt | grep ".fasta.sig" | sed -e 's/.sig//g' > mit
 # Print the statistics of the contigs (Output format: contig, length, #A, #C, #G, #T, #2, #3, #4, #CpG, #tv, #ts, #CpG-ts)
 parallel -a mito_tigs.fofn seqtk comp {} 
 # Blast the individual contigs
-parallel -a mito_tigs.fofn -j <cores> 'blastn -db $BLASTDB/nt -query {} -outfmt "6 qseqid sseqid stitle evalue" -max_hsps 1 -num_threads <threads> -evalue <evalue> | head -n1' | tee blast.log
+parallel -a mito_tigs.fofn --tagstring="{}:" -j <cores> 'blastn -db $BLASTDB/nt -query {} -outfmt "6 qseqid sseqid stitle evalue" -max_hsps 1 -num_threads <threads> -evalue <evalue> | head -n1' | tee blast.log
 ```
 On Milou use the following to load the necessary modules.
 ```
