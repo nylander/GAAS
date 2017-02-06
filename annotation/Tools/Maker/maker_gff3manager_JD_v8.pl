@@ -39,7 +39,6 @@ my $opt_name;
 my $opt_nameU;
 my $optFillFrame;
 my $optForceFillFrame;
-my $optOnlyStat;
 my $opt_genomeSize;
 my $opt_removeUTR;
 my $opt_removemRNAduplicated;
@@ -101,7 +100,6 @@ if ( !GetOptions( 'f|ref|reffile|gff|gff3=s' => \$opt_reffile,
                   'of=i'      => \$nbOTHERName,
                   'rf=i'      => \$nbRepeatName,
                   'ff'      => \$optFillFrame,
-                  's'      => \$optOnlyStat,
                   'o|output=s'      => \$opt_output,
 
                   'h|help!'         => \$opt_help ) )
@@ -175,23 +173,22 @@ if (defined($opt_output) ) {
   push (@outputTab, $ostreamReport);
 
   #### Case 2 => option ouput NO option onlyStat
-  if (! $optOnlyStat){
-      my $ostreamCoding=Bio::Tools::GFF->new(-file => ">".$opt_output."/AllFeatures.gff", -gff_version => 3 ) or
-      croak(sprintf( "Can not open '%s' for writing %s", $opt_output."AllFeatures.gff", $! ));
-      push (@outputTab, $ostreamCoding);
-      
-      my $ostreamNormalGene=Bio::Tools::GFF->new(-file => ">".$opt_output."/codingGeneFeatures.gff", -gff_version => 3 ) or
-      croak( sprintf( "Can not open '%s' for writing %s", $opt_output."/codingGeneFeatures.gff", $! ));
-      push (@outputTab, $ostreamNormalGene);
+  my $ostreamCoding=Bio::Tools::GFF->new(-file => ">".$opt_output."/AllFeatures.gff", -gff_version => 3 ) or
+  croak(sprintf( "Can not open '%s' for writing %s", $opt_output."AllFeatures.gff", $! ));
+  push (@outputTab, $ostreamCoding);
+  
+  my $ostreamNormalGene=Bio::Tools::GFF->new(-file => ">".$opt_output."/codingGeneFeatures.gff", -gff_version => 3 ) or
+  croak( sprintf( "Can not open '%s' for writing %s", $opt_output."/codingGeneFeatures.gff", $! ));
+  push (@outputTab, $ostreamNormalGene);
 
-      my $ostreamOtherRNAGene=Bio::Tools::GFF->new(-file => ">".$opt_output."/otherRNAfeatures.gff", -gff_version => 3 ) or
-      croak(sprintf( "Can not open '%s' for writing %s", $opt_output."/otherRNAfeatures.gff", $! ));
-      push (@outputTab, $ostreamOtherRNAGene);
+  my $ostreamOtherRNAGene=Bio::Tools::GFF->new(-file => ">".$opt_output."/otherRNAfeatures.gff", -gff_version => 3 ) or
+  croak(sprintf( "Can not open '%s' for writing %s", $opt_output."/otherRNAfeatures.gff", $! ));
+  push (@outputTab, $ostreamOtherRNAGene);
 
-      my $ostreamRepeats=Bio::Tools::GFF->new(-file => ">".$opt_output."/repeatsFeatures.gff", -gff_version => 3 )or
-      croak( sprintf( "Can not open '%s' for writing %s", $opt_output."/repeatsFeatures.gff", $! ));
-      push (@outputTab, $ostreamRepeats);
-  }
+  my $ostreamRepeats=Bio::Tools::GFF->new(-file => ">".$opt_output."/repeatsFeatures.gff", -gff_version => 3 )or
+  croak( sprintf( "Can not open '%s' for writing %s", $opt_output."/repeatsFeatures.gff", $! ));
+  push (@outputTab, $ostreamRepeats);
+
 }
 ### Case 3 => No output option => everithing will be display on screen. 
 ### Case 4 => If option onlyStat provided the script will stop before writting results.
@@ -215,14 +212,14 @@ else {
 ###############################################
 ####### END Manage files (input output) #######
 ###############################################
-my $stringPrint = strftime "%m/%d/%Y at %Hh%Mm%Ss", localtime;
+#my $stringPrint = strftime "%m/%d/%Y at %Hh%Mm%Ss", localtime;
+my $stringPrint = strftime "%m/%d/%Y", localtime;
 
-$stringPrint .= "\nusage: $0 @copyARGV\n";
-$stringPrint .= "vvvvvvvvvvvvvvvvvvvvvvvvvvvvv\n";
-$stringPrint .= "vvvvvvvv OPTION INFO vvvvvvvv\n\n";
-$stringPrint .= "->We will calculate statistics about the input file\n";
-if ($optOnlyStat){ $stringPrint .= "->We will just calculate the statistics. Features will not be printed.\n";}
-else{ $stringPrint .= "->The feature will be sorted before to print them\n";}
+$stringPrint .= "\nusage: $0 @copyARGV\n".
+                "vvvvvvvvvvvvvvvvvvvvvvvvvvvvv\n".
+                "vvvvvvvv OPTION INFO vvvvvvvv\n\n".
+                "->We will calculate statistics about the input file\n".
+                "->The feature will be sorted before to print them\n";
 
 my $prefixName;
 if ($opt_name){
@@ -247,9 +244,11 @@ if($opt_output){ print_time("$stringPrint");} # When ostreamReport is a file we 
 
 
 
-                                                      #######################
-                                                      #        MAIN         #
-#                     >>>>>>>>>>>>>>>>>>>>>>>>>       #######################       <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                  #          +------------------------------------------------------+
+                  #          |+----------------------------------------------------+|
+                  #          ||                       MAIN                         ||
+                  #          |+----------------------------------------------------+|
+                  #          +------------------------------------------------------+
 
 ######################
 ### Parse GFF input #
@@ -348,7 +347,7 @@ if(@list_repeatID_l1){
 # STATISTICS #
 foreach my $key_hash (keys %hash_of_omniscient){
   $outputTab[0]->print("Information about $key_hash\n");
-  if($opt_output){print_time( "Information about $key_hash\n");} # When ostreamReport is a file we have to also display on screen
+  if($opt_output){print "Information about $key_hash\n";} # When ostreamReport is a file we have to also display on screen
   my $hash_ref = $hash_of_omniscient{$key_hash};
   my $stat;
   my $distri;
@@ -372,11 +371,6 @@ foreach my $key_hash (keys %hash_of_omniscient){
 
 # END STATISTICS #
 ##################
-
-# STOP script here if option given
-if ($optOnlyStat) {
-    print_time( "only statistics option => We stop here.\nEND");exit;
-}
 
 ###################
 #Fil frame is asked
@@ -496,7 +490,7 @@ if ($opt_nameU || $opt_name ){#|| $opt_BlastFile || $opt_InterproFile){
     #################
     foreach my $primary_tag_level1 (keys %{$hash_ref ->{'level1'}}){ # primary_tag_level1 = gene or repeat etc...
       foreach my $id_level1 (keys %{$hash_ref ->{'level1'}{$primary_tag_level1}}){
-        
+        print_time( "Next gene $id_level1\n");
         my $feature_level1=$hash_ref->{'level1'}{$primary_tag_level1}{$id_level1};
         my $level1_ID = $feature_level1->_tag_value('ID');
         my $newID_level1;
@@ -588,12 +582,10 @@ if ($opt_nameU || $opt_name ){#|| $opt_BlastFile || $opt_InterproFile){
                         create_or_replace_tag($feature_level3, 'ID', $newID_level3);
                         create_or_replace_tag($feature_level3, 'Parent', $newID_level2);                        
                       }
-                      
-                      
-                      push (@{$hash_ref->{'level3'}{$primary_tag_level3}{lc($newID_level2)}}, $feature_level3);
                       $finalID{$level3_ID}=$newID_level3;
                     }
-                    delete $hash_ref->{'level3'}{$primary_tag_level3}{lc($level2_ID)} # delete 
+                    #save the new l3 into the new l2 id name
+                    $hash_ref->{'level3'}{$primary_tag_level3}{lc($newID_level2)} = delete $hash_ref->{'level3'}{$primary_tag_level3}{lc($level2_ID)} # delete command return the value before deteling it, so we just transfert the value 
                   }
                   if ($opt_name and  $primary_tag_level3 =~ /utr/){$nbUTRName++;} # with this option we increment UTR name only for each UTR 
                   if ($opt_name and  $primary_tag_level3 =~ /cds/){$nbCDSname++;} # with this option we increment cds name only for each cds 
@@ -1033,10 +1025,6 @@ This option is used to define the number that will be used to begin to number th
 
 ff means fill frame.
 This option is used to add the CDS frame. If frames already exist, the script overwrite them.
-
-=item B<-s>
-
-Just compute some statisctics about the input file and stop.
 
 =item B<-o> or B<--output>
 
