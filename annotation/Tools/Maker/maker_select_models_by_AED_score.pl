@@ -209,7 +209,6 @@ Can be a float.
 =item B<-t> or B<--test>
 Test to apply (> < = >= <=). If you us one of these two character >, <, please don't forget to quote you parameter liket that "<=". Else your terminal will complain.
 
-
 =item B<-o> or B<--output>
 
 Output GFF file.  If no output file is specified, the output will be

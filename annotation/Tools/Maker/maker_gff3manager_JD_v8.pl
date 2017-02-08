@@ -169,7 +169,7 @@ if (defined($opt_output) ) {
   mkdir $opt_output;
 
   my $ostreamReport=IO::File->new(">".$opt_output."/report.txt" ) or
-  croak( sprintf( "Can not open '%s' for writing %s", $opt_output."/duplicatedIDFeatures.gff", $! ));
+  croak( sprintf( "Can not open '%s' for writing %s", $opt_output."/report.txt", $! ));
   push (@outputTab, $ostreamReport);
 
   #### Case 2 => option ouput NO option onlyStat
@@ -193,7 +193,7 @@ if (defined($opt_output) ) {
 ### Case 3 => No output option => everithing will be display on screen. 
 ### Case 4 => If option onlyStat provided the script will stop before writting results.
 else {
- my $ostreamReport = \*STDOUT or die ( sprintf( "Can not open '%s' for writing %s", "STDOUT", $! ));
+  my $ostreamReport = \*STDOUT or die ( sprintf( "Can not open '%s' for writing %s", "STDOUT", $! ));
   push (@outputTab, $ostreamReport);
 
   my $ostream  = IO::File->new();
