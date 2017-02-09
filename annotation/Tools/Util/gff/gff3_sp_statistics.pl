@@ -146,7 +146,7 @@ foreach my $infoList (@$stat){
 
 #Check if we have isoforms
 if($nbLevel1 != $nbLevel2){
-  
+
   #print distribution before removing isoforms
   if($opt_plot){
     print_distribution($opt_plot, "with_isoforms", $distri);
@@ -182,7 +182,6 @@ if($nbLevel1 != $nbLevel2){
   if($opt_plot){
     print_distribution($opt_plot, "without_isoforms", $distri);
   }
-
 }
 else{ #No isoforms
   if($opt_plot){
@@ -222,10 +221,9 @@ sub print_distribution{
             mkdir $folder."/".$subfolder;
           }
 
-          my $outputPDF = $folder."/".$subfolder."/".$tag.".pdf";
+          my $outputPDF = $folder."/".$subfolder."/".$type."Class_".$tag.".pdf";
           
           #CREATE THE R COMMAND
-          #print Dumper($distri->{$type}{$level}{$tag}{'whole'});
           my $nbValues = @{$distri->{$type}{$level}{$tag}{'whole'}};
           my $R_command = rcc_plot_from_list($distri->{$type}{$level}{$tag}{'whole'},  undef, "histogram", "$tag"." size (nt)", "Number of $tag", "Distribution of $tag sizes\nMade with $nbValues $tag"."s", $outputPDF);
           #EXECUTE THE R COMMAND
