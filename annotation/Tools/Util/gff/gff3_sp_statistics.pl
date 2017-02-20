@@ -122,6 +122,7 @@ my $nbLevel1 = 0;
 foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){
   $nbLevel1 += keys %{$hash_omniscient->{'level1'}{$tag_l1}};
 }
+
 #chech number of level2
 my $nbLevel2 = keys %$hash_mRNAGeneLink;
 

@@ -255,7 +255,7 @@ sub slurp_gff3_file_JD {
 	_printSurrounded("Check9: _check_overlap_name_diff",30,"*") if ($verbose >= 1) ;
 
 	#check loci names (when overlap should be the same if type is the same)
-	_check_overlap_name_diff(\%omniscient, $verbose);
+	_check_overlap_name_diff(\%omniscient, \%mRNAGeneLink, $verbose);
     if($verbose >= 1)  {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
 
     # To keep track of How many Warnings we got....
@@ -2112,7 +2112,7 @@ sub check_mrna_positions{
 # @input: 2 =>  hash,  integer for verbosity
 # @output: 0 
 sub _check_overlap_name_diff{
-	my ($omniscient, $verbose) = @_;
+	my ($omniscient, $mRNAGeneLink, $verbose) = @_;
 	my $resume_case=undef;
 
 	my $sortBySeq = _sort_by_seq($omniscient);
@@ -2153,7 +2153,16 @@ sub _check_overlap_name_diff{
 									$alreadyChecked{$id_l1}++;
 
 									print "$id_l1 and  $id2_l1 same locus. We merge them together.\n" if ($verbose >= 3);
-									delete $omniscient->{'level1'}{$tag_l1}{$id2_l1};# remove the level1 of the ovelaping one
+									# remove the level1 of the ovelaping one
+									delete $omniscient->{'level1'}{$tag_l1}{$id2_l1};
+									# remove the level2 to level1 link stored into the mRNAGeneLink hash. The new links will be added just later after the check to see if we keep the level2 feature or not (we remove it when identical)
+									foreach my $l2_type (%{$omniscient->{'level2'}}){
+										if(exists_keys($omniscient,('level2', $l2_type, $id2_l1))){
+											foreach my $feature_l2 (@{$omniscient->{'level2'}{$l2_type}{$id2_l1}}){
+												delete $mRNAGeneLink->{lc($feature_l2->_tag_value('ID'))};
+											}
+										}
+									}
 
 									# Let's change the parent of all the L2 features 
 									foreach my $l2_type (%{$omniscient->{'level2'}} ){
@@ -2162,13 +2171,18 @@ sub _check_overlap_name_diff{
 											
 											# REMOVE THE IDENTICAL ISOFORMS
 											my $list_of_uniqs  = keep_only_uniq_from_list2($omniscient, $omniscient->{'level2'}{$l2_type}{$id_l1}, $omniscient->{'level2'}{$l2_type}{$id2_l1}, $verbose); # remove if identical l2 exists
-											
+													
+
 											#Now manage the rest
 											foreach my $feature_l2 (@{$list_of_uniqs}){
 
 												create_or_replace_tag($feature_l2,'Parent', $sortBySeq->{$locusID}{'level1'}{$tag_l1}{$id_l1}[0]); #change the parent
 												# Add the corrected feature to its new L2 bucket
-												push (@{$omniscient->{'level2'}{$l2_type}{$id_l1}}, $feature_l2); 
+												push (@{$omniscient->{'level2'}{$l2_type}{$id_l1}}, $feature_l2);
+												
+												# Attach the new parent into the mRNAGeneLink hash
+												$mRNAGeneLink->{lc($feature_l2->_tag_value('ID'))}=lc($feature_l2->_tag_value('Parent'));
+
 											}
 											# remove the old l2 key
 											delete $omniscient->{'level2'}{$l2_type}{$id2_l1};
