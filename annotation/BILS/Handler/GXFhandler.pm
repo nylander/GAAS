@@ -2139,7 +2139,7 @@ sub _check_overlap_name_diff{
 							my $location_to_check = $to_check->{$id2_l1};
 
 							#If location_to_check start if over the end of the reference location, we stop
-							if($location_to_check->[1] > $sortBySeq->{$locusID}{'level1'}{$tag_l1}{$id_l1}[1]) {last;} 
+							if($location_to_check->[1] > $sortBySeq->{$locusID}{'level1'}{$tag_l1}{$id_l1}[2]) {last;} 
 
 							my ($location, $overlap) = location_overlap_update($location, $location_to_check); # location is updated on the fly, and the newly modified location is the one that will be used at the next loop
 							
