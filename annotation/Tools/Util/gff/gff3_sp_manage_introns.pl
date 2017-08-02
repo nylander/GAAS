@@ -49,7 +49,7 @@ if ($opt_help) {
                  -message => "$header\n" } );
 }
 
-if ( ! defined( $#opt_files  >= 0) ) {
+if ( ! ( $#opt_files  >= 0) ) {
     pod2usage( {
            -message => "$header\nMust specify at least 1 parameters:\nReference data gff3 file (--gff)\n",
            -verbose => 0,
@@ -150,7 +150,8 @@ foreach my $file (@opt_files){
   #########################
 
   #print statistics
-  my $stat = gff3_statistics($hash_omniscient);
+  my ($stat, $distri) = gff3_statistics($hash_omniscient);
+
   #print statistics
   foreach my $infoList (@$stat){
     foreach my $info (@$infoList){
@@ -262,7 +263,7 @@ my $lastIndex = $#introns;
 my $nbValueToRemove = int(($Xpercent*($lastIndex+1))/100);
 my $resu =  $sorted_intron[$lastIndex-$nbValueToRemove];
 
-my $stringPrint =  "Removing $Xpercent percent of the highest values ($nbValueToRemove values) gives you $resu as the longest intron. It's a good choice for MAKER ;-) \n";
+my $stringPrint =  "Removing $Xpercent percent of the highest values ($nbValueToRemove values) gives you $resu bp as the longest intron. It's a good choice for MAKER ;-) \n";
 
 print $ostreamReport $stringPrint;
 if($opt_output){print $stringPrint;}
