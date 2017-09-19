@@ -10,14 +10,14 @@ To know more about gff3 format it's over there => https://github.com/The-Sequenc
 
 Once you cloned the git repositpry you have to configure your installation as explained below:
 
-##1) Most of scripts use the BILS librairy which is located here: GAAS/annotation/BILS
+## 1) Most of scripts use the BILS librairy which is located here: GAAS/annotation/BILS
 Consequently, in order to use those scripts, you must add the library location to your path like that:
 
 	export PERL5LIB=$PERL5LIB:/pathTo/GAAS/annotation
 
-##2) Bioperl must as well be installed as well as sepcific perl modules often not included by default (Moose,Clone)
+## 2) Bioperl must as well be installed as well as sepcific perl modules often not included by default (Moose,Clone)
 
-###2.1) Uppmax user (Swedish research cluster)=> This will be easy for you, It's a lucky day ;)
+### 2.1) Uppmax user (Swedish research cluster)=> This will be easy for you, It's a lucky day ;)
 Just load the needed modules by executing these commands:<br>
 
 	module load bioinfo-tools 
@@ -26,7 +26,7 @@ Just load the needed modules by executing these commands:<br>
 
 P.S: Instead to use the perl_modules/5.18.4 module you may also install your own local perl librairy by following these instructions: http://www.uppmax.uu.se/support/faq/software-faq/installing-local-perl-packages/  <br>
 
-###2.2) For non-uppmax user please follow these instructions:
+### 2.2) For non-uppmax user please follow these instructions:
 
 During the below processes, if you encountered right problem, use the "super user" command to do the installation as administrator.
 
@@ -34,7 +34,7 @@ During the below processes, if you encountered right problem, use the "super use
 	
 In that case you will be prompt to type the super user paswword. Obviously you need to have that privilege.
 
-####2.2.1) Bioperl
+#### 2.2.1) Bioperl
 
 The easiest way to have bioperl is to clone the bioperl-live project here => https://github.com/bioperl/bioperl-live
 and add the path to it within your PERL5LIB path.
@@ -45,7 +45,7 @@ Otherwise you should be able to install bioperl using your favorite package mana
 
 	e.g: cpanm bioperl
 
-####2.2.2) Other mandatory modules
+#### 2.2.2) Other mandatory modules
 You must install the Moose and Clone librairy.
 You can install them by using your  favorite package manager (cpan, cpanm, etc).
 
@@ -59,19 +59,19 @@ You can install them by using your  favorite package manager (cpan, cpanm, etc).
 _**As most as possible we will try to name the script with understandable names.
 For that purpose we try to use a controled vocabulary**_
 
-##A) gff vs gff3 prefix
+## A) gff vs gff3 prefix
 
 Script not prefixed by gff3 but only with gff means that they havn't be checked or are not compatible with the gff3 standard. In other term, it means that a file not following the gff3 standards might not work with the script prefixed by gff3. Lot of modifcation could be post process if your file don't follow the gff3 standart. We will develop that in the part 3 of this readme.
 
 
-##B) \_sq\_ AND \_sp\_
+## B) \_sq\_ AND \_sp\_
 
-###B.1) \_sq\_ => Means SEQUENTIAL
+### B.1) \_sq\_ => Means SEQUENTIAL
 
 The gff file is read and processed from top to the end. This is memory efficient !! 
 But in other hand it hard to create complex script. Moreover, If data are not written sorted (e.g an exon of a gene located in the middle of the descritpion of another gene) some troubles could occur.
 
-###B.2) \_sp\_ => Means SLURP
+### B.2) \_sp\_ => Means SLURP
 
 The gff file will be saved in memory before to process it. This is handle by the slurp_gff3_file_JD method. It has a memory cost. So if your gff3 files are over Gb size and your computer do not have enough ram memory, it might crash. 
 That approach allows to peform more complicated task and more efficiency. Moreover, it allows to fix/correct, in the limit of the possibilities given by the format, the issues present in the gff you give in input. See part 3 for more information about it.
