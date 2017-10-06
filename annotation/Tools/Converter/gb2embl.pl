@@ -76,7 +76,7 @@ The script take a Genebank file as input, and will translate it in EMBL format.
 
 =head1 SYNOPSIS
 
-    ./gb2embl.pl --gb=infile.gff [ -o outfile ]
+    ./gb2embl.pl --gb=infile.gb [ -o outfile ]
 
 =head1 OPTIONS
 

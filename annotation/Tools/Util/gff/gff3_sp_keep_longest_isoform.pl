@@ -5,6 +5,7 @@ use Getopt::Long;
 use Pod::Usage;
 use IO::File;
 use List::MoreUtils qw(uniq);
+use File::Basename;
 use Bio::Tools::GFF;
 use BILS::Handler::GFF3handler qw(:Ok);
 use BILS::Handler::GXFhandler qw(:Ok);
@@ -51,8 +52,8 @@ if ( ! (defined($gff)) ){
 #### OUT
 my $gffout;
 if ($opt_output) {
-  $opt_output=~ s/.gff//g;
-  open(my $fh, '>', $opt_output.".gff") or die "Could not open file '$opt_output' $!";
+  my($opt_output, $dirs, $suffix) = fileparse($opt_output, (".gff",".gff1",".gff2",".gff3",".gtf",".gtf1",".gtf2",".gtf3",".txt")); #remove extension 
+  open(my $fh, '>', $opt_output.".gff3") or die "Could not open file '$opt_output' $!";
   $gffout= Bio::Tools::GFF->new(-fh => $fh, -gff_version => 3 );
   }
 else{
