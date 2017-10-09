@@ -36,29 +36,21 @@
 2007 | Conrad | Ab initio | | | | |				
 2007 | Contrast | Comparative | | | 90 | Can also incorporate information from EST alignment |
 2007 | Genomix	| | | |	1 | |	
-2008 | Maker<sup>4</sup> | Combiner | | | 306	| Uses proteins, transcripts ... Abinitio: Augustus, Fgnesh,Genemark,snap|
+2008 | Maker<sup>4</sup> | Combiner | | | 306	| It uses proteins, transcripts ... Abinitio: Augustus, Fgnesh,Genemark,snap|
 2008 | Evigan5 | Combiner |	Unsupervised learning method | | 52 | Choose the best possible set of exons and combine them in a gene model. Weight of different sources.|
- | Evidence Modeler | Combiner |	| | | choose the best possible set of exons and combine them in a gene model. weight of different sources. Evidence based chooser.|
+| | Evidence Modeler | Combiner |	| | | choose the best possible set of exons and combine them in a gene model. weight of different sources. Evidence based chooser.|
 2009 | mGene6 | Ab initio | SVM	| | 66 | No longer supported |
 2009 | Orphelia |	Ab initio |	Neural network | Metagenomic | 78 | |	
-2010 | MetaGeneMark7
-Ab initio	HMM	Metagenome	220	Self training
-2011 | MAKER28
-			184	
-2012 | eCRAIG				4	
-2014 | GeneMark-ET9
-Ab initio	HMM	Eukaryote	10	Self training
-2015 | Ipred 10
-Combiner evidence-based				choose the best possible set of exons and combine them in a gene model.
-Evidence based chooser.
-Can also model gene form evidence only.
-2016 | BRAKER111
-Hybrid / Pipeline			1	Pipeline: GeneMark-ET + Augustus
-	 | GeneLang		Linguistic method 
-HMM, PD, WAM	Eukaryote		
+2010 | MetaGeneMark<sup>7</sup> | Ab initio | HMM | Metagenome | 220 | Self training |
+2011 | MAKER2<sup>8</sup> | | | | 184 | It uses proteins, transcripts ... Abinitio: Augustus, Fgnesh,Genemark,snap |	
+2012 | eCRAIG | | | | 4 | |	
+2014 | GeneMark-ET<sup>9</sup> | Ab initio | HMM | Eukaryote | 10 | Self training |
+2015 | Ipred<sup>10</sup> | Combiner evidence-based | | | | choose the best possible set of exons and combine them in a gene model. Evidence based chooser. Can also model gene form evidence only. |
+2016 | BRAKER1<sup>11</sup> | Hybrid / Pipeline	| | | 1 | Pipeline: GeneMark-ET + Augustus |
+| | GeneLang | | Linguistic method HMM, PD, WAM | Eukaryote | | |	
 						
 
-
+__Legend:__
 Hybrid = ab initio and evidence based;
 Comparative = genome sequence comparison
 _____________________
@@ -75,7 +67,7 @@ WAM: weight array matrix
 LDA: Linear Discriminant Analysis
 (baczkowski review)
 
-
+__REFERENCES__
 
 1.	Lukashin, A. V & Borodovsky, M. GeneMark. hmm: new solutions for gene finding. Nucleic Acids Res. 26, 1107–1115 (1998).
 2.	Zhu, W., Lomsadze, A. & Borodovsky, M. Ab initio gene identification in metagenomic sequences. Nucleic Acids Res. 38, 1–15 (2010).
