@@ -1,8 +1,6 @@
-<h1 align="center">GAAS</h1>
-<h2 align="center">   <em>G</em>enome <em>A</em>ssembly <em>A</em>nnotation <i>S</i>ervice</h2>
 
-Part of <h3 align="center">[NBIS](https://nbis.se)</h3>
-<h4 align="center">   <em>N</em>ational <em>B</em>ioinformatics <em>I</em>nfrastructure <i>S</i>weden</h4>
+[<img align="center" src="NBIS.png" width="200" height="100" />](https://nbis.se) 
+<h2 ><em>G</em>enome <em>A</em>ssembly <em>A</em>nnotation <i>S</i>ervice (GAAS)</h2>
 
 ---------------------------
 
