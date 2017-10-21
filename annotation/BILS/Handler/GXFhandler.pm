@@ -417,7 +417,7 @@ sub manage_one_feature{
 
 #	+-----------------------------------------------------------------------+
 #		+---------------------------------------------------------------+
-#		|	MANAGE LEVEL2 => feature WITHOUT child ad WITH parent		|
+#		|	MANAGE LEVEL2 => feature WITH child and WITH parent		    |
 #		+---------------------------------------------------------------+
 #	+-----------------------------------------------------------------------+
       	elsif ( get_level($feature) eq 'level2' ) {
@@ -1914,7 +1914,10 @@ sub _check_sequential{ # Goes through from L3 to l1
 
 			#Bucket is an uniq ID created during the reading process. So it can be used as uniq ID.
  			if(! exists_keys($infoSequential,($locusNameHIS, $bucket, 'level3') ) ){
- 				warn "Not normal, we had feature L1 or L2  without L3 feature associated. We skip it.\n"; #We cannot guess the structure except if it is prokaryote... should we improve that ?
+ 				
+ 				# Lier le L2 a un L1
+ 				# si option creation de l3 est active alors aussi creer un exon correspondant
+ 				warn "Not normal, we have feature L2  without L3 feature associated. We skip it.\n"; #We cannot guess the structure except if it is prokaryote or single exon in eucaryote... should we improve that ?
  				next;
  			}
 			else{
