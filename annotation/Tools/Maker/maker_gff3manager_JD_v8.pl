@@ -658,8 +658,9 @@ if ($opt_InterproFile){
 if($opt_BlastFile){
   my $nbGeneDuplicated=keys %duplicateNameGiven;
   $nbDuplicateNameGiven=$nbDuplicateNameGiven+$nbGeneDuplicated; # Until now we have counted only name in more, now we add the original name.
-  $stringPrint .= "$nbGeneNameInBlast gene names have been retrieved in the blast file. Among them there are $nbDuplicateName gene names duplicated. \n".
-  "$nbNamedGene genes have been named. $nbGeneDuplicated names are shared at least per two genes for a total of $nbDuplicateNameGiven genes.\n";
+  $stringPrint .= "$nbGeneNameInBlast gene names have been retrieved in the blast file. $nbNamedGene gene names have been successfully inferred.\n".
+  "Among them there are $nbGeneDuplicated names that are shared at least per two genes for a total of $nbDuplicateNameGiven genes.\n";
+  # "We have $nbDuplicateName gene names duplicated ($nbDuplicateNameGiven - $nbGeneDuplicated).";
 
   if($opt_output){
     my $duplicatedNameOut=IO::File->new(">".$opt_output."/duplicatedNameFromBlast.txt" );

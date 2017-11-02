@@ -2,7 +2,7 @@
 
 my $header = qq{
 ########################################################
-# BILS 2015 - Sweden                                   #  
+# BILS 2017 - Sweden  - Jacques Dainat                 #  
 ########################################################
 };
 
@@ -23,12 +23,12 @@ my $opt_output;
 my $opt_help = 0;
 
 # OPTION MANAGMENT
-if ( !GetOptions( 'g|gff=s' => \$opt_gfffile,
+if ( !GetOptions( 'g|gff=s'     => \$opt_gfffile,
                   'c|ct=s'      => \$opt_comonTag,
-                  'v'      => \$opt_verbose,
-                  'd'      => \$opt_deep,
-                  'o|output=s'      => \$opt_output,
-                  'h|help!'         => \$opt_help ) )
+                  'v'           => \$opt_verbose,
+                  'd'           => \$opt_deep,
+                  'o|output=s'  => \$opt_output,
+                  'h|help!'     => \$opt_help ) )
 {
     pod2usage( { -message => 'Failed to parse command line',
                  -verbose => 1,
@@ -83,14 +83,13 @@ __END__
 
 =head1 NAME
 
-gff3_IO.pl -
-This script read and print a gff file. It will be read by GFF3HANDLER that will look for duplicate feature, duplicate ID and will print the features sorted.
-The result is written to the specified output file, or to STDOUT.
+gff3_sp_alignment_output_style.pl -
+This script take a normal gff3 annotation format file and convert it to gff3 alignment format. It means it add a structure of match / match_part as relationship between the different features. 
 
 =head1 SYNOPSIS
 
-    ./gff3_IO.pl -g infile.gff [ -o outfile ]
-    ./gff3_IO.pl --help
+    ./gff3_sp_alignment_output_style.pl -g infile.gff [ -o outfile ]
+    ./gff3_sp_alignment_output_style --help
 
 =head1 OPTIONS
 

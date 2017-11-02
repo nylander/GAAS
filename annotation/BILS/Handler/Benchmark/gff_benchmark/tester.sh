@@ -1,34 +1,54 @@
 #!/bin/bash
 
-for i in {1..30}_*;do
+#This script
+cleanIntermediateFile="yes"
+
+if [[ $1 == "no" ]];then
+	cleanIntermediateFile="no"
+fi
+
+for i in {0..50}_*;do
+
 	if [[ -f $i ]];then
-		if [[ ! $i =~ ^[1-9]+_correct ]];then
+
+		if [[ ! $i =~ ^[[:digit:]]+_correct ]];then
 			echo -e "\nTest of $i";
-			~/git/NBIS/GAAS/annotation/Tools/Converter/gxf_to_gff3.pl --gff $i -o test.gff  &> /dev/null  
+			testperfect="no"
+			~/git/NBIS/GAAS/annotation/Tools/Converter/gxf_to_gff3.pl --gff $i -o test.gff3  &> /dev/null  
 			pref=$(echo $i | cut -d'_' -f1)
 			fileok=${pref}_correct_output.gff
 
 			if [ ! -f $fileok ];then
-				echo "We didnt find any output to check against for $i ( $fileok ) "
+				echo "We didnt find any correct output to check against for $i ( $fileok ) "
 			else
-				resu=$(diff test.gff $fileok)
+				resu=$(diff test.gff3 $fileok)
 				if [[ $resu != "" ]];then
-					echo "$resu"
+					echo -e "There is differences between the correct reference output and the current output:\n$resu"
 				else
-					echo "Result perfect !"
+					echo "test1 ok !"
+					testperfect="yes"
 				fi
 			fi
 
-			echo "check against itsefl"
-			~/git/NBIS/GAAS/annotation/Tools/Converter/gxf_to_gff3.pl --gff test.gff -o test2.gff  &> /dev/null  
-			resu=$(diff test2.gff $fileok)
+			#echo "check against itself"
+			~/git/NBIS/GAAS/annotation/Tools/Converter/gxf_to_gff3.pl --gff test.gff3 -o test2.gff3  &> /dev/null  
+			resu=$(diff test2.gff3 $fileok)
 			if [[ $resu != "" ]];then
-					echo "$resu"
+					echo -e "There is differences between the original current output and the output of this file processed again:\n$resu"
 			else
-					echo "Result perfect !"
+					echo "test2 ok !"
+					if [[ $testperfect == "yes" ]];then
+						echo "All test perfect !"
+					fi
 			fi
+			
 		fi
 	fi
 done
-rm test.gff
-rm test2.gff
+
+#Intermediate file cleaned
+if [[ $cleanIntermediateFile == "yes" ]];then
+	rm test.gff3
+	rm test2.gff3
+fi
+

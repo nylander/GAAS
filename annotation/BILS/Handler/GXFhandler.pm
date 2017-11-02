@@ -417,7 +417,7 @@ sub manage_one_feature{
 
 #	+-----------------------------------------------------------------------+
 #		+---------------------------------------------------------------+
-#		|	MANAGE LEVEL2 => feature WITHOUT child ad WITH parent		|
+#		|	MANAGE LEVEL2 => feature WITH child and WITH parent		    |
 #		+---------------------------------------------------------------+
 #	+-----------------------------------------------------------------------+
       	elsif ( get_level($feature) eq 'level2' ) {
@@ -510,7 +510,7 @@ sub manage_one_feature{
 #		+-----------------------------------------------+
 #	+--------------------------------------------------------+
       	elsif ( get_level($feature) eq 'level3' ){
-
+      		
       		##########
 			# get ID #
 	    	$id = _check_uniq_id($omniscient, $miscCount, $uniqID, $uniqIDtoType, $feature);
@@ -1235,7 +1235,7 @@ sub _check_exons{
  	  				
 
 #				 	+--------------------------------------------------------------------------------------------------------+
-#					| 				COMPARE EXONS POSIOTION TO THOSE DESCRIBED BY NON-EXON FEATURES 						 |
+#					| 				COMPARE EXONS POSITION TO THOSE DESCRIBED BY NON-EXON FEATURES 						 |
 #				 	+--------------------------------------------------------------------------------------------------------+
 
  	  				#Case where exon feature exists, we have to check them
@@ -1303,7 +1303,7 @@ sub _check_exons{
 			 	  							}
 			 	  						}
 			 	  					}
-			 	  					elsif($overlap){ #location not modified but no oerlap, so it means the exon is not defined !
+			 	  					elsif($overlap){ #location not modified but no overlap, so it means the exon is not defined !
 			 	  						$create_exon=undef;
 			 	  					}
 			 	  				}
@@ -1541,7 +1541,7 @@ sub _check_utrs{
 				 	  				}
 			 					}
 			 				}
-			 				else{print "How is it possible ? \n".$id_l2."\n";exit;}
+			 				else{print "UTR check step. How is it possible ? We have an UTR in the file but none is expected according to the described exons.\nLevel2 studied:".$id_l2."\n";exit;}
 		 				}
 	 					else{
 	 						if($list_location_UTR_expected){ 
@@ -1914,7 +1914,10 @@ sub _check_sequential{ # Goes through from L3 to l1
 
 			#Bucket is an uniq ID created during the reading process. So it can be used as uniq ID.
  			if(! exists_keys($infoSequential,($locusNameHIS, $bucket, 'level3') ) ){
- 				warn "Not normal, we had feature L1 or L2  without L3 feature associated. We skip it.\n"; #We cannot guess the structure except if it is prokaryote... should we improve that ?
+ 				
+ 				# Lier le L2 a un L1
+ 				# si option creation de l3 est active alors aussi creer un exon correspondant
+ 				warn "Not normal, we have feature L2  without L3 feature associated. We skip it.\n"; #We cannot guess the structure except if it is prokaryote or single exon in eucaryote... should we improve that ?
  				next;
  			}
 			else{

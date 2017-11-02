@@ -25,7 +25,7 @@ our %EXPORT_TAGS = ( DEFAULT => [qw()],
 
 
 	We create a complex hash of hash containing all information needeed.
-	The data are scan from level 2 to level 1 and 3. We do that because different type of feature from level 2 can have same type of feature of level1. (e.g: mRNA => gene and tRNA => gene).
+	The data are scaned from level 2 to level 1 and 3. We do that because different type of feature from level 2 can have same type of feature of level1. (e.g: mRNA => gene and tRNA => gene).
 	So the structure of the hash created is the following:
 	{type_feature_level2}{'level'}{type_feature_level}{'flag'}='value';
 	'level' can be level1, level2 or level accordingly, allow to go all over the data for printing by driving the data form level1 to level3.
@@ -75,6 +75,8 @@ sub gff3_statistics {
 #               +------------------------------------------------------+
 
 			my $feature_l1=undef;
+
+			# retrieve the l1 tag
 			my $tag_l1;
 			foreach my $tag_level1 (keys %{$hash_omniscient->{'level1'}}){
 				if (exists ($hash_omniscient->{'level1'}{$tag_level1}{$id_l1})){
