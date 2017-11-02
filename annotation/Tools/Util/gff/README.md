@@ -78,7 +78,7 @@ That approach allows to peform more complicated task and more efficiency. Moreov
 
 
 #################################################
-# III) What does the SLURP method for you
+# III) What does the SLURP method for you => GFF3 Standardization for a full GFF3 compliant to any tool !!!
 #########
 **_This method create a hash structure containing all the data in memory. We call it OMNISCIENT.<br>
 The OMNISCNIENT structure is a three levels structure :_**

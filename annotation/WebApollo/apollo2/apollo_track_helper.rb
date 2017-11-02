@@ -61,7 +61,8 @@ tracks = { "protein" => "\"match_part\": \"blue-80pct\"" ,
   "tRNA" => "\"exon\": \"green-80pct\"",
   "ncRNA" => "\"exon\": \"green-80pct\"",
   "synteny" => "\"nucleotide_motif\": \"springgreen-80pct\"", 
-  "rnaseq" => "\"match_part\": \"orange-80pct\"" , 
+  "rnaseq_match" => "\"match_part\": \"orange-80pct\"" ,
+  "rnaseq" =>  "\"exon\" : \"green-80pct\"",
   "abinito" => "\"match_part\": \"springgreen-80pct\"",
   "gene" => "\"wholeCDS\": null, \"CDS\": \"blueviolet-80pct\", \"UTR\": \"darkorange-60pct\", \"exon\" : \"container-100pct\"",
   "lift-over" => "\"wholeCDS\": null, \"CDS\": \"green-80pct\", \"UTR\": \"darkorange-60pct\", \"exon\" : \"container-100pct\""
@@ -158,7 +159,7 @@ unless options.direct
   abort "Aborting..." unless answer.downcase == "y"
 end
 
-  if track == "gene" or track == "lift-over"
+  if track == "gene" or track == "lift-over" or track == "rnaseq"
   	system "perl #{config[:web_apollo_build]}/bin/flatfile-to-json.pl --gff #{options.infile} --out #{config[:web_apollo_data]} --arrowheadClass trellis-arrowhead --getSubfeatures --subfeatureClasses '{#{tracks[track]}}'  --cssClass container-16px --config '{ \"category\": \"#{options.category}\" }' --type mRNA --trackLabel #{options.label}"
   elsif track == "tRNA"
           system "perl #{config[:web_apollo_build]}/bin/flatfile-to-json.pl --gff #{options.infile} --out #{config[:web_apollo_data]} --arrowheadClass trellis-arrowhead --getSubfeatures --subfeatureClasses '{#{tracks[track]}}'  --cssClass container-16px --config '{ \"category\": \"#{options.category}\" }' --type tRNA --trackLabel #{options.label}"
