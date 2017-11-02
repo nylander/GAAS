@@ -12,7 +12,7 @@ use Bio::OntologyIO::obo;
 use Clone 'clone';
 use BILS::Handler::GFF3handler qw(:Ok);
 use Exporter qw(import);
-
+use Bio::Tools::GFF;
 
 our $VERSION     = 1.00;
 our @ISA         = qw(Exporter);
@@ -75,11 +75,15 @@ use constant PREFIXL2 => "nbis_noL2id";
 # $comonTagAttribute => list of tags to consider for gathering features
 # $gffVersion => Int (if is used, force the parser to use this gff parser instead of guessing)
 # $verbose =>define the deepth of verbosity
+my $createL3forL2orphan = 1;
+my $fh_error = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 3);
 sub slurp_gff3_file_JD {
 	
 	my ($self, $file, $comonTagAttribute, $gffVersion, $verbose) = @_  ;
 
 	if(! $verbose){$verbose=0;}
+	my $overlapCheck = undef; # option to activate the check for overlapping locus
+
 	my $start_run = time();
 	my $previous_time = undef;	
 
@@ -255,8 +259,10 @@ sub slurp_gff3_file_JD {
 	_printSurrounded("Check9: _check_overlap_name_diff",30,"*") if ($verbose >= 1) ;
 
 	#check loci names (when overlap should be the same if type is the same)
-	_check_overlap_name_diff(\%omniscient, \%mRNAGeneLink, $verbose);
-    if($verbose >= 1)  {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
+	if ($overlapCheck){
+		_check_overlap_name_diff(\%omniscient, \%mRNAGeneLink, $verbose);
+	    if($verbose >= 1)  {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
+	 }
 
     # To keep track of How many Warnings we got....
     foreach my $thematic (keys %WARNS){
@@ -1137,7 +1143,7 @@ sub _check_l3_link_to_l2{
 # @output: none
 sub _check_exons{
 	my ($hash_omniscient, $mRNAGeneLink, $miscCount, $uniqID, $uniqIDtoType, $verbose)=@_;
-	my $resume_case=undef; my $resume_case2=undef;
+	my $resume_case=undef; my $resume_case2=undef; my $resume_case3=undef;
 
 	my %checked;
 	foreach my $tag_l3 (keys %{$hash_omniscient->{'level3'}}){
@@ -1198,7 +1204,7 @@ sub _check_exons{
 				 	  			#Rare case when a features are badly defined 
 				 	  			# This approch works for exon because they have uniq ID
 				 	  			if($#{$list_location_Exon} < $#{$hash_omniscient->{'level3'}{$tag_l3}{$id_l2}}){
-				 	  				warn "Peculiar rare case, we have to remove existing exon which are supernumerary\n";
+				 	  				warn "Peculiar rare case, we have to remove existing exon which are supernumerary. Parent is $id_l2\n";
 				 	  				#remove the non needed features (they where wrong, and are unecessary)
 									my @id_list2=();
 									foreach my $locations (@{$list_location_Exon}){
@@ -1217,6 +1223,7 @@ sub _check_exons{
 									}
 				 	  				my @tag_list = ('all');
 				 	  				my @id_list=($id_l2);
+				 	  				$resume_case3 += $#id_list2;
 				 	  				print "We remove the supernumerary @id_list2 exon(s)\n" if($verbose >= 2);
 									remove_element_from_omniscient(\@id_list, \@id_list2, $hash_omniscient, 'level3', 'false', \@tag_list);
 				 	  			}
@@ -1384,6 +1391,7 @@ sub _check_exons{
  	}
  	print "We create $resume_case exons that were missing\n" if($verbose >= 1 and $resume_case);
  	print "We modified $resume_case2 exons positions that were wrong\n" if($verbose >= 1 and $resume_case2);
+ 	print "We have removed $resume_case3 existing exons which were supernumerary\n" if($verbose >= 1 and $resume_case3);
 }
 
 # @Purpose: Check L3 features. If UTRS are missing we create them.
@@ -1915,10 +1923,31 @@ sub _check_sequential{ # Goes through from L3 to l1
 			#Bucket is an uniq ID created during the reading process. So it can be used as uniq ID.
  			if(! exists_keys($infoSequential,($locusNameHIS, $bucket, 'level3') ) ){
  				
- 				# Lier le L2 a un L1
- 				# si option creation de l3 est active alors aussi creer un exon correspondant
- 				warn "Not normal, we have feature L2  without L3 feature associated. We skip it.\n"; #We cannot guess the structure except if it is prokaryote or single exon in eucaryote... should we improve that ?
- 				next;
+ 				# Link the l2 to the L1 feature
+				$feature_l2=$infoSequential->{$locusNameHIS}{$bucket}{'level2'};
+				print "level2 in sequential doenst have L3 feature associated in sequential - $locusNameHIS $bucket! ".$feature_l2->gff_string."\n" if ($verbose >= 3);
+
+				if(! exists($mRNAGeneLink->{$bucket}) ){
+					# We add it to omniscient and to mRNAGeneLink
+					print "level2 does not exits in mRNAGeneLink(omniscient) !".$feature_l2->gff_string."\n" if ($verbose >= 3);
+					push (@{$omniscient->{"level2"}{lc($feature_l2->primary_tag)}{lc($feature_l2->_tag_value('Parent'))} }, $feature_l2);
+					$mRNAGeneLink->{lc($feature_l2->_tag_value('ID'))} = lc($feature_l2->_tag_value('Parent'));
+				}
+				if( ! exists_keys($omniscient,('level3', "exon", lc($feature_l2->_tag_value("ID")))) ){ #check if an exon exist in the omniscient
+					if ($createL3forL2orphan){ # create the exon missing if option agreed
+		 				print "create single level3 exon feature  !\n" if($verbose >= 2);
+		 				my $feature_l3 = clone($feature_l2);#create a copy of the l2 feature;
+		 				$feature_l3->primary_tag('exon');
+		 				create_or_replace_tag($feature_l3,'Parent', $feature_l3->_tag_value('ID')); # change parentID
+						$feature_l3->remove_tag('ID');
+						# create ID
+						my $id =  _create_ID($miscCount, $uniqID, $uniqIDtoType, 'exon', "exon-1", 'nbis_NEW');
+						create_or_replace_tag($feature_l3,'ID', $id); # change ID
+		    			#my $id = _check_uniq_id($omniscient, $miscCount, $uniqID, $uniqIDtoType, $feature_l3);
+		    			push (@{$omniscient->{"level3"}{lc($feature_l3->primary_tag)}{lc($feature_l3->_tag_value('Parent'))} }, $feature_l3);
+					}
+				}
+ 				#warn "Not normal, we have feature L2  without L3 feature associated.\n"; #We cannot guess the structure except if it is prokaryote or single exon in eucaryote... should we improve that ?
  			}
 			else{
  				foreach my $feature_L3 (@{$infoSequential->{$locusNameHIS}{$bucket}{'level3'}} ){
@@ -2155,7 +2184,8 @@ sub _check_overlap_name_diff{
 									$resume_case++;
 									$alreadyChecked{$id_l1}++;
 
-									print "$id_l1 and  $id2_l1 same locus. We merge them together.\n" if ($verbose >= 3);
+									print "$id_l1 and  $id2_l1 same locus. We merge them together. Below the corresponding feature groups in their whole.\n" if ($verbose >= 3);
+									print_omniscient_from_level1_id_list($omniscient, [$id_l1,$id2_l1], $fh_error ) if ($verbose >= 3);
 									# remove the level1 of the ovelaping one
 									delete $omniscient->{'level1'}{$tag_l1}{$id2_l1};
 									# remove the level2 to level1 link stored into the mRNAGeneLink hash. The new links will be added just later after the check to see if we keep the level2 feature or not (we remove it when identical)
@@ -2191,7 +2221,7 @@ sub _check_overlap_name_diff{
 											delete $omniscient->{'level2'}{$l2_type}{$id2_l1};
 										}
 									}
-									check_level1_positions($omniscient, $omniscient->{'level1'}{$tag_l1}{$id_l1}, 3);
+									check_level1_positions($omniscient, $omniscient->{'level1'}{$tag_l1}{$id_l1}, 0);
 
 									if($omniscient->{'level1'}{$tag_l1}{$id_l1}->end > $sortBySeq->{$locusID}{'level1'}{$tag_l1}{$id_l1}[2]){
 										$sortBySeq->{$locusID}{'level1'}{$tag_l1}{$id_l1}[2] = $omniscient->{'level1'}{$tag_l1}{$id_l1}->end;
