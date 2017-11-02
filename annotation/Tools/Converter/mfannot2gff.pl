@@ -1,23 +1,8 @@
 #!/usr/bin/perl
 
-=head1 NAME
-mfannot2gff.pl - Convert MFannot Masterfile to GFF3 format
-=head1 SYNOPSIS
-perl mfannot2gff.pl -m <mfannot> -g <gff>
-perl mfannot2gff.pl --help
-=head1 DESCRIPTION
-Conversion utility for MFannot "masterfile" annotation produced by the MFannot
-pipeline (http://megasun.bch.umontreal.ca/RNAweasel/). Reports GFF3 format. If
-more than one instance of a gene annotation (e.g. more than one ORF annotated
-as "nad10"), then you will have to manually verify the MFannot file and give
-them distinguishing names before running this script again.
-=head1 COPYRIGHT AND LICENSE
-Copyright (C) 2015, Brandon Seah (kbseah@mpi-bremen.de)
-... GPL-3 ...
-=cut 
-
 # Convert Mfannot output file to GFF3 format
 # kbseah@mpi-bremen.de      2015-04-01
+# modified by jacques dainat 2017-11: jacques.dainat@nbis.se
 
 use strict;
 use warnings;
@@ -155,3 +140,46 @@ sub write_gff {
     }
     close (GFF);
 }
+
+=head1 NAME
+
+mfannot2gff.pl - Convert MFannot Masterfile to GFF3 format
+
+=head1 SYNOPSIS
+
+perl mfannot2gff.pl -m <mfannot> -g <gff>
+perl mfannot2gff.pl --help
+
+=head1 DESCRIPTION
+
+Conversion utility for MFannot "masterfile" annotation produced by the MFannot
+pipeline (http://megasun.bch.umontreal.ca/RNAweasel/). Reports GFF3 format. If
+more than one instance of a gene annotation (e.g. more than one ORF annotated
+as "nad10"), then you will have to manually verify the MFannot file and give
+them distinguishing names before running this script again.
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2015, Brandon Seah (kbseah@mpi-bremen.de)
+... GPL-3 ...
+modified by jacques dainat 2017-11
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<-m>
+
+The mfannot input file
+
+=item B<-g>
+
+the gff output file
+
+=item B<-h> or B<--help>
+
+Display this helpful text.
+
+=back
+
+=cut
