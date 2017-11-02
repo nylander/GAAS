@@ -20,12 +20,12 @@ my $end;
 my $opt_help = 0;
 
 Getopt::Long::Configure ('bundling');
-if ( !GetOptions ('i|input_file=s' => \$inputFile,
-		'n|name=s' => \$nameSeq,
-	    'o|output=s' => \$outputFile,
-	    's|start=i' => \$start,
-		'e|end=i' => \$end,
-		'h|help!'         => \$opt_help )  )
+if ( !GetOptions (  'i|input_file=s' => \$inputFile,
+					'n|name=s' => \$nameSeq,
+				    'o|output=s' => \$outputFile,
+				    's|start=i' => \$start,
+					'e|end=i' => \$end,
+					'h|help!'         => \$opt_help )  )
 {
     pod2usage( { -message => 'Failed to parse command line',
                  -verbose => 1,
@@ -113,7 +113,12 @@ print "sequence: $seq\n";
 if($start<0 || $end <0){print "Start and End cannot be a negative value!\n"; exit;}
 if(length($seq) < $start){print "Start position for extraction is over the sequence size !\n"; exit;}
 if(length($seq) < $end){print "End position for extraction is over the sequence size !\n"; exit;}
-my $lengtExtraction=$end-$start;
+#end is 1-based coordinate system and 0-based coordinate system
+#start is 1-based coordinate system
+# The extraction compute in 0-based coordinate system
+# Lets change the 1-based coordinate system in 0-based coordinate system for the start
+$start=$start-1;
+my $lengtExtraction=$end-$start; #Length in 0-based coordinate (in 1-based coordinate we must add +1)
 print "Length sequence extracted: $lengtExtraction\n";
 my $extractedPart=substr($seq, $start, $lengtExtraction);
 print "Sequence extracted: $extractedPart\n";
@@ -127,8 +132,14 @@ domainExtractor_JD.pl -
 The script allows to extract a part of a AA or nt sequence.
 The script takes as input a (multi)fasta file and coordinates of part that you want extract.
 If the Input file is a MultiFastaFile you have to specify to the script the header of the sequence you want to extract.
-NOTE: -s 0 -e 1 extract the first AA/nt
-
+NOTE: The script expect the use of 1-based coordinate system. So, -s 1 -e 1 extract the first AA/nt
+/!\ Some file formats are 1-based (GFF, SAM, VCF) and others are 0-based (BED, BAM)
+/!\ Ensembl uses 1-based coordinate system when UCSC uses 0-based coordinate system
+/!\ Be aware of what kind of coordinate you are using as input.
+Rule of coordinate system
+	1-based coordinate system = Numbers nucleotides directly
+    0-based coordinate system = Numbers between nucleotides
+    
 =head1 SYNOPSIS
 
     domainExtractor_JD.pl -i <input file> -s <start_coordinate> -e <end_coordinate> [-o <output file> -n <sequence name>]
