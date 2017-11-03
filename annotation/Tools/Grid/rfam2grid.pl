@@ -3,6 +3,7 @@
 use strict;
 use warnings;
 use Getopt::Long;
+use Pod::Usage;
 use Scalar::Util qw(openhandle);
 use Time::Piece;
 use Time::Seconds;
@@ -16,21 +17,14 @@ use Bio::SeqFeature::Generic;
 use Bio::Tools::GFF;
 no strict qw(subs refs);
 
-
-my $usage = qq{
-perl my_script.pl
-  Getting help:
-    [--help]
-
-  Input:
-    [--fasta filename]
-		The name of the genome file to read. 
-
-  Ouput:    
-    [--outdir name]
-        The name of the output directory. 
-		
+my $header = qq{
+########################################################
+# NBIS - Sweden                                        #
+#                                                      #
+# Please cite NBIS (www.NBIS.se) when using this tool. #
+########################################################
 };
+
 
 my $grid_computing_module = "BilsGridRunner";
 my $rfam_cm_file = "/projects/references/databases/rfam/11.0/models_1_1/E_plus.cm"; # Eukaryote ncRNA models plus LUCA ncRNAs and excluding tRNA (to be annotated by tRNAscan). 
@@ -42,20 +36,43 @@ my @cmds = ();				# Stores the commands to send to farm
 my $quiet;
 my @annotations = ();		# Stores Rfama annotations as hashes
 my $help;
+my $nogrid=undef;
 
-GetOptions(
+if ( !GetOptions(
     "help" => \$help,
-    "fasta=s" => \$fasta,
-    "outdir=s" => \$outdir);
+    "fasta|f=s" => \$fasta,
+    "cm=s"  => \$rfam_cm_file,
+    "nogrid!"  => \$nogrid,
+    "outdir|o=s" => \$outdir))
+
+{
+    pod2usage( { -message => "Failed to parse command line",
+                 -verbose => 1,
+                 -exitval => 1 } );
+}
 
 # Print Help and exit
 if ($help) {
-    print $usage;
-    exit(0);
+        pod2usage( { -verbose => 1,
+                 -exitval => 0,
+                 -message => "$header \n" } );
+}
+
+if ( ! (defined($fasta) and defined($outdir) ) ){
+    pod2usage( {
+           -message => "$header\nAt least 2 parameter are mandatory:\nInput fasta file and output directory \n\n",
+           -verbose => 0,
+           -exitval => 2 } );
+}
+
+if (! -e $rfam_cm_file){
+	print "The cm file ".$rfam_cm_file." does not exist. Please define it using the cm option.\n";exit;
+}
+if (! -e $fasta){
+	print "The fasta file ".$fasta." does not exist.\n";exit;
 }
 
 # .. Check that all binaries are available in $PATH
-
 my @tools = ("cmsearch" );	# List of tools to check for!
 foreach my $exe (@tools) { check_bin($exe) == 1 or die "Missing executable $exe in PATH"; }
 
@@ -75,18 +92,21 @@ msg("Writing log to: $logfile");
 open LOG, '>', $logfile or err("Can't open logfile");
 
 # .. load grid module (courtesy of Brian Haas)
+my $grid_computing_method;
+if(! $nogrid){
 
-my $perl_lib_repo = "$FindBin::Bin/../PerlLibAdaptors";
-msg("-importing module: $grid_computing_module\n");
-require "$grid_computing_module.pm" or die "Error, could not import perl module at run-time: $grid_computing_module";
+	my $perl_lib_repo = "$FindBin::Bin/../PerlLibAdaptors";
+	msg("-importing module: $grid_computing_module\n");
+	require "$grid_computing_module.pm" or die "Error, could not import perl module at run-time: $grid_computing_module";
 
-my $grid_computing_method = $grid_computing_module . "::run_on_grid" or die "Failed to initialize GRID module\n";
+	$grid_computing_method = $grid_computing_module . "::run_on_grid" or die "Failed to initialize GRID module\n";
+}
 
 # .. Read genome fasta file.
 my $inseq = Bio::SeqIO->new(-file   => "<$fasta", -format => 'fasta');
 
 # .. and create chunks
-msg("Creating chunks for grid\n");
+msg("Creating chunks\n");
 
 my $seq;
 
@@ -101,12 +121,32 @@ while( $seq = $inseq->next_seq() ) {
 	push(@cmds,$command);
 }
 
-# Submit job chunks to grid
 
-msg("Sending $seq_counter jobs to LSF grid\n");
+msg("submitting chunks\n");
 
-chomp(@cmds); # Remove empty indices
-&$grid_computing_method(@cmds);
+if( ! $nogrid){
+	# Submit job chunks to grid
+	msg("Sending $seq_counter jobs to LSF grid\n");
+	chomp(@cmds); # Remove empty indices
+	&$grid_computing_method(@cmds);
+}
+else{
+ 	foreach my $command (@cmds){
+
+ 		system($command);
+
+ 		if ($? == -1) {
+    			 print "failed to execute: $!\n";
+		}
+ 		elsif ($? & 127) {
+ 		    printf "child died with signal %d, %s coredump\n",
+ 		    ($? & 127),  ($? & 128) ? 'with' : 'without';
+ 		}
+ 		else {
+ 		    printf "child exited with value %d\n", $? >> 8;
+ 		}
+ 	}
+}
 
 # ..Postprocessing here, merging of output and printing gff
 
@@ -144,6 +184,7 @@ close($OUT);
 sub parse_line {
 	# chomp;
 	my $line = shift ;
+	print "$line.\n";
 	my ($tn,$tacc,$qn,$qacc,$mdl,$mdlf,$mdlt,$seqf,$seqt,$strand,$trunc,$pass,$gc,$bias,$score,$evalue,$inc,$desc) = split(/\s+/,$line);
 	
 	my %tags = ( 'rfam-id' => $qn,
@@ -204,3 +245,44 @@ sub err {
   msg(@_);
   exit(2);
 }
+
+__END__
+
+=head1 NAME
+
+rfam2grid.pl -
+We currently run infernal (cmsearch) searches directly on the contigs – rather than using the Rfam pipeline with it’s two-step search approach (blast to limit candidates, infernal to refine and verify).
+Infernal ("INFERence of RNA ALignment") is for searching DNA sequence databases for RNA structure and sequence similarities. It is an implementation of a special case of profile stochastic context-free grammars called covariance models (CMs). A CM is like a sequence profile, but it scores a combination of sequence consensus and RNA secondary structure consensus, so in many cases, it is more capable of identifying RNA homologs that conserve their secondary structure more than their primary sequence.
+
+=head1 SYNOPSIS
+
+    ./rfam2grid.pl -f genome.fasta -o outdir
+    ./rfam2grid.pl --help
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--fasta> or B<-f>
+
+The name of the genome file to read. 
+
+=item B<--cm> 
+
+File containing the covariance models (cm) used by rfam
+
+=item B<--nogrid> 
+
+Do not use the script in grid version.
+
+=item B<--outdir> or B<-o>
+
+The name of the output directory. 
+
+=item B<-h> or B<--help>
+
+Display this helpful text.
+
+=back
+
+=cut
