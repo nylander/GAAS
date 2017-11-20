@@ -5,6 +5,10 @@
 ## CDS can contains putative stop codon (but not sure stop one like YAA that can be TAA or CAA).
 ## We consider a start even if is not sure like AYG that can be ATG or ACG
 
+##TO DO
+## Consider longest ORF wihtout checking start (can be incomplete) <= otpion to check start
+
+
 use Carp;
 use Clone 'clone';
 use strict;
@@ -38,6 +42,7 @@ my $model_to_test = undef;
 my $file_fasta=undef;
 my $split_opt=undef;
 my $codonTable=1;
+my $verbose = undef;
 my $help= 0;
 
 my @copyARGV=@ARGV;
@@ -48,6 +53,7 @@ if ( !GetOptions(
     "split|s" => \$split_opt,
     "table|codon|ct=i" => \$codonTable,
     "m|model=s" => \$model_to_test,
+    "v!" => \$verbose,
     "output|outfile|out|o=s" => \$outfile))
 
 {
@@ -239,7 +245,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
 
           ########################
           # prediction is longer #
-          print $id_level2." - size before: ".$originalProt_size." size after: ".$longest_ORF_prot_obj->length()."\n";
+          print $id_level2." - size before: ".$originalProt_size." size after: ".$longest_ORF_prot_obj->length()."\n" if $verbose;
           if($longest_ORF_prot_obj->length() > $originalProt_size){
             
 #Model1     ###############################################
@@ -267,7 +273,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
                 my $model;
   
                 if( exists($ListModel{2}) ){
-                   print "mrNA $id_level2 $gene_id_tag_key => model2\n";
+                   print "mrNA $id_level2 $gene_id_tag_key => model2\n" if $verbose;
                   $ListModel{2}++;
                   $model=1;
                   if($split_opt){
@@ -287,7 +293,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
                 # original protein and predicted one are different; the predicted one is longest, they overlap each other.
                 if( exists($ListModel{3}) ){ 
                   $ListModel{3}++;
-                  print "mrNA $id_level2 $gene_id_tag_key => model3\n";
+                  print "mrNA $id_level2 $gene_id_tag_key => model3\n" if $verbose;
                   
                   modify_gene_model($hash_omniscient, \%omniscient_modified_gene, $gene_feature, $gene_id_tag_key, $level2_feature, $id_level2, \@exons_features, \@cds_feature_list, $cdsExtremStart, $cdsExtremEnd, $realORFstart, $realORFend, 'model3', $gffout);
                   $ORFmodified="yes";
@@ -304,16 +310,17 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
             # /!\ Here we compare the CDS traduction (traduct in IUPAC) against longest CDS in mRNA IUPAC modified to take in account for stops codon only those that are trustable only (TGA, TAR...).
             if( exists($ListModel{4}) ){ 
               $ListModel{4}++;
-              print "mrNA $id_level2 $gene_id_tag_key => model4\n";
-              #print "Original: ".$original_prot_obj->seq."\n";
-              #print "longestl: ".$longest_ORF_prot_obj->seq."\n";
+              print "mrNA $id_level2 $gene_id_tag_key => model4\n" if $verbose;
+              print "Original: ".$original_prot_obj->seq."\n" if $verbose;
+              print "longestl: ".$longest_ORF_prot_obj->seq."\n" if $verbose;
               # contains stop codon but not at the last position
               if( (index($original_prot_obj->seq, '*') != -1 ) and (index($original_prot_obj->seq, '*') != length($original_prot_obj->seq)-1) ){
+                print "contains premature stop codon\n";
            ## Pseudogene THRESHOLD ##              
   #              my $threshold_size=(length($original_prot_obj->seq)*$pseudo_threshold)/100; #70% of the original size
   #              if(length($longest_ORF_prot_obj->seq) <  $threshold_size){ # inferior to threshold choosen, we suspect it to be a pseudogene
-  #                print Dumper($original_prot_obj);
-  #                print Dumper($longest_ORF_prot_obj);
+                  print Dumper($original_prot_obj);
+                  print Dumper($longest_ORF_prot_obj);
   #                $mrna_pseudo++;
   #                push(@list_mrna_pseudo, $id_level2);
   #              }

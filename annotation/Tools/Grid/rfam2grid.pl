@@ -184,7 +184,7 @@ close($OUT);
 sub parse_line {
 	# chomp;
 	my $line = shift ;
-	print "$line.\n";
+
 	my ($tn,$tacc,$qn,$qacc,$mdl,$mdlf,$mdlt,$seqf,$seqt,$strand,$trunc,$pass,$gc,$bias,$score,$evalue,$inc,$desc) = split(/\s+/,$line);
 	
 	my %tags = ( 'rfam-id' => $qn,

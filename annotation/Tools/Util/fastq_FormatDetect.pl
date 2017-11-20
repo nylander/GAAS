@@ -1,15 +1,12 @@
 #!/usr/bin/env perl
-# Author: Martin Dahlo / modified Jacques Dainat
-#
-# Usage:  perl scriptname.pl <infile> [-a -t <max seconds to search>]
-# ex.
-# perl scriptname.pl reads.fq
-# perl scriptname.pl reads.fq -a
-# perl scriptname.pl reads.fq -a -t 90
+# Author: Martin Dahlo / Jacques Dainat
+
 
 use warnings;
 use strict;
 use Getopt::Std;
+use Getopt::Long;
+use Pod::Usage;
 
 
 =pod
@@ -68,33 +65,61 @@ Pseudo code
 
 =cut
 
+
 # REMINDER
 my $remain="\n/!\\ We remain that ASCII code used by the differents score system overlap each other. We differentiate them only looking the part non-overlaping. So we assume that the reads analyzed should statistically contains at least one value of the non-overlapping part. 
 Indeed, fastq file are enough large to contains each value possible of the quality score system.\n(fastqc do the same assumption and never reported any error)
 ";
+# scoring system definitions, according to http://en.wikipedia.org/wiki/FASTQ_format#Encoding 
+# Feel free to add more on your own, following the system of the ones already in here.
+my %systems = (	'Sanger', [33,126], 
+		'Solexa', [59,126], 
+		'Illumina 1.3+', [64,126], 
+		'Illumina 1.5+', [66,126], 
+		'Illumina 1.8+', [35,126]);
 
-# get filename
-my $usage = <<EOF;
-Usage:  perl scriptname.pl <infile> [-a -t <max seconds to search>]
+my %infoDisplay = ( 'Sanger' => 'Phred+33 - It could be Sanger or Illumina 1.8+. Sorry this is the only case impossible to really differentiate !\nAnyway, you will be happy to learn that one or the other have exactly the same quality score system (Phred+33)'.
+			'\nAs the character <I> is not present we could assume that is Sanger !',
+                    	'Solexa' => 'Solexa+64 - It could be Solexa',
+                    	'Illumina 1.3+' => 'Phred+64 - It could be Illumina 1.3+',
+                    	'Illumina 1.5+' => 'Phred+64 - It could be Illumina 1.5+',
+			'Illumina 1.8+' => 'Phred+33 - It could be Sanger or Illumina 1.8+. Sorry this is the only case impossible to really differentiate !\nAnyway, you will be happy to learn that one or the other have exactly the same quality score system (Phred+33)'. 
+                            '\nWe know that you really want to know exactly which Quality score it is... So, as the character <I> is present we could assume that is Illumina 1.8+ !',
+			'last' => 'Phred+33 - It could be Sanger or Illumina 1.8+. Sorry this is the only case impossible to really differentiate !\nAnyway, you will be happy to learn that one or the other have exactly the same quality score system (Phred+33)'.
+                            '\nWe know that you really want to know exactly which Quality score it is... but there is ASCII value over 41 we absolutly cannot differentiate them abinitio.');
 
--a		Advanced mode. Can be used to find exactly which scoring system it is.
--t		Set the max search time in seconds to be used when using -a. Default is 60.
-EOF
+my $inputFile=undef;
+my $opt_help=undef;
+my $adv = undef;
+my $time = 999999999;
 
-my $fq = shift or die $usage;
+Getopt::Long::Configure ('bundling');
+if ( !GetOptions ('i|fq|fastq=s' => \$inputFile,
+			      'a!' => \$adv,
+			      't=i' => \$time,
+			      'h|help!'         => \$opt_help )  )
+{
+    pod2usage( { -message => 'Failed to parse command line',
+                 -verbose => 1,
+                 -exitval => 1 } );
+}
 
-# get flags, if any
-getopts('at:');
-our($opt_a, $opt_t);
-my $adv = $opt_a;
-my $time = $opt_t || 999999999;
+if ($opt_help) {
+    pod2usage( { -verbose => 2,
+                 -exitval => 0 } );
+}
+
+if ((!defined($inputFile)) ){
+   pod2usage( { -message => 'at least 1 parameter is mandatory: -i',
+                 -verbose => 1,
+                 -exitval => 1 } );
+}
 
 # open the files
-open FQ, "<", $fq or die $!;
+open FQ, "<", $inputFile or die $!;
 
 
-
-
+# in non advance mode
 if(!$adv){
 
 	# initiate
@@ -119,9 +144,9 @@ if(!$adv){
 
 				# check if it is sanger or illumina/solexa, based on the ASCII image at http://en.wikipedia.org/wiki/FASTQ_format#Encoding
 				if($number > 74){ # if solexa/illumina
-						die "This file looks like Solexa/Illumina1.3+/Illumina1.5+ format.\n"; # print result to terminal and die
+						die "This file looks like Solexa/Illumina1.3+/Illumina1.5+ format. Launch the script in advanced mode in order to know more\n"; # print result to terminal and die
 				}elsif($number < 59){ # if sanger
-					die "This file looks like Sanger/Illumina 1.8+ format.\n"; # print result to terminal and die
+					die $infoDisplay{'last'}."\n"; # print result (Sanger/illumina1.8+) to terminal and die
 				}
 			}
 		}
@@ -146,25 +171,8 @@ if($adv){
 	my $min = 99999999;
 	my $start = time();
 
-	# scoring system definitions, according to http://en.wikipedia.org/wiki/FASTQ_format#Encoding 
-	# Feel free to add more on your own, following the system of the ones already in here.
-	my %systems = (	'Sanger', [33,126], 
-			'Solexa', [59,126], 
-			'Illumina 1.3+', [64,126], 
-			'Illumina 1.5+', [66,126], 
-			'Illumina 1.8+', [35,126]);
 
-	my %infoDisplay = ( 'Sanger' => 'Phred+33 - It could be Sanger or Illumina 1.8+. Sorry this is the only case impossible to really differentiate !\nAnyway, you will be happy to learn that one or the other have exactly the same quality score system (Phred+33)'.
-				'\nAs the character <I> is not present we could assume that is Sanger !',
-                        	'Solexa' => 'Solexa+64 - It could be Solexa',
-                        	'Illumina 1.3+' => 'Phred+64 - It could be Illumina 1.3+',
-                        	'Illumina 1.5+'=> 'Phred+64 - It could be Illumina 1.5+',
-				'Illumina 1.8+' => 'Phred+33 - It could be Sanger or Illumina 1.8+. Sorry this is the only case impossible to really differentiate !\nAnyway, you will be happy to learn that one or the other have exactly the same quality score system (Phred+33)'. 
-                                '\nWe know that you really want to know exactly which Quality score it is... So, as the character <I> is present we could assume that is Illumina 1.8+ !',
-				'last' => 'Phred+33 - It could be Sanger or Illumina 1.8+. Sorry this is the only case impossible to really differentiate !\nAnyway, you will be happy to learn that one or the other have exactly the same quality score system (Phred+33)'.
-                                '\nWe know that you really want to know exactly which Quality score it is... but there is ASCII value over 41 we absolutly cannot differentiate them.');
-
- 	my $nb_line =	`awk 'END {print NR}' $fq`;
+ 	my $nb_line =	`awk 'END {print NR}' $inputFile`;
 	my $nb_read = $nb_line/4;
 	my $startP=time;
 	print "Your file contains $nb_read reads. The analysis could take a while.\n";
@@ -296,3 +304,43 @@ sub check{
 	# return all matching systems
 	return @matching;
 }
+
+__END__
+
+
+-a		
+-t		
+
+=head1 NAME
+
+Used to detect the format of a fastq file.
+Be aware that parse a fastq file could be very long, so think to set a maximum time, no need to check all the file to guess the format.
+
+=head1 SYNOPSIS
+
+    fastq_FormatDetect.pl -i <input file> [-a -t <max seconds to search>]
+    fastq_FormatDetect.pl --help
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<-i>, B<--fq> or B<--fastq>
+
+STRING: Input fastq file that will be read.
+
+=item B<-a> 
+
+Advanced mode. Can be used to find exactly which scoring system it is.
+
+=item B<-t> 
+
+Set the max search time in seconds to be used when using -a. Default is 60.
+
+=item B<--help> or B<-h>
+
+Display this helpful text.
+
+=back
+
+=cut

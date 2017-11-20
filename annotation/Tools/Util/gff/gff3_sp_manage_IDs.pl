@@ -21,10 +21,12 @@ my $gff = undef;
 my $help= 0;
 my @opt_tag=();
 my $outfile=undef;
+my $prefix=undef;
 
 if ( !GetOptions(
     "help|h" => \$help,
     "gff|f=s" => \$gff,
+    "prefix=s" => \$prefix,
     "p|t|l=s" => \@opt_tag,
     "output|outfile|out|o=s" => \$outfile))
 
@@ -90,79 +92,92 @@ else{
                 #####################
 
 my %keepTrack;
+my %dynamicTrackExonToE;
+my %dynamicTrackEtoExon;
 
 ######################
 ### Parse GFF input #
 my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($gff);
 print ("GFF3 file parsed\n");
 
+# sort by seq id
+my %hash_sortBySeq;
+foreach my $tag_level1 ( keys %{$hash_omniscient->{'level1'}}){
+  foreach my $level1_id ( keys %{$hash_omniscient->{'level1'}{$tag_level1}}){
+    my $position=$hash_omniscient->{'level1'}{$tag_level1}{$level1_id}->seq_id;
+    push (@{$hash_sortBySeq{$position}{$tag_level1}}, $hash_omniscient->{'level1'}{$tag_level1}{$level1_id});
+  }
+}
 
-foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){
-  
-  foreach my $id_l1 (keys %{$hash_omniscient->{'level1'}{$tag_l1}}){
-    
-    my $l1_ID_modified=undef;
+#Read by seqId to sort properly for ID naming
+foreach my $seqid (sort alphaNum keys %hash_sortBySeq){ # loop over all the feature level1
 
-    $keepTrack{$tag_l1}++;
-    if(exists ($ptagList{$tag_l1}) or  exists ($ptagList{'level1'}) ){
-      my $feature_l1=$hash_omniscient->{'level1'}{$tag_l1}{$id_l1};     
-      manage_attributes($feature_l1,\%keepTrack);
+  foreach my $tag_l1 (sort {$a cmp $b} keys %{$hash_sortBySeq{$seqid}}){
 
-      $l1_ID_modified=$feature_l1->_tag_value('ID');
-      $hash_omniscient->{'level1'}{$tag_l1}{lc($l1_ID_modified)} = delete $hash_omniscient->{'level1'}{$tag_l1}{$id_l1};    
-    }
+    foreach my $feature_l1 ( sort {$a->start <=> $b->start} @{$hash_sortBySeq{$seqid}{$tag_l1}}){
+      my $id_l1 = lc($feature_l1->_tag_value('ID'));
+      my $l1_ID_modified=undef;
 
-    #################
-    # == LEVEL 2 == #
-    #################
-    foreach my $tag_l2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
-      
-      if ( exists ($hash_omniscient->{'level2'}{$tag_l2}{$id_l1} ) ){
-        foreach my $feature_l2 ( @{$hash_omniscient->{'level2'}{$tag_l2}{$id_l1}}) {
-          
-          my $l2_ID_modified=undef;
-          my $level2_ID = lc($feature_l2->_tag_value('ID'));
+      $keepTrack{$tag_l1}++;
+      if(exists ($ptagList{$tag_l1}) or  exists ($ptagList{'level1'}) ){ 
+        manage_attributes($feature_l1,\%keepTrack, $prefix);
 
-          $keepTrack{$tag_l2}++;
-          if(exists ($ptagList{$tag_l2}) or  exists ($ptagList{'level2'}) ){
-            manage_attributes($feature_l2,\%keepTrack);
-            $l2_ID_modified=$feature_l2->_tag_value('ID');
-          }
+        $l1_ID_modified=$feature_l1->_tag_value('ID');
+        $hash_omniscient->{'level1'}{$tag_l1}{lc($l1_ID_modified)} = delete $hash_omniscient->{'level1'}{$tag_l1}{$id_l1};    
+      }
 
-          #Modify parent if necessary
-          if($l1_ID_modified){
-             create_or_replace_tag($feature_l2,'Parent', $l1_ID_modified);
-          }
-
-          #################
-          # == LEVEL 3 == #
-          #################
-          foreach my $tag_l3 (keys %{$hash_omniscient->{'level3'}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
+      #################
+      # == LEVEL 2 == #
+      #################
+      foreach my $tag_l2 (sort {$a cmp $b}  keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
+        
+        if ( exists ($hash_omniscient->{'level2'}{$tag_l2}{$id_l1} ) ){
+          foreach my $feature_l2 ( sort {$a->start <=> $b->start} @{$hash_omniscient->{'level2'}{$tag_l2}{$id_l1}}) {
             
-            if ( exists_keys($hash_omniscient, ('level3', $tag_l3 , $level2_ID) ) ){
+            my $l2_ID_modified=undef;
+            my $level2_ID = lc($feature_l2->_tag_value('ID'));
 
-              foreach my $feature_l3 ( @{$hash_omniscient->{'level3'}{$tag_l3}{$level2_ID}}) {
-                
-                $keepTrack{$tag_l3}++;
-                if(exists ($ptagList{$tag_l3}) or  exists ($ptagList{'level3'}) ){
-                  manage_attributes($feature_l3,\%keepTrack);
+            $keepTrack{$tag_l2}++;
+            if(exists ($ptagList{$tag_l2}) or  exists ($ptagList{'level2'}) ){
+              manage_attributes($feature_l2,\%keepTrack, $prefix);
+              $l2_ID_modified=$feature_l2->_tag_value('ID');
+            }
+
+            #Modify parent if necessary
+            if($l1_ID_modified){
+               create_or_replace_tag($feature_l2,'Parent', $l1_ID_modified);
+            }
+
+            #################
+            # == LEVEL 3 == #
+            #################
+            foreach my $tag_l3 (sort {$a cmp $b} keys %{$hash_omniscient->{'level3'}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
+              
+              if ( exists_keys($hash_omniscient, ('level3', $tag_l3 , $level2_ID) ) ){
+
+                foreach my $feature_l3 ( sort {$a->start <=> $b->start} @{$hash_omniscient->{'level3'}{$tag_l3}{$level2_ID}}) {
+                  
+                  $keepTrack{$tag_l3}++;
+                  if(exists ($ptagList{$tag_l3}) or  exists ($ptagList{'level3'}) ){
+                    manage_attributes($feature_l3,\%keepTrack, $prefix);
+                  }
+
+                  #Modify parent if necessary
+                  if($l2_ID_modified){
+                     create_or_replace_tag($feature_l3,'Parent', $l2_ID_modified);
+                  }
+
                 }
 
-                #Modify parent if necessary
                 if($l2_ID_modified){
-                   create_or_replace_tag($feature_l3,'Parent', $l2_ID_modified);
+                  $hash_omniscient->{'level3'}{$tag_l3}{lc($l2_ID_modified)} = delete $hash_omniscient->{'level3'}{$tag_l3}{$level2_ID};
                 }
-
-              }
-
-              if($l2_ID_modified){
-                $hash_omniscient->{'level3'}{$tag_l3}{lc($l2_ID_modified)} = delete $hash_omniscient->{'level3'}{$tag_l3}{$level2_ID};
               }
             }
           }
-        }
-        if($l1_ID_modified){
-          $hash_omniscient->{'level2'}{$tag_l2}{lc($l1_ID_modified)} = delete $hash_omniscient->{'level2'}{$tag_l2}{$id_l1};
+          if($l1_ID_modified){
+            $hash_omniscient->{'level2'}{$tag_l2}{lc($l1_ID_modified)} = delete $hash_omniscient->{'level2'}{$tag_l2}{$id_l1};
+          }
         }
       }
     }
@@ -186,12 +201,68 @@ print_omniscient($hash_omniscient, $gffout); #print gene modified
                  ##
 
 sub  manage_attributes{
-  my  ($feature, $keepTrack)=@_;
+  my  ($feature, $keepTrack, $prefix)=@_;
   
   my $primary_tag = lc($feature->primary_tag);
-  create_or_replace_tag($feature,'ID', $primary_tag."-".$keepTrack->{$primary_tag});
+
+  if ($prefix){
+
+    my $nbName = $keepTrack->{$primary_tag};
+
+    my $numberNum=11;
+    my $GoodNum="";
+    for (my $i=0; $i<$numberNum-length($nbName); $i++){
+      $GoodNum.="0";
+    }
+    $GoodNum.=$nbName;
+
+    my $abb = uc(select_abb($feature));
+    
+    my $result="$prefix$abb$GoodNum";
+    create_or_replace_tag($feature,'ID', $result);
+  }
+  else{  
+    create_or_replace_tag($feature,'ID', $primary_tag."-".$keepTrack->{$primary_tag});
+  }
 }
 
+sub  select_abb{
+  my  ($feature)=@_;
+
+  
+  my $primary_tag = lc($feature->primary_tag);
+
+  if(exists_keys(\%dynamicTrackExonToE, ($primary_tag) ) ){
+    return $dynamicTrackExonToE{$primary_tag};
+  }
+ else{
+    my $cpt=1;
+    my $letter = uc(substr($primary_tag, 0, $cpt));
+
+    if(exists_keys(\%dynamicTrackEtoExon, ($letter) ) ){
+
+      while (exists_keys (\%dynamicTrackEtoExon, ($letter) ) ){
+          $cpt++;
+          $letter = uc(substr($primary_tag, 0, $cpt));
+      }
+      $dynamicTrackExonToE{$primary_tag}=$letter;
+      $dynamicTrackEtoExon{$letter}=$primary_tag;
+    }
+    else{
+      $dynamicTrackExonToE{$primary_tag}=$letter;
+      $dynamicTrackEtoExon{$letter}=$primary_tag;
+    }
+  return $letter;
+  }
+}
+
+#Sorting mixed strings => Sorting alphabetically first, then numerically
+# how to use: my @y = sort by_number @x;
+sub alphaNum {
+    my ( $alet , $anum ) = $a =~ /([^\d]+)(\d+)/;
+    my ( $blet , $bnum ) = $b =~ /([^\d]+)(\d+)/;
+    ( $alet || "a" ) cmp ( $blet || "a" ) or ( $anum || 0 ) <=> ( $bnum || 0 )
+}
 
 __END__
 
@@ -213,6 +284,10 @@ The script allows to give uniq ID.
 =item B<--gff> or B<-f>
 
 Input GFF3 file that will be read (and sorted)
+
+=item B<--prefix>
+
+To add a specific prefix to the ID
 
 =item B<-p>,  B<-t> or  B<-l>
 
