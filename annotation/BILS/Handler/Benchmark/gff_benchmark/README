@@ -14,7 +14,7 @@ Launch the tester.sh script to check the parser and all these files
 10: Refseq2: level2 missing, the whole is linked by a comon attribute (here locus_tag); No ID attribute ... and 3 UTRs missing
 11: Two isoforms of the same locus are not defined one after each other (so, spread...), and the level1 and level2 of those are missing. The two isoforms have to be linked to the same gene
 12: ensembl peculiarities case
-13: same as 11 but isoforms are identical (one has to be removed)
+13: same as 11 but isoforms are identical (one has to be removed). Two mRNA identic in locus tag mode.
 14: 6 UTRs missing
 15: Match / Match_part case (alignement gff). Clean case.
 16: One UTR is wrong
@@ -26,3 +26,8 @@ Launch the tester.sh script to check the parser and all these files
 22: case where UTR both side of an exon... nothing to do, jedst the check has to not perform anything...
 23: Mutliparent for the exon feature
 24: Not correct SOFA feature type
+25: No L1 feature. L2 and l3 feature withou comon locus tag. Has to be handle strictly sequential. (/!\ if there are isoforms of the same gene they cannot be gather under the same L1. There is no way to do the assumption)
+26: No L1 feature, No L2 feature, No Locus tag. => It's normal that there is no correct output to check against.
+27: One L2 is an identical isoform but not same ID. It has to be removed.
+
+/!\ If only level3 features are difined, and no locus tag present (see test 26), the tool cannot deal with it. I will create by default one umbrela level1, or if you on attribute as uniq locus ID, It will create a l1 for each feature => If only exon or only CDS features so the result will be fine, but if there are two different features that has to be linked together (two CDS or a CDS and a signal peptide as in the test case 26) , the tool will not perform properly.
