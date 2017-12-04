@@ -2,11 +2,9 @@
 
 
 use Carp;
-use Clone 'clone';
 use strict;
 use Getopt::Long;
 use Pod::Usage;
-use Data::Dumper;
 use List::MoreUtils qw(uniq);
 use Bio::Tools::GFF;
 use BILS::Handler::GFF3handler qw(:Ok);
@@ -15,8 +13,8 @@ use BILS::Handler::GXFhandler qw(:Ok);
 my $header = qq{
 ########################################################
 # BILS 2016 - Sweden                                   #  
-# jacques.dainat\@bils.se                               #
-# Please cite BILS (www.bils.se) when using this tool. #
+# jacques.dainat\@nbis.se                               #
+# Please cite BILS (www.nbis.se) when using this tool. #
 ########################################################
 };
 
@@ -103,7 +101,7 @@ __END__
 =head1 NAME
  
 gff3_sp_merge_annotations.pl - 
-This script merge different gff annotation files in gff format in one. It takes care of duplicated names to keep them uniq, and merge overlaping genes (at CDS or if no cds at exon level) together.
+This script merge different gff annotation files in gff format in one. It uses the NBIS GXF HANDLER that takes care of duplicated names and fixes other oddities met in those files.
 
 =head1 SYNOPSIS
 
