@@ -76,7 +76,7 @@ config = {
 
 if options.clean == true
         puts "Are you really sure to remove the species folder ? [y|n]:"
-	selection = gets.chomp
+	selection = STDIN.gets.chomp
         if(selection.downcase == "y")
 		puts "Cleaning database"
 		system("#{config[:web_apollo_path]}/docs/web_services/examples/groovy/delete_annotations_from_organism.groovy  -destinationurl http://localhost:8080/#{@wa_installation_name} -organismname #{@species}")
