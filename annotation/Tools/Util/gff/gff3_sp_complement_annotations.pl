@@ -2,11 +2,9 @@
 
 
 use Carp;
-use Clone 'clone';
 use strict;
 use Getopt::Long;
 use Pod::Usage;
-use Data::Dumper;
 use List::MoreUtils qw(uniq);
 use Bio::Tools::GFF;
 use BILS::Handler::GFF3handler qw(:Ok);
@@ -27,7 +25,7 @@ my $help= 0;
 
 if ( !GetOptions(
     "help|h" => \$help,
-    "ref|r=s" => \$ref,
+    "ref|r|i=s" => \$ref,
     "add|a=s" => \@opt_files,
     "output|outfile|out|o=s" => \$outfile))
 
@@ -150,24 +148,37 @@ __END__
 =head1 NAME
  
 gff3_sp_complement_annotations.pl - 
-This script merge different gff annotation files in gff format in one. It takes care of duplicated names, and merge overlaping genes together.
+This script allow to complement a reference annotation with other annotations.
+A l1 feature from the addfile.gff that does not overlap a l1 feature from the reference annotation will be added.
+A l1 feature from the addfile.gff without a CDS that overlaps a l1 feature with a CDS from the reference annotation will be added.
+A l1 feature from the addfile.gff with a CDS that overlaps a l1 feature without a CDS from the reference annotation will be added. 
+A l1 feature from the addfile.gff with a CDS that overlaps a l1 feature with a CDS from the reference annotation will be added only if the CDSs don't overlap.
+A l1 feature from the addfile.gff without a CDS that overlaps a l1 feature without a CDS from the reference annotation will be added only if none of the l3 features overlap.
+/!\ It is sufficiant that only one isoform is overlapping to prevent the whole gene (l1 feature) from the addfile.gff to be added in the output.
+
 
 =head1 SYNOPSIS
 
-    ./gff3_sp_complement_annotations.pl --gff=infile1 --gff=infile2 --out=outFile 
+    ./gff3_sp_complement_annotations.pl --ref annotation_ref.gff --add=addfile1.gff --add=addfile2.gff --out=outFile 
     ./gff3_sp_complement_annotations.pl --help
 
 =head1 OPTIONS
 
 =over 8
 
-=item B<--gff> or B<-f>
+=item B<--ref>,  B<-r> or B<-i>
 
-Input GFF3 file(s). You can specify as much file you want like so: -f file1 -f file2 -f file3
+Input GFF3 file(s) used as reference. 
 
-=item  B<--out>, B<--output> or B<-o>
+=item B<--add> or B<-a>
 
-Output gff3 file where the gene incriminated will be write.
+Annotation(s) file you would like to use to complement the reference annotation. You can specify as much file you want like so: -a addfile1 -a addfile2 -a addfile3
+/!\ The order you provide these files matter. Once the reference file has been complemented by file1, this new annotation becomes the new reference that will be complemented by file2 etc.
+/!\ The result with -a addfile1 -a addfile2 will differ to the result from -a addfile2 -a addfile1. So, be aware of what you want if you use several addfiles.
+
+=item  B<--out>, B<--output>, B<--outfile> or B<-o>
+
+Output gff3 containing the reference annotation with all the non-overlapping newly added genes from addfiles.gff.
 
 =item B<--help> or B<-h>
 

@@ -643,7 +643,7 @@ sub complement_omniscients {
 							# Let's check at Gene LEVEL
 							if( location_overlap($location, $location2) ){ #location overlap at gene level check now level3
 								#let's check at CDS level (/!\ id1_l1 is corresponding to id from $omniscient2)
-								if(check_gene_overlap_at_CDSthenEXON($omniscient2, $omniscient1, $id1_l1, $id2_l1)){ #If contains CDS it has to overlap at CDS level to be merged, otherwise any type of feature level3 overlaping is sufficient to decide to merge the level1 together
+								if(check_gene_overlap_at_CDSthenEXON($omniscient2, $omniscient1, $id1_l1, $id2_l1)){ #If contains CDS it has to overlap at CDS level, otherwise any type of feature level3 overlaping is sufficient to decide that they overlap
 									#print "$id2_l1 overlaps $id1_l1, we skip it.\n" if ($verbose >= 3);
 									$take_it=undef; last;
 								}
@@ -1787,6 +1787,7 @@ sub location_overlap_update{
 }
 
 #Check if two genes have at least one L2 isoform which overlap at cds level.
+# if no CDS we check i overlap at any other l3 feature.
 sub check_gene_overlap_at_CDSthenEXON{
   my  ($hash_omniscient, $hash_omniscient2, $gene_id, $gene_id2)=@_;
   my $resu=undef;
