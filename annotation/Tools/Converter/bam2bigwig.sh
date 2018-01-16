@@ -3,6 +3,12 @@
 # Requires genome.list (tab-delimited list of chromosomes and lengths)
 
 file=$1
+
+# load bamToBed
+module load bedtools/2.17.0
+# load bedGraphToBigWig 
+module load ucsc-tools
+
 command -v bamToBed >/dev/null 2>&1 || { echo >&2 "I require bamToBed but it's not in PATH.  Aborting."; exit 1; }
 command -v bedGraphToBigWig >/dev/null 2>&1 || { echo >&2 "I require bedGraphToBigWig but it's not in PATH.  Aborting."; exit 1; }
 

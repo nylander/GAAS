@@ -69,7 +69,7 @@ foreach my $matched (@matchedDir){
 
 	$maker_dir = $dir . "/" . $matched ;
 	my $base = $matched;
-	$base =~ s/\.maker\.output//g ;
+	$base =~ s/\.maker\.output.*//g ;
 	$datastore = $matched . "/" . $base . "_master_datastore_index.log" ;
 
 	if (-f $dir . "/" . $datastore ) {

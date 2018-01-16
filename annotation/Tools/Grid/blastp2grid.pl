@@ -3,6 +3,7 @@
 use strict;
 use warnings;
 use Getopt::Long;
+use Pod::Usage;
 use Scalar::Util qw(openhandle);
 use Time::Piece;
 use Time::Seconds;

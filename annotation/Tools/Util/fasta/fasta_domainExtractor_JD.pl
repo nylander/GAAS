@@ -11,6 +11,7 @@ use strict;
 use warnings;
 use Pod::Usage;
 use Getopt::Long;
+use IO::File;
 
 my $inputFile;
 my $outputFile;

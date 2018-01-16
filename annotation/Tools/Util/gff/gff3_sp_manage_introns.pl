@@ -8,6 +8,7 @@ use Carp;
 use Getopt::Long;
 use IO::File;
 use Pod::Usage;
+use Data::Dumper;
 use Statistics::R;
 use BILS::CheckModule qw(:Ok);
 use BILS::Plot::R qw(:Ok);
@@ -35,7 +36,7 @@ my @copyARGV=@ARGV;
 if ( !GetOptions( 'f|gff|ref|reffile=s' => \@opt_files,
                   'o|out|output=s' => \$opt_output,
                   'w|window|b|break|breaks=i'      => \$opt_breaks,
-                  'x|p=i'      => \$Xpercent,
+                  'x|p=f'      => \$Xpercent,
                   'h|help!'         => \$opt_help ) )
 {
     pod2usage( { -message => 'Failed to parse command line',
@@ -48,7 +49,6 @@ if ($opt_help) {
                  -exitval => 2,
                  -message => "$header\n" } );
 }
-
 if ( ! ( $#opt_files  >= 0) ) {
     pod2usage( {
            -message => "$header\nMust specify at least 1 parameters:\nReference data gff3 file (--gff)\n",

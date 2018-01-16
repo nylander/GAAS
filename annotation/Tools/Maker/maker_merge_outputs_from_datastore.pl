@@ -113,7 +113,7 @@ else{
 
 	foreach my $makerDir (@inDir){
 		my $prefix = $makerDir;
-		$prefix =~ s/\.maker\.output//;
+		$prefix =~ s/\.maker\.output.*//;
 		my $maker_dir_path = $dir . "/" . $makerDir."/";
 		my $datastore = $maker_dir_path.$prefix."_datastore" ;
 
