@@ -2287,7 +2287,7 @@ sub _check_identical_isoforms{
 			# If more than 1 related to level1
 			
 			if(exists_keys($omniscient,('level2', $l2_type, $id2_l1)) and scalar @{$omniscient->{'level2'}{$l2_type}{$id2_l1}} > 1){ # more than one l2 feature of that type
-				print  "Go in the if !!\n";
+
 				my @L2_list_to_remove;
 				my %checked;
 				foreach my $feature2 (sort {$b cmp $a} @{$omniscient->{'level2'}{$l2_type}{$id2_l1}}){			
