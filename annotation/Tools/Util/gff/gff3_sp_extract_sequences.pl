@@ -472,7 +472,7 @@ Input fasta file.
 
 =item B<-t> 
 
-Define the feature you want to extract the sequnce from. By deafault it's 'cds'. Most common choice are: gene,mrna,exon,cds,trna,three_prime_utr,five_prime_utr.
+Define the feature you want to extract the sequnece from. By deafault it's 'cds'. Most common choice are: gene,mrna,exon,cds,trna,three_prime_utr,five_prime_utr.
 When you chose exon (or cds,utr,etc.), all the exon related to a same L2 feature are attached together before to extract the exon. (It doesnt provide one sequence by exon !!)
 
 =item B<-p>, B<--protein> or B<--aa>

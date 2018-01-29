@@ -13,7 +13,7 @@ my $start_run = time();
 
 my $header = qq{
 ########################################################
-# BILS 2015 - Sweden                                   #  
+# BILS 2017 - Sweden                                   #  
 # jacques.dainat\@bils.se                               #
 # Please cite BILS (www.bils.se) when using this tool. #
 ########################################################

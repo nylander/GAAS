@@ -610,11 +610,11 @@ sub fill_omniscient_from_other_omniscient_level1_id {
 
 #append hash1 by hash2 accodingly with overlap parameter. Only non overlaping one will be kept
 sub complement_omniscients {
-	my ($omniscient1, $omniscient2, $overlap_level, $verbose)=@_;
+	my ($omniscient1, $omniscient2, $verbose)=@_;
 
 	my %add_omniscient;
 	
-	if(! $verbose){$verbose=3;}
+	#if(! $verbose){$verbose=3;}
 	my $omniscient1_sorted = sort_by_seq($omniscient1);
 	my $omniscient2_sorted = sort_by_seq($omniscient2);
 
@@ -624,7 +624,7 @@ sub complement_omniscients {
 
 				# Go through location from left to right ### !!
 				foreach my $id1_l1 ( sort {$omniscient2_sorted->{$locusID}{'level1'}{$tag_l1}{$a}[1] <=> $omniscient2_sorted->{$locusID}{'level1'}{$tag_l1}{$b}[1] } keys %{$omniscient2_sorted->{$locusID}{'level1'}{$tag_l1}} ) {
-					
+					print "\nlets look at $id1_l1.\n" if ($verbose >= 3);
 					my $take_it=1;
 					my $location = $omniscient2_sorted->{$locusID}{'level1'}{$tag_l1}{$id1_l1};
 
@@ -637,21 +637,29 @@ sub complement_omniscients {
 														
 							#If location_to_check start if over the end of the reference location, we stop
 							if($location2->[1] > $location->[2]) {last;} 
+							print "location_to_check start if over the end of the reference location.\n" if ($verbose >= 3);
+
 							#If location_to_check end if inferior to the start of the reference location, we continue next
 							if($location2->[2] < $location->[1]) {next;} 
+							print "location_to_check start if inferior to the start of the reference location.\n" if ($verbose >= 3);
 
 							# Let's check at Gene LEVEL
 							if( location_overlap($location, $location2) ){ #location overlap at gene level check now level3
 								#let's check at CDS level (/!\ id1_l1 is corresponding to id from $omniscient2)
 								if(check_gene_overlap_at_CDSthenEXON($omniscient2, $omniscient1, $id1_l1, $id2_l1)){ #If contains CDS it has to overlap at CDS level, otherwise any type of feature level3 overlaping is sufficient to decide that they overlap
-									#print "$id2_l1 overlaps $id1_l1, we skip it.\n" if ($verbose >= 3);
+									print "$id2_l1 overlaps $id1_l1, we skip it.\n" if ($verbose >= 3);
 									$take_it=undef; last;
 								}
+								print "$id2_l1 overlaps $id1_l1 overlap but not at CDS level.\n" if ($verbose >= 3);
+							}
+							else{
+								print "$id2_l1 DO NOT OVERLAP $id1_l1.\n" if ($verbose >= 3);
 							}
 						}	
 					}
 
 					if($take_it){
+						print "We take it : $id1_l1\n" if ($verbose >= 3);
 						#save level1
 						$add_omniscient{'level1'}{$tag_l1}{$id1_l1} = $omniscient2->{'level1'}{$tag_l1}{$id1_l1};
 						#save level2
@@ -727,13 +735,14 @@ sub rename_ID_existing_in_omniscient {
 						my $new_parent_l2=undef;
 
 						if($new_parent){
-							create_or_replace_tag($feature_l2, 'Parent', $hash_omniscient1->{'level1'}{$tag_l1}{$id_l1}->_tag_value('ID'));
+							create_or_replace_tag($feature_l2, 'Parent', $uID);
 						}
 
 						my $uID_l2 = $feature_l2->_tag_value('ID');
 						my $id_l2 = lc($uID_l2);
 
 						if ( exists ( $hash_whole_IDs->{$id_l2} ) ){
+
 							$resume_case++;
 							$uID_l2 = replace_by_uniq_ID($feature_l2, $hash_whole_IDs,  $hash2_whole_IDs, $miscCount);	
 							$new_parent_l2=1;
