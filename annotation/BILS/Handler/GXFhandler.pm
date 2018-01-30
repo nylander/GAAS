@@ -2282,10 +2282,12 @@ sub _check_identical_isoforms{
 	my $resume_case=undef;
 
 	# Go through oall l2 feature
-	foreach my $l2_type (%{$omniscient->{'level2'}}){
-		foreach my $id2_l1 (%{$omniscient->{'level2'}{$l2_type}}){
+	foreach my $l2_type (keys %{$omniscient->{'level2'}}){
+		foreach my $id2_l1 (keys %{$omniscient->{'level2'}{$l2_type}}){
 			# If more than 1 related to level1
+			
 			if(exists_keys($omniscient,('level2', $l2_type, $id2_l1)) and scalar @{$omniscient->{'level2'}{$l2_type}{$id2_l1}} > 1){ # more than one l2 feature of that type
+
 				my @L2_list_to_remove;
 				my %checked;
 				foreach my $feature2 (sort {$b cmp $a} @{$omniscient->{'level2'}{$l2_type}{$id2_l1}}){			
@@ -2326,20 +2328,20 @@ sub _check_identical_isoforms{
 					}
 				}
 
-			#L2 has to be removed from List
-			my @newL2List;	
-			foreach my $feature ( @{$omniscient->{'level2'}{$l2_type}{$id2_l1}} ){
-				my $keep = 1;
-				foreach my $id_l2 (@L2_list_to_remove){
-					if( lc($feature->_tag_value('ID')) eq lc($id_l2) ){
-						$keep = undef;
+				#L2 has to be removed from List
+				my @newL2List;	
+				foreach my $feature ( @{$omniscient->{'level2'}{$l2_type}{$id2_l1}} ){
+					my $keep = 1;
+					foreach my $id_l2 (@L2_list_to_remove){
+						if( lc($feature->_tag_value('ID')) eq lc($id_l2) ){
+							$keep = undef;
+						}
+					}
+					if($keep){
+						push (@newL2List,$feature)
 					}
 				}
-				if($keep){
-					push (@newL2List,$feature)
-				}
-			}
-			@{$omniscient->{'level2'}{$l2_type}{$id2_l1}}=@newL2List;
+				@{$omniscient->{'level2'}{$l2_type}{$id2_l1}}=@newL2List;
 
 			}
 		}
