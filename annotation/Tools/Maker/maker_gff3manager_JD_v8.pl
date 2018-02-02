@@ -485,116 +485,137 @@ if ($opt_nameU || $opt_name ){#|| $opt_BlastFile || $opt_InterproFile){
   foreach my $key_hash (keys %hash_of_omniscient){
     my $hash_ref = $hash_of_omniscient{$key_hash};
 
+    my %hash_sortBySeq;
+    foreach my $tag_level1 ( keys %{$hash_ref->{'level1'}}){
+      foreach my $level1_id ( keys %{$hash_ref->{'level1'}{$tag_level1}}){
+        my $position=$hash_ref->{'level1'}{$tag_level1}{$level1_id}->seq_id;
+        push (@{$hash_sortBySeq{$position}{$tag_level1}}, $hash_ref->{'level1'}{$tag_level1}{$level1_id});
+      }
+    } 
+
     #################
     # == LEVEL 1 == #
     #################
-    foreach my $primary_tag_level1 (keys %{$hash_ref ->{'level1'}}){ # primary_tag_level1 = gene or repeat etc...
-      foreach my $id_level1 (keys %{$hash_ref ->{'level1'}{$primary_tag_level1}}){
-        print_time( "Next gene $id_level1\n");
-        my $feature_level1=$hash_ref->{'level1'}{$primary_tag_level1}{$id_level1};
-        my $level1_ID = $feature_level1->_tag_value('ID');
-        my $newID_level1;
+    #Read by seqId to sort properly the output by seq ID
+    foreach my $seqid (sort alphaNum keys %hash_sortBySeq){ # loop over all the feature level1
 
-        #keep track of Maker ID
-        if($opt_BlastFile){#In that case the name given by Maker is removed from ID and from Name. We have to kee a track
-          create_or_replace_tag($feature_level1, 'makerName', $level1_ID);
-        }
+      foreach my $primary_tag_level1 (sort {$a cmp $b} keys %{$hash_sortBySeq{$seqid}}){
 
-        if(lc($primary_tag_level1) =~ /repeat/ ){
-          $newID_level1 = manageID($prefixName,$nbRepeatName,'R'); 
-          $nbRepeatName++;
-          create_or_replace_tag($feature_level1, 'ID', $newID_level1);
-        }
-        else{
-          $newID_level1 = manageID($prefixName,$nbGeneName,'G'); 
-          $nbGeneName++; 
-          create_or_replace_tag($feature_level1, 'ID', $newID_level1);
-        }
+        foreach my $feature_level1 ( sort {$a->start <=> $b->start} @{$hash_sortBySeq{$seqid}{$primary_tag_level1}}){
+          my $level1_ID=$feature_level1->_tag_value('ID');
+          my $id_level1 = lc($level1_ID);
+          my $newID_level1=undef;
+          #print_time( "Next gene $id_level1\n");
 
-        $finalID{$feature_level1->_tag_value('ID')}=$newID_level1;
-        #################
-        # == LEVEL 2 == #
-        #################
-        foreach my $primary_tag_key_level2 (keys %{$hash_ref->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
-          
-          if ( exists_keys ($hash_ref, ('level2', $primary_tag_key_level2, $id_level1) ) ){
-            foreach my $feature_level2 ( @{$hash_ref->{'level2'}{$primary_tag_key_level2}{$id_level1}}) {
+          #keep track of Maker ID
+          if($opt_BlastFile){#In that case the name given by Maker is removed from ID and from Name. We have to kee a track
+            create_or_replace_tag($feature_level1, 'makerName', $level1_ID);
+          }
 
-              my $level2_ID = $feature_level2->_tag_value('ID');
-              my $newID_level2;
-              
-              #keep track of Maker ID
-              if($opt_InterproFile){#In that case the name given by Maker is removed from ID and from Name. We have to kee a track
-                create_or_replace_tag($feature_level2, 'makerName', $level2_ID);
-              }
+          if(lc($primary_tag_level1) =~ /repeat/ ){
+            $newID_level1 = manageID($prefixName,$nbRepeatName,'R'); 
+            $nbRepeatName++;
+            create_or_replace_tag($feature_level1, 'ID', $newID_level1);
+          }
+          else{
+            $newID_level1 = manageID($prefixName,$nbGeneName,'G'); 
+            $nbGeneName++; 
+            create_or_replace_tag($feature_level1, 'ID', $newID_level1);
+          }
 
-              if(lc($feature_level2) =~ /repeat/ ){
-                print "What should we do ? implement something. L1 and l2 repeats will have same name ...\n";exit;
-              }
-              else{
-                $newID_level2 = manageID($prefixName,$nbmRNAname,"T");
-                $nbmRNAname++; 
-                create_or_replace_tag($feature_level2, 'ID', $newID_level2);
-                create_or_replace_tag($feature_level2, 'Parent', $newID_level1);
-              }
-              
-              $finalID{$level2_ID}=$newID_level2;
-              #################
-              # == LEVEL 3 == #
-              #################
-             
-              foreach my $primary_tag_level3 (keys %{$hash_ref->{'level3'}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
+          $finalID{$feature_level1->_tag_value('ID')}=$newID_level1;
+          #################
+          # == LEVEL 2 == #
+          #################
+          foreach my $primary_tag_key_level2 (keys %{$hash_ref->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
+            
+            if ( exists_keys ($hash_ref, ('level2', $primary_tag_key_level2, $id_level1) ) ){
+              foreach my $feature_level2 ( @{$hash_ref->{'level2'}{$primary_tag_key_level2}{$id_level1}}) {
 
-                  if ( exists_keys ($hash_ref,('level3',$primary_tag_level3, lc($level2_ID)) ) ){
+                my $level2_ID = $feature_level2->_tag_value('ID');
+                my $newID_level2=undef;
+                
+                #keep track of Maker ID
+                if($opt_InterproFile){#In that case the name given by Maker is removed from ID and from Name. We have to kee a track
+                  create_or_replace_tag($feature_level2, 'makerName', $level2_ID);
+                }
 
-                    foreach my $feature_level3 ( @{$hash_ref->{'level3'}{$primary_tag_level3}{lc($level2_ID)}}) {
+                if(lc($feature_level2) =~ /repeat/ ){
+                  print "What should we do ? implement something. L1 and l2 repeats will have same name ...\n";exit;
+                }
+                else{
+                  $newID_level2 = manageID($prefixName,$nbmRNAname,"T");
+                  $nbmRNAname++; 
+                  create_or_replace_tag($feature_level2, 'ID', $newID_level2);
+                  create_or_replace_tag($feature_level2, 'Parent', $newID_level1);
+                }
+                
+                $finalID{$level2_ID}=$newID_level2;
+                #################
+                # == LEVEL 3 == #
+                #################
+               
+                foreach my $primary_tag_level3 (keys %{$hash_ref->{'level3'}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
 
-                      #keep track of Maker ID
-                      my $level3_ID = $feature_level3->_tag_value('ID');
-                      if($opt_InterproFile){#In that case the name given by Maker is removed from ID and from Name. We have to kee a track
-                        create_or_replace_tag($feature_level3, 'makerName', $level3_ID);
+                    if ( exists_keys ($hash_ref,('level3',$primary_tag_level3, lc($level2_ID)) ) ){
+
+                      foreach my $feature_level3 ( @{$hash_ref->{'level3'}{$primary_tag_level3}{lc($level2_ID)}}) {
+
+                        #keep track of Maker ID
+                        my $level3_ID = $feature_level3->_tag_value('ID');
+                        if($opt_InterproFile){#In that case the name given by Maker is removed from ID and from Name. We have to kee a track
+                          create_or_replace_tag($feature_level3, 'makerName', $level3_ID);
+                        }
+
+                        my $newID_level3 ="";
+                        if($primary_tag_level3 =~ /exon/ ){
+                          $newID_level3 = manageID($prefixName,$nbExonName,'E'); 
+                          $nbExonName++;
+                          create_or_replace_tag($feature_level3, 'ID', $newID_level3);
+                          create_or_replace_tag($feature_level3, 'Parent', $newID_level2);
+
+                        }
+                        elsif($primary_tag_level3 =~ /cds/){
+                          $newID_level3 = manageID($prefixName,$nbCDSname,'C'); 
+                          if($opt_nameU){$nbCDSname++;}
+                          create_or_replace_tag($feature_level3, 'ID', $newID_level3);
+                          create_or_replace_tag($feature_level3, 'Parent', $newID_level2);
+                        }
+
+                        elsif($primary_tag_level3 =~ /utr/){
+                          $newID_level3 = manageID($prefixName,$nbUTRName,'U');
+                          if($opt_nameU){$nbUTRName++;}
+                          create_or_replace_tag($feature_level3, 'ID', $newID_level3);
+                          create_or_replace_tag($feature_level3, 'Parent', $newID_level2);
+                        }
+                        else{
+                          $newID_level3 = manageID($prefixName,$nbOTHERName,'O');
+                          $nbOTHERName++;
+                          create_or_replace_tag($feature_level3, 'ID', $newID_level3);
+                          create_or_replace_tag($feature_level3, 'Parent', $newID_level2);                        
+                        }
+                        $finalID{$level3_ID}=$newID_level3;
                       }
-
-                      my $newID_level3 ="";
-                      if($primary_tag_level3 =~ /exon/ ){
-                        $newID_level3 = manageID($prefixName,$nbExonName,'E'); 
-                        $nbExonName++;
-                        create_or_replace_tag($feature_level3, 'ID', $newID_level3);
-                        create_or_replace_tag($feature_level3, 'Parent', $newID_level2);
-
-                      }
-                      elsif($primary_tag_level3 =~ /cds/){
-                        $newID_level3 = manageID($prefixName,$nbCDSname,'C'); 
-                        if($opt_nameU){$nbCDSname++;}
-                        create_or_replace_tag($feature_level3, 'ID', $newID_level3);
-                        create_or_replace_tag($feature_level3, 'Parent', $newID_level2);
-                      }
-
-                      elsif($primary_tag_level3 =~ /utr/){
-                        $newID_level3 = manageID($prefixName,$nbUTRName,'U');
-                        if($opt_nameU){$nbUTRName++;}
-                        create_or_replace_tag($feature_level3, 'ID', $newID_level3);
-                        create_or_replace_tag($feature_level3, 'Parent', $newID_level2);
-                      }
-                      else{
-                        $newID_level3 = manageID($prefixName,$nbOTHERName,'O');
-                        $nbOTHERName++;
-                        create_or_replace_tag($feature_level3, 'ID', $newID_level3);
-                        create_or_replace_tag($feature_level3, 'Parent', $newID_level2);                        
-                      }
-                      $finalID{$level3_ID}=$newID_level3;
+                      #save the new l3 into the new l2 id name
+                      $hash_ref->{'level3'}{$primary_tag_level3}{lc($newID_level2)} = delete $hash_ref->{'level3'}{$primary_tag_level3}{lc($level2_ID)} # delete command return the value before deteling it, so we just transfert the value 
                     }
-                    #save the new l3 into the new l2 id name
-                    $hash_ref->{'level3'}{$primary_tag_level3}{lc($newID_level2)} = delete $hash_ref->{'level3'}{$primary_tag_level3}{lc($level2_ID)} # delete command return the value before deteling it, so we just transfert the value 
-                  }
-                  if ($opt_name and  $primary_tag_level3 =~ /utr/){$nbUTRName++;} # with this option we increment UTR name only for each UTR 
-                  if ($opt_name and  $primary_tag_level3 =~ /cds/){$nbCDSname++;} # with this option we increment cds name only for each cds 
+                    if ($opt_name and  $primary_tag_level3 =~ /utr/){$nbUTRName++;} # with this option we increment UTR name only for each UTR 
+                    if ($opt_name and  $primary_tag_level3 =~ /cds/){$nbCDSname++;} # with this option we increment cds name only for each cds 
+                }
+              
+                if($newID_level1){
+                  $hash_ref->{'level2'}{$primary_tag_key_level2}{lc($newID_level1)} = delete $hash_ref->{'level2'}{$primary_tag_key_level2}{$id_level1}; # modify the id key of the hash. The delete command return the value before deteling it, so we just transfert the value 
+                } 
               }
             }
           }
+        
+          if($newID_level1){
+            $hash_ref->{'level1'}{$primary_tag_level1}{lc($newID_level1)} = delete $hash_ref->{'level1'}{$primary_tag_level1}{$id_level1}; # modify the id key of the hash. The delete command return the value before deteling it, so we just transfert the value 
+          }
         }
       }
-    }
+    } 
   }
 }
 
@@ -938,6 +959,14 @@ sub sizedPrint{
     }
     return $result;
   }
+}
+
+#Sorting mixed strings => Sorting alphabetically first, then numerically
+# how to use: my @y = sort by_number @x;
+sub alphaNum {
+    my ( $alet , $anum ) = $a =~ /([^\d]+)(\d+)/;
+    my ( $blet , $bnum ) = $b =~ /([^\d]+)(\d+)/;
+    ( $alet || "a" ) cmp ( $blet || "a" ) or ( $anum || 0 ) <=> ( $bnum || 0 )
 }
 
 __END__
