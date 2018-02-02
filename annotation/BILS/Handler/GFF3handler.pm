@@ -1059,8 +1059,8 @@ sub remove_tuple_from_omniscient {
 		if ($remove eq 'yes'){
 			foreach my $id_key  (keys %{$hash_omniscient->{$level}{$tag_key}}){
 				foreach my $id_to_remove (@$id_list_to_remove){
-					if($id_to_remove eq $id_key){
-						delete $hash_omniscient->{$level}{$tag_key}{$id_to_remove}; #REMOVE THAT KEY-VALUE pair
+					if(lc($id_to_remove) eq lc($id_key)){
+						delete $hash_omniscient->{lc($level)}{lc($tag_key)}{lc($id_to_remove)}; #REMOVE THAT KEY-VALUE pair
 					}
 				}
 			}

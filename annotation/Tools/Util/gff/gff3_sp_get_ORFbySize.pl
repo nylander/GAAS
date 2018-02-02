@@ -239,16 +239,14 @@ __END__
 
 =head1 NAME
 
-fasta_get_longestORF.pl -
-The script take a nucleotide fasta file as input and will extract the longest ORF(s) and translate it(them) in AA.
-By default it extracts only the longest ORF even incomplete (missing start or/and stop codon) >= 100 AA.
-This script is an adpatation of the TransDecoder.LongestORF tool, adapted to use bioperl.
-/!\ Bolean parameter don't expect any value.
+gff3_sp_get_ORFbySize.pl -
+The script read a gff annotation file, and create two output files, one containg the gene models with ORF passing the test, hte other those that dont pass the test.
+By default the test is "< 100" that means all gene models that have ORF shorter than 100 Amino acids, will pass the test.
 
 =head1 SYNOPSIS
 
-    ./fasta_get_longestORF.pl -f infile.fasta [ -o outfile ]
-    ./fasta_get_longestORF.pl -h
+    ./gff3_sp_get_ORFbySize.pl -f infile.fasta [ -o outfile ]
+    ./gff3_sp_get_ORFbySize.pl -h
 
 =head1 OPTIONS
 
@@ -260,7 +258,7 @@ Nucleotide fasta file.
 
 =item B<-s> or B<--size_min>
 
-Minimum length of the ORF to be kept in AA (100 by default)
+ORF size to apply the test.
 
 =item B<--ct> or B<--table> or B<--codon>
 

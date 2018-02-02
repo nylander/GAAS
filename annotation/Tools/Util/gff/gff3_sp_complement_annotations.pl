@@ -44,7 +44,7 @@ if ($help) {
 
 if (! $ref or ! @opt_files ){
     pod2usage( {
-           -message => "\nAt least 2 files are mandatory:\n --gff file1 --gff file2\n\n",
+           -message => "\nAt least 2 files are mandatory:\n --ref file1 --add file2\n\n",
            -verbose => 0,
            -exitval => 2 } );
 }

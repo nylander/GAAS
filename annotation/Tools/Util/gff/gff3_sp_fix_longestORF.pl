@@ -161,186 +161,187 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
     my $number_mrna=0;
 
     foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
-      foreach my $level2_feature ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$gene_id_tag_key}}) {
-       
-        my $ORFmodified="no";
-        $number_mrna=$#{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$gene_id_tag_key}}+1;
-       
-        # get level2 id
-        my $id_level2 = lc($level2_feature->_tag_value('ID'));       
-        
-        ##############################
-        #If it's a mRNA = have CDS. #
-        if ( exists ($hash_omniscient->{'level3'}{'cds'}{$id_level2} ) ){
-                  
-          ##############
-          # Manage CDS #
-          my @cds_feature_list = sort {$a->start <=> $b->start} @{$hash_omniscient->{'level3'}{'cds'}{$id_level2}}; # be sure that list is sorted
-          my ($cdsExtremStart, $cds_dna_seq, $cdsExtremEnd) = concatenate_feature_list(\@cds_feature_list);
-          #create the cds object
-          my $cds_obj = Bio::Seq->new(-seq => $cds_dna_seq, -alphabet => 'dna' );         
-          #Reverse the object depending on strand
-          if ($level2_feature->strand == -1 or $level2_feature->strand eq "-"){
-            $cds_obj = $cds_obj->revcom();
-          }
-          #translate cds in protein
-          my $original_prot_obj = $cds_obj->translate(-codontable_id => $codonTable) ; #codontable_id by default=1 (Vertebrates). IUPAC => STOP codon even if not sure ...
-          my $cds_prot=$original_prot_obj->seq;
-          my $originalProt_size=length($cds_prot);
-
-          ################################################
-          # mRNA: extract the concatenated exon sequence #
-          my @exons_features = sort {$a->start <=> $b->start} @{$hash_omniscient->{'level3'}{'exon'}{$id_level2}};
-          my ($exonExtremStart, $mrna_seq, $exonExtremEnd) = concatenate_feature_list(\@exons_features);
-          #create the mrna object
-          my $mrna_obj = Bio::Seq->new(-seq => $mrna_seq, -alphabet => 'dna' );
-  #        print $mrna_obj->seq."\n"; 
-          #Reverse complement according to strand
-          if ($level2_feature->strand == -1 or $level2_feature->strand eq "-"){
-            $mrna_obj = $mrna_obj->revcom();
-          }
+      if ( exists_keys( $hash_omniscient, ('level2', $primary_tag_key_level2, $gene_id_tag_key) ) ){
+        foreach my $level2_feature ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$gene_id_tag_key}}) {
+         
+          my $ORFmodified="no";
+          $number_mrna=$#{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$gene_id_tag_key}}+1;
+         
+          # get level2 id
+          my $id_level2 = lc($level2_feature->_tag_value('ID'));       
           
-          #######################
-          # Get the longest ORF ## record ORF = start, end (half-open), length, and frame
-          my $longest_ORF_prot_obj;
-          my $orf_cds_region;
-          my ($longest_ORF_prot_objM, $orf_cds_regionM) = translate_JD($mrna_obj, 
-                                                                      -nostartbyaa => 'L',
-                                                                      -orf => 'longest',
-                                                                      -codontable_id => $codonTable);
-          my ($longest_ORF_prot_objL, $orf_cds_regionL) = translate_JD($mrna_obj, 
-                                                                      -nostartbyaa => 'M',
-                                                                      -orf => 'longest',
-                                                                      -codontable_id => $codonTable);
-          if($longest_ORF_prot_objL->length()+$SIZE_OPT > $longest_ORF_prot_objM ){ # In a randomly generated DNA sequence with an equal percentage of each nucleotide, a stop-codon would be expected once every 21 codons. Deonier et al. 2005
-            $longest_ORF_prot_obj=$longest_ORF_prot_objL;                    # As Leucine L (9/100) occur more often than Metionine M (2.4) JD arbitrary choose to use the L only if we strength the sequence more than 21 AA. Otherwise we use M start codon.
-            $orf_cds_region=$orf_cds_regionL;
-            $counter_case21++;
-          }
-          else{
-
-            $longest_ORF_prot_obj=$longest_ORF_prot_objM;
-            $orf_cds_region=$orf_cds_regionM;
-
-          }
-    #       print Dumper($orf_cds_region)."\n";
-          # set real start and stop to orf
-          my $realORFstart;
-          my $realORFend;
-          # change the start for negative strand
-          if ($level2_feature->strand == -1 or $level2_feature->strand eq "-"){
-            $orf_cds_region->[0]=(length($mrna_seq) - $orf_cds_region->[1]); 
-          }
-          #calcul the real start end stop of cds in genome
-   #       print Dumper($orf_cds_region)."\n".$mrna_obj->seq."\n";  
-          ($realORFstart, $realORFend) = calcul_real_orf_end_and_start($orf_cds_region, \@exons_features);
-  #        print "$id_level2 $realORFstart $realORFend\n";         
-          #save the real start and stop
-          $orf_cds_region->[0]=$realORFstart;
-          $orf_cds_region->[1]=$realORFend;       
-
-#############
-# Tests     #
-#############
-
-          ########################
-          # prediction is longer #
-          print $id_level2." - size before: ".$originalProt_size." size after: ".$longest_ORF_prot_obj->length()."\n" if $verbose;
-          if($longest_ORF_prot_obj->length() > $originalProt_size){
-            
-#Model1     ###############################################
-            # sequence original is part of new prediction #
-            if (index($longest_ORF_prot_obj->seq,$cds_prot) != -1){
-              if ( exists($ListModel{1}) ){ 
-                if(!(($longest_ORF_prot_obj->seq =~ m/^X/) and ($longest_ORF_prot_obj->length() < $originalProt_size+$SIZE_OPT))){ #avoid case of ambigous methionine (Written X) -> Need to be over 21 AA to decide ok is longer and can be a M
-
-                  print "mrNA $id_level2 => model1. prot original is shorter:\noriginal:$cds_prot\ncdsStart $cdsExtremStart - cdsEnd $cdsExtremEnd\n".
-                  $longest_ORF_prot_obj->seq."\n\n";
-                  $ListModel{1}++;
-                  modify_gene_model($hash_omniscient, \%omniscient_modified_gene, $gene_feature, $gene_id_tag_key, $level2_feature, $id_level2, \@exons_features, \@cds_feature_list, $cdsExtremStart, $cdsExtremEnd, $realORFstart, $realORFend, 'model1', $gffout);
-                  $ORFmodified="yes";
-
-                }
-              }
+          ##############################
+          #If it's a mRNA = have CDS. #
+          if ( exists ($hash_omniscient->{'level3'}{'cds'}{$id_level2} ) ){
+                    
+            ##############
+            # Manage CDS #
+            my @cds_feature_list = sort {$a->start <=> $b->start} @{$hash_omniscient->{'level3'}{'cds'}{$id_level2}}; # be sure that list is sorted
+            my ($cdsExtremStart, $cds_dna_seq, $cdsExtremEnd) = concatenate_feature_list(\@cds_feature_list);
+            #create the cds object
+            my $cds_obj = Bio::Seq->new(-seq => $cds_dna_seq, -alphabet => 'dna' );         
+            #Reverse the object depending on strand
+            if ($level2_feature->strand == -1 or $level2_feature->strand eq "-"){
+              $cds_obj = $cds_obj->revcom();
             }
-            #################################################
-            # protein original and predicted are different
+            #translate cds in protein
+            my $original_prot_obj = $cds_obj->translate(-codontable_id => $codonTable) ; #codontable_id by default=1 (Vertebrates). IUPAC => STOP codon even if not sure ...
+            my $cds_prot=$original_prot_obj->seq;
+            my $originalProt_size=length($cds_prot);
+
+            ################################################
+            # mRNA: extract the concatenated exon sequence #
+            my @exons_features = sort {$a->start <=> $b->start} @{$hash_omniscient->{'level3'}{'exon'}{$id_level2}};
+            my ($exonExtremStart, $mrna_seq, $exonExtremEnd) = concatenate_feature_list(\@exons_features);
+            #create the mrna object
+            my $mrna_obj = Bio::Seq->new(-seq => $mrna_seq, -alphabet => 'dna' );
+    #        print $mrna_obj->seq."\n"; 
+            #Reverse complement according to strand
+            if ($level2_feature->strand == -1 or $level2_feature->strand eq "-"){
+              $mrna_obj = $mrna_obj->revcom();
+            }
+            
+            #######################
+            # Get the longest ORF ## record ORF = start, end (half-open), length, and frame
+            my $longest_ORF_prot_obj;
+            my $orf_cds_region;
+            my ($longest_ORF_prot_objM, $orf_cds_regionM) = translate_JD($mrna_obj, 
+                                                                        -nostartbyaa => 'L',
+                                                                        -orf => 'longest',
+                                                                        -codontable_id => $codonTable);
+            my ($longest_ORF_prot_objL, $orf_cds_regionL) = translate_JD($mrna_obj, 
+                                                                        -nostartbyaa => 'M',
+                                                                        -orf => 'longest',
+                                                                        -codontable_id => $codonTable);
+            if($longest_ORF_prot_objL->length()+$SIZE_OPT > $longest_ORF_prot_objM ){ # In a randomly generated DNA sequence with an equal percentage of each nucleotide, a stop-codon would be expected once every 21 codons. Deonier et al. 2005
+              $longest_ORF_prot_obj=$longest_ORF_prot_objL;                    # As Leucine L (9/100) occur more often than Metionine M (2.4) JD arbitrary choose to use the L only if we strength the sequence more than 21 AA. Otherwise we use M start codon.
+              $orf_cds_region=$orf_cds_regionL;
+              $counter_case21++;
+            }
             else{
 
-              #########################################
-#Model2       # Prediction don't overlap original CDS #
-              if( ($realORFend < $cdsExtremStart) or ($realORFstart > $cdsExtremEnd) ){ 
-                my $model;
-  
-                if( exists($ListModel{2}) ){
-                   print "mrNA $id_level2 $gene_id_tag_key => model2\n" if $verbose;
-                  $ListModel{2}++;
-                  $model=1;
-                  if($split_opt){
-                    split_gene_model(\@intact_gene_list, $hash_omniscient, \%omniscient_modified_gene, $gene_feature, $gene_id_tag_key, $level2_feature, $id_level2, \@exons_features, \@cds_feature_list, $cdsExtremStart, $cdsExtremEnd, $realORFstart, $realORFend, 'model2', $gffout);
+              $longest_ORF_prot_obj=$longest_ORF_prot_objM;
+              $orf_cds_region=$orf_cds_regionM;
+
+            }
+      #       print Dumper($orf_cds_region)."\n";
+            # set real start and stop to orf
+            my $realORFstart;
+            my $realORFend;
+            # change the start for negative strand
+            if ($level2_feature->strand == -1 or $level2_feature->strand eq "-"){
+              $orf_cds_region->[0]=(length($mrna_seq) - $orf_cds_region->[1]); 
+            }
+            #calcul the real start end stop of cds in genome
+     #       print Dumper($orf_cds_region)."\n".$mrna_obj->seq."\n";  
+            ($realORFstart, $realORFend) = calcul_real_orf_end_and_start($orf_cds_region, \@exons_features);
+    #        print "$id_level2 $realORFstart $realORFend\n";         
+            #save the real start and stop
+            $orf_cds_region->[0]=$realORFstart;
+            $orf_cds_region->[1]=$realORFend;       
+
+  #############
+  # Tests     #
+  #############
+
+            ########################
+            # prediction is longer #
+            print $id_level2." - size before: ".$originalProt_size." size after: ".$longest_ORF_prot_obj->length()."\n" if $verbose;
+            if($longest_ORF_prot_obj->length() > $originalProt_size){
+              
+  #Model1     ###############################################
+              # sequence original is part of new prediction #
+              if (index($longest_ORF_prot_obj->seq,$cds_prot) != -1){
+                if ( exists($ListModel{1}) ){ 
+                  if(!(($longest_ORF_prot_obj->seq =~ m/^X/) and ($longest_ORF_prot_obj->length() < $originalProt_size+$SIZE_OPT))){ #avoid case of ambigous methionine (Written X) -> Need to be over 21 AA to decide ok is longer and can be a M
+
+                    print "mrNA $id_level2 => model1. prot original is shorter:\noriginal:$cds_prot\ncdsStart $cdsExtremStart - cdsEnd $cdsExtremEnd\n".
+                    $longest_ORF_prot_obj->seq."\n\n";
+                    $ListModel{1}++;
+                    modify_gene_model($hash_omniscient, \%omniscient_modified_gene, $gene_feature, $gene_id_tag_key, $level2_feature, $id_level2, \@exons_features, \@cds_feature_list, $cdsExtremStart, $cdsExtremEnd, $realORFstart, $realORFend, 'model1', $gffout);
+                    $ORFmodified="yes";
+
                   }
-                  else{
-                    modify_gene_model($hash_omniscient, \%omniscient_modified_gene, $gene_feature, $gene_id_tag_key, $level2_feature, $id_level2, \@exons_features, \@cds_feature_list, $cdsExtremStart, $cdsExtremEnd, $realORFstart, $realORFend, 'model2', $gffout);
-                  }
-                  $ORFmodified="yes";
-                }
-              } # End they don't overlap
-             
-              #########################################
-              # Prediction Overlap original CDS #
-              else { # They overlap
-#Model3         ###############
-                # original protein and predicted one are different; the predicted one is longest, they overlap each other.
-                if( exists($ListModel{3}) ){ 
-                  $ListModel{3}++;
-                  print "mrNA $id_level2 $gene_id_tag_key => model3\n" if $verbose;
-                  
-                  modify_gene_model($hash_omniscient, \%omniscient_modified_gene, $gene_feature, $gene_id_tag_key, $level2_feature, $id_level2, \@exons_features, \@cds_feature_list, $cdsExtremStart, $cdsExtremEnd, $realORFstart, $realORFend, 'model3', $gffout);
-                  $ORFmodified="yes";
                 }
               }
-            } 
-          }# End prediction longer
+              #################################################
+              # protein original and predicted are different
+              else{
 
-          ###########################
-          # The real ORF looks to be shorter than the one originaly described ! Selenocysteine ? pseudogene ? Or just case where prediction begin by L instead of M (correct !) or begin by XXXXXX
-          elsif($longest_ORF_prot_obj->length() < $originalProt_size){
+                #########################################
+  #Model2       # Prediction don't overlap original CDS #
+                if( ($realORFend < $cdsExtremStart) or ($realORFstart > $cdsExtremEnd) ){ 
+                  my $model;
+    
+                  if( exists($ListModel{2}) ){
+                     print "mrNA $id_level2 $gene_id_tag_key => model2\n" if $verbose;
+                    $ListModel{2}++;
+                    $model=1;
+                    if($split_opt){
+                      split_gene_model(\@intact_gene_list, $hash_omniscient, \%omniscient_modified_gene, $gene_feature, $gene_id_tag_key, $level2_feature, $id_level2, \@exons_features, \@cds_feature_list, $cdsExtremStart, $cdsExtremEnd, $realORFstart, $realORFend, 'model2', $gffout);
+                    }
+                    else{
+                      modify_gene_model($hash_omniscient, \%omniscient_modified_gene, $gene_feature, $gene_id_tag_key, $level2_feature, $id_level2, \@exons_features, \@cds_feature_list, $cdsExtremStart, $cdsExtremEnd, $realORFstart, $realORFend, 'model2', $gffout);
+                    }
+                    $ORFmodified="yes";
+                  }
+                } # End they don't overlap
+               
+                #########################################
+                # Prediction Overlap original CDS #
+                else { # They overlap
+  #Model3         ###############
+                  # original protein and predicted one are different; the predicted one is longest, they overlap each other.
+                  if( exists($ListModel{3}) ){ 
+                    $ListModel{3}++;
+                    print "mrNA $id_level2 $gene_id_tag_key => model3\n" if $verbose;
+                    
+                    modify_gene_model($hash_omniscient, \%omniscient_modified_gene, $gene_feature, $gene_id_tag_key, $level2_feature, $id_level2, \@exons_features, \@cds_feature_list, $cdsExtremStart, $cdsExtremEnd, $realORFstart, $realORFend, 'model3', $gffout);
+                    $ORFmodified="yes";
+                  }
+                }
+              } 
+            }# End prediction longer
 
-#Model4     ###############
-            # /!\ Here we compare the CDS traduction (traduct in IUPAC) against longest CDS in mRNA IUPAC modified to take in account for stops codon only those that are trustable only (TGA, TAR...).
-            if( exists($ListModel{4}) ){ 
-              $ListModel{4}++;
-              print "mrNA $id_level2 $gene_id_tag_key => model4\n" if $verbose;
-              print "Original: ".$original_prot_obj->seq."\n" if $verbose;
-              print "longestl: ".$longest_ORF_prot_obj->seq."\n" if $verbose;
-              # contains stop codon but not at the last position
-              if( (index($original_prot_obj->seq, '*') != -1 ) and (index($original_prot_obj->seq, '*') != length($original_prot_obj->seq)-1) ){
-                print "contains premature stop codon\n";
-           ## Pseudogene THRESHOLD ##              
-  #              my $threshold_size=(length($original_prot_obj->seq)*$pseudo_threshold)/100; #70% of the original size
-  #              if(length($longest_ORF_prot_obj->seq) <  $threshold_size){ # inferior to threshold choosen, we suspect it to be a pseudogene
-                  print Dumper($original_prot_obj);
-                  print Dumper($longest_ORF_prot_obj);
-  #                $mrna_pseudo++;
-  #                push(@list_mrna_pseudo, $id_level2);
-  #              }
-  #              else{ #remodelate a shorter gene
-                  modify_gene_model($hash_omniscient, \%omniscient_modified_gene, $gene_feature, $gene_id_tag_key, $level2_feature, $id_level2, \@exons_features, \@cds_feature_list, $cdsExtremStart, $cdsExtremEnd, $realORFstart, $realORFend, 'model4', $gffout);
-                  $ORFmodified="yes";
-  #              }
-              }# Doesn't contain stop in the middle of the sequence
-              else{$special_or_partial_mRNA++;}
+            ###########################
+            # The real ORF looks to be shorter than the one originaly described ! Selenocysteine ? pseudogene ? Or just case where prediction begin by L instead of M (correct !) or begin by XXXXXX
+            elsif($longest_ORF_prot_obj->length() < $originalProt_size){
+
+  #Model4     ###############
+              # /!\ Here we compare the CDS traduction (traduct in IUPAC) against longest CDS in mRNA IUPAC modified to take in account for stops codon only those that are trustable only (TGA, TAR...).
+              if( exists($ListModel{4}) ){ 
+                $ListModel{4}++;
+                print "mrNA $id_level2 $gene_id_tag_key => model4\n" if $verbose;
+                print "Original: ".$original_prot_obj->seq."\n" if $verbose;
+                print "longestl: ".$longest_ORF_prot_obj->seq."\n" if $verbose;
+                # contains stop codon but not at the last position
+                if( (index($original_prot_obj->seq, '*') != -1 ) and (index($original_prot_obj->seq, '*') != length($original_prot_obj->seq)-1) ){
+                  print "contains premature stop codon\n";
+             ## Pseudogene THRESHOLD ##              
+    #              my $threshold_size=(length($original_prot_obj->seq)*$pseudo_threshold)/100; #70% of the original size
+    #              if(length($longest_ORF_prot_obj->seq) <  $threshold_size){ # inferior to threshold choosen, we suspect it to be a pseudogene
+                    print Dumper($original_prot_obj);
+                    print Dumper($longest_ORF_prot_obj);
+    #                $mrna_pseudo++;
+    #                push(@list_mrna_pseudo, $id_level2);
+    #              }
+    #              else{ #remodelate a shorter gene
+                    modify_gene_model($hash_omniscient, \%omniscient_modified_gene, $gene_feature, $gene_id_tag_key, $level2_feature, $id_level2, \@exons_features, \@cds_feature_list, $cdsExtremStart, $cdsExtremEnd, $realORFstart, $realORFend, 'model4', $gffout);
+                    $ORFmodified="yes";
+    #              }
+                }# Doesn't contain stop in the middle of the sequence
+                else{$special_or_partial_mRNA++;}
+              }
             }
+
+
+          } # End there is a CDS
+          if($ORFmodified eq "yes"){
+            $one_ORFmodified="yes";
+            $mRNACounter_fixed++; # Count only mRNA modified
           }
-
-
-        } # End there is a CDS
-        if($ORFmodified eq "yes"){
-          $one_ORFmodified="yes";
-          $mRNACounter_fixed++; # Count only mRNA modified
-        }
-      } # End foreach mRNA
-
+        } # End foreach mRNA
+      }
   #    if($mrna_pseudo > 0){
         # all mRNA are pseudogene, we change the gene status to pseudogenes.
   #      if($mrna_pseudo == $number_mrna){
