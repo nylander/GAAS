@@ -7,9 +7,6 @@ use Getopt::Long;
 use Bio::SeqIO ;
 use Bio::DB::Fasta;
 use Bio::Tools::GFF;
-use BILS::Handler::GFF3handler qw(:Ok);
-use BILS::Handler::GXFhandler qw(:Ok);
-
 
 my $start_run = time();
 
@@ -147,6 +144,20 @@ print "Job done in $run_time seconds\n";
                ######
                 ####
                  ##   
+
+#check if reference exists in hash. Deep infinite : hash{a} or hash{a}{b} or hash{a}{b}{c}, etc.
+# usage example: exists_keys($hash_omniscient,('level3','cds',$level2_ID)
+sub exists_keys {
+    my ($hash, $key, @keys) = @_;
+
+    if (ref $hash eq 'HASH' && exists $hash->{$key}) {
+        if (@keys) {
+            return exists_keys($hash->{$key}, @keys);
+        }
+        return 1;
+    }
+    return '';
+}
 
 sub  get_sequence{
   my  ($db, $allIDs, $seq_id, $start, $end) = @_;
