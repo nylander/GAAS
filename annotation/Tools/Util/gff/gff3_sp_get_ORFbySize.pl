@@ -33,7 +33,7 @@ my @copyARGV=@ARGV;
 Getopt::Long::Configure ('bundling');
 if ( !GetOptions(
     "help|h" => \$help,
-    "gff=s" => \$gff,
+    "g|gff=s" => \$gff,
     't|test=s'            => \$opt_test,
     "size|s=i" => \$PROT_LENGTH,
     "table|codon|ct=i" => \$codonTableId,
@@ -237,6 +237,9 @@ sub exists_keys {
 
 __END__
 
+
+
+
 =head1 NAME
 
 gff3_sp_get_ORFbySize.pl -
@@ -245,18 +248,18 @@ By default the test is "< 100" that means all gene models that have ORF shorter 
 
 =head1 SYNOPSIS
 
-    ./gff3_sp_get_ORFbySize.pl -f infile.fasta [ -o outfile ]
+    ./gff3_sp_get_ORFbySize.pl --gff infile.gff [ -o outfile ]
     ./gff3_sp_get_ORFbySize.pl -h
 
 =head1 OPTIONS
 
 =over 8
 
-=item B<-f> or B<--fa> or B<--fasta>
+=item B<-g> or B<--gff>
 
-Nucleotide fasta file.
+Annotation file
 
-=item B<-s> or B<--size_min>
+=item B<-s> or B<--size>
 
 ORF size to apply the test.
 
