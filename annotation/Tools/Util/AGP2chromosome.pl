@@ -101,9 +101,11 @@ foreach my $id (@newids ){$allIDs{lc($id)}=$id;}
 foreach my $object (keys %hash_agp){
   #print $object."\n";
   my $sequence="";
+  my $faID="";
   foreach my $part_number (sort {$a <=> $b} keys %{$hash_agp{$object}} ){
     #print $part_number."\n";
     my @feature = @{$hash_agp{$object}{$part_number}};
+    $faID = $feature[0];
 
     if( lc($feature[4]) eq "n" or lc($feature[4]) eq "u" ){ # GAP
       my $gap_length = $feature[5];
@@ -117,6 +119,7 @@ foreach my $object (keys %hash_agp){
       }
       elsif($feature[8] eq "-"){
         my $rev_sequence = reverse $peace_sequence;
+        $rev_sequence =~ tr/ATCGYRKMDHVBatcgyrkmdhvb/TAGCRYMKHDBVtagcrymkhdbv/;
         $sequence.= $rev_sequence;
       }
       else{
@@ -125,7 +128,7 @@ foreach my $object (keys %hash_agp){
     }
   }
   #create sequence object
-  my $seq  = Bio::Seq->new( '-format' => 'fasta' , -seq => $sequence);
+  my $seq  = Bio::Seq->new( '-format' => 'fasta' , -id => $faID , -seq => $sequence);
   $ostream->write_seq($seq);
 }
 
