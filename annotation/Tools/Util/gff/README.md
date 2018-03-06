@@ -46,12 +46,14 @@ Otherwise you should be able to install bioperl using your favorite package mana
 	e.g: cpanm bioperl
 
 #### 2.2.2) Other mandatory modules
-You must install the Moose and Clone librairy.
+You must install other libraries (e.g Moose and Clone).
 You can install them by using your  favorite package manager (cpan, cpanm, etc).
 
 	e.g: cpanm Clone
 	e.g: cpanm Moose 
 	e.g: cpanm Graph::Directed
+	e.g: cpanm LWP::UserAgent
+	e.g: cpanm Statistics::R
 
 #################################################
 # II) Script name and classificaiton by prefix   #
