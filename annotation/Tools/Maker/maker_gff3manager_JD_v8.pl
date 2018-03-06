@@ -602,11 +602,10 @@ if ($opt_nameU || $opt_name ){#|| $opt_BlastFile || $opt_InterproFile){
                     if ($opt_name and  $primary_tag_level3 =~ /utr/){$nbUTRName++;} # with this option we increment UTR name only for each UTR 
                     if ($opt_name and  $primary_tag_level3 =~ /cds/){$nbCDSname++;} # with this option we increment cds name only for each cds 
                 }
-              
-                if($newID_level1){
-                  $hash_ref->{'level2'}{$primary_tag_key_level2}{lc($newID_level1)} = delete $hash_ref->{'level2'}{$primary_tag_key_level2}{$id_level1}; # modify the id key of the hash. The delete command return the value before deteling it, so we just transfert the value 
-                } 
               }
+              if($newID_level1){
+                $hash_ref->{'level2'}{$primary_tag_key_level2}{lc($newID_level1)} = delete $hash_ref->{'level2'}{$primary_tag_key_level2}{$id_level1}; # modify the id key of the hash. The delete command return the value before deteling it, so we just transfert the value 
+              } 
             }
           }
         
