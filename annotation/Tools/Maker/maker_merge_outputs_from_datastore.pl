@@ -17,9 +17,9 @@ use File::Basename;
 
 my $header = qq{
 ########################################################
-# BILS 2015 - Sweden                                   #  
-# jacques.dainat\@bils.se                               #
-# Please cite BILS (www.bils.se) when using this tool. #
+# NBIS 2015 - Sweden                                   #  
+# jacques.dainat\@nbis.se                               #
+# Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 };
 
@@ -84,7 +84,7 @@ if(! $out){
 
 # STANDARD
 my $protein_file = "annotations.proteins.fa";
-my $annotations_file = "annotations.gff";
+my $gffmixup = "mixup.gff";
 
 # MESSAGES
 my $nbDir=$#inDir+1; 
@@ -108,7 +108,7 @@ if (-d "$out") {
 } 
 else{
 	mkdir $out;
-	open(my $gff_out, '>', $out."/".$annotations_file) or die "Could not open file '$out/$annotations_file' $!";
+	open(my $gff_out, '>', $out."/".$gffmixup) or die "Could not open file '$out/$gffmixup' $!";
 	open(my $protein_out, '>', $out."/".$protein_file) or die "Could not open file '$out/$protein_file' $!";
 
 	foreach my $makerDir (@inDir){
@@ -218,15 +218,21 @@ else{
 ############################################
 my $splitedData_dir= "$out/annotationByType";
 
-if (-f $splitedData_dir) {
+if (-d $splitedData_dir) {
 	print "Output $splitedData_dir of the <split by type> step already exists. We skip it."
 }
 else{
 	print "Now split file by data type...\n";
 	mkdir $splitedData_dir;
 	# split data by column 2 with awk
-	exec "awk '{if(\$2 ~ /[a-zA-Z]+/) print \$0 > \"$splitedData_dir/\"\$2\".gff\"}' $out\"/\"$annotations_file";
+	exec "awk '{if(\$2 ~ /[a-zA-Z]+/) print \$0 > \"$splitedData_dir/\"\$2\".gff\"}' $out\"/\"$gffmixup";
 }
+
+#make the annotation safe
+if (-f $maker.gff) {
+	exec "chmod 444 maker.gff";
+}
+
 
 print "All done!\n";
 
