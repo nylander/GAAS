@@ -1,3 +1,9 @@
+
+[<img align="center" src="../NBIS.png" width="200" height="100" />](https://nbis.se) 
+<h2 ><em>G</em>enome <em>A</em>ssembly <em>A</em>nnotation <i>S</i>ervice (GAAS)</h2>
+
+---------------------------
+
 # The NBIS annotation toolkit.</br>
 ### (c) The NBIS Genome Annotation Platform
 
