@@ -9,7 +9,7 @@ It contains batch scripts to launch different job on lsf scheduler.
 
 #### 3.Tools
 The most important. All convenient tools.
-[All the scripts are gathered here](GAAS/annotation/Tools/bin/)
+[All the scripts are gathered here](Tools/bin/)
 
 #### 4.WebApollo
 All the development related to webapollo
