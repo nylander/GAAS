@@ -1,0 +1,1 @@
+/Users/jacda119/git/NBIS/GAAS/annotation//Tools/NCBI/ncbi_get_sequence_from_list.pl

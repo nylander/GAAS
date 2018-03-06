@@ -1,0 +1,1 @@
+/Users/jacda119/git/NBIS/GAAS/annotation//Tools/Util/rfam_scan-11.0.pl
