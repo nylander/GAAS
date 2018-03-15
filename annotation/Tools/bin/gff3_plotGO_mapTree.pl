@@ -1,1 +1,1 @@
-/Users/jacda119/git/NBIS/GAAS/annotation//Tools/Dev/gff3_plotGO_mapTree.pl
+../../Tools/Dev/gff3_plotGO_mapTree.pl

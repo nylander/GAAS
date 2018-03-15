@@ -1,1 +1,1 @@
-/Users/jacda119/git/NBIS/GAAS/annotation//Tools/Maker/maker_checkFusionSplitBetweenTwoBuilds.pl
+../../Tools/Maker/maker_checkFusionSplitBetweenTwoBuilds.pl

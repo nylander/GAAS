@@ -1,1 +1,1 @@
-/Users/jacda119/git/NBIS/GAAS/annotation//Tools/Grid/augustus2grid.pl
+../../Tools/Grid/augustus2grid.pl

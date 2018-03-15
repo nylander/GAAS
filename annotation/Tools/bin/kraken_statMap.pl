@@ -1,1 +1,1 @@
-/Users/jacda119/git/NBIS/GAAS/annotation//Tools/ComparativeGenomic/kraken_statMap.pl
+../../Tools/ComparativeGenomic/kraken_statMap.pl

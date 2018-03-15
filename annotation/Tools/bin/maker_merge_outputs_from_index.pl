@@ -1,1 +1,1 @@
-/Users/jacda119/git/NBIS/GAAS/annotation//Tools/Maker/maker_merge_outputs_from_index.pl
+../../Tools/Maker/maker_merge_outputs_from_index.pl

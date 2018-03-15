@@ -1,1 +1,1 @@
-/Users/jacda119/git/NBIS/GAAS/annotation//Tools/Util/gff/gff3_sp_merge_annotations.pl
+../../Tools/Util/gff/gff3_sp_merge_annotations.pl

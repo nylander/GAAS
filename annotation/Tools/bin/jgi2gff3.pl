@@ -1,1 +1,1 @@
-/Users/jacda119/git/NBIS/GAAS/annotation//Tools/Converter/jgi2gff3.pl
+../../Tools/Converter/jgi2gff3.pl

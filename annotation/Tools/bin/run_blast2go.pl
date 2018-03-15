@@ -1,1 +1,1 @@
-/Users/jacda119/git/NBIS/GAAS/annotation//Tools/Wrapper/run_blast2go.pl
+../../Tools/Wrapper/run_blast2go.pl

@@ -1,1 +1,1 @@
-/Users/jacda119/git/NBIS/GAAS/annotation//Tools/Converter/makergff2evm.pl
+../../Tools/Converter/makergff2evm.pl

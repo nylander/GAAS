@@ -1,1 +1,1 @@
-/Users/jacda119/git/NBIS/GAAS/annotation//Tools/Util/gff/gff3_sp_clipN_seqExtremities_and_fixCoordinates.pl
+../../Tools/Util/gff/gff3_sp_clipN_seqExtremities_and_fixCoordinates.pl

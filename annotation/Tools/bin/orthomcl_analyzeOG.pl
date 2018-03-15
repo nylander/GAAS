@@ -1,1 +1,1 @@
-/Users/jacda119/git/NBIS/GAAS/annotation//Tools/ComparativeGenomic/orthomcl_analyzeOG.pl
+../../Tools/ComparativeGenomic/orthomcl_analyzeOG.pl

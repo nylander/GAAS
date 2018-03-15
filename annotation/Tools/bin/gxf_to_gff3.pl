@@ -1,1 +1,1 @@
-/Users/jacda119/git/NBIS/GAAS/annotation//Tools/Converter/gxf_to_gff3.pl
+../../Tools/Converter/gxf_to_gff3.pl

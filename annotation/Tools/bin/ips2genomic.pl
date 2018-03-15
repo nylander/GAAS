@@ -1,1 +1,1 @@
-/Users/jacda119/git/NBIS/GAAS/annotation//Tools/Converter/ips2genomic.pl
+../../Tools/Converter/ips2genomic.pl

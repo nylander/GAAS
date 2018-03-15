@@ -1,1 +1,1 @@
-/Users/jacda119/git/NBIS/GAAS/annotation//Tools/System/info_find_perl_module.sh
+../../Tools/System/info_find_perl_module.sh

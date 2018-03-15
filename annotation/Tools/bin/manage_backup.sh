@@ -1,1 +1,1 @@
-/Users/jacda119/git/NBIS/GAAS/annotation//Tools/System/manage_backup.sh
+../../Tools/System/manage_backup.sh

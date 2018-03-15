@@ -1,1 +1,1 @@
-/Users/jacda119/git/NBIS/GAAS/annotation//Tools/Converter/cegma_gff2bed.pl
+../../Tools/Converter/cegma_gff2bed.pl

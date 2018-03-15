@@ -1,1 +1,1 @@
-/Users/jacda119/git/NBIS/GAAS/annotation//Tools/Grid/trnascan2grid.pl
+../../Tools/Grid/trnascan2grid.pl

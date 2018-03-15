@@ -1,1 +1,1 @@
-/Users/jacda119/git/NBIS/GAAS/annotation//Tools/Grid/pfam2grid.pl
+../../Tools/Grid/pfam2grid.pl

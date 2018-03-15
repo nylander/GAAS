@@ -1,1 +1,1 @@
-/Users/jacda119/git/NBIS/GAAS/annotation//Tools/Maker/ncRNA_gffAnalyzer.pl
+../../Tools/Maker/ncRNA_gffAnalyzer.pl

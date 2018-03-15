@@ -1,1 +1,1 @@
-/Users/jacda119/git/NBIS/GAAS/annotation//Tools/Manager/create_preautomated_report.pl
+../../Tools/Manager/create_preautomated_report.pl
