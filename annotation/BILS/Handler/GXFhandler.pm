@@ -16,9 +16,9 @@ use Bio::Tools::GFF;
 
 our $VERSION     = 1.00;
 our @ISA         = qw(Exporter);
-our @EXPORT_OK   = qw(get_level select_gff_format check_mrna_positions modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop slurp_gff3_file_JD);
+our @EXPORT_OK   = qw(get_level select_gff_format check_mrna_positions modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop slurp_gff3_file_JD _check_all_level1_positions _check_all_level2_positions);
 our %EXPORT_TAGS = ( DEFAULT => [qw()],
-                 	 Ok    => [qw(get_level select_gff_format check_mrna_positions modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop slurp_gff3_file_JD)]);
+                 	 Ok    => [qw(get_level select_gff_format check_mrna_positions modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop slurp_gff3_file_JD _check_all_level1_positions _check_all_level2_positions)]);
 =head1 SYNOPSIS
 
 

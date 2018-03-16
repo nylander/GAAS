@@ -89,7 +89,7 @@ else{
   #########################
 
   #print statistics
-  my $stat = gff3_statistics($hash_omniscient);
+  my ($stat, $distri) = gff3_statistics($hash_omniscient);
   #print statistics
   foreach my $infoList (@$stat){
     foreach my $info (@$infoList){

@@ -1,9 +1,5 @@
 #!/usr/bin/env perl
 
-#####################################################################
-# maker_checkFusionSplitBetweenTwoBuilds v1 - Jacques Dainat 10/2014 #
-#####################################################################
-
 use strict;
 use warnings;
 use POSIX qw(strftime);
