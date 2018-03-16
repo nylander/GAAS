@@ -6,5 +6,5 @@
 
 Contains developement done in the GAA (Genome Assembly Annotation) Service.
 
-__annotation__ directory contains development related to annotation side of the service.</br>
+[__annotation__](annotation) directory contains development related to annotation side of the service.</br>
 __assembly__ directory contains development related to assembly side of the service.

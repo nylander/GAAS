@@ -7,18 +7,20 @@
 # The NBIS annotation toolkit.</br>
 ### (c) The NBIS Genome Annotation Platform
 
-#### 1. BILS
+#### [BILS](BILS)
 Perl library
 
-#### 2.LsfTemplates
+#### [LsfTemplates](LsfTemplates)
 It contains batch scripts to launch different job on lsf scheduler.
 
-#### 3.Tools
+#### [Tools](Tools)
 The most important. All convenient tools.  
 [>>All the scripts are gathered here<<](Tools/bin/)
 
-#### 4.WebApollo
+#### [WebApollo](WebApollo)
 All the development related to webapollo
 
-#### 5.data_test
+#### [data_test](data_test)
 Contains data used to test the different development
+
+#### [CheatSheet](CheatSheet)

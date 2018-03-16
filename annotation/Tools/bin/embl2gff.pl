@@ -1,1 +1,1 @@
-/Users/jacda119/git/NBIS/GAAS/annotation//Tools/Converter/embl2gff.pl
+../../Tools/Converter/embl2gff.pl

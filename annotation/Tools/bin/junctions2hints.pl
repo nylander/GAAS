@@ -1,1 +1,1 @@
-/Users/jacda119/git/NBIS/GAAS/annotation//Tools/Abinitio/Augustus/junctions2hints.pl
+../../Tools/Abinitio/Augustus/junctions2hints.pl

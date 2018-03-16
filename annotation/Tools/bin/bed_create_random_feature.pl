@@ -1,1 +1,1 @@
-/Users/jacda119/git/NBIS/GAAS/annotation//Tools/Util/bed_create_random_feature.pl
+../../Tools/Util/bed_create_random_feature.pl

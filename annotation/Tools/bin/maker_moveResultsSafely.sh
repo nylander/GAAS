@@ -1,1 +1,1 @@
-/Users/jacda119/git/NBIS/GAAS/annotation//Tools/Maker/maker_moveResultsSafely.sh
+../../Tools/Maker/maker_moveResultsSafely.sh

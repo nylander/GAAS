@@ -1,1 +1,1 @@
-/Users/jacda119/git/NBIS/GAAS/annotation//Tools/Maker/maker_rm_genome.pl
+../../Tools/Maker/maker_rm_genome.pl

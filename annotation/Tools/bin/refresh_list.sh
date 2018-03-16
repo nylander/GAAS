@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for i in $(find ~/git/NBIS/GAAS/annotation/ -name '*.pl' -o -name '*.sh' -o -name '*.py' -o -name '*.r' -o -name '*.R' -o -name '*.rb');do
+for i in $(find ../../ -name '*.pl' -o -name '*.sh' -o -name '*.py' -o -name '*.r' -o -name '*.R' -o -name '*.rb');do
 
 	name=$(basename $i)
 	

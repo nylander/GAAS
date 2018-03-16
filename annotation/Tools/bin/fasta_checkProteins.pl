@@ -1,1 +1,1 @@
-/Users/jacda119/git/NBIS/GAAS/annotation//Tools/Util/fasta/fasta_checkProteins.pl
+../../Tools/Util/fasta/fasta_checkProteins.pl

@@ -1,1 +1,1 @@
-/Users/jacda119/git/NBIS/GAAS/annotation//Tools/Util/gff/gff3_sq_create_stable_id.pl
+../../Tools/Util/gff/gff3_sq_create_stable_id.pl

@@ -1,1 +1,1 @@
-/Users/jacda119/git/NBIS/GAAS/annotation//Tools/EnsEMBL/removeIsoforms.sh
+../../Tools/EnsEMBL/removeIsoforms.sh

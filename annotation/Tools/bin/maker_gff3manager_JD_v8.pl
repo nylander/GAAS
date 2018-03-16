@@ -1,1 +1,1 @@
-/Users/jacda119/git/NBIS/GAAS/annotation//Tools/Maker/maker_gff3manager_JD_v8.pl
+../../Tools/Maker/maker_gff3manager_JD_v8.pl

@@ -1,1 +1,1 @@
-/Users/jacda119/git/NBIS/GAAS/annotation//Tools/NCBI/ncbi_get_reference_data.pl
+../../Tools/NCBI/ncbi_get_reference_data.pl

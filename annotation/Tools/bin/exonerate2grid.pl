@@ -1,1 +1,1 @@
-/Users/jacda119/git/NBIS/GAAS/annotation//Tools/Grid/exonerate2grid.pl
+../../Tools/Grid/exonerate2grid.pl

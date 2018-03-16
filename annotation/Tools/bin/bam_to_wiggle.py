@@ -1,1 +1,1 @@
-/Users/jacda119/git/NBIS/GAAS/annotation//Tools/Converter/bam_to_wiggle.py
+../../Tools/Converter/bam_to_wiggle.py

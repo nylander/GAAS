@@ -1,1 +1,1 @@
-/Users/jacda119/git/NBIS/GAAS/annotation//Tools/Grid/blat2grid.pl
+../../Tools/Grid/blat2grid.pl
