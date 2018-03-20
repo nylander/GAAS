@@ -2,7 +2,9 @@
 
 my $header = qq{
 ########################################################
-# BILS 2015 - Sweden                                   #  
+# BILS 2018 - Sweden                                   #  
+# jacques.dainat\@nbis.se                               #
+# Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 };
 
@@ -80,14 +82,12 @@ __END__
 
 =head1 NAME
 
-gff3_IO.pl -
-This script read and print a gff file. It will be read by GFF3HANDLER that will look for duplicate feature, duplicate ID and will print the features sorted.
-The result is written to the specified output file, or to STDOUT.
-
+gff3_webApollo_compliant.pl -
+This script aim to remove useless/problematic information for webapollo, change some feeaturee type to avoid problem whem loading them into webapollo, and optimize some attribute for a nice displaying. 
 =head1 SYNOPSIS
 
-    ./gff3_IO.pl -g infile.gff [ -o outfile ]
-    ./gff3_IO.pl --help
+    ./gff3_webApollo_compliant.pl -g infile.gff [ -o outfile ]
+    ./gff3_webApollo_compliant.pl --help
 
 =head1 OPTIONS
 

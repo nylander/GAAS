@@ -1,9 +1,12 @@
 #!/usr/bin/perl -w
 
 package BILS::Handler::GFF3handler ;
-use Clone 'clone';
+
+
 use strict;
+use warnings;
 use Data::Dumper;
+use Clone 'clone';
 use Exporter qw(import);
 use URI::Escape;
 use Bio::Seq;
@@ -312,8 +315,7 @@ sub webapollo_compliant {
 	foreach my $primary_tag_l1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_l1 = gene or repeat etc...
 		if(exists (CWA_skip_feature->{$primary_tag_l1})){delete $hash_omniscient->{'level1'}{$primary_tag_l1}; next;}
 		foreach my $id_l1 (keys %{$hash_omniscient->{'level1'}{$primary_tag_l1}}){
-			webapollo_rendering($hash_omniscient->{'level1'}{$primary_tag_l1}{$id_l1});
-
+			webapollo_rendering_l1($hash_omniscient->{'level1'}{$primary_tag_l1}{$id_l1});
 			#################
 			# == LEVEL 2 == #
 			#################
@@ -321,7 +323,7 @@ sub webapollo_compliant {
 				if(exists (CWA_skip_feature->{$primary_tag_l2})){delete $hash_omniscient->{'level2'}{$primary_tag_l2}; next;}
 				if ( exists ($hash_omniscient->{'level2'}{$primary_tag_l2}{$id_l1} ) ){
 					foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_l2}{$id_l1}}) {
-						webapollo_rendering($feature_level2);
+						webapollo_rendering_l2($feature_level2);
 
 						#################
 						# == LEVEL 3 == #
@@ -332,7 +334,7 @@ sub webapollo_compliant {
 							if(exists (CWA_skip_feature->{$primary_tag_l3})){delete $hash_omniscient->{'level3'}{$primary_tag_l3}; next;}
 							if ( exists ($hash_omniscient->{'level3'}{$primary_tag_l3}{$level2_ID} ) ){
 								foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{$primary_tag_l3}{$level2_ID}}) {
-									webapollo_rendering($feature_level3);
+									webapollo_rendering_l3($feature_level3);
 								}
 							}
 						}
@@ -343,9 +345,52 @@ sub webapollo_compliant {
 	}
 }
 
-#follow webapollo description for a correct visualisation of data
-sub webapollo_rendering {
+#follow webapollo description for a correct visualisation of data 
+sub webapollo_rendering_l1 {
+	my ($feature)=@_;
 
+	my @tags = $feature->get_all_tags();
+	
+	## check Name attribute	
+	my @f = grep /^\Qname\E$/i, @tags; #look at tag that match the whole string to NAME (case insensitive)
+	my $name_tag = $f[0];
+	if(! $name_tag){
+		my $value = $feature->_tag_value('ID');
+		$feature->add_tag_value('Name', $value);
+	}
+}
+
+	my ($feature)=@_;
+
+#follow webapollo description for a correct visualisation of data 
+sub webapollo_rendering_l2 {
+	my ($feature)=@_;
+
+	## check primary tag
+	my $primary_tag = lc($feature->primary_tag);
+
+	my %corrections = (
+			mrna => 'mRNA',
+		);
+	if ( exists $corrections{$primary_tag}) {
+		$feature->primary_tag( $corrections{$primary_tag});
+	}
+
+	my @tags = $feature->get_all_tags();
+
+	## check product/description attribute
+	#	if($feature->has_tag('product')){
+	my @f = grep /\Qproduct\E/i, @tags;
+	my $product_tag = $f[0];
+	if($product_tag){
+		my @values = $feature->get_tag_values($product_tag);
+		$feature->add_tag_value('description', @values);
+		$feature->remove_tag($product_tag);
+	}
+}
+
+#follow webapollo description for a correct visualisation of data 
+sub webapollo_rendering_l3 {
 	my ($feature)=@_;
 
 	## check primary tag
@@ -357,23 +402,21 @@ sub webapollo_rendering {
 			three_prime_utr => 'three_prime_UTR',
 			five_prime_utr => 'five_prime_UTR',
 			utr => 'UTR',
-			mrna => 'mRNA',
-			gene => 'gene',
-
 		);
 	if ( exists $corrections{$primary_tag}) {
 		$feature->primary_tag( $corrections{$primary_tag});
 	}
 
-	## check attribute
-	if($feature->has_tag('product')){
-		my @values = $feature->get_tag_values('product');
-		$feature->add_tag_value('description', @values);
-		$feature->remove_tag('product');
+	my @tags = $feature->get_all_tags();
+
+	foreach my $tag (@tags){
+		if(lc($tag) ne 'id' and lc($tag) ne 'parent'){
+			$feature->remove_tag($tag);
+		}
 	}
 }
 
-#Transform omniscient data to be Webapollo compliant
+#Transform omniscient data to be embl compliant
 sub embl_compliant {
 		my ($hash_omniscient) = @_  ;
 

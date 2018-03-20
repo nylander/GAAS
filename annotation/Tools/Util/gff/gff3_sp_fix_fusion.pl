@@ -615,7 +615,7 @@ sub split_gene_model{
                   my ($new_pred_utr5_list, $new_pred_cds_list, $new_pred_utr3_list) = modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop($newPred_exon_list, $realORFstart, $realORFend);
 
                   ####################################
-                  #RE-SHAPE last/first exon if less than 3 nucleotides (1  or 2 must be romved) when the CDS finish 1 or 2 nuclotide before... because cannot be defined as UTR
+                  #RE-SHAPE last/first exon if less than 3 nucleotides (1  or 2 must be removed) when the CDS finish 1 or 2 nuclotide before... because cannot be defined as UTR
                   if(shape_exon_extremity($newPred_exon_list, $new_pred_cds_list)){
                     #we reshaped the exon, it means that the UTR are not correct anymore, we have to recalculate them
                     ($new_pred_utr5_list, $new_pred_cds_list, $new_pred_utr3_list) = modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop($newPred_exon_list, $realORFstart, $realORFend);

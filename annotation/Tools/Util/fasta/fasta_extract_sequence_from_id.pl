@@ -22,9 +22,9 @@ my $opt_name = undef;
 
 my $header = qq{
 ########################################################
-# BILS 2016 - Sweden                                   #  
-# jacques.dainat\@bils.se                               #
-# Please cite BILS (www.bils.se) when using this tool. #
+# BILS 2018 - Sweden                                   #  
+# jacques.dainat\@nbis.se                               #
+# Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 };
 
