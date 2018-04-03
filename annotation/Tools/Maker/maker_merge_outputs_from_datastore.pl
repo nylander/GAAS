@@ -14,6 +14,7 @@ use BILS::Handler::GFF3handler qw(:Ok);
 use Bio::Tools::GFF;
 use IO::File;
 use File::Basename;
+use IPC::Cmd qw[can_run run];
 
 my $header = qq{
 ########################################################
@@ -77,14 +78,15 @@ else{
 	}
 } 
 
-# MANAGE OUT
-if(! $out){
-	$out="annotations";
-}
-
 # STANDARD
 my $protein_file = "annotations.proteins.fa";
 my $gffmixup = "mixup.gff";
+my $default_out_dir_name = "maker_output_processed";
+
+# MANAGE OUT
+if(! $out){
+	$out = $default_out_dir_name;
+}
 
 # MESSAGES
 my $nbDir=$#inDir+1; 
@@ -107,6 +109,7 @@ if (-d "$out") {
 	print "The output directory <$out> already exists, we skip the merge step.\n";
 } 
 else{
+	print "Creating the $out folder\n";
 	mkdir $out;
 	open(my $gff_out, '>', $out."/".$gffmixup) or die "Could not open file '$out/$gffmixup' $!";
 	open(my $protein_out, '>', $out."/".$protein_file) or die "Could not open file '$out/$protein_file' $!";
@@ -216,23 +219,33 @@ else{
 ############################################
 # Now manage to split file by kind of data # Split is done on the fly (no data saved in memory)
 ############################################
-my $splitedData_dir= "$out/annotationByType";
+my $splitedData_dir= "$out/gff_by_type";
 
 if (-d $splitedData_dir) {
-	print "Output $splitedData_dir of the <split by type> step already exists. We skip it."
+	print "Output $splitedData_dir of the <split by type> step already exists. We skip it.\n"
 }
 else{
 	print "Now split file by data type...\n";
 	mkdir $splitedData_dir;
 	# split data by column 2 with awk
-	exec "awk '{if(\$2 ~ /[a-zA-Z]+/) print \$0 > \"$splitedData_dir/\"\$2\".gff\"}' $out\"/\"$gffmixup";
-}
+	system "awk '{if(\$2 ~ /[a-zA-Z]+/) print \$0 > \"$splitedData_dir/\"\$2\".gff\"}' $out\"/\"$gffmixup";
 
-#make the annotation safe
-if (-f $maker.gff) {
-	exec "chmod 444 maker.gff";
-}
+	#make the annotation safe
+	my $annotation="$splitedData_dir/maker.gff";
+	if (-f $annotation) {
+		print "Protecting the maker.gff annotation by making it readable only\n";
+		system "chmod 444 $annotation";
+	}
 
+
+	#do statistics
+	my $full_path = can_run('gff3_sp_statistics.pl') or print "Cannot launch statistics. gff3_sp_statistics.pl script not available\n";
+	if ($full_path) {
+	        print "Performing the statistics of the maker.gff annotation file\n";
+		my $annotation_stat="$splitedData_dir/maker_stat.txt";
+	        system "gff3_sp_statistics.pl --gff $annotation -o $annotation_stat";
+	}
+}
 
 print "All done!\n";
 
