@@ -1,0 +1,1 @@
+../..//WebApollo/apollo2/install_WA_2_0_X.rb

@@ -1,0 +1,1 @@
+../..//Tools/Abinitio/Augustus/protein2hints.rb

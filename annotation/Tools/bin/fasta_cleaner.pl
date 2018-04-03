@@ -1,1 +1,1 @@
-../../Tools/EnsEMBL/fasta_cleaner.pl
+../..//Tools/Util/fasta/fasta_cleaner.pl

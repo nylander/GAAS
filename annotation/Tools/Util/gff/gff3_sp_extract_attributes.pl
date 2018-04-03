@@ -16,8 +16,8 @@ use BILS::Handler::GXFhandler qw(:Ok);
 my $header = qq{
 ########################################################
 # BILS 2015 - Sweden                                   #  
-# jacques.dainat\@bils.se                               #
-# Please cite BILS (www.bils.se) when using this tool. #
+# jacques.dainat\@nbis.se                               #
+# Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 };
 

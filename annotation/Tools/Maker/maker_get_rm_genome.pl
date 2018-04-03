@@ -98,24 +98,3 @@ while (<$IN>) {
 close ($IN);
 
 
-# --------------
-
-sub msg {
-  my $t = localtime;
-  my $line = "[".$t->hms."] @_\n";
-  print LOG $line if openhandle(\*LOG);
-  print STDERR $line unless $quiet;
-}
-
-sub runcmd {
-  msg("Running:", @_);
-  system(@_)==0 or err("Could not run command:", @_);
-}
-
-sub err {
-  $quiet=0;
-  msg(@_);
-  exit(2);
-}
-
-

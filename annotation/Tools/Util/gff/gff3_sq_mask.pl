@@ -131,14 +131,14 @@ __END__
 
 =head1 NAME
 
-gffMask_bils.pl -
+gff3_sq_mask.pl - mask GFF-denoted segments out of a FASTA format file.
 This script masks (hard or soft) repeats among sequences. It needs 3 input parameters: a gff3 file, a fasta file, and a Mask method. 
 The result is written to the specified output file, or to STDOUT.
 
 =head1 SYNOPSIS
 
-    ./gffMask_bils.pl -g=infile.gff -f=infile.fasta  (-hm or -sm) [ -o outfile ]
-    ./gffMask_bils.pl --help
+    ./gff3_sq_mask.pl -g=infile.gff -f=infile.fasta  (-hm or -sm) [ -o outfile ]
+    ./gff3_sq_mask.pl --help
 
 =head1 OPTIONS
 

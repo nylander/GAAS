@@ -1144,7 +1144,7 @@ Model4= The prediction is shorter... /!\
 
 =item B<-s> or B<--split>
 
-This option is usefull for Model1 and Model2. Indeed when the prediction is non overlaping the original cds, it is possible to split the gene into two different genes. By default we don't split it.
+This option is usefull for Model2. Indeed when the prediction is non overlaping the original cds, it is possible to split the gene into two different genes. By default we don't split it.
 We keep the longest. If you want to split it type: -s 
 
 =item B<-o> , B<--output> , B<--out> or B<--outfile>

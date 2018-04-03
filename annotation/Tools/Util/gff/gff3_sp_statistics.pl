@@ -17,8 +17,8 @@ use BILS::Plot::R qw(:Ok);
 my $header = qq{
 ########################################################
 # BILS 2015 - Sweden                                   #
-# jacques.dainat\@bils.se                               #
-# Please cite BILS (www.bils.se) when using this tool. #
+# jacques.dainat\@nbis.se                               #
+# Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 };
 
@@ -250,7 +250,7 @@ Remark: identical feature from level1 or level2 with identical ID will be merged
 
 =head1 SYNOPSIS
 
-    ./gff3_statistics.pl -gff file.gff  [ -o outfile ]
+    ./gff3_statistics.pl --gff file.gff  [ -o outfile ]
     ./gff3_statistics.pl --help
 
 =head1 OPTIONS

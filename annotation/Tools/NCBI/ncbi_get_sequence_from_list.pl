@@ -1,5 +1,10 @@
 #!/usr/bin/env perl
 
+
+#
+# NCBI recommends that users post no more than three URL requests per second 
+#
+
 use strict;
 use Try::Tiny;
 use Getopt::Long;
@@ -150,23 +155,23 @@ foreach my $ID (keys %list_of_ID){
 				                               -db         => 'protein',
 											   -retmax 	   => [100000],
 											   -term  => $ID);
-	# my $count = 0;
-	# $count = $factory->get_count;
-	
-	# if ($count == 0){ # Skip if nothing was found
-	# 	if ($opt_output) {
-	# 		print $error "No identifier found for $ID"; ## => print to log error
-	# 	}
-	# 	else {
-	# 		msg("No identifier found for $ID");
-	# 	}
-	# 	next;
-	# }
-	# else{
-	# 	#msg("We found $count ID for $ID  in database 'protein db' \n"); 
-	# }
+		my $count = 0;
+		$count = $factory->get_count;
+		
+		if ($count == 0){ # Skip if nothing was found
+			if ($opt_output) {
+				print $error "a - No identifier found for $ID\n"; ## => print to log error
+			}
+			else {
+				msg("a - No identifier found for $ID\n");
+			}
+			next;
+		}
+		else{
+			#msg("We found $count ID for $ID  in database 'protein db' \n"); 
+		}
 
-	# Go trough the XML response to extract the ids 
+		# Go trough the XML response to extract the ids 
 		my $xml_data;
 		$factory->get_Response(-cb => sub { ($xml_data) = @_; } );
 
@@ -179,14 +184,15 @@ foreach my $ID (keys %list_of_ID){
 			$idcorrect = $node->textContent;
 			last;
 		}
+		sleep(1)
 	}
 	catch {
 		warn "caught error: $_"; # not $@
 	};
 
 	if(! $idcorrect){
-		msg("No identifier found for $ID");
-		print $error "No identifier found for $ID"; ## => print to log error
+		msg("b - No identifier found for $ID\n");
+		print $error "b - No identifier found for $ID\n"; ## => print to log error
 	}
 	else{
 	##Fetch sequence from correct ID
@@ -204,7 +210,6 @@ foreach my $ID (keys %list_of_ID){
 
 		my $fasta =	$factory->get_Response->content;
 		print $outstream $fasta;
-
 	}
 }
 
