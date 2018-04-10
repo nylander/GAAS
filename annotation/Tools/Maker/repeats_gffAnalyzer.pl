@@ -195,6 +195,9 @@ INTEGER: Input genome size. It allows to calculate the percentage of the genome 
 
 STRING: Output file.  If no output file is specified, the output will be written to STDOUT. The result is in tabulate format.
 
+=item B<--help> or B<-h>
+
+Display this helpful text.
 
 =back
 

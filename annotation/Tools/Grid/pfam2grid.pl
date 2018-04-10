@@ -186,7 +186,7 @@ foreach my $file (@files) {
                 my $line = $_; 
                 next if ($line =~ /^#.*$/); # Skipping comment lines
                 
-		print $OUT $line;                
+		            print $OUT $line;                
         }               
 }
 

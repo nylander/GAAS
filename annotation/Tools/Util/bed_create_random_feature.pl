@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 #############################################
-# Jacques Dainat 2015 # This version use the GFF.pm from Andreas code
+# Jacques Dainat 2018
 #############################################
 
 
@@ -96,4 +96,46 @@ for (my $i=0; $i <= $opt_nb; $i++) {
 print "FINISH !!\n";
 
 
+__END__
 
+=head1 NAME
+
+gffRepeat_analyzer.pl -
+The script aims to create a fake bed file.
+
+=head1 SYNOPSIS
+
+    script.pl -g name -s 10000 -o <output file>
+    script.pl --help
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<-g>, B<--genome> or B<--fa>
+
+STRING: Name to use for writing in first column of the bed file. default chr_unknown.
+
+=item B<-s>, B<--size>
+
+INTEGER: Genome size. It define the range where features will be created. 
+
+=item B<--nbg>, B<--number_gene>
+
+INTEGER: Number of gene. It define the number of gene features to be created.
+
+=item B<--sg>, B<--size_gene>
+
+INTEGER: Size of genes. It define the size oft the gene features to be created.
+
+=item B<-o> or B<--output> 
+
+STRING: Output file.  If no output file is specified, the output will be written to STDOUT. The result is in tabulate format.
+
+=item B<--help> or B<-h>
+
+Display this helpful text.
+
+=back
+
+=cut
