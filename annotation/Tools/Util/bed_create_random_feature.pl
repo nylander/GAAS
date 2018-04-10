@@ -78,6 +78,9 @@ my $seq_id;
 if ( ! (defined($opt_genome))) {
     $seq_id="chr_unknown";
 }
+else{
+    $seq_id=$opt_genome;
+}
 
 for (my $i=0; $i <= $opt_nb; $i++) {
     my $start=int(rand($opt_sizeGenome-$opt_sizeGeneMAx));
