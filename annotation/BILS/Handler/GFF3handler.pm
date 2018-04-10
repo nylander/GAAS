@@ -1579,22 +1579,37 @@ sub get_longest_cds_level2{
           if ($#{$hash_omniscient->{'level2'}{$primary_tag_l2}{$id_tag_l1}} > 0){
             my $longestL2 ="";
             my $longestCDSsize = 0;
+            my $longestEXONsize = 0;
 
             foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_l2}{$id_tag_l1}}) {
 
-              my $level2_ID =   lc($feature_level2->_tag_value('ID') ) ;
-              if ( exists_keys( $hash_omniscient, ('level3','cds',$level2_ID ) ) ) {
+	            my $level2_ID =   lc($feature_level2->_tag_value('ID') ) ;
+	            if ( exists_keys( $hash_omniscient, ('level3','cds',$level2_ID ) ) ) {
+	                my $cdsSize=0;
+	                foreach my $cds ( @{$hash_omniscient->{'level3'}{'cds'}{$level2_ID}} ) { # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
+	                  $cdsSize += ( $cds->end - $cds->start + 1 );
+	                }
 
-                my $cdsSize=0;
-                foreach my $cds ( @{$hash_omniscient->{'level3'}{'cds'}{$level2_ID}} ) { # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
-                  $cdsSize += ( $cds->end - $cds->start + 1 );
-                }
+	                if($cdsSize > $longestCDSsize ){
+	                  $longestL2 = $level2_ID;
+	                  $longestCDSsize = $cdsSize;
+	                }
+	            }
+	            elsif ( exists_keys( $hash_omniscient, ('level3','exon',$level2_ID ) ) ) {
+					my $exonSize=0;
+	                foreach my $exon ( @{$hash_omniscient->{'level3'}{'exon'}{$level2_ID}} ) { # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
+	                  $exonSize += ( $exon->end - $exon->start + 1 );
+	                }
 
-                if($cdsSize > $longestCDSsize ){
-                  $longestL2 = $level2_ID;
-                  $longestCDSsize = $cdsSize;
-                }
-              }
+	                if($exonSize > $longestEXONsize ){
+	                  $longestL2 = $level2_ID;
+	                  $longestEXONsize = $exonSize;
+	                }
+	            }
+	            else{
+	            	warn "WARNING get_longest_cds_level2: NO exon or cds to select the longest l2 for $id_tag_l1 l1 ! We will take one randomly ! @\n";
+	            	$longestL2 = $level2_ID;
+	        	}
             }
             push @list_id_l2,$longestL2; # push id of the longest
           }
