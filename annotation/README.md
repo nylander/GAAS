@@ -15,7 +15,7 @@ It contains batch scripts to launch different job on lsf scheduler.
 
 #### [Tools](Tools)
 The most important. All convenient tools.  
-[>>All the scripts are gathered here<<](Tools/bin/)
+[>>All the scripts are gathered here<<](Tools/bin/)  
 [Prerequisite installation information](https://github.com/NBISweden/GAAS/tree/master/annotation/Tools/Util/gff)
 
 #### [WebApollo](WebApollo)
