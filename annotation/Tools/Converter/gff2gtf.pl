@@ -62,16 +62,13 @@ else{
 
 ######################
 ### Parse GFF input #
-### Read gb input file. 
-my $gff_in = Bio::Tools::GFF->new(-file => $gff, -gff_version => 3);
+### Read gff input file. 
+my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($gff);
 
 if(! $att){
-  while( my $feature = $gff_in->next_feature) {
-    $gtf_out->write_feature($feature);
-  }
+  print_omniscient($hash_omniscient, $gtf_out);
 }
 else{ # rebuild gene_id and transcript_id feature;
-  my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($gff);
   
   my $gene_id=undef;
   #################
@@ -252,10 +249,11 @@ __END__
 
 gff32gtf.pl -
 The script take a gff file as input, and will translate it in gtf format.
+Keep in mind that some bioperl versions forget to add the header (##gff-version 2) in the output. Check the output to add it if missing, it will avoid you troubles during your downstream analyses.
 
 =head1 SYNOPSIS
 
-    ./gff32gtf.pl --gtf=infile.gff [ -o outfile ]
+    ./gff2gtf.pl --gtf=infile.gff [ -o outfile ]
 
 =head1 OPTIONS
 

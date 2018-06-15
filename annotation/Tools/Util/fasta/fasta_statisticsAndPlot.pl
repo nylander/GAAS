@@ -93,6 +93,8 @@ while (<FASTA>) {
 close FASTA;
 
 #Calculate the statistics from the entries in the hash
+my $cp1kb=0;
+my $cp10kb=0;
 foreach my $key (keys %sequence){ 
   push @sequencelength, length $sequence{$key}; #save sequence length for N50 calculation
 
@@ -104,6 +106,12 @@ foreach my $key (keys %sequence){
   if ($sequence{$key} =~ /N$/){
     print $outputProblem "\>$key\n$sequence{$key}\n";
     $problemcount++;
+  }
+  if (length($sequence{$key}) > 1000){
+  	$cp1kb++;
+  	if (length($sequence{$key}) > 10000){
+  		$cp10kb++;
+  	}
   }
   
   
@@ -145,6 +153,8 @@ $StingToPrint .= "\n========================================\n";
 $StingToPrint .= "Fasta-statistics\ launched the $date:\n";
 $StingToPrint .= sprintf("There are ".scalar keys %sequence);
 $StingToPrint .= " sequences\n";
+$StingToPrint .= "There is $cp10kb sequences > 10kb \n";
+$StingToPrint .= "There is $cp1kb sequences > 1kb \n";
 $StingToPrint .= "There are $totalcount nucleotides, of which $totalNs are Ns\n";
 $StingToPrint .= "There are $Ncount N-regions (possibly links between contigs)\n";
 $StingToPrint .= "There are $problemcount sequence(s) that begin or end with Ns (see problem_sequences.txt)\n";
