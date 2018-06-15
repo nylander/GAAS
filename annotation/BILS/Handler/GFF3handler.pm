@@ -1379,12 +1379,12 @@ sub info_omniscient {
     			foreach my $tag (keys %{$hash_omniscient->{$level}}){
       				foreach my $id (keys %{$hash_omniscient->{$level}{$tag}}){
         				my $nb=$#{$hash_omniscient->{$level}{$tag}{$id}}+1;
-					if(exists_keys(\%resu,($tag))){
-					        $resu{$tag}=$resu{$tag}+$nb;
-					}
-					else{
-						$resu{$tag}=$nb;
-					}
+						if(exists_keys(\%resu,($tag))){
+						        $resu{$tag}=$resu{$tag}+$nb;
+						}
+						else{
+							$resu{$tag}=$nb;
+						}
      				}
     			}
   		}
