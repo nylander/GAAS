@@ -23,9 +23,13 @@ my $total_lowerCaseCount;
 my $Ncount=0;
 my $pureNseq=0;
 my $totalcount=0;
+my $totalcountOver1000=0;
+my $totalcountOver10000=0;
 my $gccount=0;
 my $total_noNs=0;
 my @sequencelength=();
+my @sequencelengthOver1000=();
+my @sequencelengthOver10000=();
 
 my $opt_infile;
 my $opt_dirRes;
@@ -99,7 +103,8 @@ close FASTA;
 my $cp1kb=0;
 my $cp10kb=0;
 foreach my $key (keys %sequence){ 
-  push @sequencelength, length $sequence{$key}; #save sequence length for N50 calculation
+  #save sequence length for N50 calculation
+  push @sequencelength, length $sequence{$key}; 
 
   #Check for Ns at the beginning or end of sequence  
   if ($sequence{$key} =~ /^N/){
@@ -112,8 +117,17 @@ foreach my $key (keys %sequence){
   }
   if (length($sequence{$key}) > 1000){
   	$cp1kb++;
+	#Count total size over 1000
+	$totalcountOver1000 += length $sequence{$key};
+ 	 #save sequence length for N50 calculation
+  	push @sequencelengthOver1000, length $sequence{$key}; 
+
   	if (length($sequence{$key}) > 10000){
   		$cp10kb++;
+		  #Count total size over 10000
+  		  $totalcountOver10000 += length $sequence{$key};
+		  #save sequence length for N50 calculation
+  		  push @sequencelengthOver10000, length $sequence{$key}; 
   	}
   }
   
@@ -142,22 +156,64 @@ foreach my $key (keys %sequence){
 my $GCpercentage = ($gccount/$totalcount*100);
 my $GCnoNs = ($gccount/$total_noNs*100);
 my $totalNs =$totalcount-$total_noNs;
+
+#################
+# Calculate N50 #
 @sequencelength = reverse sort { $a <=> $b } @sequencelength;
 my $N50=$totalcount/2;
 my $sum=0;
 my $entry;
-
+# copy of sequencelength to keep it intactfor R calculation purpose later
 my @sequencelengthForN50Calcul=@sequencelength;
 
-
 my $nbcontig=0;
+
 while ($sum < $N50){
   $entry = shift @sequencelengthForN50Calcul;
   $sum += $entry;
   $nbcontig+=1;
+}
+
+#################
+# Calculate N90 #
+# copy of sequencelength to keep it intactfor R calculation purpose later
+my @sequencelengthForN90Calcul=@sequencelength;
+@sequencelengthForN90Calcul = reverse sort { $a <=> $b } @sequencelengthForN90Calcul;
+my $NinetyPercGenomeSize=( 90*$totalcount / 100);
+$sum=0;
+my $N90;
+while ($sum < $NinetyPercGenomeSize){
+  $N90 = shift @sequencelengthForN90Calcul;
+  $sum += $N90;
 } 
 
-#print out the statistics 
+
+###########################
+# Calculate N50 over 1000 #
+@sequencelengthOver1000 = reverse sort { $a <=> $b } @sequencelengthOver1000;
+my $HalfGenomeSizeOver1000=$totalcountOver1000/2;
+$sum=0;
+my $N50over1000;
+while ($sum < $HalfGenomeSizeOver1000){
+  $N50over1000 = shift @sequencelengthOver1000;
+  $sum += $N50over1000;
+} 
+
+
+############################
+# Calculate N50 over 10000 #
+@sequencelengthOver10000 = reverse sort { $a <=> $b } @sequencelengthOver10000;
+my $HalfGenomeSizeOver10000=$totalcountOver10000/2;
+$sum=0;
+my $N50over10000;
+while ($sum < $HalfGenomeSizeOver10000){
+  $N50over10000 = shift @sequencelengthOver10000;
+  $sum += $N50over10000;
+}
+
+
+###########################
+#print out the statistics #
 my $date = strftime "%m/%d/%Y at %Hh%Mm%Ss", localtime;
 my $StingToPrint;
 $StingToPrint .= "\n========================================\n";
@@ -176,6 +232,9 @@ $StingToPrint .= sprintf(" (not counting Ns %.1f", $GCnoNs);
 $StingToPrint .= "\%)\n";
 $StingToPrint .= "There are $total_lowerCaseCount lowercase nucleotides (Ns not considered)\n";
 $StingToPrint .= "The N50 is $entry\n";
+$StingToPrint .= "The N90 is $N90\n";
+$StingToPrint .= "The N50 for sequences over 1000bp is $N50over1000\n";
+$StingToPrint .= "The N50 for sequeces over 10000bp is $N50over10000\n";
 $StingToPrint .= "========================================\n";
 print $outstream "$StingToPrint";
 
@@ -185,12 +244,13 @@ print $outstream "$StingToPrint";
 #
 ######
 if($opt_dirRes){
+
+        # temporary file name
+        my $tempFile1="dump.tmp";
+
 	try {
 		print $StingToPrint;
 		print "This result was saved in the $opt_dirRes directory.\nThe plots are in <pdf> format and available in the directory.\n";
-
-		# temporary file name
-		my $tempFile1="dump.tmp";
 
 		# write the data in temporary file
 		open(FILE, ">$tempFile1") || die "Erreur E/S:$!\n";
