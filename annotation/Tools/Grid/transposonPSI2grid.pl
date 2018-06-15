@@ -175,7 +175,6 @@ foreach my $file (@files_allHits) {
 	open (my $IN, '<', $file) or die "FATAL: Can't open file: $file for reading.\n$!\n";
 
 	while (<$IN>) {
-		chomp; 
 		my $line = $_; 
 		next if ($line =~ /^\/\/.*$/); # Skipping comment lines
 		print $OUT $line; 
@@ -195,7 +194,6 @@ foreach my $file (@files_topHits) {
         open (my $IN, '<', $file) or die "FATAL: Can't open file: $file for reading.\n$!\n";
 
         while (<$IN>) {
-                chomp;
                 my $line = $_;
                 next if ($line =~ /^\/\/.*$/); # Skipping comment lines
 		print $OUT $line; 

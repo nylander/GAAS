@@ -642,7 +642,7 @@ sub fill_omniscient_from_other_omniscient_level1_id {
 							# remove feature from omniscient_to_append related to level2_ID. Like that those that are not anymore in hash_omniscient will not appear anymore at the end of the next step (#Now add the new L3 feature of level2_ID)
 							foreach my $tag_l3 (keys %{$omniscient_to_append->{'level3'}}){ 
                                                                 if( exists_keys($omniscient_to_append, ('level3', $tag_l3, $level2_ID)) ){
-                                                                	delete $omniscient_to_append->{'level3'}{$tag_l3}{$level2_ID} ;
+                                                                	delete $omniscient_to_append->{'level3'}{$tag_l3}{$level2_ID)} ;
 								}
                                                         }
 							#Now add the new L3 feature of level2_ID
@@ -1376,17 +1376,13 @@ sub info_omniscient {
 
 	foreach my $level (keys %{$hash_omniscient}){
   		if ($level ne 'level1'){
-    			foreach my $tag (keys %{$hash_omniscient->{$level}}){
-      				foreach my $id (keys %{$hash_omniscient->{$level}{$tag}}){
-        				my $nb=$#{$hash_omniscient->{$level}{$tag}{$id}}+1;
-					if(exists_keys(\%resu,($tag))){
-					        $resu{$tag}=$resu{$tag}+$nb;
-					}
-					else{
-						$resu{$tag}=$nb;
-					}
-     				}
-    			}
+    		foreach my $tag (keys %{$hash_omniscient->{$level}}){
+      			foreach my $id (keys %{$hash_omniscient->{$level}{$tag}}){
+        			my $nb=$#{$hash_omniscient->{$level}{$tag}{$id}}+1;
+
+			        $resu{$tag}=$resu{$tag}+$nb;
+     			}
+    		}
   		}
 	}
 	foreach my $tag (keys %resu){

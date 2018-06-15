@@ -24,9 +24,9 @@ my $attributes = undef ;
 my $help;
 
 if( !GetOptions(
-    "help" => \$help,
+    "help|h" => \$help,
     "gff=s" => \$gff,
-    "outfile=s" => \$outfile))
+    "outfile|output|out|o=s" => \$outfile))
 {
     pod2usage( { -message => "Failed to parse command line.",
                  -verbose => 1,
@@ -158,3 +158,32 @@ foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){ # tag_l1 = gene or re
 
 __END__
 
+=head1 NAME
+
+gff2bed.pl -
+The script take a gff3 file as input and convert it into bed.
+
+=head1 SYNOPSIS
+
+    ./gff2bed.pl --gff file.gff  [ -o outfile ]
+    ./gff2bed.pl --help
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--gff>
+
+Input GFF3 file that will be read
+
+=item B<--outfile>, B<--out>, B<--output>, or B<-o>
+
+File where will be written the result. If no output file is specified, the output will be written to STDOUT.
+
+=item B<-h> or B<--help>
+
+Display this helpful text.
+
+=back
+
+=cut

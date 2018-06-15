@@ -176,7 +176,7 @@ The script allows to generate a tabulated format report of repeats annotated fro
 
 =head1 SYNOPSIS
 
-    gffRepeat_analyzer.pl -i <input file> [-g <integer> -o <output file>]
+    gffRepeat_analyzer.pl -i <input file> [-g <integer or fasta> -o <output file>]
     gffRepeat_analyzer.pl --help
 
 =head1 OPTIONS
@@ -189,7 +189,8 @@ STRING: Input gff file that will be read. Several files can be processed at once
 
 =item B<-g>, B<--genome>
 
-INTEGER: Input genome size. It allows to calculate the percentage of the genome represented by each kind of repeats.
+That input is design to know the genome size in order to calculate the percentage of the genome represented by each kind of repeats.
+You can provide an INTEGER or the genome in fasta format. If you provide the fasta, the genome size will be calculated on the fly.
 
 =item B<-o> or B<--output> 
 

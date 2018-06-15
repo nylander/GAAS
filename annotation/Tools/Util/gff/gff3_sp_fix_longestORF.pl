@@ -453,7 +453,7 @@ sub modify_gene_model{
                   ###############################################
                   # modelate level3 features for new prediction #
                   my ($new_pred_utr5_list, $new_pred_cds_list, $new_pred_utr3_list) = modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop($exons_features, $realORFstart, $realORFend);
-                  
+                 
                   #########
                   #RE-SHAPE last/first exon if less than 3 nucleotides (1  or 2 must be romved) when the CDS finish 1 or 2 nuclotide before... because cannot be defined as UTR
                   shape_exon_extremity($exons_features, $new_pred_cds_list);
