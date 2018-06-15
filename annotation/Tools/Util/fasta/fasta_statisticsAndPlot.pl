@@ -18,7 +18,9 @@ use IO::File;
 my $header;
 my %sequence=();
 my $problemcount=0;
+my $total_lowerCaseCount;
 my $Ncount=0;
+my $pureNseq=0;
 my $totalcount=0;
 my $gccount=0;
 my $total_noNs=0;
@@ -121,10 +123,19 @@ foreach my $key (keys %sequence){
   $Ncount += $match;
   #Count GC
   $gccount += ($sequence{$key} =~ tr/gGcC/gGcC/);
+  #Count size total
   $totalcount += length $sequence{$key};
+  #Count size with No Ns
   my $noNs=$sequence{$key};
   $noNs =~ s/N//g;
   $total_noNs += length $noNs;
+  if(length $noNs == 0){
+  	$pureNseq++;
+  }
+  #Count lowercase outside Ns
+  my $lowerCaseCount += ($noNs =~ tr/atgc/atgc/);
+  $total_lowerCaseCount += $lowerCaseCount;
+};
 }
 
 #Calculate some statistics
@@ -157,11 +168,13 @@ $StingToPrint .= "There is $cp10kb sequences > 10kb \n";
 $StingToPrint .= "There is $cp1kb sequences > 1kb \n";
 $StingToPrint .= "There are $totalcount nucleotides, of which $totalNs are Ns\n";
 $StingToPrint .= "There are $Ncount N-regions (possibly links between contigs)\n";
+$StingToPrint .= "There are $pureNseq pure (only) N sequences. Assembler doing that must be notified ! \n";
 $StingToPrint .= "There are $problemcount sequence(s) that begin or end with Ns (see problem_sequences.txt)\n";
 $StingToPrint .= sprintf("The GC-content is %.1f",$GCpercentage);
 $StingToPrint .= "\%";
 $StingToPrint .= sprintf(" (not counting Ns %.1f", $GCnoNs);
 $StingToPrint .= "\%)\n";
+$StingToPrint .= "There are $total_lowerCaseCount lowercase nucleotides (Ns not considered)\n";
 $StingToPrint .= "The N50 is $entry\n";
 $StingToPrint .= "========================================\n";
 print $outstream "$StingToPrint";
