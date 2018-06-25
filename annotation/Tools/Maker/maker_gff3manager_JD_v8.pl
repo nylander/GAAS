@@ -74,6 +74,7 @@ my %finalID;
 my %GeneAssociatedToTerm;
 my %mRNAAssociatedToTerm;
 my %functionData;
+my %functionDataAdded;
 my %functionOutput;
 my %functionStreamOutput;
 my %geneWithoutFunction;
@@ -654,7 +655,7 @@ if ($opt_InterproFile){
 
   foreach my $type (keys %functionData){
     my $total_type = $TotalTerm{$type};
-    my $mRNA_type_Annie = keys %{$functionData{$type}};
+    my $mRNA_type_Annie = $functionDataAdded{$type};
     my $mRNA_type = keys %{$mRNAAssociatedToTerm{$type}};
     my $gene_type = keys %{$GeneAssociatedToTerm{$type}};
     $stringPrint .= "|".sizedPrint(" $type",10)."|".sizedPrint($total_type,15)."|".sizedPrint($mRNA_type_Annie,20)."|".sizedPrint($mRNA_type,25)."|".sizedPrint($gene_type,25)."|\n|".$lineB."|\n";
@@ -817,12 +818,14 @@ sub addFunctions{
         foreach my $data (@{$functionData{$function_type}{$ID}}){
           $feature->add_tag_value('Ontology_term', $data);
           $data_list.="$data,";
+	  $functionDataAdded{$function_type}++;
         }
       }
       else{
         foreach my $data (@{$functionData{$function_type}{$ID}}){
           $feature->add_tag_value('Dbxref', $data);
           $data_list.="$data,";
+	  $functionDataAdded{$function_type}++;
         }
       }
 
