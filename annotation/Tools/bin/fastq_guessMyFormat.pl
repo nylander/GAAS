@@ -1,1 +1,1 @@
-../../Tools/Util/fastq_guessMyFormat.pl
+../../Tools/Util/fastq/fastq_guessMyFormat.pl
