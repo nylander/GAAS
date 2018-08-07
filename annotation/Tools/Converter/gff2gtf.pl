@@ -253,7 +253,7 @@ Keep in mind that some bioperl versions forget to add the header (##gff-version 
 
 =head1 SYNOPSIS
 
-    ./gff2gtf.pl --gtf=infile.gff [ -o outfile ]
+    ./gff2gtf.pl --gff=infile.gff [ -o outfile ]
 
 =head1 OPTIONS
 

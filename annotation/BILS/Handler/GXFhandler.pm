@@ -2629,9 +2629,12 @@ sub select_gff_format{
     open(my $fh, '<', $file) or die "cannot open file $file";
     {
         while(<$fh>){
+
+        	if($_ =~ /^#/){next;} #if it is a commented line starting by # we skip it.
+        	
             $cpt++;
             if($cpt > $nbLineChecked){
-                    _printSurrounded("Dosn't look as a GFF file\nLet's see what the Bioperl parser can do with that...",100,"!");  
+                    _printSurrounded("Doesn't look like a GFF file\nLet's see what the Bioperl parser can do with that...",100,"!");  
                     last;
             }
             if($_ =~ /^.*\t.*\t.*\t.*\t.*\t.*\t.*\t.*\t(.*)/){
