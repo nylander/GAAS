@@ -24,14 +24,6 @@ deactivate () {
         unset _OLD_VIRTUAL_PS1
     fi
 
-    # Unset Admin variables
-    unset WA_USER_DB_ADMIN_PW
-    unset WA_WEBSITE_PASSWORD
-    unset WA_DB_ADMIN
-    unset WA_DB_ADMIN_PW
-    unset APOLLO_DATA_DIR
-    unset APOLLO_BUILD_DIR
-
     # Unset PERL5LIB
     if ! [ -z "${_OLD_PERL5LIB+_}" ] ; then
         PERL5LIB="$_OLD_PERL5LIB"
@@ -55,15 +47,6 @@ deactivate nondestructive
 # Save the current module state
 module save temp
 module load bioinfo-tools BioPerl/1.7.1_Perl5.24.1
-
-# Setup WebApollo settings
-ADMIN_SETTINGS_PATH="/big/webapollo/webapollo_admin_settings"
-if [ -r "$ADMIN_SETTINGS_PATH" ]; then
-	echo "Admin privileges granted"
-	source "$ADMIN_SETTINGS_PATH"
-else
-	echo "Admin privileges not granted"
-fi
 
 VIRTUAL_ENV="$HOME/GAAS"
 export VIRTUAL_ENV
