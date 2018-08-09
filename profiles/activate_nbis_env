@@ -52,6 +52,7 @@ deactivate nondestructive
 # Setup WebApollo settings
 ADMIN_SETTINGS_PATH="/big/webapollo/webapollo_admin_settings"
 if [ -r "$ADMIN_SETTINGS_PATH" ]; then
+	echo "Admin privileges granted"
 	source "$ADMIN_SETTINGS_PATH"
 else
 	echo "Admin privileges not granted"
