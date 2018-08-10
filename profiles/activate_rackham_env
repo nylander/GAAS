@@ -59,6 +59,8 @@ _OLD_PERL5LIB="$PERL5LIB"
 PERL5LIB="$PERL5LIB:$VIRTUAL_ENV/annotation"
 export PERL5LIB
 
+make -f "$VIRTUAL_ENV/Makefile" check
+
 if [ -z "${VIRTUAL_ENV_DISABLE_PROMPT-}" ] ; then
     _OLD_VIRTUAL_PS1="$PS1"
     if [ "x" != x ] ; then
