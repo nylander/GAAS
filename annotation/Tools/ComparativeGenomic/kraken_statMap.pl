@@ -23,22 +23,24 @@ use BILS::Plot::R qw(:Ok);
 
 my $usage = qq{
 ########################################################
-# BILS 2015 - Sweden                                   #  
-# jacques.dainat\@bils.se                               #
-# Please cite BILS (www.bils.se) when using this tool. #
+# NBIS 2018 - Sweden                                   #  
+# jacques.dainat\@nbis.se                               #
+# Please cite BILS (www.nbis.se) when using this tool. #
 ########################################################
 };
 
 my $outfile = undef;
 my $gff = undef;
 my $valueK = undef;
-my $attributes = undef ;
+my $verbose = undef;
+my $kraken_tag = "Kraken_mapped";
 my $help= 0;
 
 if ( !GetOptions(
     "help|h" => \$help,
     "gff=s" => \$gff,
-    "value|v|threshold|t=i" => \$valueK,
+    "threshold|t=i" => \$valueK,
+    "verbose|v" => \$verbose,
     "outfile|output|out|o=s" => \$outfile))
 
 {
@@ -96,6 +98,7 @@ if ( defined($valueK) ){
   $messageValue = "We will keep all the mapped features.\n";
   $valueK=0;
 }
+$messageValue.="The kraken attribute tag that will be used is: ".$kraken_tag."\n";
 
 #print info
 if ($outfile) {
@@ -109,159 +112,67 @@ if ($outfile) {
 
 ######################
 ### Parse GFF input #
-my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($gff);
-
+# 1 is to put on the nocheck option
+my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($gff, undef, undef, undef, 1);
 
 my $nbOriginalGene = nb_feature_level1($hash_omniscient);
 my %mappedPercentPerGene;
-my %seqID;
-my @new_list_l3;
 my $nb_split=0;
-my $kraken_tag = undef;
 
-#####
+my %n_omniscient;
+my $new_omniscient=\%n_omniscient;
+my $list_uID_new_omniscient;
+my $loop=0;
+
+###############
 # == LEVEL 1
-######
+###############
 foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
   foreach my $id_tag_key_level1 (keys %{$hash_omniscient->{'level1'}{$primary_tag_key_level1}}){
     
+    ########################################
+    # Prepare hash in case of muli mapping #
+    ########################################
+    my %listOfProperHash;
+    my %listHashWithTrue;
     my $gene_feature = $hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1};
-    my @ListmrnaNoMatch;
-    my $at_least_one_level2_match="no";
-    
-    #####
-    # == LEVEL 2
-    ######
-    my $new_l2_seqID=undef;
-    foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
-        
+    my $l1_original_id = $id_tag_key_level1;
+    #################
+    # == LEVEL 1 == #
+    #################
+    $listOfProperHash{$gene_feature->seq_id()}{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1}=clone($gene_feature);
+    # write down if kraken_mapped=true
+    if($gene_feature->has_tag($kraken_tag)){
+      if( lc($gene_feature->_tag_value($kraken_tag)) eq "true"){
+        $listHashWithTrue{$gene_feature->seq_id()}++;
+      }
+    }
+    #################
+    # == LEVEL 2 == #
+    #################
+    foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...      
       if ( exists_keys($hash_omniscient, ('level2',$primary_tag_key_level2,$id_tag_key_level1) ) ){
         foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1}}) {
-          
-          my $percentMatch=0;
-          my $totalSize=0;
-          my $matchSize=0;
-
+          push(@{$listOfProperHash{$feature_level2->seq_id()}{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1}},clone($feature_level2)) ;
           my $level2_ID = lc($feature_level2->_tag_value('ID'));
-
-          ######
-          # == LEVEL 3
-          # We will look the size of mapped features
-          # Feature can be exon ,cds or utr in that order 
-          my $refListFetaureL3 = takeOneListLevel3From1idLevel2($hash_omniscient, $level2_ID);
-          if(! $refListFetaureL3 ){next;}
-
-          my $atLeastOneMapped=undef;
-          
-          undef %seqID;
-          my %l3LengthBySeqID=undef;
-          foreach my $feature (@{$refListFetaureL3}){  
-            my $end=$feature->end();
-            my $start=$feature->start();
-
-            if(! $kraken_tag ){
-              if($feature->has_tag('kraken_mapped')){
-                  $kraken_tag = "kraken_mapped";
-              }
-              elsif($feature->has_tag('Kraken_mapped')){
-                  $kraken_tag = "Kraken_mapped";
-              }
-            }
-
-            my $mapping_state = undef;
-            if($feature->has_tag($kraken_tag)){
-              $mapping_state = lc($feature->_tag_value($kraken_tag));
-            }
-            else{ print "error !! No $kraken_tag attribute found for the feature".$feature->gff_string()."\n";}
-
-
-            if( $mapping_state eq "true"){
-                $seqID{$feature->seq_id()}++;
-                $l3LengthBySeqID{$feature->seq_id()}+=($end-$start);
-                $atLeastOneMapped=1;
-            }
-            elsif(! $mapping_state eq "false"){
-              print "error !! We don't understand the $kraken_tag attribute value found for the feature".$feature->gff_string()."\n Indeed, we expect false or true.\n";
-            }
-
-            $totalSize+=($end-$start);   
-          }
-
-            
-          if(! $atLeastOneMapped){ #we have to remove the mRNA
-            push (@ListmrnaNoMatch, $level2_ID);
-            next; # next mRNA
-          }
-
-          #in case there is several seqID
-          foreach my $seqIDkey (keys (%l3LengthBySeqID)){
-
-            my $matchSize = $l3LengthBySeqID{$seqIDkey};
-            #compute the MATCH
-            $percentMatch=($matchSize*100)/$totalSize;
-            
-            #######
-            # Add information to gff
-            ########
-            if ($percentMatch >= $valueK) {   
-              #We print gene only if a percentage match value is superior to the threshold fixed (No threshold equal everything = 0)
-              $at_least_one_level2_match="yes";
-              $percentMatch = sprintf('%.2f', $percentMatch);
-
-              manage_gene_label($gene_feature, $percentMatch, $kraken_tag); # add info to level1 (gene) feature 
-
-              create_or_replace_tag($feature_level2,$kraken_tag,$percentMatch."%"); # add info to level2 (mRNA) feature
-              create_or_replace_tag($feature_level2,'description',"Mapped at ".$percentMatch."%"); # add info to level2 (mRNA) feature
-
-              #save best value for gene
-              if(!exists($mappedPercentPerGene{$id_tag_key_level1})){ # case where it doesn t exist
-                $mappedPercentPerGene{$id_tag_key_level1}=$percentMatch;
-              }
-              elsif($mappedPercentPerGene{$id_tag_key_level1} < $percentMatch){ # case where it exists but better value to save
-                $mappedPercentPerGene{$id_tag_key_level1}=$percentMatch;
-              }
+          # write down if kraken_mapped=true
+          if($feature_level2->has_tag($kraken_tag)){
+            if( lc($feature_level2->_tag_value($kraken_tag)) eq "true"){
+              $listHashWithTrue{$feature_level2->seq_id()}++;
             }
           }
-
-          #Now remove element form L3 list that have not been mapped
-          my @id_concern_list=($level2_ID);
-          my @tag_list=('all');
-          remove_element_from_omniscient_attributeValueBased(\@id_concern_list, 'false', $kraken_tag, $hash_omniscient, 'level3', 'false', \@tag_list);
-
-          #check SeqID
-          if(! exists($seqID{$feature_level2->seq_id()})){ #If the seqid of the level1 was the one from the ref
-            foreach my $key (sort(keys %seqID)){
-              $feature_level2->seq_id($key);
-              $new_l2_seqID=$key;
-            
-            }
-          }
-
-          my $nb_seqID = keys %seqID;
-          if($nb_seqID > 1){
-            $nb_split++;
-            foreach my $seqID (keys %seqID){
-              if($seqID ne $feature_level2->seq_id()){
-
-                ###########
-                #
-                foreach my $tag_l3 (keys %{$hash_omniscient->{'level3'}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
-                    my @ListIDtoRemove=();
-                    if ( exists ($hash_omniscient->{'level3'}{$tag_l3}{$level2_ID} ) ){
-                      foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{$tag_l3}{$level2_ID}}) {
-                        if($feature_level3->seq_id eq $seqID){
-
-                          my $new_parent=$feature_level3->seq_id().$feature_level3->_tag_value('Parent'); # we need a new parent to deal the reconstrunction of correct features
-                          create_or_replace_tag($feature_level3, 'Parent', $new_parent);
-                          push @new_list_l3, clone($feature_level3);
-                          push @ListIDtoRemove, $feature_level3->_tag_value('ID');
-                        }
-                      }
-                    }
-                    # Remove from this hash element that are not mapped with the main stream
-                    my @ListGeneID=($level2_ID);
-                    my @listTag=($tag_l3);
-                    remove_element_from_omniscient(\@ListGeneID, \@ListIDtoRemove, $hash_omniscient, 'level3', 'true', \@listTag);
+          #################
+          # == LEVEL 3 == #
+          #################
+          foreach my $primary_tag_l3  (keys %{$hash_omniscient->{'level3'}}){ # primary_tag_l3 = cds or exon or start_codon or utr etc...
+            if ( exists_keys( $hash_omniscient, ('level3', $primary_tag_l3, $level2_ID) ) ){
+              foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{$primary_tag_l3}{$level2_ID}}) {
+                push(@{$listOfProperHash{$feature_level3->seq_id()}{'level3'}{$primary_tag_l3}{$level2_ID}}, clone($feature_level3));
+                # write down if kraken_mapped=true
+                if($feature_level3->has_tag($kraken_tag)){
+                  if( lc($feature_level3->_tag_value($kraken_tag)) eq "true"){
+                    $listHashWithTrue{$feature_level3->seq_id()}++;
+                  }
                 }
               }
             }
@@ -269,32 +180,163 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
         }
       }
     }
-    ##########
-    # all mRNA of the gene has been tested and we don't have any match over the choosen treshold
-    if ($at_least_one_level2_match eq "no"){ 
-      delete $hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1}; # remove gene under threshold fixed
-    }
-    ##################
-    #at least one mRNA with at least one exon (or cds or utr) mapped. 
-    else{
-      #check the gene is the same seqID as L2 if L2 has been modified
-      if($new_l2_seqID and $gene_feature->seq_id ne $new_l2_seqID){
-        $gene_feature->seq_id($new_l2_seqID);
-      }
 
-      #remove non-mapped L2
-      if($#ListmrnaNoMatch != -1 ){ #one mRNA didnt match we have to remove them
-              my @ListGeneID=($id_tag_key_level1);
-              my @listTag=('mrna');
-              remove_element_from_omniscient(\@ListGeneID, \@ListmrnaNoMatch, $hash_omniscient, 'level2', 'true', \@listTag);
+    foreach my $seqid_key (keys %listOfProperHash){
+      #if it contains a feature mapped we continue
+      if(exists_keys((\%listHashWithTrue,$seqid_key))){
+        my $hash = $listOfProperHash{$seqid_key};
+        my ($hash_omniscient_clean, $hash_mRNAGeneLink_clean) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($hash);
+        if($verbose){
+          print "\nA proper hash:\n";
+          print_omniscient($hash_omniscient_clean, $gffout);
+          print "\n";
+        }
+
+        ##
+        # NOW we call deal properly with each proper hash containing only mapped features
+        ## 
+        foreach my $primary_tag_key_level1 (keys %{$hash_omniscient_clean->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
+          foreach my $id_tag_key_level1 (keys %{$hash_omniscient_clean->{'level1'}{$primary_tag_key_level1}}){
+
+
+            $gene_feature = $hash_omniscient_clean->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1};
+            my @ListmrnaNoMatch;
+            my $at_least_one_level2_match=undef;
+            print "level1 feature: ".$gene_feature->gff_string."\n" if $verbose;
+            
+            ################
+            # == LEVEL 2
+            ################
+
+            my $new_l2_seqID=undef;
+            foreach my $primary_tag_key_level2 (keys %{$hash_omniscient_clean->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
+                
+              if ( exists_keys($hash_omniscient_clean, ('level2',$primary_tag_key_level2,$id_tag_key_level1) ) ){
+                foreach my $feature_level2 ( @{$hash_omniscient_clean->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1}}) {
+                  print "level2 feature: ".$feature_level2->gff_string."\n" if $verbose;
+
+                  my $percentMatch=0;
+                  my $matchSize=0;
+
+                  my $level2_ID = lc($feature_level2->_tag_value('ID'));
+
+                  ###################################################
+                  # == LEVEL 3
+                  # We will look the size of mapped features
+                  # Feature can be exon ,cds or utr in that order 
+                  ###################################################
+
+                  my $refListFetaureL3 = takeOneListLevel3From1idLevel2($hash_omniscient_clean, $level2_ID);
+                  if(! $refListFetaureL3 ){next;}
+                  
+                  my $matchSize = 0;
+                  my $matchFeatureExample = undef;
+
+                  foreach my $feature (@{$refListFetaureL3}){
+                    print "level3 feature: ".$feature->gff_string."\n" if $verbose;  
+                    my $end=$feature->end();
+                    my $start=$feature->start();
+
+                    my $mapping_state = undef;
+                    if($feature->has_tag($kraken_tag)){
+                      $mapping_state = lc($feature->_tag_value($kraken_tag));
+                    }
+                    else{ print "error !! No $kraken_tag attribute found for the feature".$feature->gff_string()."\n";}
+
+                    if( $mapping_state eq "true"){
+                        $matchSize+=($end-$start);
+                        $matchFeatureExample=$feature;
+                    }
+                    elsif(! $mapping_state eq "false"){
+                      print "error !! We don't understand the $kraken_tag attribute value found for the feature".$feature->gff_string()."\n Indeed, we expect false or true.\n";
+                    }               
+                  }
+                    
+                  if(! $matchFeatureExample){ #we have to remove the mRNA
+                    push (@ListmrnaNoMatch, $level2_ID);
+                    next; # next mRNA
+                  }
+
+                  #compute the total sie (has to be compute against the original hash)
+                  my $totalSize=0;
+                  $totalSize = compute_total_size($hash_omniscient, $l1_original_id, $matchFeatureExample);
+                  print "totalSize=$totalSize \n" if $verbose;
+
+                  #compute the MATCH
+                  $percentMatch=($matchSize*100)/$totalSize;
+                  print "Map at ".$percentMatch." percent.\n" if $verbose;
+                    
+                  #######
+                  # Add information to gff
+                  ########
+                  if ($percentMatch >= $valueK) {   
+                    #We print gene only if a percentage match value is superior to the threshold fixed (No threshold equal everything = 0)
+                    $at_least_one_level2_match="yes";
+                    $percentMatch = sprintf('%.2f', $percentMatch);
+
+                    manage_gene_label($gene_feature, $percentMatch, $kraken_tag); # add info to level1 (gene) feature 
+
+                    create_or_replace_tag($feature_level2,$kraken_tag,$percentMatch."%"); # add info to level2 (mRNA) feature
+                    create_or_replace_tag($feature_level2,'description',"Mapped at ".$percentMatch."%"); # add info to level2 (mRNA) feature
+
+                    #save best value for gene
+                    if(!exists($mappedPercentPerGene{$id_tag_key_level1})){ # case where it doesn t exist
+                      $mappedPercentPerGene{$id_tag_key_level1}=$percentMatch;
+                    }
+                    elsif($mappedPercentPerGene{$id_tag_key_level1} < $percentMatch){ # case where it exists but better value to save
+                      $mappedPercentPerGene{$id_tag_key_level1}=$percentMatch;
+                    }
+                  }
+
+                  #Now remove element form L3 list that have not been mapped
+                  my @id_concern_list=($level2_ID);
+                  my @tag_list=('all');
+                  remove_element_from_omniscient_attributeValueBased(\@id_concern_list, 'false', $kraken_tag, $hash_omniscient_clean, 'level3', 'false', \@tag_list);
+
+                  # correct the l2 position
+                  check_level2_positions($hash_omniscient_clean, $feature_level2);
+                }
+              }
+            }
+
+            #################
+            #at least one mRNA with at least one exon (or cds or utr) mapped. Let's report the case
+            if ($at_least_one_level2_match){ 
+
+              # correct the l1 position
+              check_level1_positions($hash_omniscient_clean, $gene_feature);
+
+              #remove non-mapped L2
+              if($#ListmrnaNoMatch != -1 ){ #one mRNA didnt match we have to remove them
+                      my @ListGeneID=($id_tag_key_level1);
+                      my @listTag=('mrna');
+                      remove_element_from_omniscient(\@ListGeneID, \@ListmrnaNoMatch, $hash_omniscient_clean, 'level2', 'true', \@listTag);
+              }
+
+              #save the result by appending the result hash and take care of duplicated names
+              if($loop == 0){
+                $new_omniscient = $hash_omniscient_clean;
+                $loop++;
+              }
+              elsif($loop == 1){
+                $new_omniscient, $list_uID_new_omniscient = merge_omniscients($new_omniscient, $hash_omniscient_clean);
+                #print "first save in new omniscient";
+                #print_omniscient($new_omniscient, $gffout);
+                #print Dumper($list_uID_new_omniscient);
+                $loop++;
+              }
+              else{
+                $new_omniscient, $list_uID_new_omniscient = merge_omniscients($new_omniscient, $hash_omniscient_clean, $list_uID_new_omniscient);
+                #print "again save in new omniscient";
+                #print Dumper($list_uID_new_omniscient);
+              }
+            }
+          }
+        }
       }
-    }
+    }  
   }
 }
-#Add to the hash amn extra list pf feature to take care of
-$hash_omniscient->{'extra'} = \@new_list_l3;
-# reinitialyzer the hash
-($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($hash_omniscient);
 print "Calcul of mapped percentage length finished !\n";
 
 
@@ -302,7 +344,7 @@ print "Calcul of mapped percentage length finished !\n";
 # Check if nothing mapped
 my $nbKey = keys %mappedPercentPerGene;
 if ($nbKey == 0){
- print "No succefully mapped feature found!\n"; exit;
+ print "No succefully mapped feature found!\n"; 
 }
 
 ###############
@@ -315,7 +357,7 @@ foreach my $key (keys %mappedPercentPerGene){
 ########
 #print GFF the selected features (over the choosen treshold)
 ########
-print_omniscient($hash_omniscient, $gffout);
+print_omniscient($new_omniscient, $gffout);
 
 my $nbGeneMapped= keys %mappedPercentPerGene;
 
@@ -323,7 +365,7 @@ my $messageEnd;
 $messageEnd.= "\nTo resume:\n==========\n\n";
 $messageEnd.= "The original file contained $nbOriginalGene genes\n";
 $messageEnd.= "$nbGeneMapped of them have been mapped over the $valueK % match threshold. \n";
-my $nbEndGene = nb_feature_level1($hash_omniscient);
+my $nbEndGene = nb_feature_level1($new_omniscient);
 if($nbEndGene != $nbOriginalGene){
   my $nb_split = $nbEndGene -$nbOriginalGene;
   $messageEnd.= "Among them, we have $nb_split cases where the gene was mapped at several places (at least two different scaffold/Contig/chromosome). In total we have $nb_split split \n";
@@ -376,31 +418,106 @@ print "We finished !! Bye Bye.\n";
                  ##
 
 
+sub compute_total_size{
+  my ($hash_omniscient, $l1_original_id, $feature_l3)=@_;
+
+  my $l2_original_id = lc($feature_l3->_tag_value('Parent'));
+  my $total_size=0;
+
+  foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
+    if ( exists_keys($hash_omniscient, ('level1',$primary_tag_key_level1, lc($l1_original_id)) ) ){
+      foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...            
+        if ( exists_keys($hash_omniscient, ('level2',$primary_tag_key_level2, $l1_original_id) ) ){
+          foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$l1_original_id}}) {
+            if($l2_original_id eq lc($feature_level2->_tag_value('ID'))){
+              foreach my $primary_tag_l3  (keys %{$hash_omniscient->{'level3'}}){ # primary_tag_l3 = cds or exon or start_codon or utr etc...
+                if( lc($primary_tag_l3) eq lc( $feature_l3->primary_tag() ) ){
+                  if ( exists_keys( $hash_omniscient, ('level3', $primary_tag_l3, $l2_original_id) ) ){
+                    foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{$primary_tag_l3}{$l2_original_id}}){
+                      $total_size+=($feature_level3->end - $feature_level3->start)+1;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  return $total_size;
+}
+
 # Feature we look at are in the order exon ,cds or utr 
 #
 sub takeOneListLevel3From1idLevel2 {
   my ($hash_omniscient, $level2_ID)=@_;
   
-  my  $refListFetaureL3=undef;
- 
-  if ( exists_keys($hash_omniscient, ('level3','exon',$level2_ID) ) ){ 
+  my $refListFetaureL3=undef;
+  my $refListExon=undef;
+  my $refListCDS=undef;
+  my $refListUTR=undef;
+  my $get_one_true=undef;
+
+  if ( exists_keys($hash_omniscient, ('level3','exon',$level2_ID) ) ){
     $refListFetaureL3 = $hash_omniscient->{'level3'}{'exon'}{$level2_ID};
+    $refListExon = $hash_omniscient->{'level3'}{'exon'}{$level2_ID};
+
+    #get if one exon mapped otherwise we have to use CDS instead
+    foreach my $feature (@{$refListFetaureL3}){
+      if($feature->has_tag($kraken_tag)){
+        if (lc($feature->_tag_value($kraken_tag)) eq "true"){
+          $get_one_true = 1;
+        }
+      }
+    }
   }
-  elsif ( exists_keys($hash_omniscient,('level3','cds',$level2_ID) ) ){ 
+  if ( exists_keys($hash_omniscient,('level3','cds',$level2_ID) ) and ! $get_one_true){ 
     $refListFetaureL3 = $hash_omniscient->{'level3'}{'cds'}{$level2_ID};
+    $refListCDS = $hash_omniscient->{'level3'}{'cds'}{$level2_ID};
+
+    #get if one cds mapped otherwise we have to use UTR instead
+    foreach my $feature (@{$refListFetaureL3}){
+      if($feature->has_tag($kraken_tag)){
+        if (lc($feature->_tag_value($kraken_tag)) eq "true"){
+          $get_one_true = 1;
+        }
+      }
+    }
   }
-  else{
+  if(! $get_one_true){
     my $match=undef;
     foreach my $tag (keys %{$hash_omniscient->{'level3'}}){
       if($hash_omniscient->{'level3'}{$tag}{$level2_ID}){
         $match="yes";
         if($tag =~ "utr"){
           $refListFetaureL3 = $hash_omniscient->{'level3'}{$tag}{$level2_ID};
+          $refListUTR = $hash_omniscient->{'level3'}{$tag}{$level2_ID};
+
+          #get if one cds mapped otherwise we have to use UTR instead
+          foreach my $feature (@{$refListFetaureL3}){
+            if($feature->has_tag($kraken_tag)){
+              if (lc($feature->_tag_value($kraken_tag)) eq "true"){
+                $get_one_true = 1;
+              }
+            }
+          }
         }
-        #else{}
       }
     }
-    if(! $match){
+  }
+
+  if(! $get_one_true){
+    if ($refListExon){
+      $refListFetaureL3 = $refListExon;
+    }
+    elsif($refListCDS){
+      $refListFetaureL3 = $refListCDS;
+    }
+    elsif($refListUTR){
+      $refListFetaureL3 = $refListUTR;
+    }
+    else{
       print "No feature level3 expected found for ".$level2_ID." level2 !\n";
     }
   }
@@ -487,9 +604,13 @@ A plot nammed geneMapped_plot.pdf is performed to visualize the result.
 
 Input gff file that will be read.
 
-=item B<-v>, B<--value>, B<--threshold> or B<-t>
+=item B<--threshold> or B<-t>
 
 Gene mapping percentage over which a gene must be reported. By default the value is 0.
+
+=item B<--verbose> or B<-v>
+
+Verbose information.
 
 =item B<-o> , B<--output> , B<--out> or B<--outfile>
 
