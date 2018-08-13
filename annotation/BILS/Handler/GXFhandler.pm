@@ -76,11 +76,12 @@ use constant PREFIXL2 => "nbis_noL2id";
 # $comonTagAttribute => list of tags to consider for gathering features
 # $gffVersion => Int (if is used, force the parser to use this gff parser instead of guessing)
 # $verbose =>define the deepth of verbosity
+# $nocheck is to deactivate sanity check. It's in devellopement. We should be able to tune the deactivation of selected checks.
 my $createL3forL2orphan = 1;
 my $fh_error = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 3);
 sub slurp_gff3_file_JD {
 	
-	my ($self, $file, $comonTagAttribute, $gffVersion, $verbose) = @_  ;
+	my ($self, $file, $comonTagAttribute, $gffVersion, $verbose, $nocheck) = @_  ;
 
 	## TO DO 
 	# Handle the parameter with a hash
@@ -219,62 +220,66 @@ sub slurp_gff3_file_JD {
     _check_duplicates(\%duplicate, \%omniscient, $verbose);
 	_printSurrounded("Check1: _check_sequential",30,"*") if ($verbose >= 1) ;
 
-    #Check sequential if we can fix cases. Hash to be done first, else is risky that we remove orphan L1 feature ... that are not yet linked to a sequential bucket
-	if( keys %infoSequential ){ #hash is not empty
-    	_check_sequential(\%infoSequential, \%omniscient, \%miscCount, \%uniqID, \%uniqIDtoType, \%locusTAG, \%mRNAGeneLink, $verbose);
-    	undef %infoSequential;
-    }
-    else{ print "Nothing to check as sequential !\n" if($verbose >= 1) }
-	if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n"; $previous_time = time();}
-	_printSurrounded("Check2: _remove_orphan_l1",30,"*") if($verbose >= 1) ;
-
-    #check level1 has subfeature else we remove it
-  	_remove_orphan_l1(\%omniscient, \%miscCount, \%uniqID, \%uniqIDtoType, \%mRNAGeneLink, $verbose); #or fix if level2 is missing (refseq case)
-	if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
-  	_printSurrounded("Check3: _check_l3_link_to_l2",30,"*") if ($verbose >= 1) ;
-
-    #Check relationship between l3 and l2
-    _check_l3_link_to_l2(\%omniscient, \%mRNAGeneLink, \%miscCount, \%uniqID, \%uniqIDtoType, $verbose); # When creating L2 missing we create as well L1 if missing too
-	if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
-	_printSurrounded("Check4: _check_exons",30,"*") if ($verbose >= 1) ;
-
-    #Check relationship L3 feature, exons have to be defined... / mRNA position are checked!
-    _check_exons(\%omniscient, \%mRNAGeneLink, \%miscCount, \%uniqID,  \%uniqIDtoType, $verbose);
-	if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n"; $previous_time = time();}
-	_printSurrounded("Check5: _check_utrs",30,"*") if ($verbose >= 1) ;
-
-	#Check relationship L3 feature, exons have to be defined... / mRNA position are checked!
-    _check_utrs(\%omniscient, \%mRNAGeneLink, \%miscCount, \%uniqID,  \%uniqIDtoType, $verbose);
-	if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n"; $previous_time = time();}
-	_printSurrounded("Check6: _check_gene_link_to_mrna",30,"*") if ($verbose >= 1) ;
-
-    #Check relationship between mRNA and gene.  / gene position are checked! If No Level1 we create it !
-    _check_gene_link_to_mrna(\%omniscient, $verbose);
-	if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
-	_printSurrounded("Check7: _check_all_level2_positions",30,"*") if ($verbose >= 1) ;
-
-	# Check rna positions compared to its l2 features
-	_check_all_level2_positions(\%omniscient, $verbose);
-	if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
-	_printSurrounded("Check8: _check_all_level1_positions",30,"*") if ($verbose >= 1) ;
-
-	# Check gene positions compared to its l2 features
-	_check_all_level1_positions(\%omniscient, $verbose);
-	if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
+	if(! $nocheck){
+	    #Check sequential if we can fix cases. Hash to be done first, else is risky that we remove orphan L1 feature ... that are not yet linked to a sequential bucket
+		if( keys %infoSequential ){ #hash is not empty
+	    	_check_sequential(\%infoSequential, \%omniscient, \%miscCount, \%uniqID, \%uniqIDtoType, \%locusTAG, \%mRNAGeneLink, $verbose);
+	    	undef %infoSequential;
+	    }
 	
+	    else{ print "Nothing to check as sequential !\n" if($verbose >= 1) }
+		if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n"; $previous_time = time();}
+		_printSurrounded("Check2: _remove_orphan_l1",30,"*") if($verbose >= 1) ;
+	}
 
-	#check loci names (when overlap should be the same if type is the same)
-	if ($overlapCheck){
-		_printSurrounded("Check9: _check_overlap_name_diff",30,"*") if ($verbose >= 1) ;
-		_check_overlap_name_diff(\%omniscient, \%mRNAGeneLink, $verbose);
-	    if($verbose >= 1)  {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
-	 }
+	    #check level1 has subfeature else we remove it
+	  	_remove_orphan_l1(\%omniscient, \%miscCount, \%uniqID, \%uniqIDtoType, \%mRNAGeneLink, $verbose); #or fix if level2 is missing (refseq case)
+		if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
+	  	_printSurrounded("Check3: _check_l3_link_to_l2",30,"*") if ($verbose >= 1) ;
 
-	#check identical isoforms
-	_printSurrounded("Check10: _check_identical_isoforms",30,"*") if ($verbose >= 1) ;
-	_check_identical_isoforms(\%omniscient, \%mRNAGeneLink, $verbose);
-	 if($verbose >= 1)  {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
+	if(! $nocheck){
+	    #Check relationship between l3 and l2
+	    _check_l3_link_to_l2(\%omniscient, \%mRNAGeneLink, \%miscCount, \%uniqID, \%uniqIDtoType, $verbose); # When creating L2 missing we create as well L1 if missing too
+		if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
+		_printSurrounded("Check4: _check_exons",30,"*") if ($verbose >= 1) ;
 
+	    #Check relationship L3 feature, exons have to be defined... / mRNA position are checked!
+	    _check_exons(\%omniscient, \%mRNAGeneLink, \%miscCount, \%uniqID,  \%uniqIDtoType, $verbose);
+		if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n"; $previous_time = time();}
+		_printSurrounded("Check5: _check_utrs",30,"*") if ($verbose >= 1) ;
+
+		#Check relationship L3 feature, exons have to be defined... / mRNA position are checked!
+	    _check_utrs(\%omniscient, \%mRNAGeneLink, \%miscCount, \%uniqID,  \%uniqIDtoType, $verbose);
+		if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n"; $previous_time = time();}
+		_printSurrounded("Check6: _check_gene_link_to_mrna",30,"*") if ($verbose >= 1) ;
+
+	    #Check relationship between mRNA and gene.  / gene position are checked! If No Level1 we create it !
+	    _check_gene_link_to_mrna(\%omniscient, $verbose);
+		if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
+		_printSurrounded("Check7: _check_all_level2_positions",30,"*") if ($verbose >= 1) ;
+
+		# Check rna positions compared to its l2 features
+		_check_all_level2_positions(\%omniscient, $verbose);
+		if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
+		_printSurrounded("Check8: _check_all_level1_positions",30,"*") if ($verbose >= 1) ;
+
+		# Check gene positions compared to its l2 features
+		_check_all_level1_positions(\%omniscient, $verbose);
+		if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
+		
+
+		#check loci names (when overlap should be the same if type is the same)
+		if ($overlapCheck){
+			_printSurrounded("Check9: _check_overlap_name_diff",30,"*") if ($verbose >= 1) ;
+			_check_overlap_name_diff(\%omniscient, \%mRNAGeneLink, $verbose);
+		    if($verbose >= 1)  {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
+		}
+
+		#check identical isoforms
+		_printSurrounded("Check10: _check_identical_isoforms",30,"*") if ($verbose >= 1) ;
+		_check_identical_isoforms(\%omniscient, \%mRNAGeneLink, $verbose);
+		 if($verbose >= 1)  {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
+	}
 
     # To keep track of How many Warnings we got....
     foreach my $thematic (keys %WARNS){
@@ -2873,7 +2878,7 @@ sub _handle_ontology{
 		    	my @sorted_list = sort { $a cmp $b } @list_file;
 		    	my $recent_file = pop @sorted_list;
 		    	my $sofa_file_path = $correct_path."/".$recent_file;
-		    	print "We will use the most recent SOFA feature-ontology we have localy: $recent_file\n";
+		    	print "We will use the most recent SOFA feature-ontology we have localy: $recent_file\n" if $verbose;
 
 			#parse the ontology
 			my $parser = Bio::OntologyIO->new(-format => "obo",
