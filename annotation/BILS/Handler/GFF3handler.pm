@@ -6,7 +6,6 @@ package BILS::Handler::GFF3handler ;
 use strict;
 use warnings;
 use Data::Dumper;
-use Clone 'clone';
 use Exporter qw(import);
 use URI::Escape;
 use Bio::Seq;
@@ -845,9 +844,11 @@ sub rename_ID_existing_in_omniscient {
 # Features are added even if they are identical. If they have similar name, new name will be given to.
 sub merge_omniscients {
 	# $hash_omniscient1 = omniscient to append !!!
-	my ($hash_omniscient1, $hash_omniscient2)=@_;
+	my ($hash_omniscient1, $hash_omniscient2, $hash_whole_IDs)=@_;
 
-	my $hash_whole_IDs = get_all_IDs($hash_omniscient1);
+	if(! $hash_whole_IDs){
+		$hash_whole_IDs = get_all_IDs($hash_omniscient1);
+	}
 	my $hash2_whole_IDs = get_all_IDs($hash_omniscient2);
 	
 	my %hash_miscCount;
@@ -863,15 +864,16 @@ sub merge_omniscients {
 			my $uID = $hash_omniscient2->{'level1'}{$tag_l1}{$id_l1}->_tag_value('ID');
 
 			if ( ! exists ( $hash_whole_IDs->{$id_l1} ) ){
-					$hash_omniscient1->{'level1'}{$tag_l1}{$id_l1} = $hash_omniscient2->{'level1'}{$tag_l1}{$id_l1}; # save feature
+					$hash_omniscient1->{'level1'}{$tag_l1}{$id_l1} = $hash_omniscient2->{'level1'}{$tag_l1}{$id_l1}; # save feature level1
 			}
 			else{
 				#print "INFO level1:  Parent $id_l1 already exist. We generate a new one to avoid collision !\n";
 				my $feature = $hash_omniscient2->{'level1'}{$tag_l1}{$id_l1};
 				$uID = replace_by_uniq_ID( $feature, $hash_whole_IDs,  $hash2_whole_IDs, $miscCount);
-				$hash_omniscient1->{'level1'}{$tag_l1}{lc($uID)} = $hash_omniscient2->{'level1'}{$tag_l1}{$id_l1}; # save feature
+				$hash_omniscient1->{'level1'}{$tag_l1}{lc($uID)} = $hash_omniscient2->{'level1'}{$tag_l1}{$id_l1}; # save feature level1
 				$new_parent=1;
 			}
+
 			#################
 			# == LEVEL 2 == #
 			#################
@@ -912,10 +914,9 @@ sub merge_omniscients {
 									my $uID_l3 = $feature_l3->_tag_value('ID');
 									my $id_l3 = lc($uID_l3);
 
-									if ( exists ( $hash_whole_IDs->{$id_l2} ) ){
+									if ( exists ( $hash_whole_IDs->{$id_l3} ) ){
 									#	print "INFO level3:  Parent $id_l3 already exist. We generate a new one to avoid collision !\n";
 										$uID_l3 = replace_by_uniq_ID($feature_l3, $hash_whole_IDs,  $hash2_whole_IDs, $miscCount);
-										
 									}
 								}
 								#save list feature level3
@@ -929,7 +930,7 @@ sub merge_omniscients {
 			}
 		}
 	}
-	return $hash_omniscient1;
+	return $hash_omniscient1, $hash_whole_IDs;
 }
 
 sub append_omniscient {
