@@ -7,7 +7,7 @@ check:
 	@printf "Perl is installed ... "
 	@if command -v perl >/dev/null 2>&1 ; then printf "\033[0;32myes\033[0m : "; perl -v; else printf "\033[0;31mno\033[0m\n"; fi
 	@printf "Rscript is installed ... "
-	@if command -v Rscript >/dev/null 2>&1 ; then printf "\033[0;32myes\033[0m : "; Rscript -v; else printf "\033[0;31mno\033[0m\n"; fi
+	@if command -v Rscript >/dev/null 2>&1 ; then printf "\033[0;32myes\033[0m : "; Rscript --version; else printf "\033[0;31mno\033[0m\n"; fi
 
 install: update_profiles
 	
