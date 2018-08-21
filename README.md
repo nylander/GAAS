@@ -16,6 +16,7 @@ make install   # Updates paths in the environment profiles to point to the corre
 ```
 
 Two profiles are available to setup the necessary environment variables to use the scripts:
+
 If you are on Rackham:
 ```
 source GAAS/profiles/activate_rackham_env
