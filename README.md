@@ -4,7 +4,25 @@
 
 ---------------------------
 
-Contains developement done in the GAA (Genome Assembly Annotation) Service.
+Contains development done in the GAA (Genome Assembly Annotation) Service.
 
 [__annotation__](annotation) directory contains development related to annotation side of the service.</br>
-__assembly__ directory contains development related to assembly side of the service.
+
+To use the tools in this repository, clone the directory and run `make install` to update some paths:
+```
+git clone https://github.com/NBISweden/GAAS.git
+cd GAAS
+make install   # Updates paths in the environment profiles to point to the correct GAAS repository location
+```
+
+Two profiles are available to setup the necessary environment variables to use the scripts:
+
+If you are on Rackham:
+```
+source GAAS/profiles/activate_rackham_env
+```
+
+If you are on the NBIS production server:
+```
+source GAAS/profiles/activate_nbis_env
+```
