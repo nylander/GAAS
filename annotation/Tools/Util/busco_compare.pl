@@ -159,7 +159,7 @@ my %hashCases;
 my %streamOutputs;
 #compare busco1 and busco2
 foreach my $type1 (keys %busco1){
-  foreach my $id1 (keys $busco1{$type1}){
+  foreach my $id1 (keys %{$busco1{$type1}} ){
 
     foreach my $type2 (keys %busco2){
       if($type1 ne $type2){
@@ -207,7 +207,7 @@ if (-d $augustus_gff_folder){
   my @list_cases=("complete","fragmented","duplicated");
   foreach my $type (@list_cases){
     print "extract gff for $type cases\n" if $verbose;
-    foreach my $id (keys $busco1{$type}){
+    foreach my $id (keys %{$busco1{$type}}){
       my @list = split(/\s/,$busco1{$type}{$id});
       my $seqId = $list[2];
       my $start = $list[3];
@@ -221,13 +221,13 @@ if (-d $augustus_gff_folder){
             my  $found=undef;
             print $path."\n" if $verbose;
             my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($path);
-            if (!keys $hash_omniscient){
+            if (!keys %{$hash_omniscient}){
               print "No gene found for $path\n";exit;
             }
             
             my @listIDl1ToRemove;
             if( exists_keys ($hash_omniscient,('level1','gene'))){
-              foreach my $id_l1 (keys $hash_omniscient->{'level1'}{'gene'}){
+              foreach my $id_l1 (keys %{$hash_omniscient->{'level1'}{'gene'}}){
                 my $feature = $hash_omniscient->{'level1'}{'gene'}{$id_l1};
                 if ($feature->seq_id() eq $seqId and  $feature->start == $start and $feature->end == $end){
                   $found=1;
@@ -235,7 +235,7 @@ if (-d $augustus_gff_folder){
 
                   #Add the OG name to the feature, to be displayed in WA
                   
-                  foreach my $tag_l2 (keys $hash_omniscient->{'level2'}){
+                  foreach my $tag_l2 (keys %{$hash_omniscient->{'level2'}}){
                     if( exists_keys($hash_omniscient,('level2', $tag_l2, $id_l1))){
                       foreach my $feature_l2 ( @{$hash_omniscient->{'level2'}{$tag_l2}{$id_l1}} ){
                         my $value=$id."-".$hashCases{$id};
@@ -289,7 +289,7 @@ if (-d $augustus_gff_folder){
     print_omniscient($full_omniscient, $out);
     %$full_omniscient = (); # empty hash
     $list_uID_new_omniscient=undef; #Empty Id used;
-    my $nb = keys $track_found{$type};
+    my $nb = keys %{$track_found{$type}};
     print "We found $nb annotations from $type busco\n";
   }
 
