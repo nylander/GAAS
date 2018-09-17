@@ -171,10 +171,7 @@ foreach my $type1 (keys %busco1){
           if($outfolder){
             if (! exists_keys (\%streamOutputs,($name)) ){
               my $ostream = IO::File->new(); 
-              $ostream->open( $outfolder."/$name.txt", 'w' ) or
-              croak(
-                sprintf( "Can not open '%s' for writing %s", $outfolder."/$name.txt", $! )
-              );
+              $ostream->open( $outfolder."/$name.txt", 'w' ) or croak( sprintf( "Can not open '%s' for writing %s", $outfolder."/$name.txt", $! ) );
               $streamOutputs{$name}=$ostream;
             }
             my $streamOut=$streamOutputs{$name};
@@ -233,8 +230,7 @@ if (-d $augustus_gff_folder){
                   $found=1;
                   $track_found{$type}{$id}++;
 
-                  #Add the OG name to the feature, to be displayed in WA
-                  
+                  #Add the OG name to the feature, to be displayed in WA               
                   foreach my $tag_l2 (keys %{$hash_omniscient->{'level2'}}){
                     if( exists_keys($hash_omniscient,('level2', $tag_l2, $id_l1))){
                       foreach my $feature_l2 ( @{$hash_omniscient->{'level2'}{$tag_l2}{$id_l1}} ){
@@ -290,6 +286,7 @@ if (-d $augustus_gff_folder){
     %$full_omniscient = (); # empty hash
     $list_uID_new_omniscient=undef; #Empty Id used;
     my $nb = keys %{$track_found{$type}};
+    $loop = 0;
     print "We found $nb annotations from $type busco\n";
   }
 
