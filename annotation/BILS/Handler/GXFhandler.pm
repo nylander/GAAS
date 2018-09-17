@@ -220,8 +220,6 @@ sub slurp_gff3_file_JD {
     _check_duplicates(\%duplicate, \%omniscient, $verbose);
 	_printSurrounded("Check1: _check_sequential",30,"*") if ($verbose >= 1) ;
 
-print Dumper(\%omniscient);
-
 	if(! $nocheck){
 	    #Check sequential if we can fix cases. Hash to be done first, else is risky that we remove orphan L1 feature ... that are not yet linked to a sequential bucket
 		if( keys %infoSequential ){ #hash is not empty
