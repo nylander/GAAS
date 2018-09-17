@@ -384,7 +384,7 @@ sub webapollo_rendering_l2 {
 	if($product_tag){
 		my @values = $feature->get_tag_values($product_tag);
 		$feature->add_tag_value('description', @values);
-		$feature->remove_tag($product_tag);
+		$feature->__tag($product_tag);
 	}
 }
 
@@ -841,12 +841,12 @@ sub rename_ID_existing_in_omniscient {
 }
 
 # put data from hash_omniscient2 in hash_omniscient1
-# Features are added even if they are identical. If they have similar name, new name will be given to.
+# Features are added even if they are identical. If they have similar name, new name will be given too.
 sub merge_omniscients {
 	# $hash_omniscient1 = omniscient to append !!!
 	my ($hash_omniscient1, $hash_omniscient2, $hash_whole_IDs)=@_;
-
-	if(! $hash_whole_IDs){
+	
+	if (! $hash_whole_IDs){
 		$hash_whole_IDs = get_all_IDs($hash_omniscient1);
 	}
 	my $hash2_whole_IDs = get_all_IDs($hash_omniscient2);
@@ -865,6 +865,7 @@ sub merge_omniscients {
 
 			if ( ! exists ( $hash_whole_IDs->{$id_l1} ) ){
 					$hash_omniscient1->{'level1'}{$tag_l1}{$id_l1} = $hash_omniscient2->{'level1'}{$tag_l1}{$id_l1}; # save feature level1
+					$hash_whole_IDs->{$id_l1}++;
 			}
 			else{
 				#print "INFO level1:  Parent $id_l1 already exist. We generate a new one to avoid collision !\n";
@@ -897,6 +898,7 @@ sub merge_omniscients {
 							$uID_l2 = replace_by_uniq_ID($feature_l2, $hash_whole_IDs,  $hash2_whole_IDs, $miscCount);	
 							$new_parent_l2=1;
 						}
+						else{$hash_whole_IDs->{$id_l2}++;}
 
 						#################
 						# == LEVEL 3 == #
@@ -918,6 +920,7 @@ sub merge_omniscients {
 									#	print "INFO level3:  Parent $id_l3 already exist. We generate a new one to avoid collision !\n";
 										$uID_l3 = replace_by_uniq_ID($feature_l3, $hash_whole_IDs,  $hash2_whole_IDs, $miscCount);
 									}
+									else{$hash_whole_IDs->{$id_l3}++;}
 								}
 								#save list feature level3
 								@{$hash_omniscient1->{'level3'}{$tag_l3}{lc($uID_l2)} } = @{ $hash_omniscient2->{'level3'}{$tag_l3}{$id_l2} };
@@ -1044,6 +1047,7 @@ sub remove_omniscient_elements_from_level1_id_list {
 	}
 }
 
+# /!\XXX Has to be improved, we should loop over the feature list and extract the id_tag_key_level1 before to loop over the hash
 # omniscient is a hash containing a whole gXf file in memory sorted in a specific way (3 levels)
 # Input: list of level2 id
 #        omniscient
@@ -1051,6 +1055,8 @@ sub remove_omniscient_elements_from_level1_id_list {
 sub remove_omniscient_elements_from_level2_feature_list {
 
 	my ($hash_omniscient, $feature_list) = @_  ;
+
+	my $remove_l1_too=undef;
 
 	#################
 	# == LEVEL 2 == #
@@ -1063,7 +1069,7 @@ sub remove_omniscient_elements_from_level2_feature_list {
 
 					foreach my $feature (@$feature_list){
 						my $feature_ID = lc($feature->_tag_value('ID'));
-						my $feature_Parent = lc($feature->_tag_value('Parent'));
+						my $feature_Parent_ID = lc($feature->_tag_value('Parent'));
 
 						if($level2_ID eq $feature_ID){
 
@@ -1075,14 +1081,26 @@ sub remove_omniscient_elements_from_level2_feature_list {
 									delete $hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID} # delete level3
 								}
 							}
-						my @id_concern_list=($feature_Parent);
+						my @id_concern_list=($feature_Parent_ID);
 						my @id_list_to_remove=($feature_ID);
 						my @list_tag_key=('all');
 						remove_element_from_omniscient(\@id_concern_list, \@id_list_to_remove, $hash_omniscient, 'level2','false', \@list_tag_key);
-						#delete $hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1} # delete level2
+
+							if( ! exists_keys($hash_omniscient, ('level2', $primary_tag_key_level2, $id_tag_key_level1)) ){
+								#New new list was empty so l2 has been removed, we can now remove l1
+								$remove_l1_too=$feature_Parent_ID; 
+							}
 						}
 					}
 				}
+			}
+		}
+	}
+	if($remove_l1_too){
+		foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){
+			if( exists_keys($hash_omniscient, ('level1', $primary_tag_key_level1, $remove_l1_too)) ){
+				print "Remove L1\n";
+				delete $hash_omniscient->{'level1'}{$primary_tag_key_level1}{$remove_l1_too}
 			}
 		}
 	}
@@ -1165,7 +1183,12 @@ sub remove_element_from_omniscient {
 						} # Feature not present in id_to_remove, we keep it in list.
 					}
 					if($mustModifyList){ # at least one feature has been removed from list. Save the new list
-						@{$hash_omniscient->{$level}{$tag_key}{$id_concern}}=@listok;
+						if(@listok){
+							@{$hash_omniscient->{$level}{$tag_key}{$id_concern}}=@listok;
+						}
+						else{ # The list is empty we could remove the key (otherwise we would have saved a emplty list)
+							delete $hash_omniscient->{$level}{$tag_key}{$id_concern};
+						}
 					}
 				}
 			}
@@ -1718,7 +1741,7 @@ sub replace_by_uniq_ID{
 	}
 
 	#push the new ID	
-	$hash_whole_IDs->{$uID}=$id;
+	$hash_whole_IDs->{lc($uID)}=$id;
 
 	# modify the feature ID with the correct one chosen
 	create_or_replace_tag($feature,'ID', $uID); #modify ID to replace by parent value
