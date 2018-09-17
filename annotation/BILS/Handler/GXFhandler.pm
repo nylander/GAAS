@@ -242,7 +242,7 @@ sub slurp_gff3_file_JD {
 	    _check_l3_link_to_l2(\%omniscient, \%mRNAGeneLink, \%miscCount, \%uniqID, \%uniqIDtoType, $verbose); # When creating L2 missing we create as well L1 if missing too
 		if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
 		_printSurrounded("Check4: _check_exons",30,"*") if ($verbose >= 1) ;
-
+print Dumper(\%omniscient);	
 	    #Check relationship L3 feature, exons have to be defined... / mRNA position are checked!
 	    _check_exons(\%omniscient, \%mRNAGeneLink, \%miscCount, \%uniqID,  \%uniqIDtoType, $verbose);
 		if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n"; $previous_time = time();}
@@ -1157,12 +1157,12 @@ sub _check_l3_link_to_l2{
 			#finish fill Level2
 				create_or_replace_tag($l2_feature, 'Parent', $new_ID_l1); # remove parent ID because, none.
 				#save new feature L2
-				push (@{$hash_omniscient->{"level2"}{$primary_tag_l2}{lc($new_ID_l1)}}, $l2_feature);
+				push (@{$hash_omniscient->{"level2"}{lc($primary_tag_l2)}{lc($new_ID_l1)}}, $l2_feature);
 
 			#finish fill Level1
 				check_level1_positions($hash_omniscient, $l1_feature);	# check start stop if isoforms exists
 				#save new feature L1
-				$hash_omniscient->{"level1"}{$primary_tag_l1}{lc($new_ID_l1)} = $l1_feature; # now save it in omniscient
+				$hash_omniscient->{"level1"}{lc($primary_tag_l1)}{lc($new_ID_l1)} = $l1_feature; # now save it in omniscient
 				$mRNAGeneLink->{lc($id_l2)} = $new_ID_l1;
 
 				print "L1 and L2 created, \n" if($verbose >= 1);
