@@ -242,7 +242,7 @@ sub slurp_gff3_file_JD {
 	    _check_l3_link_to_l2(\%omniscient, \%mRNAGeneLink, \%miscCount, \%uniqID, \%uniqIDtoType, $verbose); # When creating L2 missing we create as well L1 if missing too
 		if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
 		_printSurrounded("Check4: _check_exons",30,"*") if ($verbose >= 1) ;
-print Dumper(\%omniscient);	
+
 	    #Check relationship L3 feature, exons have to be defined... / mRNA position are checked!
 	    _check_exons(\%omniscient, \%mRNAGeneLink, \%miscCount, \%uniqID,  \%uniqIDtoType, $verbose);
 		if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n"; $previous_time = time();}
