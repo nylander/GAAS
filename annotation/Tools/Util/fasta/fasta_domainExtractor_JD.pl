@@ -110,7 +110,7 @@ if( ($nbSeq > 1) && (defined($nameSeq)) && ($headerFound eq "no") ){
 } 
 
 print "Name studied sequence: $header\n";
-print "sequence: $seq\n";
+#print "sequence: $seq\n";
 if($start<0 || $end <0){print "Start and End cannot be a negative value!\n"; exit;}
 if(length($seq) < $start){print "Start position for extraction is over the sequence size !\n"; exit;}
 if(length($seq) < $end){print "End position for extraction is over the sequence size !\n"; exit;}
@@ -122,8 +122,12 @@ $start=$start-1;
 my $lengtExtraction=$end-$start; #Length in 0-based coordinate (in 1-based coordinate we must add +1)
 print "Length sequence extracted: $lengtExtraction\n";
 my $extractedPart=substr($seq, $start, $lengtExtraction);
-print "Sequence extracted: $extractedPart\n";
-
+if ($outputFile){
+	print $ostream $extractedPart;
+}
+else{
+	print "Sequence extracted: $extractedPart\n";
+}
 
 __END__
 
