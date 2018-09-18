@@ -81,12 +81,12 @@ my $createL3forL2orphan = 1;
 my $fh_error = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 3);
 sub slurp_gff3_file_JD {
 	
-	my ($self, $file, $comonTagAttribute, $gffVersion, $verbose, $nocheck) = @_  ;
+	my ($self, $file, $comonTagAttribute, $gffVersion, $verbose, $nocheck, $quiet) = @_  ;
 
 	## TO DO 
 	# Handle the parameter with a hash
 	if(! $verbose){$verbose=0;}
-	my $overlapCheck = undef; # option to activate the check for overlapping locus
+	my $overlapCheck = 0; # option to activate the check for overlapping locus
 
 	my $start_run = time();
 	my $previous_time = undef;	
@@ -99,13 +99,13 @@ sub slurp_gff3_file_JD {
 #	+-----------------------------------------+
 
 	my $ontology = {};
-	my $ontology_obj = _handle_ontology($gff3headerInfo, $verbose);
+	my $ontology_obj = _handle_ontology($gff3headerInfo, $verbose, $quiet);
 	if($ontology_obj){
 		$ontology = create_term_and_id_hash($ontology_obj);
 	}
 
 	if(! keys %{$ontology} ){ #hash is empty
-		print "No data retrieved among the feature-ontology.\n";
+		print "No data retrieved among the feature-ontology.\n" unless $quiet;
 	}
 
 #	+-----------------------------------------+
@@ -242,7 +242,7 @@ sub slurp_gff3_file_JD {
 	    _check_l3_link_to_l2(\%omniscient, \%mRNAGeneLink, \%miscCount, \%uniqID, \%uniqIDtoType, $verbose); # When creating L2 missing we create as well L1 if missing too
 		if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
 		_printSurrounded("Check4: _check_exons",30,"*") if ($verbose >= 1) ;
-
+print Dumper(\%omniscient);	
 	    #Check relationship L3 feature, exons have to be defined... / mRNA position are checked!
 	    _check_exons(\%omniscient, \%mRNAGeneLink, \%miscCount, \%uniqID,  \%uniqIDtoType, $verbose);
 		if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n"; $previous_time = time();}
@@ -1157,12 +1157,12 @@ sub _check_l3_link_to_l2{
 			#finish fill Level2
 				create_or_replace_tag($l2_feature, 'Parent', $new_ID_l1); # remove parent ID because, none.
 				#save new feature L2
-				push (@{$hash_omniscient->{"level2"}{$primary_tag_l2}{lc($new_ID_l1)}}, $l2_feature);
+				push (@{$hash_omniscient->{"level2"}{lc($primary_tag_l2)}{lc($new_ID_l1)}}, $l2_feature);
 
 			#finish fill Level1
 				check_level1_positions($hash_omniscient, $l1_feature);	# check start stop if isoforms exists
 				#save new feature L1
-				$hash_omniscient->{"level1"}{$primary_tag_l1}{lc($new_ID_l1)} = $l1_feature; # now save it in omniscient
+				$hash_omniscient->{"level1"}{lc($primary_tag_l1)}{lc($new_ID_l1)} = $l1_feature; # now save it in omniscient
 				$mRNAGeneLink->{lc($id_l2)} = $new_ID_l1;
 
 				print "L1 and L2 created, \n" if($verbose >= 1);
@@ -2814,21 +2814,21 @@ sub fetcher_JD {
 # @input: 3 =>  String file, Hash, Int 
 # @output: 1 => Object Ontology
 sub _handle_ontology{
-	my ($gff3headerInfo, $verbose) = @_ ;
+	my ($gff3headerInfo, $verbose, $quiet) = @_ ;
 
 	my $ontology_obj=undef;
 	my $internalO=1;
 		
 		if(exists_keys($gff3headerInfo, ("##feature-ontology"))){
 			
-			print "feature-ontology URI defined within the file: ".$gff3headerInfo->{'##feature-ontology'}."\n";		
+			print "feature-ontology URI defined within the file: ".$gff3headerInfo->{'##feature-ontology'}."\n" if $verbose;		
 			#retrieve the data from URI and save it in a string
 			my $stringFILE=undef;
 			try{
 				$stringFILE = fetcher_JD($gff3headerInfo->{"##feature-ontology"});
 			}
 			catch{ 
-				print "The URI provided (".$gff3headerInfo->{'##feature-ontology'}.") doesn't work.\n";
+				print "The URI provided (".$gff3headerInfo->{'##feature-ontology'}.") doesn't work.\n" if $verbose;
 				print "error: $_\n" if ( $verbose >= 1);
 			};
 
@@ -2845,14 +2845,14 @@ sub _handle_ontology{
 		 			close $fh_uriOnto;
 		 		}
 		 		catch{
-		 			print "The URI provided doesn't point to obo ontology format data.\n";
+		 			print "The URI provided doesn't point to obo ontology format data.\n" if $verbose;
 		 			print "error: $_\n" if ( $verbose >= 1);
 		 			$parser = undef;
 		 		};
 		
 				if($parser){ #We got ontology at the URI location, no need to use the internal one
 					$internalO=undef;
-					print "feature-ontology parsed correctly\n";
+					print "feature-ontology parsed correctly\n" if $verbose;
 				}
 			}
 		}
@@ -2887,7 +2887,7 @@ sub _handle_ontology{
 		}
 		catch{
 			print "error: $_\n" if ( $verbose >= 1);
- 			print "Let's continue without feature-ontology information.\n";
+ 			print "Let's continue without feature-ontology information.\n" unless $quiet;
 		};
 	}
 	return $ontology_obj;
