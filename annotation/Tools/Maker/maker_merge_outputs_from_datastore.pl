@@ -8,6 +8,7 @@ use Time::Piece;
 use Time::Seconds;
 use Cwd;
 use Pod::Usage;
+use URI::Escape;
 use Getopt::Long qw(:config no_ignore_case bundling);
 use BILS::Handler::GXFhandler qw(:Ok);
 use BILS::Handler::GFF3handler qw(:Ok);
@@ -24,6 +25,7 @@ my $header = qq{
 ########################################################
 };
 
+my %file_hds;
 my $out = undef;
 my $in = undef;
 my $help= 0;
@@ -31,7 +33,7 @@ my $help= 0;
 if ( !GetOptions(
     "help|h" => \$help,
     "i=s" => \$in,
-    "output|outfile|out|o=s" => \$out))
+    "output|out|o=s" => \$out))
 
 {
     pod2usage( { -message => 'Failed to parse command line',
@@ -79,9 +81,8 @@ else{
 } 
 
 # STANDARD
-my $protein_file = "annotations.proteins.fa";
-my $gffmixup = "mixup.gff";
 my $default_out_dir_name = "maker_output_processed";
+my $outfile = "genome";
 
 # MANAGE OUT
 if(! $out){
@@ -111,8 +112,6 @@ if (-d "$out") {
 else{
 	print "Creating the $out folder\n";
 	mkdir $out;
-	open(my $gff_out, '>', $out."/".$gffmixup) or die "Could not open file '$out/$gffmixup' $!";
-	open(my $protein_out, '>', $out."/".$protein_file) or die "Could not open file '$out/$protein_file' $!";
 
 	foreach my $makerDir (@inDir){
 		my $prefix = $makerDir;
@@ -126,73 +125,21 @@ else{
 		        die "Could not find datastore index ($datastore), exiting...\n";
 		}
 
-		# This is one way to open a file...
-		#open (my $IN, '<', $datastore) or die "FATAL: Can't open file: $datastore for reading.\n$!\n";
+		if ( grep -f, glob '$out/*.fasta' ) {
+			print "Output fasta file already exists. We skip the fasta gathering step.\n";
+		}
+		elsif ( grep -f, glob '$out/*.gff' ) {
+			print "Output gff file already exists. We skip the gff gathering step.\n";
+		}
+		else{
+			collect_recursive($datastore);
 
-		#Read list of dir
-		opendir(DIR, $datastore) or die "cannot open dir $datastore: $!";
-	  	my @listDirL1= readdir DIR;
-	  	closedir DIR;
-
-	  	foreach my $dirL1 (@listDirL1){
-	  		if($dirL1 =~ /^\./){next;}
-
-	  		#Read list of dir
-			opendir(DIR, $datastore."/".$dirL1) or die "cannot open dir $datastore/$dirL1: $!";
-	  		my @listDirL2= readdir DIR;
-	  		closedir DIR;
-
-	  		foreach my $dirL2 (@listDirL2){
-	  			if($dirL2 =~ /^\./){next;}
-
-		  		#Read list of dir
-				opendir(DIR, $datastore."/".$dirL1."/".$dirL2) or die "cannot open dir $datastore/$dirL1/$dirL2: $!";
-		  		my @listDirL3= readdir DIR;
-		  		closedir DIR;
-
-		  		foreach my $dirL3 (@listDirL3){
-		  			if($dirL3 =~ /^\./){next;}
-
-		  			opendir(DIR, $datastore."/".$dirL1."/".$dirL2."/".$dirL3) or die "cannot open dir $datastore/$dirL1/$dirL2/$dirL3: $!";
-		  			my @listFile= readdir DIR;
-		  			closedir DIR;
-
-		  			my $gff_file = undef;
-		  			my $aa_file = undef;
-		  			if(grep $_ =~ /\.gff$/ , @listFile ){
-		  				my @matchFile = grep $_ =~  /\.gff$/, @listFile ;
-						$gff_file = $matchFile[0] ;
-		  			}
-
-		  			if(grep $_ =~ /\.proteins\.fasta$/ , @listFile ){
-		  				my @matchFile = grep $_ =~  /\.proteins\.fasta$/, @listFile ;
-						$aa_file = $matchFile[0] ;
-		  			}
-
-					if ($gff_file) {
-						my $filename="$datastore/$dirL1/$dirL2/$dirL3/$gff_file";
-						open(my $fh, '<:encoding(UTF-8)', $filename) or die "Could not open file '$filename' $!";
-						while (<$fh>) {
-							print $gff_out $_;
-						}
-						close $fh;
-					}
-				
-					if ($aa_file ) {
-						my $filename="$datastore/$dirL1/$dirL2/$dirL3/$aa_file";
-						open(my $fh, '<:encoding(UTF-8)', $filename) or die "Could not open file '$filename' $!";
-						while (<$fh>) {
-							print $protein_out $_;
-						}
-						close $fh;
-					}
-				}
+			#Close all file_handler opened
+			foreach my $key (keys %file_hds){
+				close $file_hds{$key};
 			}
 		}
 	}
-
-	close $gff_out;
-	close $protein_out;
 }
 
 print "Now save a copy of the Maker option files ...\n";
@@ -219,36 +166,109 @@ else{
 ############################################
 # Now manage to split file by kind of data # Split is done on the fly (no data saved in memory)
 ############################################
-my $splitedData_dir= "$out/gff_by_type";
 
-if (-d $splitedData_dir) {
-	print "Output $splitedData_dir of the <split by type> step already exists. We skip it.\n"
+#make the annotation safe
+my $annotation="$out/maker.gff";
+if (-f $annotation) {
+	print "Protecting the maker.gff annotation by making it readable only\n";
+	system "chmod 444 $annotation";
 }
 else{
-	print "Now split file by data type...\n";
-	mkdir $splitedData_dir;
-	# split data by column 2 with awk
-	system "awk '{if(\$2 ~ /[a-zA-Z]+/) print \$0 > \"$splitedData_dir/\"\$2\".gff\"}' $out\"/\"$gffmixup";
-
-	#make the annotation safe
-	my $annotation="$splitedData_dir/maker.gff";
-	if (-f $annotation) {
-		print "Protecting the maker.gff annotation by making it readable only\n";
-		system "chmod 444 $annotation";
-	}
+	print "ERROR: Do not find the $annotation file !\n";
+}
 
 
-	#do statistics
-	my $full_path = can_run('gff3_sp_statistics.pl') or print "Cannot launch statistics. gff3_sp_statistics.pl script not available\n";
-	if ($full_path) {
-	        print "Performing the statistics of the maker.gff annotation file\n";
-		my $annotation_stat="$splitedData_dir/maker_stat.txt";
-	        system "gff3_sp_statistics.pl --gff $annotation -o $annotation_stat";
-	}
+#do statistics
+my $full_path = can_run('gff3_sp_statistics.pl') or print "Cannot launch statistics. gff3_sp_statistics.pl script not available\n";
+if ($full_path) {
+        print "Performing the statistics of the maker.gff annotation file\n";
+	my $annotation_stat="$out/maker_stat.txt";
+        system "gff3_sp_statistics.pl --gff $annotation -o $annotation_stat";
 }
 
 print "All done!\n";
 
+sub collect_recursive {
+    my ($full_path) = @_;
+	
+	my ($name,$path,$suffix) = fileparse($full_path,qr/\.[^.]*/);
+
+    if( ! -d $full_path ){
+    	
+    	###################
+    	# deal with fasta #
+    	if($suffix eq ".fasta"){
+    		my $key = undef;
+    		my $type = undef;
+    		if($name =~ /([^\.]+)\.transcripts/){
+    			$key = $1;
+    			$type = "transcripts";
+    		}
+    		if($name =~ /([^\.]+)\.proteins/){
+    			$key = $1;
+    			$type = "proteins";
+    		}
+    		if($name =~ /([^\.]+)\.noncoding/){
+    			$key = $1;
+    			$type = "noncoding";
+    		}
+    		if($key){
+    			my $source = 'maker';
+	    		$source .= ".$key" if($key ne 'maker');
+	    		
+				my $prot_out_file_name = "$outfile.all.$source.$type.fasta";
+				my $protein_out_fh=undef;
+				if( _exists_keys (\%file_hds,($prot_out_file_name)) ){
+					$protein_out_fh = $file_hds{$prot_out_file_name};
+				}
+				else{
+					open($protein_out_fh, '>', "$out/$prot_out_file_name") or die "Could not open file '$out/$prot_out_file_name' $!";
+					$file_hds{$prot_out_file_name}=$protein_out_fh;
+				}
+				 	
+	    		#print
+	    		open(my $fh, '<:encoding(UTF-8)', $full_path) or die "Could not open file '$full_path' $!";
+					while (<$fh>) {
+						print $protein_out_fh $_;
+					}
+				close $fh;
+    		}
+    	}
+
+    	################
+ 		#deal with gff #
+    	if($suffix eq ".gff"){
+			system "awk '{if(\$2 ~ /[a-zA-Z]+/) { gsub(/:/, \"_\" ,\$2); print \$0 >> \"$out/\"\$2\".gff\"}}' $full_path";
+    	}
+    	
+    	return;
+    }
+    if($name =~ /^theVoid/){ # In the void there is sub results already stored in the up folder. No need to go such deep otherwise we will have duplicates.
+    	return;
+    }
+    opendir my $dh, $full_path or die;
+    while (my $sub = readdir $dh) {
+        next if $sub eq '.' or $sub eq '..';
+ 
+        collect_recursive("$full_path/$sub");
+    }
+    close $dh;
+    return;
+}
+
+sub _exists_keys {
+    my ($hash, $key, @keys) = @_;
+
+    if (ref $hash eq 'HASH' && exists $hash->{$key}) {
+        if (@keys) {
+            return exists_keys($hash->{$key}, @keys);
+        }
+        return 1;
+    }
+    return '';
+}
+
+__END__
 # --------------
 
 
