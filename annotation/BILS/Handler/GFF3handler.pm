@@ -660,11 +660,13 @@ sub fill_omniscient_from_other_omniscient_level1_id {
 
 #append hash1 by hash2 accodingly with overlap parameter. Only non overlaping one will be kept
 sub complement_omniscients_by_size {
-	my ($omniscient1, $omniscient2, $size, $verbose)=@_;
+	my ($omniscient1, $omniscient2, $size_min, $verbose)=@_;
 
 	my %add_omniscient;
-	
-	#if(! $verbose){$verbose=3;}
+
+	$size_min=0 if (! $size_min);
+
+	if(! $verbose){$verbose=0;}
 	my $omniscient1_sorted = sort_by_seq($omniscient1);
 	my $omniscient2_sorted = sort_by_seq($omniscient2);
 
@@ -708,22 +710,51 @@ sub complement_omniscients_by_size {
 						}	
 					}
 
+					# We keep it because is not overlaping
 					if($take_it){
 						print "We take it : $id1_l1\n" if ($verbose >= 3);
-						#save level1
-						$add_omniscient{'level1'}{$tag_l1}{$id1_l1} = $omniscient2->{'level1'}{$tag_l1}{$id1_l1};
-						#save level2
+
+						#look at size
+						my $still_take_it=undef;
 						foreach my $tag_l2 (keys %{$omniscient2->{'level2'}} ){
 							if(exists_keys($omniscient2,('level2', $tag_l2, $id1_l1))){
-								# Add the level2 list data
-								$add_omniscient{'level2'}{$tag_l2}{$id1_l1} = $omniscient2->{'level2'}{$tag_l2}{$id1_l1};
-								# for each level2 get the level3 subfeatures 
 								foreach my $feature_l2 ( @{$omniscient2->{'level2'}{$tag_l2}{$id1_l1}} ){
 									my $id_l2 = $feature_l2->_tag_value('ID');
-									#save level3
 									foreach my $tag_l3 (keys %{$omniscient2->{'level3'}} ){
-										if(exists_keys($omniscient2,('level3', $tag_l3, lc($id_l2)))){
-											$add_omniscient{'level3'}{$tag_l3}{lc($id_l2)} = $omniscient2->{'level3'}{$tag_l3}{lc($id_l2)};
+										if(exists_keys($omniscient2,('level3', 'cds', lc($id_l2)))){
+											my $cds_size=0;
+											foreach my $feature_l3 ( @{$omniscient2->{'level3'}{'cds'}{lc($id_l2)}} ){
+												my $size=$feature_l3->end - $feature_l3->start +1;
+												$cds_size += $size;
+											}
+											if($cds_size >= $size_min){
+												$still_take_it=1;
+												last;
+											}
+										}
+									}
+									last if $still_take_it;
+								}
+								last if $still_take_it;
+							}
+						}
+						# We keep it because has size over threshold
+						if ($still_take_it){
+							#save level1
+							$add_omniscient{'level1'}{$tag_l1}{$id1_l1} = $omniscient2->{'level1'}{$tag_l1}{$id1_l1};
+							#save level2
+							foreach my $tag_l2 (keys %{$omniscient2->{'level2'}} ){
+								if(exists_keys($omniscient2,('level2', $tag_l2, $id1_l1))){
+									# Add the level2 list data
+									$add_omniscient{'level2'}{$tag_l2}{$id1_l1} = $omniscient2->{'level2'}{$tag_l2}{$id1_l1};
+									# for each level2 get the level3 subfeatures 
+									foreach my $feature_l2 ( @{$omniscient2->{'level2'}{$tag_l2}{$id1_l1}} ){
+										my $id_l2 = $feature_l2->_tag_value('ID');
+										#save level3
+										foreach my $tag_l3 (keys %{$omniscient2->{'level3'}} ){
+											if(exists_keys($omniscient2,('level3', $tag_l3, lc($id_l2)))){
+												$add_omniscient{'level3'}{$tag_l3}{lc($id_l2)} = $omniscient2->{'level3'}{$tag_l3}{lc($id_l2)};
+											}
 										}
 									}
 								}
@@ -749,7 +780,7 @@ sub complement_omniscients {
 
 	my %add_omniscient;
 	
-	#if(! $verbose){$verbose=3;}
+	if(! $verbose){$verbose=0;}
 	my $omniscient1_sorted = sort_by_seq($omniscient1);
 	my $omniscient2_sorted = sort_by_seq($omniscient2);
 
