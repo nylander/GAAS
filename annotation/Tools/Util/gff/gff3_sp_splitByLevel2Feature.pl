@@ -2,9 +2,9 @@
 
 my $header = qq{
 ########################################################
-# BILS 2015 - Sweden                                   #
-# jacques.dainat\@bils.se                               #
-# Please cite BILS (www.bils.se) when using this tool. #
+# NBIS 2015 - Sweden                                   #
+# jacques.dainat\@nbis.se                               #
+# Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 };
 
@@ -60,7 +60,7 @@ else{
 }
 
 if (-d $opt_output){
-  print "The output directory choosen already exists. Please geve me another Name.\n";exit();
+  print "The output directory choosen already exists. Please give me another Name.\n";exit();
 }
 mkdir $opt_output;
 
@@ -88,7 +88,6 @@ foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_lev
 
       if ( exists ($hash_omniscient->{'level2'}{$tag_l2}{$key_l1} ) ){
         foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$tag_l2}{$key_l1}}) {
-            
           #manage handler
           if(! exists ( $handlers{$tag_l2} ) ) {
             open(my $fh, '>', $opt_output."/".$tag_l2.".gff") or die "Could not open file '$tag_l2' $!";
@@ -169,13 +168,12 @@ __END__
 =head1 NAME
 
 gff3_fix_cds_frame.pl -
-This script will fix the cds phases. 
-The result is written to the specified output file, or to STDOUT.
+The script will split the gff input file into different files according to the different Level2 feature that it contains.
 
 =head1 SYNOPSIS
 
-    ./gff3_fix_cds_frame.pl -g infile.gff [ -o outfile ]
-    ./gff3_fix_cds_frame.pl --help
+    ./gff3_sp_splitByLevel2Feature.pl -g infile.gff [ -o outfolder ]
+    ./gff3_sp_splitByLevel2Feature.pl --help
 
 =head1 OPTIONS
 
@@ -187,8 +185,7 @@ Input GFF3 file that will be read (and sorted)
 
 =item B<-o> or B<--output>
 
-Output GFF file.  If no output file is specified, the output will be
-written to STDOUT.
+Output folder.  If no output folder provided, the default name will be <split_result>.
 
 =item B<-h> or B<--help>
 
