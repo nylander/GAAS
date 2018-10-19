@@ -507,11 +507,11 @@ Output Fields Separator for the description field. By default it's a space < > b
 
 =item B<--cis>
 
-The Clean Internal Stop option allows removing the tranlation of the stop codons present among the sequence that is represented by the <*> character. This character can be disturbing for many programs (e.g interproscan)
+The Clean Internal Stop option allows replacing the translation of the stop codons present among the sequence that is represented by the <*> character by <X>. Indeed the <*> character can be disturbing for many programs (e.g interproscan)
 
 =item B<--cfs>
 
-The Clean Final Stop option allows removing the tranlation of the final stop codons that is represented by the <*> character. This character can be disturbing for many programs (e.g interproscan)
+The Clean Final Stop option allows removing the translation of the final stop codons that is represented by the <*> character. This character can be disturbing for many programs (e.g interproscan)
 
 =item B<-o> or B<--output>
 
