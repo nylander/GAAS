@@ -29,10 +29,10 @@ our %EXPORT_TAGS = ( DEFAULT => [qw()],
 
 =head1 VERSION
   
-    Perl librairy last edited 2-Nov-2016.
+    Perl librairy last edited Oct-2018.
 
 =head1 CONTACT
-    jacques.dainat@bils.se (Jacques Dainat)
+    jacques.dainat@nbis.se (Jacques Dainat)
 
 =cut	
 
@@ -1025,6 +1025,7 @@ sub _check_gene_link_to_mrna{
 				print "WARNING gff3 reader level2 : No Parent feature found with the ID @ ".$id_l1.". We will create one.\n" if ($verbose >= 2);
 				my $gene_feature=clone($hash_omniscient->{'level2'}{$primary_tag_l2}{$id_l1}[0]);#create a copy of the first mRNA feature;
 				my $new_ID = $gene_feature->_tag_value('Parent');
+				print "Here is the new ID created $new_ID.\n" if ($verbose >= 2);
 				create_or_replace_tag($gene_feature,'ID', $new_ID); #modify ID to replace by parent value
 				$gene_feature->remove_tag('Parent'); # remove parent ID because, none.
 				check_level1_positions($hash_omniscient, $gene_feature);	# check start stop if isoforms exists
@@ -1944,7 +1945,7 @@ sub _check_sequential{ # Goes through from L3 to l1
 
  	_cleanSequentialIncase($infoSequential, $locusTAGuniq, $verbose); # PART OF LOCUS LOST BEFORE TO MEET IT L2 or L1 ... we catch them and re-link everythong as it should be
 
- 	foreach my $locusNameHIS (keys %{$infoSequential} ){ #comon tag was l1 id wheb no real comon tag present
+ 	foreach my $locusNameHIS (keys %{$infoSequential} ){ #comon tag was l1 id when no real comon tag present
 
  		foreach my $bucket (keys %{$infoSequential->{$locusNameHIS} } ){ #bucket = level1 or Id L2
  			print "\nlocusNameHIS $locusNameHIS bucket $bucket\n\n" if ($verbose >= 3);
@@ -2025,6 +2026,7 @@ sub _check_sequential{ # Goes through from L3 to l1
 
 	 						#Manage ID 
 								create_or_replace_tag($feature_l2,'ID', $bucket); #modify ID to replace by parent value
+								print "level2 ID created: $bucket !\n" if($verbose >= 2);
 							#Manage Parent
 								my $parentID = undef;
 							 	if( exists_keys($infoSequential,($locusNameHIS,'level1'))  ){ # parent ID exists in infoSequential
@@ -2295,7 +2297,7 @@ sub _check_identical_isoforms{
 
 				my @L2_list_to_remove;
 				my %checked;
-				foreach my $feature2 (sort {$b cmp $a} @{$omniscient->{'level2'}{$l2_type}{$id2_l1}}){			
+				foreach my $feature2 (sort {$b->_tag_value('ID') cmp $a->_tag_value('ID')} @{$omniscient->{'level2'}{$l2_type}{$id2_l1}}){			
 					$checked{lc($feature2->_tag_value('ID'))}{lc($feature2->_tag_value('ID'))}++;
 
 					my $keep = 1;
@@ -2319,7 +2321,8 @@ sub _check_identical_isoforms{
 					}
 					# We dont keep the l2 feature so we have to remove all related features and itself
 					if(! $keep){ 
-						print "Lets remove isoform ".$feature2->_tag_value('ID')."\n" if ($verbose == 2);
+						$resume_case++;
+						print "Lets remove isoform ".$feature2->_tag_value('ID')."\n" if ($verbose >= 2);
 						$checked{lc($feature2->_tag_value('ID'))}{"skipme"}++;# will be removed later do not check anymore this one
 						
 						foreach my $tag (keys %{$omniscient->{'level3'}}){
@@ -2327,9 +2330,10 @@ sub _check_identical_isoforms{
 								delete $omniscient->{'level3'}{$tag}{lc($feature2->_tag_value('ID'))};
 							}
 						}
-						#Hast to be removed once we finished to go through the l2 list
-						push(@L2_list_to_remove,lc($feature2->_tag_value('ID')));
-						delete $mRNAGeneLink->{lc($feature2->_tag_value('ID'))};
+						#Has to be removed once we finished to go through the l2 list
+						my $ID_to_remove = lc($feature2->_tag_value('ID'));
+						push(@L2_list_to_remove,$ID_to_remove);
+						delete $mRNAGeneLink->{$ID_to_remove};
 					}
 				}
 
@@ -2351,6 +2355,7 @@ sub _check_identical_isoforms{
 			}
 		}
 	}
+	print "We removed $resume_case cases where gene where identical.\n" if($verbose >= 1 and $resume_case);
 }
 
 

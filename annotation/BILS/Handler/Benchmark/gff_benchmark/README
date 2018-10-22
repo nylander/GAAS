@@ -1,5 +1,6 @@
 This is an explanations of the differents test files used to check the GFF3 parser.
-Launch the tester.sh script to check the parser and all these files
+Launch the tester.sh script to check the parser and all these files.
+
 
 00: Correct gff3 => Must stay as it is.
 01: 4 Exon duplicated + 4 exon missing
@@ -25,9 +26,19 @@ Launch the tester.sh script to check the parser and all these files
 21: Two exon badly defined, they are overlaping. One has to have its location modified and the other one ahas to be completey removed
 22: case where UTR both side of an exon... nothing to do, jedst the check has to not perform anything...
 23: Mutliparent for the exon feature
-24: Not correct SOFA feature type
+24: Not correct SOFA feature type => It's normal that there is no correct output to check against.
 25: No L1 feature. L2 and l3 feature withou comon locus tag. Has to be handle strictly sequential. (/!\ if there are isoforms of the same gene they cannot be gather under the same L1. There is no way to do the assumption)
 26: No L1 feature, No L2 feature, No Locus tag. => It's normal that there is no correct output to check against.
 27: One L2 is an identical isoform but not same ID. It has to be removed.
+28: Mitos output. Only one line by record, no ID, no locus tag. We have to use the option '-c Name' to specifiy that we will use the Name attribute as a locus_tag as they are uniq identifiers.
 
 /!\ If only level3 features are difined, and no locus tag present (see test 26), the tool cannot deal with it. I will create by default one umbrela level1, or if you on attribute as uniq locus ID, It will create a l1 for each feature => If only exon or only CDS features so the result will be fine, but if there are two different features that has to be linked together (two CDS or a CDS and a signal peptide as in the test case 26) , the tool will not perform properly.
+
+The phylosophy of the parser is to
+- Parse by Parent/child ELSE 
+- Parse by comon_tag  ELSE
+- Parse by sequential 
+
+Definitions:
+feature = 1 line
+record = bench of features linked together to describe a genomic element (i.e gebe feature + mRNA feature + exon feature + CDS feature + UTR feature)

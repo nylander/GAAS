@@ -10,14 +10,25 @@ fi
 for i in {0..50}_*;do
 
 	if [[ -f $i ]];then
-
+		#go through only the test files (not the correct output)
 		if [[ ! $i =~ ^[[:digit:]]+_correct ]];then
 			echo -e "\nTest of $i";
 			testperfect="no"
-			~/git/NBIS/GAAS/annotation/Tools/Converter/gxf_to_gff3.pl --gff $i -o test.gff3  &> /dev/null  
+			
+			#Special case !!
+			nb=${i%"_test.gff"}
+			if (( $nb == 28 ));then
+				~/git/NBIS/GAAS/annotation/Tools/Converter/gxf_to_gff3.pl --gff $i -o test.gff3 -c Name  &> /dev/null 
+			#others
+			else
+				~/git/NBIS/GAAS/annotation/Tools/Converter/gxf_to_gff3.pl --gff $i -o test.gff3  &> /dev/null  
+			fi
+
+			#get the expected name of the correct output file we will have to check against
 			pref=$(echo $i | cut -d'_' -f1)
 			fileok=${pref}_correct_output.gff
 
+			# Check against the correct output
 			if [ ! -f $fileok ];then
 				echo "We didnt find any correct output to check against for $i ( $fileok ) "
 			else
