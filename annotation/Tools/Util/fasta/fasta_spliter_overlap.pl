@@ -81,27 +81,28 @@ while ( my $seq = $fasta1->next_seq() ) {
   
   while ( seq->length() < $end) {
 
-    my $sequence = undef;
-    my $seq = undef;
-    my $id_seq = undef;
-  	if($seq->length() > ($end+$opt_chunck_size) ){
-      
-      
-      $sequence = $db->subseq($seq_id_correct, $start, $end);
-      $seq = Bio::Seq->new( '-format' => 'fasta' , -seq => $sequence);
-      $id_seq = $seq->id."_$start_$end";
-      $seqObj->id($id_seq);
-      $ostream->write_seq($seq);
-  	}
-    else{
-      $sequence = subseq($seq_id_correct, $start, $end);
-      $seq  = Bio::Seq->new( '-format' => 'fasta' , -seq => $sequence);
-      $id_seq = $seq->id."_$start_$end";
-      $seqObj->id($id_seq);
-      $ostream->write_seq($seq);
-    }
-    my $start = $end - $opt_overlap;
-    my $end = $start + $opt_chunck_size;
+      my $sequence = undef;
+      my $seqObj = undef;
+      my $id_seq = undef;
+    	if($seq->length() > ($end+$opt_chunck_size) ){
+        
+        
+        $sequence = substr($seq, $start, $opt_chunck_size);
+        $seqObj = Bio::Seq->new( '-format' => 'fasta' , -seq => $sequence);
+        $id_seq = $seq->id."_".$start."_".$end;
+        $seqObj->id($id_seq);
+        $ostream->write_seq($seq);
+    	}
+      else{
+        $sequence = substr($seq, $start);
+        $seqObj  = Bio::Seq->new( '-format' => 'fasta' , -seq => $sequence);
+        $id_seq = $seq->id."_".$start."_".$end;
+        $seqObj->id($id_seq);
+        $ostream->write_seq($seq);
+      }
+      my $start = $end - $opt_overlap;
+      my $end = $start + $opt_chunck_size;
+  }
 }
 
 
