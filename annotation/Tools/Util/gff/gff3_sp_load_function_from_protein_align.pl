@@ -1133,23 +1133,23 @@ sub  calcul_match_gap{
   foreach my $gap (@{$gap}){
 
         #get value every time it was a match
-        if($gap =~ /^M/){
+        if($gap =~ /^M/){ #MATCH - M1 in a protein space is actually an amino acid match (matches 3 bp in nucleotide space)
           substr($gap, 0, 1) = "";
           $match_size += $gap;
         }
-        elsif($gap =~ /^D/){
+        elsif($gap =~ /^D/){ # deletion = insert a gap into the target (delete from reference) - D1 is an amino acid deletion (3bp in nucleotide space)
           substr($gap, 0, 1) = "";
           $nuc_polish -= $gap;
         }
-        elsif($gap =~ /^I/){
+        elsif($gap =~ /^I/){ # insert a gap into the reference sequence - I1 is an amino acid insertion (3bp in nucleotide space)
           substr($gap, 0, 1) = "";
           $nuc_polish -= ($gap*3);
         }  
-        elsif($gap =~ /^R/){
+        elsif($gap =~ /^R/){# frameshift reverse in the reference sequence - F and R therefore allow for single bp movement either to the left or right within amino acid space. Sometime this happens in Exonerate where it appears as a slightly shifted codon (codons look stacked ), but it also happens when an amino acid is split across a splice site (1st part of a codon is on one exon and second part on the next exon).
           substr($gap, 0, 1) = "";
           $nuc_polish -= $gap;
         }
-        elsif($gap =~ /^F/){
+        elsif($gap =~ /^F/){# frameshift forward in the reference sequence
           substr($gap, 0, 1) = "";
           $nuc_polish -= $gap;
         }
@@ -1166,21 +1166,21 @@ sub nuc_gap_val{
   my ($gap) = @_;
 
   my $nuc=0;
-  if($gap =~ /^M/){
+  if($gap =~ /^M/){ #MATCH - M1 in a protein space is actually an amino acid match (matches 3 bp in nucleotide space)
     $nuc = substr $gap, 1;
     $nuc=$nuc*3;
   }
-  elsif($gap =~ /^D/){
+  elsif($gap =~ /^D/){  # deletion = insert a gap into the target (delete from reference) - D1 is an amino acid deletion (3bp in nucleotide space)
     $nuc = substr $gap, 1;
   }
-  elsif($gap =~ /^I/){
+  elsif($gap =~ /^I/){ # insert a gap into the reference sequence - I1 is an amino acid insertion (3bp in nucleotide space)
     $nuc = substr $gap, 1;
     $nuc=$nuc*3;
   }  
-  elsif($gap =~ /^F/){
+  elsif($gap =~ /^F/){ # frameshift forward in the reference sequence - F and R therefore allow for single bp movement either to the left or right within amino acid space. Sometime this happens in Exonerate where it appears as a slightly shifted codon (codons look stacked ), but it also happens when an amino acid is split across a splice site (1st part of a codon is on one exon and second part on the next exon).
     $nuc = substr $gap, 1;
   }  
-  elsif($gap =~ /^R/){
+  elsif($gap =~ /^R/){ # frameshift reverse in the reference sequence -
     $nuc = substr $gap, 1;
   }
   else{
