@@ -1,9 +1,9 @@
 #!/usr/bin/env perl
 
 ###################################################
-# Jacques Dainat 01/2015     #
+# Jacques Dainat 2018     #
 # Bioinformatics Infrastructure for Life Sciences #
-# jacques.dainat@bils.se                          #
+# jacques.dainat@nbis.se                          #
 ###################################################
 
 use Carp;
@@ -14,8 +14,6 @@ use Getopt::Long;
 use IO::File ;
 use Bio::SeqIO;
 use Bio::Tools::GFF;
-use BILS::Handler::GFF3handler qw(:Ok);
-use BILS::Handler::GXFhandler qw(:Ok);
 
 my $start_run = time();
 
@@ -46,9 +44,8 @@ if (! @inputFile ){
                  -exitval => 1 } );
 }
 
-my $ostream     = IO::File->new();
-
 # Manage Output
+my $ostream     = IO::File->new();
 if(defined($outputFile))
 {
 $ostream->open( $outputFile, 'w' ) or
@@ -98,17 +95,22 @@ foreach my $file (@inputFile){
     $line_cpt++;
     my $type = lc($feature->primary_tag);
     ## repeatMasker or repeatRunner
-    if (($type eq 'match') or ($type eq 'protein_match')){
-
+    if (($type eq 'ncrna') or ($type eq 'nc_rna')){
+      
+      my $ID = lc($feature->_tag_value('ID'));
       my $position=$feature->seq_id."".$feature->start()."".$feature->end(); #uniq position
-      if(exists ($check{$position} ) ){next;}
-      else{
+      my $genus=$feature->_tag_value('rfam-id');
 
-       my $nameAtt=$feature->_tag_value('Name');
-       my $genus=(split ":", (split /\|/, (split /\s+/,$nameAtt)[0])[-1])[-1];
+      if(exists ($check{$ID}) ) { 
+        if(! exists($check{$ID}{$position} ) ){
+          $type_bp->{$genus}+=($feature->end()-$feature->start())+1;
+          $check{$ID}{$position}++;
+        }
+      }
+      else{
        $type_count->{$genus}++;
        $type_bp->{$genus}+=($feature->end()-$feature->start())+1;
-       $check{$position}++;
+       $check{$ID}{$position}++;
       }
     }
 
@@ -127,8 +129,8 @@ my $totalNumber=0;
 my $totalSize=0;
 
 if(defined($genomeSize)){
-print $ostream "Repeat type\tNumber\tSize total (kb)\tSize mean (bp)\t% of the genome\t/!\\Results are rounding to two decimal places \n";
-  foreach my $gnx (keys(%$type_count)) {
+print $ostream "ncRNA type\tNumber\tSize total (kb)\tSize mean (bp)\t% of the genome\t/!\\Results are rounding to two decimal places \n";
+  foreach my $gnx (sort {$a cmp $b} keys(%$type_count)) {
     my $Sitotal=sprintf("%0.2f",($type_bp->{$gnx}/1000));
     my $SizeMean=sprintf("%0.2f",($type_bp->{$gnx}/$type_count->{$gnx}));
     my $xGenome=sprintf("%0.2f",($type_bp->{$gnx}/$genomeSize)*100);
@@ -140,8 +142,8 @@ print $ostream "Repeat type\tNumber\tSize total (kb)\tSize mean (bp)\t% of the g
   }
 }
 else{
-  print $ostream "Repeat type\tNumber\tSize total (kb)\tSize mean (bp)\t/!\\Results are rounding to two decimal places \n";
-  foreach my $gnx (keys(%$type_count)) {
+  print $ostream "ncRNA type\tNumber\tSize total (kb)\tSize mean (bp)\t/!\\Results are rounding to two decimal places \n";
+  foreach my $gnx (sort {$a cmp $b} keys(%$type_count)) {
     my $Sitotal=sprintf("%0.2f",($type_bp->{$gnx}/1000));
     my $SizeMean=sprintf("%0.2f",($type_bp->{$gnx}/$type_count->{$gnx}));
     print $ostream $gnx,"\t",$type_count->{$gnx},"\t",$Sitotal,"\t",$SizeMean,"\n";
@@ -172,12 +174,15 @@ __END__
 =head1 NAME
 
 gffRepeat_analyzer.pl -
-The script allows to generate a tabulated format report of repeats annotated from a gff file containing repeats. 
+The script allows to generate a tabulated format report of rfam-id annotated from a gff file containing rfam result (type of the 3rd column must be ncRNA or nc_RNA - not case sensitive. And the 9th column must contain the rfam-id attribute). e.g:
+
+ScG6Pog_82  Rfam  ncRNA 737595  737663  20.7  + 0 ID=RF00134_ScG6Pog_82_737595;Name=RF00134_ScG6Pog_82_737595;evalue=0.45;gc-content=0.28;model_end=1;model_start=1;rfam-acc=RF00134;rfam-id=snoZ196
+ScG6Pog_82  Rfam  ncRNA 305023  305103  20.8  + 0 ID=RF00227_ScG6Pog_82_305023;Name=RF00227_ScG6Pog_82_305023;evalue=0.35;gc-content=0.31;model_end=1;model_start=1;rfam-acc=RF00227;rfam-id=FIE3 
 
 =head1 SYNOPSIS
 
-    gffRepeat_analyzer.pl -i <input file> [-g <integer or fasta> -o <output file>]
-    gffRepeat_analyzer.pl --help
+    gff3_sq_rfam_analyzer.pl -i <input file> [-g <integer or fasta> -o <output file>]
+    gff3_sq_rfam_analyzer.pl --help
 
 =head1 OPTIONS
 
@@ -189,7 +194,7 @@ STRING: Input gff file that will be read. Several files can be processed at once
 
 =item B<-g>, B<--genome>
 
-That input is design to know the genome size in order to calculate the percentage of the genome represented by each kind of repeats.
+That input is design to know the genome size in order to calculate the percentage of the genome represented by each kind of rfam-id.
 You can provide an INTEGER or the genome in fasta format. If you provide the fasta, the genome size will be calculated on the fly.
 
 =item B<-o> or B<--output> 
