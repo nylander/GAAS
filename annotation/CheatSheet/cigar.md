@@ -15,7 +15,7 @@ CIGAR is an acronym for Concise Idiosyncratic Gapped Alignment Report
 ## Original Exonerate CIGAR
 
 CIGAR has been originally defined by the Exonerate alignment program.
- **Exonerate CIGAR format does not include nucleotides**. I didn't find the original description of the format from the exonerate web-pages (it has been removed), but we still can find it on other old ressources like here:
+ **Exonerate CIGAR format does not include nucleotides**. I didn't find the original description of the format from the exonerate web-pages (it has been removed), but we still can find it on other old ressources:≤br/>
 from 2004 FlyBase here: [http://rice.bio.indiana.edu:7082/annot/gff3.html](http://rice.bio.indiana.edu:7082/annot/gff3.html)
 from 2010 WormBase here: [http://wiki.wormbase.org/index.php/GFF3specProposal](http://wiki.wormbase.org/index.php/GFF3specProposal)
 Here is what could have been the original Exonerate definition:
