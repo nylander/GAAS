@@ -14,5 +14,8 @@ Collection of Cheat Sheets
 
 ## Format
 ### [CIGAR](cigar.md)
-### [MD tag (bam format)](https://github.com/vsbuffalo/devnotes/wiki/The-MD-Tag-in-BAM-Files)
+### [MD tag (bam format)
+     MD Tags in BAM Files[](https://github.com/vsbuffalo/devnotes/wiki/The-MD-Tag-in-BAM-Files)
+    [The history the MD tag and the CIGAR X operator](http://lh3.github.io/2018/03/27/the-history-the-cigar-x-operator-and-the-md-tag
+    
 ### [GFF/GTF](gxf.md)
