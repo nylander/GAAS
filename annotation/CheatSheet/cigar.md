@@ -15,9 +15,10 @@ CIGAR is an acronym for Concise Idiosyncratic Gapped Alignment Report
 ## Original Exonerate CIGAR
 
 CIGAR has been originally defined by the Exonerate alignment program.
- **Exonerate CIGAR format does not include nucleotides**. I didn't find the original description of the format from the exonerate web-pages (it has been removed), but we still can find it on other old ressources:≤br/>
-from 2004 FlyBase here: [http://rice.bio.indiana.edu:7082/annot/gff3.html](http://rice.bio.indiana.edu:7082/annot/gff3.html)
-from 2010 WormBase here: [http://wiki.wormbase.org/index.php/GFF3specProposal](http://wiki.wormbase.org/index.php/GFF3specProposal)
+ **Exonerate CIGAR format does not include nucleotides**. I didn't find the original description of the format from the exonerate web-pages (it has been removed), but we still can find it on other old ressources: </br>
+from 2004 FlyBase here: [http://rice.bio.indiana.edu:7082/annot/gff3.html](http://rice.bio.indiana.edu:7082/annot/gff3.html) </br>
+from 2010 WormBase here: [http://wiki.wormbase.org/index.php/GFF3specProposal](http://wiki.wormbase.org/index.php/GFF3specProposal) </br>
+
 Here is what could have been the original Exonerate definition:
 
 Operator | Description
@@ -56,6 +57,7 @@ In this variant, whitespace is removed and the order of the letter code and leng
 ## Samtools extended CIGAR
 
 The “M” didn't allow to differentiate between the matches and mismatches. So, “X” (substitution/Mismatch) and “=”  (match) have been added to the specification in response to the request of several important users (c.f. [The history the MD tag and the CIGAR X operator](http://lh3.github.io/2018/03/27/the-history-the-cigar-x-operator-and-the-md-tag)). 
+
 Here is the current specification of the Samtools CIGAR format:
 
 Operator | Description
