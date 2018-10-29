@@ -1,11 +1,11 @@
 # CIGAR format overview
 
-The CIGAR format is quite diverce and it is sometimes hard to iunderstand it.
-I found a really nice description of the history of the CIGAR format in the [LASTZ manual.][1]
+The CIGAR format is quite diverce and it is sometimes hard to understand it.
+I found a really nice description of the history of the CIGAR format in the [LASTZ manual](http://www.bx.psu.edu/~rsharris/lastz/newer/README.lastz-1.02.40.html#ex_cigar)
 
 I found other nice resources :
->[http://lh3.github.io/2018/03/27/the-history-the-cigar-x-operator-and-the-md-tag][2]
->[https://github.com/vsbuffalo/devnotes/wiki/The-MD-Tag-in-BAM-Files][3]
+>[http://lh3.github.io/2018/03/27/the-history-the-cigar-x-operator-and-the-md-tag](http://lh3.github.io/2018/03/27/the-history-the-cigar-x-operator-and-the-md-tag)
+>[https://github.com/vsbuffalo/devnotes/wiki/The-MD-Tag-in-BAM-Files](https://github.com/vsbuffalo/devnotes/wiki/The-MD-Tag-in-BAM-Files)
 
 
 **What we have to retain is:**
