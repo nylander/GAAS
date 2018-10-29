@@ -18,7 +18,7 @@ Collection of Cheat Sheets / overview / summaries
 
    [MD Tags in BAM Files](https://github.com/vsbuffalo/devnotes/wiki/The-MD-Tag-in-BAM-Files)
     
-   [The history the MD tag and the CIGAR X operator](http://lh3.github.io/2018/03/27/the-history-the-cigar-x-operator-and-the-md-tag
+   [The history the MD tag and the CIGAR X operator](http://lh3.github.io/2018/03/27/the-history-the-cigar-x-operator-and-the-md-tag)
     
 ### [GFF/GTF](gxf.md)
 
