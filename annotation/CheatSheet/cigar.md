@@ -55,7 +55,7 @@ In this variant, whitespace is removed and the order of the letter code and leng
 
 ## Samtools extended CIGAR
 
-The “M” didn't allow to differentiate between the matches and mismatches. So, “X” (substitution/Mismatch) and “=”  (match) have been added to the specification in response to the request of several important users. 
+The “M” didn't allow to differentiate between the matches and mismatches. So, “X” (substitution/Mismatch) and “=”  (match) have been added to the specification in response to the request of several important users (c.f. [The history the MD tag and the CIGAR X operator](http://lh3.github.io/2018/03/27/the-history-the-cigar-x-operator-and-the-md-tag)). 
 Here is the current specification of the Samtools CIGAR format:
 
 Operator | Description
