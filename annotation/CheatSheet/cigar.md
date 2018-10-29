@@ -12,7 +12,7 @@ I found other nice resources :
 
 CIGAR is an acronym for Concise Idiosyncratic Gapped Alignment Report
 
-##Original Exonerate CIGAR
+## Original Exonerate CIGAR
 
 CIGAR has been originally defined by the Exonerate alignment program.
  **Exonerate CIGAR format does not include nucleotides**. I didn't find the original description of the format from the exonerate web-pages (it has been removed), but we still can find it on other old ressources like here:
