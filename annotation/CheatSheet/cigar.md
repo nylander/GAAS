@@ -1,3 +1,5 @@
+# CIGAR format overview
+
 The CIGAR format is quite diverce and it is sometimes hard to iunderstand it.
 I found a really nice description of the history of the CIGAR format in the [LASTZ manual.][1]
 
