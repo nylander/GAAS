@@ -2,19 +2,54 @@
 
 The CIGAR format is quite diverce and it is sometimes hard to understand it. Here is an overview of the format and its history.
 
-**Important ressources that has been used to write this overview:**
+### Important resources that has been used to write this overview:
 
 >[http://lh3.github.io/2018/03/27/the-history-the-cigar-x-operator-and-the-md-tag](http://lh3.github.io/2018/03/27/the-history-the-cigar-x-operator-and-the-md-tag)  
 >[https://github.com/vsbuffalo/devnotes/wiki/The-MD-Tag-in-BAM-Files](https://github.com/vsbuffalo/devnotes/wiki/The-MD-Tag-in-BAM-Files)  
 >[EnsemblDocs Wiki](http://htmlpreview.github.io/?https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/snapshots/ensembl_cigar.html)  
 [LASTZ manual](http://www.bx.psu.edu/~rsharris/lastz/newer/README.lastz-1.02.40.html#ex_cigar)  
 
-**Forewords:**
+### Forewords:
 
-CIGAR is an acronym for **C**oncise **I**diosyncratic **G**apped **A**lignment **R**eport and has been originally defined by the **Exonerate** alignment program. It is designed to contain the minimal information necessary for the reconstruction of an alignment. One alignment is described per line, to allow easy manipulation with UNIX tools.**Exonerate CIGAR format does not include nucleotides**.  
-It exists other related format: 
- **Sugar** - Simple Ungapped Alignment Report  
- **Vulgar** - Verbose Ugly Labelled Gapped Alignment Report  
+CIGAR is an acronym for **C**oncise **I**diosyncratic **G**apped **A**lignment **R**eport and has been originally defined by the **Exonerate** alignment program. 
+The CIGAR format is designed to contain the minimal information necessary for the reconstruction of an alignment. One alignment is described per line, to allow easy manipulation with UNIX tools.**Exonerate CIGAR format does not include nucleotides**.  
+
+It exists other related format:    
+  - **Sugar** - Simple Ungapped Alignment Report  
+  - **Vulgar** - Verbose Ugly Labelled Gapped Alignment Report  
+ 
+**What means idiosyncratic ?**  
+  An idiosyncrasy is an unusual feature of the tool (though there are also other uses). It also means odd habit. The term is often used to express eccentricity or peculiarity.
+Below is the idiodyncracies/conventions describefd in the man page of exonerate-1.0.0
+
+
+    CONVENTIONS
+       A  number  of conventions (and idiosyncracies) are used within exonerate.  An understanding of them facili-
+       tates interpretation of the output.
+
+       Coordinates
+              An in-between coordinate system is used, where the positions are counted between the symbols, rather
+              than on the symbols.  This numbering scheme starts from zero.  This numbering is shown below for the
+              sequence "ACGT":
+
+               A C G T
+              0 1 2 3 4
+
+              Hence the subsequence "CG" would have start=1, end=3, and length=2.  This coordinate system is  used
+              internally  in  exonerate,  and for all the output formats produced with the exception of the "human
+              readable" alignment display and the GFF output where convention and standards dictate otherwise.
+
+       Reverse Complements
+              When an alignment is reported on the reverse complement of a sequence, the  coordinates  are  simply
+              given  on  the  reverse complement copy of the sequence.  Hence positions on the sequences are never
+              negative.  Generally, the forward strand is indicated by '+', the reverse  strand  by  '-',  and  an
+              unknown or not-applicable strand (as in the case of a protein sequence) is indicated by '.'
+
+       Alignment Scores
+              Currently,  only  the raw alignment scores are displayed.  This score just is the sum of transistion
+              scores used in the dynamic programming.  For example, in the case  of  a  Smith-Waterman  alignment,
+              this will be the sum of the substitution matrix scores and the gap penalties.
+
 
 ## Original Exonerate CIGAR (~2003)
 
@@ -54,9 +89,9 @@ Then Ensembl has created the **ensembl cigar format**.
 
 In the Ensembl CIGAR format the numbers and letters are switched, and there are no gaps in the string. So the above example in Ensembl would appear in a feature table in three rows with these CIGAR strings:
 
-`>13M1I35M1I4M1I13M1D4M1I115M  
+>13M1I35M1I4M1I13M1D4M1I115M  
 >37M1D164M1I12M  
->16M1I12M1I21M1D10M`
+>16M1I12M1I21M1D10M
 
 In the Ensembl CIGAR format the numbers and letters are switched, and there are no gaps in the string. So the above example in Ensembl would appear in a feature table in three rows with these CIGAR strings:
 
