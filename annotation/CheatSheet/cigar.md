@@ -7,7 +7,9 @@ The CIGAR format is quite diverce and it is sometimes hard to understand it. Her
 >[http://lh3.github.io/2018/03/27/the-history-the-cigar-x-operator-and-the-md-tag](http://lh3.github.io/2018/03/27/the-history-the-cigar-x-operator-and-the-md-tag)  
 >[https://github.com/vsbuffalo/devnotes/wiki/The-MD-Tag-in-BAM-Files](https://github.com/vsbuffalo/devnotes/wiki/The-MD-Tag-in-BAM-Files)  
 >[EnsemblDocs Wiki](http://htmlpreview.github.io/?https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/snapshots/ensembl_cigar.html)  
-[LASTZ manual](http://www.bx.psu.edu/~rsharris/lastz/newer/README.lastz-1.02.40.html#ex_cigar)  
+>[LASTZ manual](http://www.bx.psu.edu/~rsharris/lastz/newer/README.lastz-1.02.40.html#ex_cigar)  
+>[http://rice.bio.indiana.edu:7082/annot/gff3.html](http://rice.bio.indiana.edu:7082/annot/gff3.html)  
+>[http://wiki.wormbase.org/index.php/GFF3specProposal](http://wiki.wormbase.org/index.php/GFF3specProposal)  
 
 ### Forewords:
 
@@ -99,14 +101,21 @@ In the Ensembl CIGAR format the numbers and letters are switched, and there are 
 /!\ What about N for i**N**tron ?
 The ensembl page describe the CIGAR string from exonerate like that:  
 `The cigar string describes the edit path throught the alignment. These contain a M,I,D or N corresponding to a Match, Insert, Delete or iNtron, followed by the length.`
-I donb't know whre that N is coming from, I havn't find any ressource using/talking about the N (iNtron) operator. It seems to be used by D systemtically. Any information about it is very welcome.
+I don't know where that N is coming from, I havn't find any ressource using/talking about the N (iNtron) operator. It seems to be used by D systemtically. Any information about it is very welcome.
 
-## Updated Exonerate CIGAR - Gap attribute in GFF3(~2004-2005)
+## Updated Exonerate CIGAR - Gap attribute in GFF3(~2004)
  
- [ref](https://doi.org/10.1186/1471-2105-6-31)  
-I didn't find the original description of the format from the exonerate web-pages (it has been removed), but we still can find it on other old ressources: </br>
-from 2004 FlyBase here: [http://rice.bio.indiana.edu:7082/annot/gff3.html](http://rice.bio.indiana.edu:7082/annot/gff3.html) </br>
-from 2010 WormBase here: [http://wiki.wormbase.org/index.php/GFF3specProposal](http://wiki.wormbase.org/index.php/GFF3specProposal) </br>
+The GFF3 format integrated a Gap attribute in the 9th column of the gff" files to describe alignements. Here is what has been described:
+
+
+
+    Gap   The alignment of the feature to the target if the two are
+          not colinear (e.g. contain gaps).  The alignment format is
+	  taken from the CIGAR format described in the 
+	  Exonerate documentation.
+	  (http://cvsweb.sanger.ac.uk/cgi-bin/cvsweb.cgi/exonerate
+           ?cvsroot=Ensembl).  See "THE GAP ATTRIBUTE" for a description
+	   of this format.
 
 Here is what could have been the original Exonerate definition:
 
@@ -118,10 +127,9 @@ D    |   insert a gap into the target (delete from reference)
 F     |   frameshift forward in the reference sequence
 R     |   frameshift reverse in the reference sequence
 
-Each run is encoded by the letter code, whitespace, and the length; multiple runs are separated by whitespace. 
+As the original CIGAR string from Exonerate each run is encoded by the letter code, whitespace, and the length; multiple runs are separated by whitespace. 
 So it could looks like that:
 >M 24 I 3 M 7 D 2 M 19
-
 
 
 ## Samtools original CIGAR
@@ -138,9 +146,9 @@ N | Skipped region; a region of nucleotides is not present in the read
 P | Padding; padded area in the read and not in the reference
 S | Soft Clipping;  the clipped nucleotides are present in the read
 
-So it could looks like that:
+In this variant, as for the description of the Ensembl CIGAR format, whitespace is removed and the order of the letter code and length are reversed (length appears before letter code) compared to the Exonerate CIGAR string. At the difference of the Ensembl CIGAR string, everything is encoded in only one line.
+ So it could looks like that:
 >24M3I7M2D19M
-In this variant, whitespace is removed and the order of the letter code and length are reversed (length appears before letter code).
 
 ## Samtools extended CIGAR
 
@@ -165,7 +173,7 @@ So it could looks like that:
 
 /!\ In some variants the length is omitted if it is 1 (I don't know yet which version)
 
-# New Exonerate CIGAR
+# The Exonerate VULGAR format
 
 if you go to the [exonerate manual web page](https://www.ebi.ac.uk/about/vertebrate-genomics/software/exonerate-manual) we can see that the specification has evolved a lot.
 Here are their last description of the format. Some definition are now really clear and I didn't find any further definition (e.g 5 and 3).
