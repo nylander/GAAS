@@ -10,6 +10,7 @@ The CIGAR format is quite diverce and it is sometimes hard to understand it. Her
 >[LASTZ manual](http://www.bx.psu.edu/~rsharris/lastz/newer/README.lastz-1.02.40.html#ex_cigar)  
 >[http://rice.bio.indiana.edu:7082/annot/gff3.html](http://rice.bio.indiana.edu:7082/annot/gff3.html)  
 >[http://wiki.wormbase.org/index.php/GFF3specProposal](http://wiki.wormbase.org/index.php/GFF3specProposal)  
+>[exonerate manual web page](https://www.ebi.ac.uk/about/vertebrate-genomics/software/exonerate-manual)  
 
 ### Forewords:
 
@@ -174,8 +175,7 @@ So it could looks like that:
 
 # The Exonerate VULGAR format
 
-if you go to the [exonerate manual web page](https://www.ebi.ac.uk/about/vertebrate-genomics/software/exonerate-manual) we can see that the specification has evolved a lot.
-Here are their last description of the format. Some definition are now really clear and I didn't find any further definition (e.g 5 and 3).
+Here is the last specification of the format. Some definition are not really clear and I didn't find any further definition (e.g 5 and 3). 
 
 Operator | Description
 -- | --
