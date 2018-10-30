@@ -1,21 +1,66 @@
 # CIGAR format overview
 
-The CIGAR format is quite diverce and it is sometimes hard to understand it.
-I found a really nice description of the history of the CIGAR format in the [LASTZ manual](http://www.bx.psu.edu/~rsharris/lastz/newer/README.lastz-1.02.40.html#ex_cigar)
+The CIGAR format is quite diverce and it is sometimes hard to understand it. Here is an overview of the format and its history.
 
-I found other nice resources :
->[http://lh3.github.io/2018/03/27/the-history-the-cigar-x-operator-and-the-md-tag](http://lh3.github.io/2018/03/27/the-history-the-cigar-x-operator-and-the-md-tag) </br>
->[https://github.com/vsbuffalo/devnotes/wiki/The-MD-Tag-in-BAM-Files](https://github.com/vsbuffalo/devnotes/wiki/The-MD-Tag-in-BAM-Files) </br>
->[EnsemblDocs Wiki](http://htmlpreview.github.io/?https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/snapshots/ensembl_cigar.html)
+**Important ressources that has been used to write this overview:**
 
-**What we have to retain is:**
+>[http://lh3.github.io/2018/03/27/the-history-the-cigar-x-operator-and-the-md-tag](http://lh3.github.io/2018/03/27/the-history-the-cigar-x-operator-and-the-md-tag)  
+>[https://github.com/vsbuffalo/devnotes/wiki/The-MD-Tag-in-BAM-Files](https://github.com/vsbuffalo/devnotes/wiki/The-MD-Tag-in-BAM-Files)  
+>[EnsemblDocs Wiki](http://htmlpreview.github.io/?https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/snapshots/ensembl_cigar.html)  
+[LASTZ manual](http://www.bx.psu.edu/~rsharris/lastz/newer/README.lastz-1.02.40.html#ex_cigar)  
 
-CIGAR is an acronym for Concise Idiosyncratic Gapped Alignment Report
+**Forewords:**
 
-## Original Exonerate CIGAR
+CIGAR is an acronym for **C**oncise **I**diosyncratic **G**apped **A**lignment **R**eport and has been originally defined by the **Exonerate** alignment program. It is designed to contain the minimal information necessary for the reconstruction of an alignment. One alignment is described per line, to allow easy manipulation with UNIX tools.**Exonerate CIGAR format does not include nucleotides**.  
+It exists other related format: 
+ **Sugar** - Simple Ungapped Alignment Report  
+ **Vulgar** - Verbose Ugly Labelled Gapped Alignment Report  
 
-CIGAR has been originally defined by the Exonerate alignment program.
- **Exonerate CIGAR format does not include nucleotides**. I didn't find the original description of the format from the exonerate web-pages (it has been removed), but we still can find it on other old ressources: </br>
+## Original Exonerate CIGAR (~2003)
+
+Cigar format looks like this:
+
+`cigar: hs989235.cds 5 468 + hsnfg9.embl 25689 27450 + 1916 M 13 I 1 M 35 I 1 M 4 I 1 M 13 D 1 M 4 I 1 M 115 D 404 M 37 D 1 M 164 I 1 M 12 D 898 M 16 I 1 M 12 I 1 M 21 D 1 M 10`
+
+The fields are as follows:
+
+>1. query identifier  
+>2. query start position  
+>3. query stop position  
+>4. query strand  
+>5. target identifier  
+>6. target start position  
+>7. target stop position  
+>8. target strand  
+>9. score  
+>10. **CIGAR string**
+
+The 10th field is often called **CIGAR string** and are defined in pairs. Each pair is also called a run. The cigar string describes the edit path throught the alignment. These contain a M,I,D or N corresponding to a Match, Insert, Delete or iNtron, followed by the length.
+
+Operator | Description
+-- | --
+M    |    **M**atch
+I     |   **I**nsert
+D    |   **D**elete
+N     |   i**N**tron
+ 
+/!\ I havn't find any ressource using/talking about the N (iNtron) operator. It seems to be used by D suystemtically. Any information about it is very welcome.
+
+## Ensembl CIGAR
+Then Ensembl has created the **ensembl cigar format**.
+
+In the Ensembl CIGAR format the numbers and letters are switched, and there are no gaps in the string. So the above example in Ensembl would appear in a feature table in three rows with these CIGAR strings:
+
+`>13M1I35M1I4M1I13M1D4M1I115M  
+>37M1D164M1I12M  
+>16M1I12M1I21M1D10M`
+
+In the Ensembl CIGAR format the numbers and letters are switched, and there are no gaps in the string. So the above example in Ensembl would appear in a feature table in three rows with these CIGAR strings:
+
+## Updated Exonerate CIGAR (~2005) 
+ 
+ [ref](https://doi.org/10.1186/1471-2105-6-31)
+ I didn't find the original description of the format from the exonerate web-pages (it has been removed), but we still can find it on other old ressources: </br>
 from 2004 FlyBase here: [http://rice.bio.indiana.edu:7082/annot/gff3.html](http://rice.bio.indiana.edu:7082/annot/gff3.html) </br>
 from 2010 WormBase here: [http://wiki.wormbase.org/index.php/GFF3specProposal](http://wiki.wormbase.org/index.php/GFF3specProposal) </br>
 
@@ -33,8 +78,7 @@ Each run is encoded by the letter code, whitespace, and the length; multiple run
 So it could looks like that:
 >M 24 I 3 M 7 D 2 M 19
 
-## Ensembl CIGAR
-Then Ensembl has created the **ensembl cigar format** (didn't fdind any information about it until now),
+
 
 ## Samtools original CIGAR
 **SAMtools created the extended cigar string**.
