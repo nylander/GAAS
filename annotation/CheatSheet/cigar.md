@@ -20,7 +20,7 @@ It exists other related format:
  
 **What means idiosyncratic ?**  
   An idiosyncrasy is an unusual feature of the tool (though there are also other uses). It also means odd habit. The term is often used to express eccentricity or peculiarity.
-Below is the idiodyncracies/conventions describefd in the man page of exonerate-1.0.0
+Below is the idiodyncracies/conventions describefd in the man page of exonerate-1.0.0:
 
 
     CONVENTIONS
@@ -51,13 +51,10 @@ Below is the idiodyncracies/conventions describefd in the man page of exonerate-
               this will be the sum of the substitution matrix scores and the gap penalties.
 
 
-## Original Exonerate CIGAR (~2003)
+## Original Exonerate CIGAR (before 2003)
 
-Cigar format looks like this:
-
-`cigar: hs989235.cds 5 468 + hsnfg9.embl 25689 27450 + 1916 M 13 I 1 M 35 I 1 M 4 I 1 M 13 D 1 M 4 I 1 M 115 D 404 M 37 D 1 M 164 I 1 M 12 D 898 M 16 I 1 M 12 I 1 M 21 D 1 M 10`
-
-The fields are as follows:
+### The related SUGAR format
+We cannot talk about the CIGAR format without talking first about the **SUGAR** format. Sugar is Simple UnGapped Alignment Report, which displays ungapped alignments one-per-line. The sugar line starts with the string "sugar:" for easy extraction from the output, and is followed by the the following 9 fields in the order below:  
 
 >1. query identifier  
 >2. query start position  
@@ -68,18 +65,24 @@ The fields are as follows:
 >7. target stop position  
 >8. target strand  
 >9. score  
->10. **CIGAR string**
 
-The 10th field is often called **CIGAR string** and are defined in pairs. Each pair is also called a run. The cigar string describes the edit path throught the alignment. These contain a M,I,D or N corresponding to a Match, Insert, Delete or iNtron, followed by the length.
+Here an example of SUGAR format:  
+`sugar: hs989235.cds 5 468 + hsnfg9.embl 25689 27450 + 1916`
+
+### The CIGAR format
+The  format starts  with  the same 9 fields as sugar output (see above), and is followed by a series of <operation, length> pairs where operation is one of match, insert or delete, and the length describes the number of times this operation is repeated
+Cigar format looks like this:
+
+`cigar: hs989235.cds 5 468 + hsnfg9.embl 25689 27450 + 1916 M 13 I 1 M 35 I 1 M 4 I 1 M 13 D 1 M 4 I 1 M 115 D 404 M 37 D 1 M 164 I 1 M 12 D 898 M 16 I 1 M 12 I 1 M 21 D 1 M 10`
+
+The 10th field is actually the **CIGAR string** and are defined in pairs. Each pair is also called a run. The cigar string describes the edit path throught the alignment. These contain a M,I or D corresponding to a Match, Insert or Delete, followed by the length.
 
 Operator | Description
 -- | --
 M    |    **M**atch
 I     |   **I**nsert
 D    |   **D**elete
-N     |   i**N**tron
- 
-/!\ I havn't find any ressource using/talking about the N (iNtron) operator. It seems to be used by D suystemtically. Any information about it is very welcome.
+
 
 To resume:  
 Each pair/run is encoded by the letter code/operator, whitespace, and the length; multiple pairs/runs are separated by whitespace.
@@ -93,7 +96,10 @@ In the Ensembl CIGAR format the numbers and letters are switched, and there are 
 >37M1D164M1I12M  
 >16M1I12M1I21M1D10M
 
-In the Ensembl CIGAR format the numbers and letters are switched, and there are no gaps in the string. So the above example in Ensembl would appear in a feature table in three rows with these CIGAR strings:
+/!\ What about N for i**N**tron ?
+The ensembl page describe the CIGAR string from exonerate like that:  
+`The cigar string describes the edit path throught the alignment. These contain a M,I,D or N corresponding to a Match, Insert, Delete or iNtron, followed by the length.`
+I donb't know whre that N is coming from, I havn't find any ressource using/talking about the N (iNtron) operator. It seems to be used by D systemtically. Any information about it is very welcome.
 
 ## Updated Exonerate CIGAR - Gap attribute in GFF3(~2004-2005)
  
