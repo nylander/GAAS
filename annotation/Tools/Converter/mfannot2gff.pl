@@ -81,13 +81,13 @@ sub read_mfannot {
                 if (defined $startend_hash{$splitline[0]}{"start"}) {
                     
                     if ($previousSplit1 eq $splitline[1] and $previousSplit2 eq $splitline[2]){ #keep the first key and the second value
-                        my $i = keys $startend_hash{$splitline[0]}{"start"};
+                        my $i = keys %{$startend_hash{$splitline[0]}{"start"}};
                         $startend_hash{$splitline[0]}{"start"}{$i-1} = $current_pos;
                         print STDERR "11 - Feature ". $splitline[0]. " already defined. Please manually verify in $mfannot_file\n";
                         next;
                     } 
 
-                    my $i = keys $startend_hash{$splitline[0]}{"start"};
+                    my $i = keys %{$startend_hash{$splitline[0]}{"start"}};
                     $startend_hash{$splitline[0]}{"start"}{$i} = $current_pos;
                     print STDERR "1 - Feature ". $splitline[0]. " already defined. Please manually verify in $mfannot_file\n";
                 }
@@ -97,13 +97,13 @@ sub read_mfannot {
                 if (defined $startend_hash{$splitline[0]}{"end"}{0}) {
                     
                     if ($previousSplit1 eq $splitline[1] and $previousSplit2 eq $splitline[2]){ #keep the first key and the second value
-                        my $i = keys $startend_hash{$splitline[0]}{"end"};
+                        my $i = keys %{$startend_hash{$splitline[0]}{"end"}};
                          $startend_hash{$splitline[0]}{"end"}{$i-1} = $current_pos;
                          print STDERR "22 - Feature ". $splitline[0]. " already defined. Please manually verify in $mfannot_file\n";
                          next;
                     } 
 
-                    my $i = keys $startend_hash{$splitline[0]}{"end"};
+                    my $i = keys %{$startend_hash{$splitline[0]}{"end"}};
                     $startend_hash{$splitline[0]}{"end"}{$i} = $current_pos;
                     print STDERR "2 - Feature ". $splitline[0]. " already defined. Please manually verify in $mfannot_file\n";
                 }
@@ -118,7 +118,7 @@ sub read_mfannot {
                         next;
                     } #keep the first key and the first value
                     
-                    my $i = keys $startend_hash{$splitline[0]}{"start"};
+                    my $i = keys %{$startend_hash{$splitline[0]}{"start"}};
                     $startend_hash{$splitline[0]}{"start"}{$i} = $current_pos + 1;
                     print STDERR "3 - Feature ". $splitline[0]. " already defined. Please manually verify in $mfannot_file\n";
                 }
@@ -132,7 +132,7 @@ sub read_mfannot {
                     next;
                     } #keep the first key and the first val
 
-                    my $i = keys $startend_hash{$splitline[0]}{"end"};
+                    my $i = keys %{$startend_hash{$splitline[0]}{"end"}};
                     $startend_hash{$splitline[0]}{"end"}{$i} = $current_pos + 1;
                     print STDERR "4 - Feature ". $splitline[0]. " already defined. Please manually verify in $mfannot_file\n";
                 }
