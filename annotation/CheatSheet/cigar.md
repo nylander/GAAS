@@ -46,6 +46,9 @@ N     |   i**N**tron
  
 /!\ I havn't find any ressource using/talking about the N (iNtron) operator. It seems to be used by D suystemtically. Any information about it is very welcome.
 
+To resume:  
+Each pair/run is encoded by the letter code/operator, whitespace, and the length; multiple pairs/runs are separated by whitespace.
+
 ## Ensembl CIGAR
 Then Ensembl has created the **ensembl cigar format**.
 
@@ -57,10 +60,10 @@ In the Ensembl CIGAR format the numbers and letters are switched, and there are 
 
 In the Ensembl CIGAR format the numbers and letters are switched, and there are no gaps in the string. So the above example in Ensembl would appear in a feature table in three rows with these CIGAR strings:
 
-## Updated Exonerate CIGAR (~2005) 
+## Updated Exonerate CIGAR - Gap attribute in GFF3(~2004-2005)
  
- [ref](https://doi.org/10.1186/1471-2105-6-31)
- I didn't find the original description of the format from the exonerate web-pages (it has been removed), but we still can find it on other old ressources: </br>
+ [ref](https://doi.org/10.1186/1471-2105-6-31)  
+I didn't find the original description of the format from the exonerate web-pages (it has been removed), but we still can find it on other old ressources: </br>
 from 2004 FlyBase here: [http://rice.bio.indiana.edu:7082/annot/gff3.html](http://rice.bio.indiana.edu:7082/annot/gff3.html) </br>
 from 2010 WormBase here: [http://wiki.wormbase.org/index.php/GFF3specProposal](http://wiki.wormbase.org/index.php/GFF3specProposal) </br>
 
