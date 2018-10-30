@@ -131,6 +131,7 @@ As the original CIGAR string from Exonerate each run is encoded by the letter co
 So it could looks like that:
 >M 24 I 3 M 7 D 2 M 19
 
+/!\ For segments of length 1 the number can be omitted, so "8M1D6M" is equal to "8MD6M". 
 
 ## Samtools original CIGAR
 **SAMtools created the extended cigar string**.
@@ -170,8 +171,6 @@ X | Read Mismatch; the nucleotide is present in the reference
 
 So it could looks like that:
 >16=X7=3I7=2DX18=
-
-/!\ In some variants the length is omitted if it is 1 (I don't know yet which version)
 
 # The Exonerate VULGAR format
 
