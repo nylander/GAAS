@@ -187,7 +187,8 @@ Here the explanation about the **F** and **R** operators:
 
 ## 2nd Update of the Exonerate CIGAR string - Gap attribute in GFF3
 
-I don't know when this update occured. They follow the same specification as the previous one, except they remove space between pairs and decided that for segments of length 1 the number can be omitted, so "8M1D6M" is equal to "8MD6M". 
+I don't know when this update occured. 
+They decide to mix up the Exonerate specification with the BaseAlignFormat format used by Ensembl. In this specification the numbers and letters are switched, they remove space between pairs and decided that for segments of length 1 the number can be omitted, so "8M1D6M" is equal to "8MD6M". 
 [Here the full description.](http://wiki.wormbase.org/index.php/GFF3specProposal)
 
 Here one example of this format:  
@@ -238,14 +239,14 @@ So it could looks like that:
 
 ### quick comparison between each flavor of the format:
 
-Flavor Operator | Example | Description 
--- | -- | --
-Original CIGAR | D,I,M			| M 37 D 1 M 164 I 1 M 12 D 898 M 16 I 1 M 12 I 1 M 21 D 1 M 10 | series of <operation,whitespace, length> pairs/runs, and the length describes the number of times this operation is repeated. Multiple pairs/runs are separated by whitespace.
+Flavor | Operator | Example | Description 
+-- | -- | -- | --
+Original CIGAR | D,I,M			| M 37 D 1 M 164 I 1 M 12 D 898 M 16 I 1 M 12 I 1 M 21 D 1 M 10 | Series of <operation,whitespace, length> pairs/runs, and the length describes the number of times this operation is repeated. Multiple pairs/runs are separated by whitespace.
  Ensembl CIGAR | D,I,M			| 37M1D164M1I12M<br/> 16M1I12M1I21M1D10M | The numbers and letters are switched, and there are no gaps in the string. If there is a gap it will become a new line in the output.
-GFF3 CIGAR v1 |  D,F,I,M,R		| M3 I1 M2 R1 M4 |
-GFF3 CIGAR v2 | D,F,I,M,R		| M3IM2RM4 | 
+GFF3 CIGAR v1 |  D,F,I,M,R		| M8 D1 M6 | As the original CIGAR except new operators and no more whitespace between the letter code and the length
+GFF3 CIGAR v2 | D,F,I,M,R		| 8MD6M | remove space between pairs and decided that for segments of length 1 the number can be omitted
 Samtools CIGAR v1 | D,H,I,M,N,P,S	| 24M3I7M2D19M | 
-Samtools CIGAR v2 | D,H,I,M,N,P,S,X,= 	| 16=X7=3I7=2DX18= | Comapre to Samtools CIGAR v1, add X and = to differentiate Match (M)
+Samtools CIGAR v2 | D,H,I,M,N,P,S,X,= 	| 16=X7=3I7=2DX18= | Compare to Samtools CIGAR v1, add X and = to differentiate Match (M)
 
 ### All CIGAR operators gathered in one table
 
