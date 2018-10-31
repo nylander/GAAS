@@ -13,8 +13,8 @@ The sugar line starts with the string "sugar:" for easy extraction from the outp
 8-target strand  
 9-score  
 
-Here an example of SUGAR format:
-sugar: hs989235.cds 5 468 + hsnfg9.embl 25689 27450 + 1916
+Here an example of SUGAR format:  
+>sugar: hs989235.cds 5 468 + hsnfg9.embl 25689 27450 + 1916
 
 This format is used by Exonerate and seems to have been originaly developed for this tool.
 The format is related to the [CIGAR](cigar.md) format which add an extra (10th) field to describe Gaped alignment.
