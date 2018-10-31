@@ -18,8 +18,8 @@ CIGAR is an acronym for **C**oncise **I**diosyncratic **G**apped **A**lignment *
 The CIGAR format is designed to contain the minimal information necessary for the reconstruction of an alignment. One alignment is described per line, to allow easy manipulation with UNIX tools.**Exonerate CIGAR format does not include nucleotides**.  
 
 It exists other related format:    
-  - **Sugar** - Simple Ungapped Alignment Report  
-  - **Vulgar** - Verbose Ugly Labelled Gapped Alignment Report  
+  - [**Sugar**](sugar.md) - Simple Ungapped Alignment Report  
+  - [**Vulgar**](vulgar.md) - Verbose Ugly Labelled Gapped Alignment Report  
  
 **What means idiosyncratic ?**  
   An idiosyncrasy is an unusual feature of the tool (though there are also other uses). It also means odd habit. The term is often used to express eccentricity or peculiarity.
