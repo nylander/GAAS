@@ -56,11 +56,6 @@ Below is the idiodyncracies/conventions describefd in the man page of exonerate-
 
 ## Original Exonerate CIGAR (before 2003)
 
-Here an example of SUGAR format:  
-`sugar: hs989235.cds 5 468 + hsnfg9.embl 25689 27450 + 1916`
-
-### The CIGAR format
-
 We cannot talk about the CIGAR format without talking first about the [**SUGAR** format](sugar.md). Sugar is Simple UnGapped Alignment Report, which displays ungapped alignments one-per-line. The sugar line starts with the string "sugar:" for easy extraction from the output, and is followed by the following 9 fields in the order below:
 
 >1. query identifier  
@@ -72,6 +67,9 @@ We cannot talk about the CIGAR format without talking first about the [**SUGAR**
 >7. target stop position  
 >8. target strand  
 >9. score 
+
+Here an example of SUGAR format:  
+`sugar: hs989235.cds 5 468 + hsnfg9.embl 25689 27450 + 1916`
 
 The **CIGAR** format starts  with  the same 9 fields as SUGAR output (see above), and is followed by a series of <operation, length> pairs where operation is one of **match**, **insert** or **delete**, and the length describes the number of times this operation is repeated
 Cigar format looks like this:
