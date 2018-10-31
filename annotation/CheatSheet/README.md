@@ -20,6 +20,8 @@ Collection of Cheat Sheets / overview / summaries
  >[UCSC - University of California, Santa Cruz](https://genome.ucsc.edu/FAQ/FAQformat.html)
 
 ### [CIGAR](cigar.md)
+### [SUGAR](sugar.md)
+### [VULGAR](vulgar.md)
 ### [BAM/SAM](https://samtools.github.io/hts-specs/SAMv1.pdf)
 ### MD tag (bam format)
 
