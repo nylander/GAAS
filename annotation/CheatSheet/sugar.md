@@ -1,4 +1,4 @@
-#The SUGAR format
+# The SUGAR format
 
 Sugar is **S**imple **U**n**G**apped **A**lignment **R**eport, which displays ungapped alignments one-per-line. 
 The sugar line starts with the string "sugar:" for easy extraction from the output, and is followed by the the following 9 fields in the order below:
