@@ -12,7 +12,7 @@ Collection of Cheat Sheets / overview / summaries
  
 # Format
 
-### Exteranl tutorial about lot of different formats:
+### External tutorial about lot of different formats:
  >[UCONN - University of Connecticut](https://bioinformatics.uconn.edu/resources-and-events/tutorials-2/file-formats-tutorial/)
  
  >[lastz README](http://www.bx.psu.edu/~rsharris/lastz/newer/README.lastz-1.02.40.html#ex_cigar)
