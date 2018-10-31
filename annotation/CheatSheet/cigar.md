@@ -187,9 +187,14 @@ Here the explanation about the **F** and **R** operators:
 
 ## 2nd Update of the Exonerate CIGAR string - Gap attribute in GFF3
 
-/!\ For segments of length 1 the number can be omitted, so "8M1D6M" is equal to "8MD6M". 
+I don't know when this update occured. They follow the same specification as the previous one, except they remove space between pairs and decided that for segments of length 1 the number can be omitted, so "8M1D6M" is equal to "8MD6M". 
+[Here the full description.](http://wiki.wormbase.org/index.php/GFF3specProposal)
 
-## Samtools original CIGAR
+Here one example of this format:  
+> Gap=M3IM2RM4
+
+## 1st Samtools CIGAR specification (~2009)
+
 **SAMtools created the extended cigar string**.
 Here is a priori the original specification of the Samtools CIGAR format:
 
@@ -203,11 +208,11 @@ N | Skipped region; a region of nucleotides is not present in the read
 P | Padding; padded area in the read and not in the reference
 S | Soft Clipping;  the clipped nucleotides are present in the read
 
-In this variant, as for the description of the Ensembl CIGAR format, whitespace is removed and the order of the letter code and length are reversed (length appears before letter code) compared to the Exonerate CIGAR string. At the difference of the Ensembl CIGAR string, everything is encoded in only one line.
- So it could looks like that:
+In this variant, whitespace is removed and the order of the letter code and length are reversed (length appears before letter code) compared to the Exonerate CIGAR string.
+ So it could looks like that:  
 >24M3I7M2D19M
 
-## Samtools extended CIGAR
+## 2nd Samtools CIGAR (Extended CIGAR)
 
 The “M” didn't allow to differentiate between the matches and mismatches. So, “X” (substitution/Mismatch) and “=”  (match) have been added to the specification in response to the request of several important users (c.f. [The history the MD tag and the CIGAR X operator](http://lh3.github.io/2018/03/27/the-history-the-cigar-x-operator-and-the-md-tag)). 
 
@@ -225,7 +230,7 @@ S | Soft Clipping;  the clipped nucleotides are present in the read
 X | Read Mismatch; the nucleotide is present in the reference
 = | Read Match; the nucleotide is present in the reference
 
-So it could looks like that:
+So it could looks like that:  
 >16=X7=3I7=2DX18=
 
 
@@ -233,7 +238,14 @@ So it could looks like that:
 
 ### quick comparison between each flavor of the format:
 
-
+Flavor Operator | Example | Description 
+-- | -- | --
+Original CIGAR | D,I,M			| M 37 D 1 M 164 I 1 M 12 D 898 M 16 I 1 M 12 I 1 M 21 D 1 M 10 | series of <operation,whitespace, length> pairs/runs, and the length describes the number of times this operation is repeated. Multiple pairs/runs are separated by whitespace.
+ Ensembl CIGAR | D,I,M			| 37M1D164M1I12M<br/> 16M1I12M1I21M1D10M | The numbers and letters are switched, and there are no gaps in the string. If there is a gap it will become a new line in the output.
+GFF3 CIGAR v1 |  D,F,I,M,R		| M3 I1 M2 R1 M4 |
+GFF3 CIGAR v2 | D,F,I,M,R		| M3IM2RM4 | 
+Samtools CIGAR v1 | D,H,I,M,N,P,S	| 24M3I7M2D19M | 
+Samtools CIGAR v2 | D,H,I,M,N,P,S,X,= 	| 16=X7=3I7=2DX18= | Comapre to Samtools CIGAR v1, add X and = to differentiate Match (M)
 
 ### All CIGAR operators gathered in one table
 
@@ -241,18 +253,15 @@ To gather all the operator information in one place,  I did a union of the diffe
 
 Operator | Description
 -- | --
-M | Match ; can be either an alignment match or mismatch. The nucleotide is present in the reference.
-C | Codon
-G | Gap
-N | Non-equivalenced region
-5 | 5' splice site
-3 | 3' splice site
-I | Intron / the nucleotide is present in the read  but not in the reference. / insert a gap into the reference sequence
-S | Split codon / Soft Clipping;  the clipped nucleotides are present in the read
-H | Hard Clipping; the clipped nucleotides are not present in the read
-F | Frameshift / frameshift forward in the reference sequence
 D | Deletion; the nucleotide is present in the reference but not in the read / insert a gap into the target (delete from reference)
+F | Frameshift / frameshift forward in the reference sequence
+H | Hard Clipping; the clipped nucleotides are not present in the read
+I | Intron / the nucleotide is present in the read  but not in the reference. / insert a gap into the reference sequence
+M | Match ; can be either an alignment match or mismatch. The nucleotide is present in the reference.
+N | A region of nucleotides is not present in the read
 P | Padding; padded area in the read and not in the reference
+R     |   frameshift reverse in the reference sequence
+S | Soft Clipping;  the clipped nucleotides are present in the read
 X | Read Mismatch; the nucleotide is present in the reference
 = | Read Match; the nucleotide is present in the reference
-R     |   frameshift reverse in the reference sequence
+
