@@ -246,7 +246,7 @@ Original CIGAR | ~2002 | D,I,M			| M 37 D 1 M 164 I 1 M 12 D 898 M 16 I 1 M 12 I
 GFF3 CIGAR v1 | 2004? | D,F,I,M,R		| M8 D1 M6 | As the original CIGAR except new operators and no more whitespace between the letter code and the length
 GFF3 CIGAR v2 | ? |  D,F,I,M,R		| 8MD6M | remove space between pairs and decided that for segments of length 1 the number can be omitted
 Samtools CIGAR v1 | 2009 | D,H,I,M,N,P,S	| 24M3I7M2D19M | In this variant, whitespace is removed and the order of the letter code and length are reversed (length appears before letter code) compared to the Exonerate CIGAR string. It looks like GFF3 CIGAR v2, but with more operators.
-Samtools CIGAR v2 | ? | D,H,I,M,N,P,S,X,= 	| 16=X7=3I7=2DX18= | Compare to Samtools CIGAR v1, add X and = to differentiate Match (M)
+Samtools CIGAR v2 | July 2009 | D,H,I,M,N,P,S,X,= 	| 16=X7=3I7=2DX18= | Compare to Samtools CIGAR v1, add X and = to differentiate Match (M)
 
 ### All CIGAR operators gathered in one table
 
