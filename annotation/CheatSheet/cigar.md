@@ -104,23 +104,29 @@ The ensembl page describe the CIGAR string from exonerate like that:
 `The cigar string describes the edit path throught the alignment. These contain a M,I,D or N corresponding to a Match, Insert, Delete or iNtron, followed by the length.`
 I don't know where that N is coming from, I havn't find any ressource using/talking about the N (iNtron) operator. It seems to be used by D systemtically. Any information about it is very welcome.
 
-## Updated Exonerate CIGAR - Gap attribute in GFF3(~2004)
+## 1st Update of the Exonerate CIGAR string - Gap attribute in GFF3(~2004)
  
-The GFF3 format integrated a Gap attribute in the 9th column of the gff" files to describe alignements. Here is what has been described:
+The GFF3 format integrated a Gap attribute in the 9th column of the gff" files to describe alignements. [Here is a full description.](http://rice.bio.indiana.edu:7082/annot/gff3.html)  
 
-
+Here the essentail we have to retain:
 
     Gap   The alignment of the feature to the target if the two are
           not colinear (e.g. contain gaps).  The alignment format is
 	  taken from the CIGAR format described in the 
-	  Exonerate documentation.
-	  (http://cvsweb.sanger.ac.uk/cgi-bin/cvsweb.cgi/exonerate
-           ?cvsroot=Ensembl).  See "THE GAP ATTRIBUTE" for a description
+	  Exonerate documentation.See "THE GAP ATTRIBUTE" for a description
 	   of this format.
+	[...]
+	THE GAP ATTRIBUTE
+	-----------------
+	[...]
+	GFF3 recommends representing gapped alignments
+	explicitly with the "Gap" attribute.  The Gap attribute's format
+	consists of a series of (operation,length) pairs separated by spac
+	characters, for example "M8 D3 M6".  Each operation is a single-letter code.
 
-Here is what could have been the original Exonerate definition:
+Here is the different operators:
 
-Operator | Description
+Operator/Code | Description/Operation
 -- | --
 M    |    match
 I     |   insert a gap into the reference sequence
@@ -128,9 +134,13 @@ D    |   insert a gap into the target (delete from reference)
 F     |   frameshift forward in the reference sequence
 R     |   frameshift reverse in the reference sequence
 
-As the original CIGAR string from Exonerate each run is encoded by the letter code, whitespace, and the length; multiple runs are separated by whitespace. 
-So it could looks like that:
->M 24 I 3 M 7 D 2 M 19
+Compare to the original CIGAR string there is no more whitespace between the letter code and the length.  
+Here an example of this type of CIGAR string:  
+>Gap=M8 D3 M6 I1 M6
+
+They apprarently also mix-up abilities from the **CIGAR** string format and those from the [**VULGAR** string format](vulgar.md). Indeed they added the **F** and **R** operators which are both originaly related to the [VULGAR format](vulgar.md).
+
+## 2nd Update of the Exonerate CIGAR string - Gap attribute in GFF3
 
 /!\ For segments of length 1 the number can be omitted, so "8M1D6M" is equal to "8MD6M". 
 
