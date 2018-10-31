@@ -56,8 +56,12 @@ Below is the idiodyncracies/conventions describefd in the man page of exonerate-
 
 ## Original Exonerate CIGAR (before 2003)
 
-### The related SUGAR format
-We cannot talk about the CIGAR format without talking first about the **SUGAR** format. Sugar is Simple UnGapped Alignment Report, which displays ungapped alignments one-per-line. The sugar line starts with the string "sugar:" for easy extraction from the output, and is followed by the the following 9 fields in the order below:  
+Here an example of SUGAR format:  
+`sugar: hs989235.cds 5 468 + hsnfg9.embl 25689 27450 + 1916`
+
+### The CIGAR format
+
+We cannot talk about the CIGAR format without talking first about the [**SUGAR** format](sugar.md). Sugar is Simple UnGapped Alignment Report, which displays ungapped alignments one-per-line. The sugar line starts with the string "sugar:" for easy extraction from the output, and is followed by the following 9 fields in the order below:
 
 >1. query identifier  
 >2. query start position  
@@ -67,13 +71,9 @@ We cannot talk about the CIGAR format without talking first about the **SUGAR** 
 >6. target start position  
 >7. target stop position  
 >8. target strand  
->9. score  
+>9. score 
 
-Here an example of SUGAR format:  
-`sugar: hs989235.cds 5 468 + hsnfg9.embl 25689 27450 + 1916`
-
-### The CIGAR format
-The  format starts  with  the same 9 fields as sugar output (see above), and is followed by a series of <operation, length> pairs where operation is one of match, insert or delete, and the length describes the number of times this operation is repeated
+The **CIGAR** format starts  with  the same 9 fields as SUGAR output (see above), and is followed by a series of <operation, length> pairs where operation is one of **match**, **insert** or **delete**, and the length describes the number of times this operation is repeated
 Cigar format looks like this:
 
 `cigar: hs989235.cds 5 468 + hsnfg9.embl 25689 27450 + 1916 M 13 I 1 M 35 I 1 M 4 I 1 M 13 D 1 M 4 I 1 M 115 D 404 M 37 D 1 M 164 I 1 M 12 D 898 M 16 I 1 M 12 I 1 M 21 D 1 M 10`
