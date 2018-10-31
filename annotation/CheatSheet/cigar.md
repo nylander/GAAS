@@ -135,10 +135,55 @@ F     |   frameshift forward in the reference sequence
 R     |   frameshift reverse in the reference sequence
 
 Compare to the original CIGAR string there is no more whitespace between the letter code and the length.  
-Here an example of this type of CIGAR string:  
->Gap=M8 D3 M6 I1 M6
+**Here an example of this type of CIGAR string DNA/DNA:  **
 
-They apprarently also mix-up abilities from the **CIGAR** string format and those from the [**VULGAR** string format](vulgar.md). Indeed they added the **F** and **R** operators which are both originaly related to the [VULGAR format](vulgar.md).
+        Chr3  (reference)  1 CAAGACCTAAACTGGAT-TCCAAT  23
+        EST23 (target)     1 CAAGACCT---CTGGATATCCAAT  21
+
+	In the alignment between EST23 and Chr3 shown above, Chr3 is the
+	reference sequence referred to in the first column of the GFF3 file,
+	and EST23 is the sequence referred to by the Target attribute.  This
+	gives a Gap string of "M8 D3 M6 I1 M6". The full GFF match line will
+	read:
+
+	   Chr23 . Match 1 23 . . . ID=Match1;Target=EST23 1 21;Gap=M8 D3 M6 I1 M6
+
+	>Gap=M8 D3 M6 I1 M6
+
+**Here an example of this type of CIGAR string AA/DNA:  **
+
+	For protein to nucleotide matches, the M, I and D operations apply to
+	amino acid residues in the target and nucleotide base pairs in the
+	reference in a 1:3 residue.  That is, "M2" means to match two amino
+	residues in the target to six base pairs in the reference.  Hence this
+	alignment:
+
+	 100 atgaaggag---gttattgcgaatgtcggcggt
+	   1 M..K..E..V..V..I..-..N..V..G..G..
+
+	Corresponds to this GFF3 Line:
+
+	 ctg123 . nucleotide_to_protein 100 129 . + . ID=match008;Target=p101 1 10;Gap=M3 I1 M2 D1 M4
+
+/!\ They apprarently also mix-up abilities from the **CIGAR** string format and those from the [**VULGAR** string format](vulgar.md). Indeed they added the **F** and **R** operators which are both originaly related to the [VULGAR format](vulgar.md).
+
+Here the explanation about the **F** and **R** operators:  
+
+	In addition, the Gap attribute provides <F>orward and <R>everse
+	frameshift operators to allow for frameshifts in the alignment.  These
+	are in nucleotide coordinates: a forward frameshift skips forward the
+	indicated number of base pairs, while a reverse frameshift moves
+	backwards.  Examples:
+
+
+	 100 atgaaggag---gttattgaatgtcggcggt     Gap=M3 I1 M2 F1 M4
+	   1 M..K..E..V..V..I...
+				N..V..G..G
+
+
+	 100 atgaaggag---gttataatgtcggcggt        Gap=M3 I1 M2 R1 M4
+	   1 M..K..E..V..V..I.
+			      N..V..G..G
 
 ## 2nd Update of the Exonerate CIGAR string - Gap attribute in GFF3
 
@@ -183,23 +228,14 @@ X | Read Mismatch; the nucleotide is present in the reference
 So it could looks like that:
 >16=X7=3I7=2DX18=
 
-# The Exonerate VULGAR format
 
-Here is the last specification of the format. Some definition are not really clear and I didn't find any further definition (e.g 5 and 3). 
+# In sum
 
-Operator | Description
--- | --
-M | Match
-C | Codon
-G | Gap
-N | Non-equivalenced region
-5 | 5' splice site
-3 | 3' splice site
-I | Intron
-S | Split codon
-F | Frameshift 
+### quick comparison between each flavor of the format:
 
-# All CIGAR operators gathered in one table
+
+
+### All CIGAR operators gathered in one table
 
 To gather all the operator information in one place,  I did a union of the different operators of the different formats and end-up with this last table:
 
