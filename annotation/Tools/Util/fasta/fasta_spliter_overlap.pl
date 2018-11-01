@@ -44,7 +44,7 @@ if ($opt_help) {
                  -message => "$header \n" } );
 } 
  
-if (! defined($opt_fastafile) and ! defined($opt_fastafile) ) {
+if (! defined($opt_fastafile) or ! defined($opt_chunck_size) ) {
     pod2usage( {
            -message => "\nAt least 2 parameter is mandatory:\nInput reference fasta file (-f)\nChunck_size (-c)\n".
            "Output is optional. Look at the help documentation to know more.\n",
@@ -76,10 +76,10 @@ if($opt_overlap >=  $opt_chunck_size){
 ######### read fasta file #############
 my $fasta1  = Bio::SeqIO->new(-file => $opt_fastafile , -format => 'Fasta');
 while ( my $seq = $fasta1->next_seq() ) {
-  my $start = 0;
+  my $start = 1;
   my $end = $opt_chunck_size;
   
-  while ( seq->length() < $end) {
+  while ( $end < $seq->length() ) {
 
       my $sequence = undef;
       my $seqObj = undef;
@@ -87,21 +87,22 @@ while ( my $seq = $fasta1->next_seq() ) {
     	if($seq->length() > ($end+$opt_chunck_size) ){
         
         
-        $sequence = substr($seq, $start, $opt_chunck_size);
-        $seqObj = Bio::Seq->new( '-format' => 'fasta' , -seq => $sequence);
+        $sequence = $seq->subseq($start, $end);
+	$seqObj = Bio::Seq->new( '-format' => 'fasta' , -seq => $sequence);
         $id_seq = $seq->id."_".$start."_".$end;
         $seqObj->id($id_seq);
-        $ostream->write_seq($seq);
+        $ostream->write_seq($seqObj);
     	}
       else{
-        $sequence = substr($seq, $start);
+        $sequence = $seq->subseq($start, $seq->length());
         $seqObj  = Bio::Seq->new( '-format' => 'fasta' , -seq => $sequence);
-        $id_seq = $seq->id."_".$start."_".$end;
+        $id_seq = $seq->id."_".$start."_".$seq->length();
         $seqObj->id($id_seq);
-        $ostream->write_seq($seq);
+        $ostream->write_seq($seqObj);
+	last;
       }
-      my $start = $end - $opt_overlap;
-      my $end = $start + $opt_chunck_size;
+      $start = $end - $opt_overlap;
+      $end = $start + $opt_chunck_size;
   }
 }
 
