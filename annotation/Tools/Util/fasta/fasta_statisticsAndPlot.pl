@@ -2,8 +2,8 @@
 # Takes a fasta-file (usually a genomic or transcriptomic assembly) and checks for
 # potential problems as well as calculates a few basic statistics.
 # 
-# By Henrik Lantz, BILS/Uppsala University, Sweden
-# Modified by Jacques Dainat to plot contig distribution and N50
+# NBIS 2018
+# jacques.dainat@nbis.se
 
 use warnings;
 use strict;
@@ -15,10 +15,11 @@ use Getopt::Long;
 use Try::Tiny;
 use Carp;
 use IO::File;
+use Bio::SeqIO;
 
-my $header;
-my %sequence=();
+my $nb_seq = 0;
 my $problemcount=0;
+my $nbseq_withLowerCase=0;
 my $total_lowerCaseCount;
 my $Ncount=0;
 my $pureNseq=0;
@@ -59,8 +60,9 @@ if ( !( defined($opt_infile) ) ) {
 
 
 
-my $outstream = IO::File->new();
-my $outstreamError = IO::File->new();
+my $outstream = IO::File->new();;
+my $outstreamFix;
+my $outstreamError;
 
 if ( defined($opt_dirRes) ) {
 	if (-d $opt_dirRes) {
@@ -68,80 +70,77 @@ if ( defined($opt_dirRes) ) {
 		}
 	mkdir $opt_dirRes;
 
-    $outstream->open( $opt_dirRes."/fasta_report.txt", 'w' ) or
-      croak( sprintf( "Can not open '%s' for writing %s", $opt_dirRes, $! ) );
-    $outstreamError->open( $opt_dirRes."/problem_sequences.txt", 'w' ) or
-      croak( sprintf( "Can not open '%s' for writing %s", $opt_dirRes, $! ) );
+    $outstream->open( "$opt_dirRes/fasta_report.txt", 'w' ) or
+        croak(sprintf( "Can not open '%s' for writing %s", "$opt_dirRes/fasta_report.txt", $! ));
+
+    open(my $fh, '>', "$opt_dirRes/fix_sequences.fa") or die "Could not open file '$opt_dirRes/fix_sequences.txt' $!";
+    $outstreamFix = Bio::SeqIO->new(-fh => $fh , -format => 'fasta');
+
+    open(my $fhe, '>', "$opt_dirRes/problem_sequences.fa") or die "Could not open file '$opt_dirRes/problem_sequences.txt' $!";
+    $outstreamError = Bio::SeqIO->new(-fh => $fhe , -format => 'fasta');
 }
 else {
     $outstream->fdopen( fileno(STDOUT), 'w' ) or
-      croak( sprintf( "Can not open STDOUT for writing: %s", $! ) );
-    $outstreamError->fdopen( fileno(STDOUT), 'w' ) or
-      croak( sprintf( "Can not open STDOUT for writing: %s", $! ) );
+	        croak( sprintf( "Can not open STDOUT for writing: %s", $! ) );
+    $outstreamError = Bio::SeqIO->new(-fh => \*STDOUT, -format => 'fasta');
 }
 
-my $output=$outstream;
-my $outputProblem=$outstreamError;
+# INPUT FILE
+my $inseq = Bio::SeqIO->new(-file   => "<$opt_infile", -format => 'fasta');
 
-
-open FASTA, $opt_infile or die "Couldn't open fasta-file";
-
-#Populate a hash with the fasta-data
-
-while (<FASTA>) {
-  chomp;
-  if (/^>(.*)$/){
-    $header=$1;
-  }
-  elsif (/^(\S+)$/){
-    $sequence{$header} .= $1 if $header;
-  }
-}
-close FASTA;
 
 #Calculate the statistics from the entries in the hash
 my $cp1kb=0;
 my $cp10kb=0;
-foreach my $key (keys %sequence){ 
+while( my $seqObj = $inseq->next_seq() ) {
+
+  my $sequence = $seqObj->seq();
+  $nb_seq++;
+  my $problemNstart=undef;
+  my $problemNend =undef;
+  my $problem_lowerCase = undef;
+
   #save sequence length for N50 calculation
-  push @sequencelength, length $sequence{$key}; 
+  push @sequencelength, length $sequence; 
 
   #Check for Ns at the beginning or end of sequence  
-  if ($sequence{$key} =~ /^N/){
-    print $outputProblem "\>$key\n$sequence{$key}\n";
+  if ($sequence =~ /^N/){
+    print $outstreamError->write_seq( $seqObj );
+    $problemNstart="yes";
     $problemcount++;
   }
-  if ($sequence{$key} =~ /N$/){
-    print $outputProblem "\>$key\n$sequence{$key}\n";
+  if ($sequence =~ /N$/){
+    print $outstreamError->write_seq( $seqObj );
+    $problemNend = "yes";
     $problemcount++;
   }
-  if (length($sequence{$key}) > 1000){
+  if (length($sequence) > 1000){
   	$cp1kb++;
 	#Count total size over 1000
-	$totalcountOver1000 += length $sequence{$key};
+	$totalcountOver1000 += length $sequence;
  	 #save sequence length for N50 calculation
-  	push @sequencelengthOver1000, length $sequence{$key}; 
+  	push @sequencelengthOver1000, length $sequence; 
 
-  	if (length($sequence{$key}) > 10000){
+  	if (length($sequence) > 10000){
   		$cp10kb++;
 		  #Count total size over 10000
-  		  $totalcountOver10000 += length $sequence{$key};
+  		  $totalcountOver10000 += length $sequence;
 		  #save sequence length for N50 calculation
-  		  push @sequencelengthOver10000, length $sequence{$key}; 
+  		  push @sequencelengthOver10000, length $sequence; 
   	}
   }
   
   
   #Count number of NNN regions
   my $match=0;
-  $match++ while $sequence{$key} =~ /[ACGT]N+[ACGT]/g;
+  $match++ while $sequence =~ /[ACGT]N+[ACGT]/g;
   $Ncount += $match;
   #Count GC
-  $gccount += ($sequence{$key} =~ tr/gGcC/gGcC/);
+  $gccount += ($sequence =~ tr/gGcC/gGcC/);
   #Count size total
-  $totalcount += length $sequence{$key};
+  $totalcount += length $sequence;
   #Count size with No Ns
-  my $noNs=$sequence{$key};
+  my $noNs=$sequence;
   $noNs =~ s/N//g;
   $total_noNs += length $noNs;
   if(length $noNs == 0){
@@ -150,6 +149,27 @@ foreach my $key (keys %sequence){
   #Count lowercase outside Ns
   my $lowerCaseCount += ($noNs =~ tr/atgc/atgc/);
   $total_lowerCaseCount += $lowerCaseCount;
+  if($lowerCaseCount > 0){
+	$nbseq_withLowerCase++;
+	$problem_lowerCase="yes";	
+  }
+
+  # Now we can print the fixed sequnece
+  if ($opt_dirRes){
+	
+ 	#Fix the lowercase issue
+	if($problem_lowerCase){
+	  	$sequence =~ tr/atgcn/ATGCN/;
+ 		$seqObj->seq($sequence);
+	}
+
+	#Fix starting N
+	if($problemNstart or $problemNend){
+		$sequence =~ s/^N+|N+$//g;
+		$seqObj->seq($sequence);
+        }
+	print $outstreamFix->write_seq( $seqObj );
+  }
 }
 
 #Calculate some statistics
@@ -193,7 +213,7 @@ while ($sum < $NinetyPercGenomeSize){
 @sequencelengthOver1000 = reverse sort { $a <=> $b } @sequencelengthOver1000;
 my $HalfGenomeSizeOver1000=$totalcountOver1000/2;
 $sum=0;
-my $N50over1000;
+my $N50over1000=0;
 while ($sum < $HalfGenomeSizeOver1000){
   $N50over1000 = shift @sequencelengthOver1000;
   $sum += $N50over1000;
@@ -205,7 +225,7 @@ while ($sum < $HalfGenomeSizeOver1000){
 @sequencelengthOver10000 = reverse sort { $a <=> $b } @sequencelengthOver10000;
 my $HalfGenomeSizeOver10000=$totalcountOver10000/2;
 $sum=0;
-my $N50over10000;
+my $N50over10000=0;
 while ($sum < $HalfGenomeSizeOver10000){
   $N50over10000 = shift @sequencelengthOver10000;
   $sum += $N50over10000;
@@ -218,24 +238,27 @@ my $date = strftime "%m/%d/%Y at %Hh%Mm%Ss", localtime;
 my $StingToPrint;
 $StingToPrint .= "\n========================================\n";
 $StingToPrint .= "Fasta-statistics\ launched the $date:\n";
-$StingToPrint .= sprintf("There are ".scalar keys %sequence);
-$StingToPrint .= " sequences\n";
-$StingToPrint .= "There is $cp10kb sequences > 10kb \n";
-$StingToPrint .= "There is $cp1kb sequences > 1kb \n";
+$StingToPrint .= "There are $nb_seq sequences\n";
+$StingToPrint .= "There are $cp10kb sequences > 10kb \n";
+$StingToPrint .= "There are $cp1kb sequences > 1kb \n";
 $StingToPrint .= "There are $totalcount nucleotides, of which $totalNs are Ns\n";
 $StingToPrint .= "There are $Ncount N-regions (possibly links between contigs)\n";
 $StingToPrint .= "There are $pureNseq pure (only) N sequences. Assembler doing that must be notified ! \n";
-$StingToPrint .= "There are $problemcount sequence(s) that begin or end with Ns (see problem_sequences.txt)\n";
+$StingToPrint .= "There are $problemcount sequences that begin or end with Ns (see problem_sequences.txt)\n";
 $StingToPrint .= sprintf("The GC-content is %.1f",$GCpercentage);
 $StingToPrint .= "\%";
 $StingToPrint .= sprintf(" (not counting Ns %.1f", $GCnoNs);
 $StingToPrint .= "\%)\n";
+$StingToPrint .= "There are $nbseq_withLowerCase sequences with lowercase nucleotides (Ns not considered)\n";
 $StingToPrint .= "There are $total_lowerCaseCount lowercase nucleotides (Ns not considered)\n";
 $StingToPrint .= "The N50 is $entry\n";
 $StingToPrint .= "The N90 is $N90\n";
 $StingToPrint .= "The N50 for sequences over 1000bp is $N50over1000\n";
 $StingToPrint .= "The N50 for sequeces over 10000bp is $N50over10000\n";
 $StingToPrint .= "========================================\n";
+if($opt_dirRes){
+	$StingToPrint .= "You will find corrected sequences in fix_sequences.txt (Extremities N trimed and lowercase nucleotides).\n";
+}
 print $outstream "$StingToPrint";
 
 #######
