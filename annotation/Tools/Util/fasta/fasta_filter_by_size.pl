@@ -62,7 +62,7 @@ else{
   $ostream = Bio::SeqIO->new(-fh => \*STDOUT, -format => 'Fasta');
 }
 
-print "We will remove sequences under $opt_size bp.\n";
+print "We will remove sequences < $opt_size bp.\n";
 
 
 
@@ -103,7 +103,8 @@ __END__
 =head1 NAME
 
 fasta_filer_by_size.pl -
-This script filter sequences by size. It will remove from the output all sequences under a certain size (1000bp by default)
+This script filter sequences by size. It will remove from the output all sequences under a certain size (1000 bp/aa by default) 
+We keep all sequences >= --size
 
 =head1 SYNOPSIS
 
