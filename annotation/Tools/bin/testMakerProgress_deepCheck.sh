@@ -1,1 +1,0 @@
-../../Tools/Maker/testMakerProgress_deepCheck.sh

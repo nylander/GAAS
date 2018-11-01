@@ -1,1 +1,0 @@
-../../Tools/Maker/testMakerProgress.sh
