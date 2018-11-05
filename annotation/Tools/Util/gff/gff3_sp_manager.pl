@@ -879,6 +879,9 @@ sub parse_blast {
     }
   }
 
+  my $nb_desc = keys %candidates;
+  print "We have $nb_desc description candidates: ".$description."\n" if($opt_verbose);
+
   #go through all candidates
   foreach my $l2 (keys %candidates){
     my $protID = $candidates{$l2}[0];
@@ -886,8 +889,8 @@ sub parse_blast {
     if( exists $allIDs{lc($protID)}){   
       $protID_correct = $allIDs{lc($protID)};
     }
-    my $description = $db->description($protID_correct );
-    print "description: ".$description."\n" if($opt_verbose);
+    my $header = $db->header($id);($protID_correct );
+    print "header: ".$header."\n" if($opt_verbose);
   }
 
 #   #FIRST PARSE THE FILE
