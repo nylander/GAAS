@@ -869,7 +869,7 @@ sub parse_blast {
      print "Evalue: ".$evalue."\n" if($opt_verbose);
 
      #if does not exist fill it if over the minimum evalue
-    if (! exist_keys(\%candidates,($l2_name))){
+    if (! exists_keys(\%candidates,($l2_name))){
       if( $evalue < $opt_blastEvalue ) {
         $candidates{$l2_name}=[$prot_name, $evalue];
       }
