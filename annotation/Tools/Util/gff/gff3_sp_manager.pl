@@ -874,7 +874,7 @@ sub parse_blast {
         $candidates{$l2_name}=[$prot_name, $evalue];
       }
     }
-    elsif( $evalue > candidates{$l2_name}[1] ) { # better evalue for this record
+    elsif( $evalue > $candidates{$l2_name}[1] ) { # better evalue for this record
       $candidates{$l2_name}=[$prot_name, $evalue];
     }
   }
