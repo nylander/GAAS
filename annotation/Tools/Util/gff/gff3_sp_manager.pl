@@ -32,7 +32,7 @@ my $opt_reffile;
 my $opt_output;
 my $opt_BlastFile;
 my $opt_InterproFile;
-my $opt_name;
+my $opt_name=undef;
 my $opt_nameU;
 my $optFillFrame;
 my $optForceFillFrame;
@@ -44,6 +44,7 @@ my $opt_help = 0;
 my $opt_blastEvalue=10;
 my $opt_interproscanEvalue=10;
 my $opt_dataBase = undef;
+my $opt_pe = 5;
 # END PARAMETERS - OPTION
 
 # for ID name
@@ -92,6 +93,7 @@ if ( !GetOptions( 'f|ref|reffile|gff|gff3=s' => \$opt_reffile,
                   'b|blast=s' => \$opt_BlastFile,
                   'd|db=s' => \$opt_dataBase,
                   'be|blast_evalue=i' => \$opt_blastEvalue,
+		  'pe=i' => \$opt_pe,
                   'i|interpro=s' => \$opt_InterproFile,
                   'ie|interpro_evalue=i' => \$opt_interproscanEvalue,
                   'id=s' => \$opt_name,
@@ -141,6 +143,11 @@ if (! $nbRepeatName){$nbRepeatName=1};
 #################################################
 ####### START Manage files (input output) #######
 #################################################
+
+
+if($opt_pe>5 or $opt_pe<1){
+	print "Error the Protein Existence (PE) value must be between 1 and 5\n";exit; 
+}
 
 my $streamBlast = IO::File->new();
 my $streamInter = IO::File->new();
@@ -221,9 +228,9 @@ my $stringPrint = strftime "%m/%d/%Y", localtime;
 
 $stringPrint .= "\nusage: $0 @copyARGV\n".
                 "vvvvvvvvvvvvvvvvvvvvvvvvvvvvv\n".
-                "vvvvvvvv OPTION INFO vvvvvvvv\n\n".
+                "vvvvvvvv OPTION INFO vvvvvvvv\n\n";
 
-my $prefixName;
+my $prefixName=undef;
 if ($opt_name){
   $prefixName=$opt_name;
   $stringPrint .= "->IDs will be changed using $opt_name as prefix.\nIn the case of discontinuous features (i.e. a single feature that exists over multiple genomic locations) the same ID may appear on multiple lines.".
@@ -378,7 +385,7 @@ foreach my $key_hash (keys %hash_of_omniscient){
   foreach my $infoList (@$stat){
     foreach my $info (@$infoList){
       $outputTab[0]->print("$info");
-      if($opt_output){print_time(print "$info");} # When ostreamReport is a file we have to also display on screen
+      if($opt_output){print "$info";} # When ostreamReport is a file we have to also display on screen
     }
     $outputTab[0]->print("\n");
     if($opt_output){print "\n";} # When ostreamReport is a file we have to also display on screen
@@ -857,7 +864,6 @@ sub addFunctions{
 # method to par annie blast file
 sub parse_blast {
   my($file_in, $opt_blastEvalue, $hash_mRNAGeneLink) = @_;
-  $opt_verbose=1;
 
   my %candidates; 
   #catch all candidates first (better candidate for each mRNA)
@@ -869,105 +875,155 @@ sub parse_blast {
      print "Evalue: ".$evalue."\n" if($opt_verbose);
 
      #if does not exist fill it if over the minimum evalue
-    if (! exists_keys(\%candidates,($l2_name))){
+    if (! exists_keys(\%candidates,($l2_name)) or @{$candidates{$l2_name}}> 2 ){ # the second one means we saved an error message as candidates we still have to try to find a proper one
       if( $evalue < $opt_blastEvalue ) {
-        $candidates{$l2_name}=[$prot_name, $evalue];
+	my $protID_correct=undef;
+    	if( exists $allIDs{lc($prot_name)}){
+      		$protID_correct = $allIDs{lc($prot_name)};
+      		my $header = $db->header( $protID_correct );
+		if ($header =~ m/GN=/){
+			if($header =~ /PE=([1-5])\s/){
+				if($1 <= $opt_pe){
+					$candidates{$l2_name}=[$header, $evalue];
+				}
+				
+			}
+			else{print "No Protein Existence (PE) information in this header: $header\n";}
+		}
+		else{ 
+			print "No gene name (GN=) in this header $header\n" if($opt_verbose); 
+			$candidates{$l2_name}=["error", $evalue, $prot_name."-".$l2_name];
+		}
+	}
+	else{
+		print "ERROR $prot_name not found among the db! You probably didn't give to me the same fasta file than the one used for the blast. (l2=$l2_name)\n" if($opt_verbose);
+		$candidates{$l2_name}=["error", $evalue, $prot_name."-".$l2_name];
+	}
       }
     }
     elsif( $evalue > $candidates{$l2_name}[1] ) { # better evalue for this record
-      $candidates{$l2_name}=[$prot_name, $evalue];
+	my $protID_correct=undef;
+        if( exists $allIDs{lc($prot_name)}){
+                $protID_correct = $allIDs{lc($prot_name)};
+                my $header = $db->header( $protID_correct );
+                if ($header =~ m/GN=/){
+                      if($header =~ /PE=([1-5])\s/){
+                                if($1 <= $opt_pe){
+                                        $candidates{$l2_name}=[$header, $evalue];
+                                }
+
+                        }
+                        else{print "No Protein Existence (PE) information in this header: $header\n";}                        
+                }
+                else{ print "No gene name (GN=) in this header $header\n" if($opt_verbose); }
+        }
+	else{print "ERROR $prot_name not found among the db! You probably didn't give to me the same fasta file than the one used for the blast. (l2=$l2_name)\n" if($opt_verbose);}      
     }
   }
 
   my $nb_desc = keys %candidates;
-  print "We have $nb_desc description candidates: ".$description."\n" if($opt_verbose);
+  print "We have $nb_desc description candidates.\n";
 
+  my %geneName; 
+  my %linkBmRNAandGene;
   #go through all candidates
   foreach my $l2 (keys %candidates){
-    my $protID = $candidates{$l2}[0];
-    my $protID_correct=undef;
-    if( exists $allIDs{lc($protID)}){   
-      $protID_correct = $allIDs{lc($protID)};
-    }
-    my $header = $db->header($id);($protID_correct );
-    print "header: ".$header."\n" if($opt_verbose);
+      if( $candidates{$l2}[0] eq "error" ){
+	print "error nothing found for $candidates{$l2}[2]\n";next;
+      }
+      my $header = $candidates{$l2}[0];
+      print "header: ".$header."\n" if($opt_verbose);
+      if ($header =~ m/(^[^\s]+)(.+?(?= \w{2}=))(.+)/){
+	      my $protID = $1;
+	      my $description = $2;
+	      my $theRest = $3;
+	      $theRest =~ s/\n//g;
+	      $theRest =~ s/\r//g;
+	      my $nameGene = undef;
+	      push ( @{ $mRNAproduct{$l2} }, $description );     
+	
+	      #deal with the rest
+	      my %hash_rest;
+	      my $tuple=undef;
+	      while ($theRest){
+	  	($theRest, $tuple) = stringCatcher($theRest);     
+	 	my ($type,$value) = split /=/,$tuple;
+		#print "$protID: type:$type --- value:$value\n";
+		$hash_rest{lc($type)}=$value;
+	      }
+	      if(exists($hash_rest{"gn"})){
+		$nameGene=$hash_rest{"gn"};
+	        
+		if(exists_keys ($hash_mRNAGeneLink,($l2)) ){
+			my $geneID = $hash_mRNAGeneLink->{$l2};      
+	       	 	#print "push $geneID $nameGene\n";
+			push ( @{ $geneName{lc($geneID)} }, lc($nameGene) );
+	        	push( @{ $linkBmRNAandGene{lc($geneID)}}, lc($l2)); # save mRNA name for each gene name 
+		}
+		else{print "No parent found for $l2 (defined in the blast file) in hash_mRNAGeneLink (created by the gff file).\n";}
+	}
+	else{print "Header from the db fasta file doesn't match the regular expression: $header\n";}
+     }
   }
-
-#   #FIRST PARSE THE FILE
-#   while( my $line = <$file_in>)  {
-#     my @values = split(/\t/, $line);
-#     my $line_evalue = $values[10];
-#     print "Evalue: ".$values[8]."\n" if($opt_verbose);
-    
-
-#     my @values = split(/\s/, $line);
-#     if ($values[1] eq "name"){
-#       $geneID=$values[0];
-#       $nameGene=$values[2];
-#       $nameGene=~ s/\n//g;
-#       push ( @{ $geneName{lc($geneID)} }, lc($nameGene) );
-#     }
-#     elsif ($values[1] eq "product"){
-#       my $mRNAID=$values[0];
-#       @values = split(/\sproduct\s/, $line);
-#       my $product=$values[1];
-#       $product=~ s/\n//g;
-#       push ( @{ $mRNAproduct{lc($mRNAID)} }, $product );
-#       if ($nameGene ne ""){
-#         push( @{ $linkBmRNAandGene{lc($geneID)}}, lc($mRNAID)); # save mRNA name for each gene name 
-#         $geneID ="";
-#         $nameGene="";
-#       }
-#     }
-#     else {print "/!\\ Achtung !! something strange in this file ... line is: $line";}   
-#   }
-
-#   # secondly Manage NAME (If several)
-#   manageGeneNameBlast(\%geneName); # Remove redundancy to have only one name for each gene
   
-#   #Then CLEAN NAMES REDUNDANCY inter gene
-#   my %geneNewNameUsed;
-#   foreach my $geneID (keys %geneName){
-
-#     $nbGeneNameInBlast++;
+  ################
+   # secondly Manage NAME (If several)
+   manageGeneNameBlast(\%geneName); # Remove redundancy to have only one name for each gene
+  
+   #Then CLEAN NAMES REDUNDANCY inter gene
+   my %geneNewNameUsed;
+   foreach my $geneID (keys %geneName){
+     $nbGeneNameInBlast++;
     
-#     my @mRNAList=@{$linkBmRNAandGene{$geneID}};
-#     my $String = $geneName{$geneID};
-# #    print "$String\n";
-#     if (! exists( $geneNewNameUsed{$String})){
-#       $geneNewNameUsed{$String}++;
-#       $geneNameBlast{$geneID}=$String;
-#       # link name to mRNA and and isoform name _1 _2 _3 if several mRNA
-#       my $cptmRNA=1;
-#       if ($#mRNAList != 0) {
-#         foreach my $mRNA (@mRNAList){
-#           $mRNANameBlast{$mRNA}=$String."_iso".$cptmRNA;
-#           $cptmRNA++;
-#         }
-#       }
-#       else{$mRNANameBlast{$mRNAList[0]}=$String;}
-#     }
-#     else{ #in case where name was already used, we will modified it by addind a number like "_2"
-#       $nbDuplicateName++;
-#       $geneNewNameUsed{$String}++;
-#       my $nbFound=$geneNewNameUsed{$String};
-#       $String.="_$nbFound";
-#       $geneNewNameUsed{$String}++;
-#       $geneNameBlast{$geneID}=$String;
-#       # link name to mRNA and and isoform name _1 _2 _3 if several mRNA
-#       my $cptmRNA=1;  
-#       if ($#mRNAList != 0) {
-#         foreach my $mRNA (@mRNAList){
-#           $mRNANameBlast{$mRNA}=$String."_iso".$cptmRNA;
-#           $cptmRNA++;
-#         }
-#       }
-#       else{$mRNANameBlast{$mRNAList[0]}=$String;}
-#     }
-#   }
+     my @mRNAList=@{$linkBmRNAandGene{$geneID}};
+     my $String = $geneName{$geneID};
+ #    print "$String\n";
+     if (! exists( $geneNewNameUsed{$String})){
+       $geneNewNameUsed{$String}++;
+       $geneNameBlast{$geneID}=$String;
+       # link name to mRNA and and isoform name _1 _2 _3 if several mRNA
+       my $cptmRNA=1;
+       if ($#mRNAList != 0) {
+         foreach my $mRNA (@mRNAList){
+           $mRNANameBlast{$mRNA}=$String."_iso".$cptmRNA;
+           $cptmRNA++;
+         }
+       }
+       else{$mRNANameBlast{$mRNAList[0]}=$String;}
+     }
+     else{ #in case where name was already used, we will modified it by addind a number like "_2"
+       $nbDuplicateName++;
+       $geneNewNameUsed{$String}++;
+       my $nbFound=$geneNewNameUsed{$String};
+       $String.="_$nbFound";
+       $geneNewNameUsed{$String}++;
+       $geneNameBlast{$geneID}=$String;
+       # link name to mRNA and and isoform name _1 _2 _3 if several mRNA
+       my $cptmRNA=1;  
+       if ($#mRNAList != 0) {
+         foreach my $mRNA (@mRNAList){
+           $mRNANameBlast{$mRNA}=$String."_iso".$cptmRNA;
+           $cptmRNA++;
+         }
+       }
+       else{$mRNANameBlast{$mRNAList[0]}=$String;}
+     }
+   }
 }
 
-# method to par annie Interpro file
+#uniprotHeader string spliter
+sub stringCatcher{
+    my($String) = @_;
+    my $newString=undef;
+
+    if ( $String =~ m/(\w{2}=.+?(?= \w{2}=))(.+)/ ) {
+        $newString = substr $String, length($1)+1;
+    	return ($newString, $1); 
+    }
+    else{ return (undef, $String); }
+}
+
+# method to parse Interpro file
 sub parse_interpro_tsv {
   my($file_in,$fileName) = @_;
   print( "Reading features from $fileName...\n");
@@ -1133,6 +1189,8 @@ About the outfmt 6 from blast:
  11.   evalue  expect value
  12.   bitscore  bit score
 
+Currently the best e-value win... That means another hit with a lower e-value ( but still over the defined threshold anyway) even if it has a better PE value
+ will not be reported.
 
 =head1 SYNOPSIS
 
@@ -1155,6 +1213,17 @@ the first file (specified with B<--ref>).
 =item B<--be> or B<--blast_evalue>
 
  Maximum e-value to keep the annotaiton from the blast file. By default 10.
+
+=item B<--pe>
+
+The PE (protein existence) in the uniprot header indicates the type of evidence that supports the existence of the protein.
+You can decide until which protein existence level you want to consider to lift the finctional information. Default 5.
+
+1. Experimental evidence at protein level 
+2. Experimental evidence at transcript level 
+3. Protein inferred from homology 
+4. Protein predicted 
+5. Protein uncertain
 
 =item B<-i> or B<--interpro> 
 
