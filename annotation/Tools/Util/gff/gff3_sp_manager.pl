@@ -34,9 +34,6 @@ my $opt_BlastFile;
 my $opt_InterproFile;
 my $opt_name=undef;
 my $opt_nameU;
-my $optFillFrame;
-my $optForceFillFrame;
-my $opt_genomeSize;
 my $opt_removeUTR;
 my $opt_removemRNAduplicated;
 my $opt_verbose=undef;
@@ -45,17 +42,12 @@ my $opt_blastEvalue=10;
 my $opt_interproscanEvalue=10;
 my $opt_dataBase = undef;
 my $opt_pe = 5;
+my %numbering;
+my $nbIDstart=1;
+my $prefixName=undef;
+my %tag_hash;
+my @tag_list;
 # END PARAMETERS - OPTION
-
-# for ID name
-my $nbGeneName;
-my $nbmRNAname;
-my $nbCDSname;
-my $nbExonName;
-my $nbOTHERName;
-my $nbUTRName;
-my $nbRepeatName;
-# END ID name
 
 # FOR FUNCTIONS BLAST#
 my %nameBlast;
@@ -93,20 +85,12 @@ if ( !GetOptions( 'f|ref|reffile|gff|gff3=s' => \$opt_reffile,
                   'b|blast=s' => \$opt_BlastFile,
                   'd|db=s' => \$opt_dataBase,
                   'be|blast_evalue=i' => \$opt_blastEvalue,
-		  'pe=i' => \$opt_pe,
+		              'pe=i' => \$opt_pe,
                   'i|interpro=s' => \$opt_InterproFile,
                   'ie|interpro_evalue=i' => \$opt_interproscanEvalue,
                   'id=s' => \$opt_name,
                   'idau=s' => \$opt_nameU,               
-                  'g|gs=s' => \$opt_genomeSize,
-                  'gf=i'      => \$nbGeneName,
-                  'mf=i'      => \$nbmRNAname,
-                  'cf=i'      => \$nbCDSname,
-                  'ef=i'      => \$nbExonName,
-                  'uf=i'      => \$nbUTRName,
-                  'of=i'      => \$nbOTHERName,
-                  'rf=i'      => \$nbRepeatName,
-                  'ff'      => \$optFillFrame,
+                  'nb=i'      => \$nbIDstart,
                   'o|output=s'      => \$opt_output,
                   'v'      => \$opt_verbose,
                   'h|help!'         => \$opt_help ) )
@@ -130,20 +114,9 @@ if ( ! (defined($opt_reffile)) ){
            -exitval => 1 } );
 }
 
-# counters for ids initialisation
-if (! $nbGeneName){$nbGeneName=1};
-if (! $nbmRNAname){$nbmRNAname=1};
-if (! $nbCDSname){$nbCDSname=1};
-if (! $nbExonName){$nbExonName=1};
-if (! $nbUTRName){$nbUTRName=1};
-if (! $nbOTHERName){$nbOTHERName=1};
-if (! $nbRepeatName){$nbRepeatName=1};
-
-
 #################################################
 ####### START Manage files (input output) #######
 #################################################
-
 
 if($opt_pe>5 or $opt_pe<1){
 	print "Error the Protein Existence (PE) value must be between 1 and 5\n";exit; 
@@ -225,12 +198,7 @@ else {
 ###############################################
 #my $stringPrint = strftime "%m/%d/%Y at %Hh%Mm%Ss", localtime;
 my $stringPrint = strftime "%m/%d/%Y", localtime;
-
-$stringPrint .= "\nusage: $0 @copyARGV\n".
-                "vvvvvvvvvvvvvvvvvvvvvvvvvvvvv\n".
-                "vvvvvvvv OPTION INFO vvvvvvvv\n\n";
-
-my $prefixName=undef;
+$stringPrint .= "\nusage: $0 @copyARGV\n";
 if ($opt_name){
   $prefixName=$opt_name;
   $stringPrint .= "->IDs will be changed using $opt_name as prefix.\nIn the case of discontinuous features (i.e. a single feature that exists over multiple genomic locations) the same ID may appear on multiple lines.".
@@ -240,10 +208,8 @@ if ($opt_nameU){
   $stringPrint .= "->IDs will be changed using $opt_nameU as prefix. Id of features that share an ID collectively will be change in different and uniq ID.\n";
   $prefixName=$opt_nameU;
 }
-if($optFillFrame or $optForceFillFrame){
-  $stringPrint .= "->CDS frame will be fill\n";
-}
-$stringPrint .= "\n^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\n";
+
+
 
 # Display
 $outputTab[0]->print($stringPrint);
@@ -265,11 +231,14 @@ print_time("Parsing Finished\n\n");
 #########################
 
 #Print directly what has been read 
-if($opt_verbose){
-  my $stat = gff3_statistics($hash_omniscient, $opt_genomeSize);
-  foreach my $info (@$stat){
-      $outputTab[0]->print("$info");
+my ($stat, $distri) = gff3_statistics($hash_omniscient);
+foreach my $infoList (@$stat){
+  foreach my $info (@$infoList){
+    $outputTab[0]->print("$info");
+    if($opt_output){print_time(print "$info");} # When ostreamReport is a file we have to also display on screen
   }
+  $outputTab[0]->print("\n");
+  if($opt_output){print "\n";} # When ostreamReport is a file we have to also display on screen
 }
 
 ################################
@@ -313,191 +282,98 @@ if (defined $opt_InterproFile){
 # END MANAGE FUNCTIONAL INPUT FILE #
 ####################################
 
-#################################
-# GO THROUGH OMISCIENT          # Will create
-
-my %omniscient_gene;
-my %omniscient_other;
-my %omniscient_repeat;
-my @list_geneID_l1;
-my @list_OtherRnaID_l1;
-my @list_repeatID_l1;
-#################
-# create list by 3 type of feature (gene, trna, repeats). Allows to create different outputs
-
-# level 1
-foreach my $primary_tag_level1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_level1 = gene or repeat etc...
-  foreach my $id_level1 (keys %{$hash_omniscient->{'level1'}{$primary_tag_level1}}){
-    if($primary_tag_level1 =~ /repeat/){
-      push(@list_repeatID_l1, $id_level1)
-    }
-    else{
-      # get one level2 feature to check wich level1 feature it is
-      foreach my $primary_tag_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_level2 = mrna or mirna or ncrna or trna etc...        
-        if ( exists ($hash_omniscient->{'level2'}{$primary_tag_level2}{$id_level1} ) ){
-          my $one_feat=@{$hash_omniscient->{'level2'}{$primary_tag_level2}{$id_level1}}[0];
-          if(lc($one_feat->primary_tag) eq "mrna"){
-            push(@list_geneID_l1, $id_level1);
-            last;
-          }
-          else{
-            push(@list_OtherRnaID_l1, $id_level1);
-            last;
-          }
-        }
-      }
-    }
-  }
-}
-
-##########################
-# create sub omniscients
-my %hash_of_omniscient;
-if(@list_geneID_l1){
-  fill_omniscient_from_other_omniscient_level1_id(\@list_geneID_l1, $hash_omniscient, \%omniscient_gene);
-  $hash_of_omniscient{'Coding_Gene'}=\%omniscient_gene;
-}
-if(@list_OtherRnaID_l1){
-  fill_omniscient_from_other_omniscient_level1_id(\@list_OtherRnaID_l1, $hash_omniscient, \%omniscient_other);
-  $hash_of_omniscient{'Non_Coding_Gene'}=\%omniscient_other;
-}
-if(@list_repeatID_l1){
-  fill_omniscient_from_other_omniscient_level1_id(\@list_repeatID_l1, $hash_omniscient, \%omniscient_repeat);
-  $hash_of_omniscient{'Repeat'}=\%omniscient_repeat;
-}
-
-##############
-# STATISTICS #
-foreach my $key_hash (keys %hash_of_omniscient){
-  $outputTab[0]->print("Information about $key_hash\n");
-  if($opt_output){print "Information about $key_hash\n";} # When ostreamReport is a file we have to also display on screen
-  my $hash_ref = $hash_of_omniscient{$key_hash};
-  my $stat;
-  my $distri;
-  if($opt_genomeSize){
-    ($stat, $distri) = gff3_statistics($hash_ref, $opt_genomeSize);
-  }
-  else{
-    ($stat, $distri) = gff3_statistics($hash_ref);
-  }
-
-  #print statistics
-  foreach my $infoList (@$stat){
-    foreach my $info (@$infoList){
-      $outputTab[0]->print("$info");
-      if($opt_output){print "$info";} # When ostreamReport is a file we have to also display on screen
-    }
-    $outputTab[0]->print("\n");
-    if($opt_output){print "\n";} # When ostreamReport is a file we have to also display on screen
-  }
-}
-
-# END STATISTICS #
-##################
-
-###################
-#Fil frame is asked
-if($optFillFrame){
-  print_time( "fill frame information\n");
-  foreach my $key_hash (keys %hash_of_omniscient){
-    my $hash_ref = $hash_of_omniscient{$key_hash}; 
-    fil_cds_frame($key_hash);
-  }
-}
-
 ###########################
 # change FUNCTIONAL information if asked for
 if ($opt_BlastFile || $opt_InterproFile ){#|| $opt_BlastFile || $opt_InterproFile){
     print_time( "load FUNCTIONAL information\n" );
-    my $hash_ref = $hash_of_omniscient{'Coding_Gene'};
 
-    #################
-    # == LEVEL 1 == #
-    #################
-    foreach my $primary_tag_level1 (keys %{$hash_ref ->{'level1'}}){ # primary_tag_level1 = gene or repeat etc...
-      foreach my $id_level1 (keys %{$hash_ref ->{'level1'}{$primary_tag_level1}}){
-        
-        my $feature_level1=$hash_ref->{'level1'}{$primary_tag_level1}{$id_level1};
-        # Clean NAME attribute
-        if($feature_level1->has_tag('Name')){
-          $feature_level1->remove_tag('Name');
-        }
+  #################
+  # == LEVEL 1 == #
+  #################
+  foreach my $primary_tag_level1 (keys %{$hash_omniscient ->{'level1'}}){ # primary_tag_level1 = gene or repeat etc...
+    foreach my $id_level1 (keys %{$hash_omniscient ->{'level1'}{$primary_tag_level1}}){
+      
+      my $feature_level1=$hash_omniscient->{'level1'}{$primary_tag_level1}{$id_level1};
+      # Clean NAME attribute
+      if($feature_level1->has_tag('Name')){
+        $feature_level1->remove_tag('Name');
+      }
 
-        #Manage Name if otpion setting
-        if( $opt_BlastFile ){
-          if (exists ($geneNameBlast{$id_level1})){
-            create_or_replace_tag($feature_level1, 'Name', $geneNameBlast{$id_level1});
-            $nbNamedGene++;
-            
-            # Check name duplicated given
-            my $nameClean=$geneNameBlast{$id_level1};
-            $nameClean =~ s/_([2-9]{1}[0-9]*|[0-9]{2,})*$//;
-            
-            my $nameToCompare;
-            if(exists ($nameBlast{$nameClean})){ # We check that is really a name where we added the suffix _1
-              $nameToCompare=$nameClean;
-            }
-            else{$nameToCompare=$geneNameBlast{$id_level1};} # it was already a gene_name like BLABLA_12
-
-            if(exists ($geneNameGiven{$nameToCompare})){
-                $nbDuplicateNameGiven++; # track total
-                $duplicateNameGiven{$nameToCompare}++; # track diversity
-            }
-            else{$geneNameGiven{$nameToCompare}++;} # first time we have given this name
-          }
-        }
-
-        #################
-        # == LEVEL 2 == #
-        #################
-        foreach my $primary_tag_key_level2 (keys %{$hash_ref->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
+      #Manage Name if otpion setting
+      if( $opt_BlastFile ){
+        if (exists ($geneNameBlast{$id_level1})){
+          create_or_replace_tag($feature_level1, 'Name', $geneNameBlast{$id_level1});
+          $nbNamedGene++;
           
-          if ( exists_keys ($hash_ref, ('level2', $primary_tag_key_level2, $id_level1) ) ){
-            foreach my $feature_level2 ( @{$hash_ref->{'level2'}{$primary_tag_key_level2}{$id_level1}}) {
+          # Check name duplicated given
+          my $nameClean=$geneNameBlast{$id_level1};
+          $nameClean =~ s/_([2-9]{1}[0-9]*|[0-9]{2,})*$//;
+          
+          my $nameToCompare;
+          if(exists ($nameBlast{$nameClean})){ # We check that is really a name where we added the suffix _1
+            $nameToCompare=$nameClean;
+          }
+          else{$nameToCompare=$geneNameBlast{$id_level1};} # it was already a gene_name like BLABLA_12
 
-              my $level2_ID = lc($feature_level2->_tag_value('ID'));
-              # Clean NAME attribute
-              if($feature_level2->has_tag('Name')){
-                $feature_level2->remove_tag('Name');
+          if(exists ($geneNameGiven{$nameToCompare})){
+              $nbDuplicateNameGiven++; # track total
+              $duplicateNameGiven{$nameToCompare}++; # track diversity
+          }
+          else{$geneNameGiven{$nameToCompare}++;} # first time we have given this name
+        }
+      }
+
+      #################
+      # == LEVEL 2 == #
+      #################
+      foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
+        
+        if ( exists_keys ($hash_omniscient, ('level2', $primary_tag_key_level2, $id_level1) ) ){
+          foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_level1}}) {
+
+            my $level2_ID = lc($feature_level2->_tag_value('ID'));
+            # Clean NAME attribute
+            if($feature_level2->has_tag('Name')){
+              $feature_level2->remove_tag('Name');
+            }
+            
+            #Manage Name if option set
+            if($opt_BlastFile){
+              if (exists ($mRNANameBlast{$level2_ID})){
+                my $mRNABlastName=$mRNANameBlast{$level2_ID};
+                create_or_replace_tag($feature_level2, 'Name', $mRNABlastName);
               }
-              
-              #Manage Name if option set
-              if($opt_BlastFile){
-                if (exists ($mRNANameBlast{$level2_ID})){
-                  my $mRNABlastName=$mRNANameBlast{$level2_ID};
-                  create_or_replace_tag($feature_level2, 'Name', $mRNABlastName);
-                }
-                my $productData=printProductFunct($level2_ID);
-                if ($productData ne ""){
-                  create_or_replace_tag($feature_level2, 'product', $productData);
-                }
-                else {
-                  create_or_replace_tag($feature_level2, 'product', "hypothetical protein");
-                } #Case where the protein is not known
+              my $productData=printProductFunct($level2_ID);
+              if ($productData ne ""){
+                create_or_replace_tag($feature_level2, 'product', $productData);
               }
+              else {
+                create_or_replace_tag($feature_level2, 'product', "hypothetical protein");
+              } #Case where the protein is not known
+            }
 
-              # print function if option
-              if($opt_InterproFile){
-                my $parentID=$feature_level2->_tag_value('Parent');
+            # print function if option
+            if($opt_InterproFile){
+              my $parentID=$feature_level2->_tag_value('Parent');
 
-                if (addFunctions($feature_level2, $opt_output)){
-                  $nbmRNAwithFunction++;$geneWithFunction{$parentID}++;
-                  if(exists ($geneWithoutFunction{$parentID})){
-                    delete $geneWithoutFunction{$parentID};
-                  }
+              if (addFunctions($feature_level2, $opt_output)){
+                $nbmRNAwithFunction++;$geneWithFunction{$parentID}++;
+                if(exists ($geneWithoutFunction{$parentID})){
+                  delete $geneWithoutFunction{$parentID};
                 }
-                else{
-                  $nbmRNAwithoutFunction++;
-                  if(! exists ($geneWithFunction{$parentID})){
-                    $geneWithoutFunction{$parentID}++;
-                  }
+              }
+              else{
+                $nbmRNAwithoutFunction++;
+                if(! exists ($geneWithFunction{$parentID})){
+                  $geneWithoutFunction{$parentID}++;
                 }
               }
             }
           }
         }
-      } 
-    }
+      }
+    } 
+  }
 }
 
 
@@ -505,140 +381,120 @@ if ($opt_BlastFile || $opt_InterproFile ){#|| $opt_BlastFile || $opt_InterproFil
 # change names if asked for
 if ($opt_nameU || $opt_name ){#|| $opt_BlastFile || $opt_InterproFile){
   print_time( "load NAME information\n");
-  foreach my $key_hash (keys %hash_of_omniscient){
-    my $hash_ref = $hash_of_omniscient{$key_hash};
+  
+  my %hash_sortBySeq;
+  foreach my $tag_level1 ( keys %{$hash_omniscient->{'level1'}}){
+    foreach my $level1_id ( keys %{$hash_omniscient->{'level1'}{$tag_level1}}){
+      my $position=$hash_omniscient->{'level1'}{$tag_level1}{$level1_id}->seq_id;
+      push (@{$hash_sortBySeq{$position}{$tag_level1}}, $hash_omniscient->{'level1'}{$tag_level1}{$level1_id});
+    }
+  } 
 
-    my %hash_sortBySeq;
-    foreach my $tag_level1 ( keys %{$hash_ref->{'level1'}}){
-      foreach my $level1_id ( keys %{$hash_ref->{'level1'}{$tag_level1}}){
-        my $position=$hash_ref->{'level1'}{$tag_level1}{$level1_id}->seq_id;
-        push (@{$hash_sortBySeq{$position}{$tag_level1}}, $hash_ref->{'level1'}{$tag_level1}{$level1_id});
-      }
-    } 
+  #################
+  # == LEVEL 1 == #
+  #################
+  #Read by seqId to sort properly the output by seq ID
+  foreach my $seqid (sort alphaNum keys %hash_sortBySeq){ # loop over all the feature level1
 
-    #################
-    # == LEVEL 1 == #
-    #################
-    #Read by seqId to sort properly the output by seq ID
-    foreach my $seqid (sort alphaNum keys %hash_sortBySeq){ # loop over all the feature level1
+    foreach my $primary_tag_level1 (sort {$a cmp $b} keys %{$hash_sortBySeq{$seqid}}){
 
-      foreach my $primary_tag_level1 (sort {$a cmp $b} keys %{$hash_sortBySeq{$seqid}}){
+      foreach my $feature_level1 ( sort {$a->start <=> $b->start} @{$hash_sortBySeq{$seqid}{$primary_tag_level1}}){
+        my $level1_ID=$feature_level1->_tag_value('ID');
+        my $id_level1 = lc($level1_ID);
+        my $newID_level1=undef;
+        #print_time( "Next gene $id_level1\n");
 
-        foreach my $feature_level1 ( sort {$a->start <=> $b->start} @{$hash_sortBySeq{$seqid}{$primary_tag_level1}}){
-          my $level1_ID=$feature_level1->_tag_value('ID');
-          my $id_level1 = lc($level1_ID);
-          my $newID_level1=undef;
-          #print_time( "Next gene $id_level1\n");
+        #keep track of Maker ID
+        if($opt_BlastFile){#In that case the name given by Maker is removed from ID and from Name. We have to kee a track
+          create_or_replace_tag($feature_level1, 'makerName', $level1_ID);
+        }
 
-          #keep track of Maker ID
-          if($opt_BlastFile){#In that case the name given by Maker is removed from ID and from Name. We have to kee a track
-            create_or_replace_tag($feature_level1, 'makerName', $level1_ID);
-          }
+        my $letter_tag = get_letter_tag($primary_tag_level1);
 
-          if(lc($primary_tag_level1) =~ /repeat/ ){
-            $newID_level1 = manageID($prefixName,$nbRepeatName,'R'); 
-            $nbRepeatName++;
-            create_or_replace_tag($feature_level1, 'ID', $newID_level1);
-          }
-          else{
-            $newID_level1 = manageID($prefixName,$nbGeneName,'G'); 
-            $nbGeneName++; 
-            create_or_replace_tag($feature_level1, 'ID', $newID_level1);
-          }
+        if(! exists_keys(\%numbering,($letter_tag ))){$numbering{$letter_tag }=$nbIDstart;}
+        $newID_level1 = manageID($prefixName, $numbering{$letter_tag }, $letter_tag ); 
+        $numbering{$letter_tag }++; 
+        create_or_replace_tag($feature_level1, 'ID', $newID_level1);
 
-          $finalID{$feature_level1->_tag_value('ID')}=$newID_level1;
-          #################
-          # == LEVEL 2 == #
-          #################
-          foreach my $primary_tag_key_level2 (keys %{$hash_ref->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
-            
-            if ( exists_keys ($hash_ref, ('level2', $primary_tag_key_level2, $id_level1) ) ){
-              foreach my $feature_level2 ( @{$hash_ref->{'level2'}{$primary_tag_key_level2}{$id_level1}}) {
+        $finalID{$feature_level1->_tag_value('ID')}=$newID_level1;
+        #################
+        # == LEVEL 2 == #
+        #################
+        foreach my $primary_tag_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_level2 = mrna or mirna or ncrna or trna etc...
+          
+          if ( exists_keys ($hash_omniscient, ('level2', $primary_tag_level2, $id_level1) ) ){
+            foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_level2}{$id_level1}}) {
 
-                my $level2_ID = $feature_level2->_tag_value('ID');
-                my $newID_level2=undef;
-                
-                #keep track of Maker ID
-                if($opt_InterproFile){#In that case the name given by Maker is removed from ID and from Name. We have to kee a track
-                  create_or_replace_tag($feature_level2, 'makerName', $level2_ID);
-                }
-
-                if(lc($feature_level2) =~ /repeat/ ){
-                  print "What should we do ? implement something. L1 and l2 repeats will have same name ...\n";exit;
-                }
-                else{
-                  $newID_level2 = manageID($prefixName,$nbmRNAname,"T");
-                  $nbmRNAname++; 
-                  create_or_replace_tag($feature_level2, 'ID', $newID_level2);
-                  create_or_replace_tag($feature_level2, 'Parent', $newID_level1);
-                }
-                
-                $finalID{$level2_ID}=$newID_level2;
-                #################
-                # == LEVEL 3 == #
-                #################
-               
-                foreach my $primary_tag_level3 (keys %{$hash_ref->{'level3'}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
-
-                    if ( exists_keys ($hash_ref,('level3',$primary_tag_level3, lc($level2_ID)) ) ){
-
-                      foreach my $feature_level3 ( @{$hash_ref->{'level3'}{$primary_tag_level3}{lc($level2_ID)}}) {
-
-                        #keep track of Maker ID
-                        my $level3_ID = $feature_level3->_tag_value('ID');
-                        if($opt_InterproFile){#In that case the name given by Maker is removed from ID and from Name. We have to kee a track
-                          create_or_replace_tag($feature_level3, 'makerName', $level3_ID);
-                        }
-
-                        my $newID_level3 ="";
-                        if($primary_tag_level3 =~ /exon/ ){
-                          $newID_level3 = manageID($prefixName,$nbExonName,'E'); 
-                          $nbExonName++;
-                          create_or_replace_tag($feature_level3, 'ID', $newID_level3);
-                          create_or_replace_tag($feature_level3, 'Parent', $newID_level2);
-
-                        }
-                        elsif($primary_tag_level3 =~ /cds/){
-                          $newID_level3 = manageID($prefixName,$nbCDSname,'C'); 
-                          if($opt_nameU){$nbCDSname++;}
-                          create_or_replace_tag($feature_level3, 'ID', $newID_level3);
-                          create_or_replace_tag($feature_level3, 'Parent', $newID_level2);
-                        }
-
-                        elsif($primary_tag_level3 =~ /utr/){
-                          $newID_level3 = manageID($prefixName,$nbUTRName,'U');
-                          if($opt_nameU){$nbUTRName++;}
-                          create_or_replace_tag($feature_level3, 'ID', $newID_level3);
-                          create_or_replace_tag($feature_level3, 'Parent', $newID_level2);
-                        }
-                        else{
-                          $newID_level3 = manageID($prefixName,$nbOTHERName,'O');
-                          $nbOTHERName++;
-                          create_or_replace_tag($feature_level3, 'ID', $newID_level3);
-                          create_or_replace_tag($feature_level3, 'Parent', $newID_level2);                        
-                        }
-                        $finalID{$level3_ID}=$newID_level3;
-                      }
-                      #save the new l3 into the new l2 id name
-                      $hash_ref->{'level3'}{$primary_tag_level3}{lc($newID_level2)} = delete $hash_ref->{'level3'}{$primary_tag_level3}{lc($level2_ID)} # delete command return the value before deteling it, so we just transfert the value 
-                    }
-                    if ($opt_name and  $primary_tag_level3 =~ /utr/){$nbUTRName++;} # with this option we increment UTR name only for each UTR 
-                    if ($opt_name and  $primary_tag_level3 =~ /cds/){$nbCDSname++;} # with this option we increment cds name only for each cds 
-                }
+              my $level2_ID = $feature_level2->_tag_value('ID');
+              my $newID_level2=undef;
+              
+              #keep track of Maker ID
+              if($opt_InterproFile){#In that case the name given by Maker is removed from ID and from Name. We have to kee a track
+                create_or_replace_tag($feature_level2, 'makerName', $level2_ID);
               }
-              if($newID_level1){
-                $hash_ref->{'level2'}{$primary_tag_key_level2}{lc($newID_level1)} = delete $hash_ref->{'level2'}{$primary_tag_key_level2}{$id_level1}; # modify the id key of the hash. The delete command return the value before deteling it, so we just transfert the value 
-              } 
+
+              my $letter_tag = get_letter_tag($primary_tag_level2);
+              if(! exists_keys(\%numbering,($letter_tag))){$numbering{$letter_tag}=$nbIDstart;}
+              $newID_level2 = manageID($prefixName, $numbering{$letter_tag},$letter_tag);
+              $numbering{$letter_tag}++; 
+              create_or_replace_tag($feature_level2, 'ID', $newID_level2);
+              create_or_replace_tag($feature_level2, 'Parent', $newID_level1);
+              
+              $finalID{$level2_ID}=$newID_level2;
+              #################
+              # == LEVEL 3 == #
+              #################
+             
+              foreach my $primary_tag_level3 (keys %{$hash_omniscient->{'level3'}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
+
+                  if ( exists_keys ($hash_omniscient,('level3',$primary_tag_level3, lc($level2_ID)) ) ){
+
+                    foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{$primary_tag_level3}{lc($level2_ID)}}) {
+
+                      #keep track of Maker ID
+                      my $level3_ID = $feature_level3->_tag_value('ID');
+                      if($opt_InterproFile){#In that case the name given by Maker is removed from ID and from Name. We have to kee a track
+                        create_or_replace_tag($feature_level3, 'makerName', $level3_ID);
+                      }
+
+                      my $letter_tag = get_letter_tag($primary_tag_level3);
+                      if(! exists_keys(\%numbering,($letter_tag))){$numbering{$letter_tag}=$nbIDstart;}
+                      my $newID_level3 = manageID($prefixName, $numbering{$letter_tag},$letter_tag); 
+                      if( $primary_tag_level3 =~ /cds/ or $primary_tag_level3 =~ /utr/ ) {
+                        if($opt_nameU){
+                          $numbering{$letter_tag}++;
+                        }       
+                      }
+                      else{
+                        $numbering{$letter_tag}++;
+                      }
+                      create_or_replace_tag($feature_level3, 'ID', $newID_level3);
+                      create_or_replace_tag($feature_level3, 'Parent', $newID_level2);
+                      
+                      $finalID{$level3_ID}=$newID_level3;
+                    }
+                    #save the new l3 into the new l2 id name
+                    $hash_omniscient->{'level3'}{$primary_tag_level3}{lc($newID_level2)} = delete $hash_omniscient->{'level3'}{$primary_tag_level3}{lc($level2_ID)} # delete command return the value before deteling it, so we just transfert the value 
+                  }
+                  if ($opt_name and  ( $primary_tag_level3 =~ /cds/ or $primary_tag_level3 =~ /utr/ ) ){ 
+                    my $letter_tag = get_letter_tag($primary_tag_level3);
+                    $numbering{$letter_tag}++;
+                  } # with this option we increment UTR name only for each UTR (cds also)
+
+              }
             }
-          }
-        
-          if($newID_level1){
-            $hash_ref->{'level1'}{$primary_tag_level1}{lc($newID_level1)} = delete $hash_ref->{'level1'}{$primary_tag_level1}{$id_level1}; # modify the id key of the hash. The delete command return the value before deteling it, so we just transfert the value 
+            if($newID_level1){
+              $hash_omniscient->{'level2'}{$primary_tag_level2}{lc($newID_level1)} = delete $hash_omniscient->{'level2'}{$primary_tag_level2}{$id_level1}; # modify the id key of the hash. The delete command return the value before deteling it, so we just transfert the value 
+            } 
           }
         }
+      
+        if($newID_level1){
+          $hash_omniscient->{'level1'}{$primary_tag_level1}{lc($newID_level1)} = delete $hash_omniscient->{'level1'}{$primary_tag_level1}{$id_level1}; # modify the id key of the hash. The delete command return the value before deteling it, so we just transfert the value 
+        }
       }
-    } 
-  }
+    }
+  } 
 }
 
 ###########################
@@ -725,19 +581,11 @@ if(defined $opt_output){print_time( "$stringPrint" ) ;}
 printf("Writing result\n");
 if($opt_output){
   #print gene (mRNA)
-  print_omniscient(\%omniscient_gene, $outputTab[2]);
-  #print other RNA gene
-  print_omniscient(\%omniscient_other, $outputTab[3]);
-  #print repeat
-  print_omniscient(\%omniscient_repeat, $outputTab[4]);
+  print_omniscient($hash_omniscient, $outputTab[2]);
 }
 else{
   #print gene (mRNA)
-  print_omniscient(\%omniscient_gene, $outputTab[1]);
-  #print other RNA gene
-  print_omniscient(\%omniscient_other, $outputTab[1]);
-  #print repeat
-  print_omniscient(\%omniscient_repeat, $outputTab[1]);
+  print_omniscient($hash_omniscient, $outputTab[1]);
 }
       ######################### 
       ######### END ###########
@@ -754,6 +602,28 @@ else{
                 ####
                  ##
 
+
+#create or take the uniq letter TAG
+sub get_letter_tag{
+  my ($tag)=@_;
+
+  $tag = lc($tag);
+  if(! exists_keys (\%tag_hash,( $tag ))) {
+    my $letter = substr($tag, 0, 1);
+    $letter = uc($letter);
+    my $substringLength=1;
+    print "letter $letter for $tag\n";
+    while(  grep( /^\Q$letter\E$/, @tag_list) ) { # to avoid duplicate
+      $substringLength++;
+      $letter = substr($tag, 0, $substringLength);
+      $letter = uc($letter);     
+    }
+    $tag_hash{ $tag }=uc($letter);
+    push(@tag_list, $letter)
+  }
+  return $tag_hash{ $tag };
+}
+  
 # print with time
 sub print_time{
   my $t = localtime;
@@ -1108,7 +978,6 @@ sub parse_interpro_tsv {
       }      
     }
   }
-  exit;
 }
 
 sub sizedPrint{
@@ -1234,10 +1103,6 @@ the first file (specified with B<--ref>).
 
  Maximum e-value to keep the annotaiton from the interproscan file. By default 10.
 
-=item B<-g> or B<--gs> 
-
-This option inform about the genome size in oder to compute more statistics. You can give the size in Nucleotide or directly the fasta file.
-
 =item B<-id>
 
 This option will changed the id name. It will create from id prefix (usually 6 letters) given as input, uniq IDs like prefixE00000000001. Where E mean exon. Instead E we can have C for CDS, G for gene, T for mRNA, U for Utr.
@@ -1247,40 +1112,10 @@ In the case of discontinuous features (i.e. a single feature that exists over mu
 
 This option (id all uniq) is similar to -id option but Id of features that share an ID collectively will be change by different and uniq ID.
 
-=item B<-gf>
+=item B<-nb>
 
 Usefull only if -id is used.
-This option is used to define the number that will be used to begin to number the gene id (gf for "gene from"). By default begin by 1.
-
-=item B<-mf>
-
-Usefull only if -id is used.
-This option is used to define the number that will be used to begin to number the mRNA id (mf for "mRNA from"). By default begin by 1.
-
-=item B<-cf>
-
-Useful only if -id is used.
-This option is used to define the number that will be used to begin to number the CDS id (cf for "CDS from"). By default begin by 1.
-
-=item B<-ef>
-
-Useful only if -id is used.
-This option is used to define the number that will be used to begin to number the exon id (ef for "Exon from"). By default begin by 1.
-
-=item B<-uf>
-
-Useful only if -id is used.
-This option is used to define the number that will be used to begin to number the UTR id (uf for "UTR from"). By default begin by 1.
-
-=item B<-rf>
-
-Useful only if -id is used.
-This option is used to define the number that will be used to begin to number the repeat id (rf for "Repeat from"). By default begin by 1.
-
-=item B<-ff>
-
-ff means fill frame.
-This option is used to add the CDS frame. If frames already exist, the script overwrite them.
+This option is used to define the number that will be used to begin the numbering. By default begin by 1.
 
 =item B<-o> or B<--output>
 
