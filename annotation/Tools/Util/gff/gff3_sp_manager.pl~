@@ -36,11 +36,13 @@ my $opt_name=undef;
 my $opt_nameU;
 my $optFillFrame;
 my $optForceFillFrame;
+my $opt_genomeSize;
 my $opt_removeUTR;
 my $opt_removemRNAduplicated;
 my $opt_verbose=undef;
 my $opt_help = 0;
 my $opt_blastEvalue=10;
+my $opt_interproscanEvalue=10;
 my $opt_dataBase = undef;
 my $opt_pe = 5;
 # END PARAMETERS - OPTION
@@ -93,8 +95,10 @@ if ( !GetOptions( 'f|ref|reffile|gff|gff3=s' => \$opt_reffile,
                   'be|blast_evalue=i' => \$opt_blastEvalue,
 		  'pe=i' => \$opt_pe,
                   'i|interpro=s' => \$opt_InterproFile,
+                  'ie|interpro_evalue=i' => \$opt_interproscanEvalue,
                   'id=s' => \$opt_name,
                   'idau=s' => \$opt_nameU,               
+                  'g|gs=s' => \$opt_genomeSize,
                   'gf=i'      => \$nbGeneName,
                   'mf=i'      => \$nbmRNAname,
                   'cf=i'      => \$nbCDSname,
@@ -262,7 +266,7 @@ print_time("Parsing Finished\n\n");
 
 #Print directly what has been read 
 if($opt_verbose){
-  my $stat = gff3_statistics($hash_omniscient);
+  my $stat = gff3_statistics($hash_omniscient, $opt_genomeSize);
   foreach my $info (@$stat){
       $outputTab[0]->print("$info");
   }
@@ -370,7 +374,12 @@ foreach my $key_hash (keys %hash_of_omniscient){
   my $hash_ref = $hash_of_omniscient{$key_hash};
   my $stat;
   my $distri;
-  ($stat, $distri) = gff3_statistics($hash_ref);
+  if($opt_genomeSize){
+    ($stat, $distri) = gff3_statistics($hash_ref, $opt_genomeSize);
+  }
+  else{
+    ($stat, $distri) = gff3_statistics($hash_ref);
+  }
 
   #print statistics
   foreach my $infoList (@$stat){
@@ -874,7 +883,7 @@ sub parse_blast {
       		my $header = $db->header( $protID_correct );
 		if ($header =~ m/GN=/){
 			if($header =~ /PE=([1-5])\s/){
-				if($1 <= $opt_pe){
+				if($1 =< $opt_pe){
 					$candidates{$l2_name}=[$header, $evalue];
 				}
 				
@@ -899,7 +908,7 @@ sub parse_blast {
                 my $header = $db->header( $protID_correct );
                 if ($header =~ m/GN=/){
                       if($header =~ /PE=([1-5])\s/){
-                                if($1 <= $opt_pe){
+                                if($1 =< $opt_pe){
                                         $candidates{$l2_name}=[$header, $evalue];
                                 }
 
@@ -1024,38 +1033,37 @@ sub parse_interpro_tsv {
     my @values = split(/\t/, $line);
     my $sizeList = @values;   
     my $mRNAID=lc($values[0]);
+    my %sortedValues;
+    my $evalue = $values[8];
+    print "Evalue: ".$values[8]."\n" if($opt_verbose);
 
-      #Check for the specific DB
+    if( $evalue < $opt_interproscanEvalue ) {
+      
+      #Cehck for the specific DB
       my $db_name=$values[3];
       my $db_value=$values[4];
-      my $db_tuple=$db_name.":".$db_value;
-      print "Specific dB: ".$db_tuple."\n" if($opt_verbose);
+      print "Specific dB: ".$db_name." ".$db_value."\n" if($opt_verbose);
 
-      if (! grep( /^\Q$db_tuple\E$/, @{$functionData{$db_name}{$mRNAID}} ) ) {   #to avoid duplicate
-	      $TotalTerm{$db_name}++;
-	      push ( @{$functionData{$db_name}{$mRNAID}} , $db_tuple );
-	      if ( exists $hash_mRNAGeneLink->{$mRNAID}){ ## check if exists among our current gff annotation file analyzed
-	        $mRNAAssociatedToTerm{$db_name}{$mRNAID}++;
-	        $GeneAssociatedToTerm{$db_name}{$hash_mRNAGeneLink->{$mRNAID}}++;
-	      }
-	}
+      $TotalTerm{$db_name}++;
+      push ( @{$functionData{$db_name}{$mRNAID}} , $db_value );
+      if ( exists $hash_mRNAGeneLink->{$mRNAID}){ ## check if exists among our current gff annotation file analyzed
+        $mRNAAssociatedToTerm{$db_name}{$mRNAID}++;
+        $GeneAssociatedToTerm{$db_name}{$hash_mRNAGeneLink->{$mRNAID}}++;
+      }
    
       #check for interpro
       if( $sizeList>11 ){
         my $db_name="InterPro";
         my $interpro_value=$values[11];
         $interpro_value=~ s/\n//g;
-	my $interpro_tuple = "InterPro:".$interpro_value;
-        print "interpro dB: ".$interpro_tuple."\n" if($opt_verbose);
+        print "interpro dB: ".$db_name." ".$db_value."\n" if($opt_verbose);
 
-	if (! grep( /^\Q$interpro_tuple\E$/, @{$functionData{$db_name}{$mRNAID}} ) ) {	#to avoid duplicate
-	        $TotalTerm{$db_name}++;
-	        push ( @{$functionData{$db_name}{$mRNAID}} , $interpro_tuple );
-	        if ( exists $hash_mRNAGeneLink->{$mRNAID}){ ## check if exists among our current gff annotation file analyzed	
-	          $mRNAAssociatedToTerm{$db_name}{$mRNAID}++;
-	          $GeneAssociatedToTerm{$db_name}{$hash_mRNAGeneLink->{$mRNAID}}++;
-	        }
-	}
+        $TotalTerm{$db_name}++;
+        push ( @{$functionData{$db_name}{$mRNAID}} , $interpro_value );
+        if ( exists $hash_mRNAGeneLink->{$mRNAID}){ ## check if exists among our current gff annotation file analyzed
+          $mRNAAssociatedToTerm{$db_name}{$mRNAID}++;
+          $GeneAssociatedToTerm{$db_name}{$hash_mRNAGeneLink->{$mRNAID}}++;
+        }
       }
 
       #check for GO
@@ -1065,16 +1073,16 @@ sub parse_interpro_tsv {
         $go_flat_list=~ s/\n//g;
         my @go_list = split(/\|/,$go_flat_list); #cut at character | 
         foreach my $go_tuple (@go_list){
-          print "GO term: ".$go_tuple."\n" if($opt_verbose);
+          my @tuple = split(/:/,$go_tuple); #cut at character :
+          my $go_value = $tuple[1];
+          print "GO dB: ".$db_name." ".$go_value."\n" if($opt_verbose);
 
-	if (! grep( /^\Q$go_tuple\E$/, @{$functionData{$db_name}{$mRNAID}} ) ) { #to avoid duplicate
-	          $TotalTerm{$db_name}++;
-	          push ( @{$functionData{$db_name}{$mRNAID}} , $go_tuple );
-	          if ( exists $hash_mRNAGeneLink->{$mRNAID}){ ## check if exists among our current gff annotation file analyzed
-	            $mRNAAssociatedToTerm{$db_name}{$mRNAID}++;
-	            $GeneAssociatedToTerm{$db_name}{$hash_mRNAGeneLink->{$mRNAID}}++;
-	          }
-	  }
+          $TotalTerm{$db_name}++;
+          push ( @{$functionData{$db_name}{$mRNAID}} , $go_value );
+          if ( exists $hash_mRNAGeneLink->{$mRNAID}){ ## check if exists among our current gff annotation file analyzed
+            $mRNAAssociatedToTerm{$db_name}{$mRNAID}++;
+            $GeneAssociatedToTerm{$db_name}{$hash_mRNAGeneLink->{$mRNAID}}++;
+          }
         }
       }
 
@@ -1087,19 +1095,20 @@ sub parse_interpro_tsv {
         foreach my $pathway_tuple (@pathway_list){
           my @tuple = split(/:/,$pathway_tuple); #cut at character :
           my $db_name = $tuple[0];
-          print "pathway info: ".$pathway_tuple."\n" if($opt_verbose); 
-	  
-	  if (! grep( /^\Q$pathway_tuple\E$/, @{$functionData{$db_name}{$mRNAID}} ) ) { # to avoid duplicate
-	          $TotalTerm{$db_name}++;
-	          push ( @{$functionData{$db_name}{$mRNAID}} , $pathway_tuple );
-	          if ( exists $hash_mRNAGeneLink->{$mRNAID}){ ## check if exists among our current gff annotation file analyzed
-	            $mRNAAssociatedToTerm{$db_name}{$mRNAID}++;
-	            $GeneAssociatedToTerm{$db_name}{$hash_mRNAGeneLink->{$mRNAID}}++;
-	          }
-	  }
+          my $pathway_value = $tuple[1];
+          print "pathway dB: ".$db_name." ".$pathway_value."\n" if($opt_verbose); 
+
+          $TotalTerm{$db_name}++;
+          push ( @{$functionData{$db_name}{$mRNAID}} , $pathway_value );
+          if ( exists $hash_mRNAGeneLink->{$mRNAID}){ ## check if exists among our current gff annotation file analyzed
+            $mRNAAssociatedToTerm{$db_name}{$mRNAID}++;
+            $GeneAssociatedToTerm{$db_name}{$hash_mRNAGeneLink->{$mRNAID}}++;
+          }
         }
       }      
+    }
   }
+  exit;
 }
 
 sub sizedPrint{
@@ -1164,8 +1173,6 @@ The TSV format presents the match data in columns as follows:
 14.(GO annotations (e.g. GO:0005515) - optional column; only displayed if --goterms option is switched on)
 15.(Pathways annotations (e.g. REACT_71) - optional column; only displayed if --pathways option is switched on)
 
-P.S: The 9th column contains most of time e-value, but can contain also score (e.g Prosite). To understand the difference: https://myhits.isb-sib.ch/cgi-bin/help?doc=scores.html
-
 About the outfmt 6 from blast:
 ==============================
 
@@ -1222,6 +1229,14 @@ You can decide until which protein existence level you want to consider to lift 
 
 Input interpro file (.tsv) that will be used to complement the features read from
 the first file (specified with B<--ref>).
+
+=item B<--ie> or B<--interproscan_evalue>
+
+ Maximum e-value to keep the annotaiton from the interproscan file. By default 10.
+
+=item B<-g> or B<--gs> 
+
+This option inform about the genome size in oder to compute more statistics. You can give the size in Nucleotide or directly the fasta file.
 
 =item B<-id>
 
