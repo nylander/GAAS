@@ -73,10 +73,10 @@ if ( defined($opt_dirRes) ) {
     $outstream->open( "$opt_dirRes/fasta_report.txt", 'w' ) or
         croak(sprintf( "Can not open '%s' for writing %s", "$opt_dirRes/fasta_report.txt", $! ));
 
-    open(my $fh, '>', "$opt_dirRes/fix_sequences.fa") or die "Could not open file '$opt_dirRes/fix_sequences.txt' $!";
+    open(my $fh, '>', "$opt_dirRes/fix_sequences.txt") or die "Could not open file '$opt_dirRes/fix_sequences.txt' $!";
     $outstreamFix = Bio::SeqIO->new(-fh => $fh , -format => 'fasta');
 
-    open(my $fhe, '>', "$opt_dirRes/problem_sequences.fa") or die "Could not open file '$opt_dirRes/problem_sequences.txt' $!";
+    open(my $fhe, '>', "$opt_dirRes/problem_sequences.txt") or die "Could not open file '$opt_dirRes/problem_sequences.txt' $!";
     $outstreamError = Bio::SeqIO->new(-fh => $fhe , -format => 'fasta');
 }
 else {
@@ -153,6 +153,7 @@ while( my $seqObj = $inseq->next_seq() ) {
 	$nbseq_withLowerCase++;
 	$problem_lowerCase="yes";	
   }
+
   # Now we can print the fixed sequnece
   if ($opt_dirRes){
 	
