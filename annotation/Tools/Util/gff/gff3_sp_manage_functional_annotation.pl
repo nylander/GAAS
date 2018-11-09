@@ -1035,7 +1035,7 @@ Currently the best e-value win... That means another hit with a lower e-value ( 
 
 =head1 SYNOPSIS
 
-    ./gff3_sp_manage_functional_annotation.pl -f=infile.gff [ -b blast_infile --db uniprot.fasta -i interpro_infile.tsv -e --id ABCDEF --output outfile ]
+    ./gff3_sp_manage_functional_annotation.pl -f=infile.gff [ -b blast_infile --db uniprot.fasta -i interpro_infile.tsv --id ABCDEF --output outfile ]
     ./gff3_sp_manage_functional_annotation.pl --help
 
 =head1 OPTIONS
