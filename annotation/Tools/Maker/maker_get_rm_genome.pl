@@ -9,35 +9,24 @@ use Cwd;
 
 my $dir = getcwd;
 
-my $usage = qq{
-perl my_script.pl
-  Getting help:
-    [--help]
-  	
-  Ouput:    
-    [--outfile filename]
-        The name of the masked genome file. By default, the name will genome.rm.fa
 
-   Usage:
-	Must be executed in the folder from which Maker was run and will find the maker output
-	on its own and create a concatenated masked assembly. 
-
-};
 
 my $outfile = "genome.rm.fa";
 my $maker_dir = undef;
 my $datastore = undef;
-my $quiet;
-my $help;
+my $opt_help = 0;
 
-GetOptions(
-    "help" => \$help,
-    "outfile=s" => \$outfile);
-
-# Print Help and exit
-if ($help) {
-    print $usage;
-    exit(0);
+# OPTION MANAGMENT
+if ( !GetOptions( "help|h" => \$opt_help,
+    			  "outfile|o=s" => \$outfile) )
+{
+    pod2usage( { -message => 'Failed to parse command line',
+                 -verbose => 1,
+                 -exitval => 1 } );
+}
+if ($opt_help) {
+    pod2usage( { -verbose => 2,
+                 -exitval => 0 } );
 }
 
 if (-f $outfile) {
@@ -97,4 +86,31 @@ while (<$IN>) {
 # We should close the file to make sure that the transaction finishes cleanly.
 close ($IN);
 
+__END__
 
+=head1 NAME
+
+maker_get_rm_genome.pl -
+
+Must be executed in the folder from which Maker was run and will find the maker output
+on its own and create a concatenated masked assembly.
+
+=head1 SYNOPSIS
+
+    ./maker_get_rm_genome.pl
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--outfile>, B<-o>
+
+The name of the masked genome file. By default, the name will genome.rm.fa
+
+=item B<-h> or B<--help>
+
+Display this helpful text.
+
+=back
+
+=cut
