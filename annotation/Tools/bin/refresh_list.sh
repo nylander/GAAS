@@ -1,6 +1,7 @@
 #!/bin/bash
 
-for i in $(find ../../ -name '*.pl' -o -name '*.sh' -o -name '*.py' -o -name '*.r' -o -name '*.R' -o -name '*.rb');do
+#While looking at all script within the repo we skip all Deprecated folder and what it contains
+for i in $(find ../.. -not \( -path */Deprecated -prune \) -name '*.pl' -o -name '*.sh' -o -name '*.py' -o -name '*.r' -o -name '*.R' -o -name '*.rb');do
 
 	name=$(basename $i)
 	
