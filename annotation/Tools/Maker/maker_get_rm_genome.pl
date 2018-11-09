@@ -5,6 +5,7 @@ use Getopt::Long;
 use Scalar::Util qw(openhandle);
 use Time::Piece;
 use Time::Seconds;
+use File::Basename;
 use Cwd;
 
 my $dir = getcwd;
@@ -12,12 +13,15 @@ my $dir = getcwd;
 
 
 my $outfile = "genome.rm.fa";
+my $out_fh = undef;
 my $maker_dir = undef;
 my $datastore = undef;
+my $in = undef;
 my $opt_help = 0;
 
 # OPTION MANAGMENT
 if ( !GetOptions( "help|h" => \$opt_help,
+				  "i=s" => \$in,
     			  "outfile|o=s" => \$outfile) )
 {
     pod2usage( { -message => 'Failed to parse command line',
@@ -29,37 +33,119 @@ if ($opt_help) {
                  -exitval => 0 } );
 }
 
+
+#######################
+### MANAGE OPTIONS ####
+#######################
+
+
+# MANAGE IN
+my @inDir;
+my $dir = getcwd;
+
+if(! $in){
+	# Find the datastore index
+	my $maker_dir = undef;
+
+	opendir(DIR, $dir) or die "couldn't open $dir: $!\n";
+	my @dirList = readdir DIR;
+	closedir DIR;
+
+	my (@matchedDir) = grep $_ =~ /^.*\.maker\.output$/ , @dirList ;
+
+	foreach my $makerDir (@matchedDir){
+		push(@inDir, $makerDir);
+	}
+}
+else{
+	if (! -d "$in") {
+		die "The outdirectory $in doesn't exist.\n";
+	}
+	else{
+		push(@inDir, $in);
+	}
+} 
+
+# MANAGE OUT
 if (-f $outfile) {
 	die "The outfile $outfile already exists, exiting\n";
 } 
-
-# Find the datastore index
-
-my $maker_dir = undef;
-
-opendir(DIR, $dir) or die "couldn't open $dir: $!\n";
-my @files = readdir DIR;
-closedir DIR;
-
-if (my ($matched) = grep $_ =~ /^.*\.maker\.output$/ , @files) {
-    $maker_dir = $dir . "/" . $matched ;
-    my $base = $matched;
-    $base =~ s/\.maker\.output//g ;
-    $datastore = $matched . "/" . $base . "_master_datastore_index.log" ;
+else{
+	open($out_fh, '>', "$outfile") or die "Could not open file 'outfile' $!";
 }
 
-die "There seems to be no maker output directory here, exiting...\n" unless defined $maker_dir;
+# MESSAGES
+my $nbDir=$#inDir+1; 
+if ($nbDir == 0){die "There seems to be no maker output directory here, exiting...\n";}            
+print "We found $nbDir maker output directorie(s):\n";
+foreach my $makerDir (@inDir){
+		print "\t+$makerDir\n";
+}	
+if ($nbDir > 1 ){print "Results will be merged together !\n";}
 
-if (-f $dir . "/" . $datastore ) {
-        print "Found datastore, merging masked contigs...\n";
-} else {
-        die "Could not find datastore index ($datastore), exiting...\n";
+                #####################
+                #     MAIN          #
+                #####################
+
+#############################
+# Read the genome_datastore #
+#############################
+
+foreach my $makerDir (@inDir){
+	my $prefix = $makerDir;
+	$prefix =~ s/\.maker\.output.*//;
+	my $maker_dir_path = $dir . "/" . $makerDir."/";
+	my $datastore = $maker_dir_path.$prefix."_datastore" ;
+
+	if (-d $datastore ) {
+        	print "Found datastore in $makerDir, merging query.masked.fasta files now...\n";
+	} else {
+	        die "Could not find datastore index ($datastore), exiting...\n";
+	}
+	
+	collect_recursive($datastore);
+
+	#Close file_handler opened
+	close $out_fh;
+}
+
+
+sub collect_recursive {
+    my ($full_path) = @_;
+	
+	my ($name,$path,$suffix) = fileparse($full_path,qr/\.[^.]*/);
+
+    if( ! -d $full_path ){
+    	
+    	###################
+    	# deal with fasta #
+    	if($name eq "query.masked" and $suffix eq ".fasta"){
+				 	
+	    	#print
+	    	open(my $fh, '<:encoding(UTF-8)', $full_path) or die "Could not open file '$full_path' $!";
+			while (<$fh>) {
+				print $out_fh $_;
+			}
+			close $fh;
+    	}	
+    	return;
+    }
+
+    opendir my $dh, $full_path or die;
+    while (my $sub = readdir $dh) {
+        next if $sub eq '.' or $sub eq '..';
+ 
+        collect_recursive("$full_path/$sub");
+    }
+    close $dh;
+    return;
 }
 
 
 
-# This is one way to open a file...
-open (my $IN, '<', $datastore) or die "FATAL: Can't open file: $datastore for reading.\n$!\n";
+
+__END__
+
 
 # Streaming the file, line by line
 while (<$IN>) {
@@ -86,7 +172,6 @@ while (<$IN>) {
 # We should close the file to make sure that the transaction finishes cleanly.
 close ($IN);
 
-__END__
 
 =head1 NAME
 
@@ -102,6 +187,11 @@ on its own and create a concatenated masked assembly.
 =head1 OPTIONS
 
 =over 8
+
+=item B<-i>
+
+The path to the input directory. If none given, we assume that the script is launched where Maker was run. So, in that case the script will look for the folder 
+*.maker.output.
 
 =item B<--outfile>, B<-o>
 
