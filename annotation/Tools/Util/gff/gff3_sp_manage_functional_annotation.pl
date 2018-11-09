@@ -138,8 +138,9 @@ if (defined $opt_InterproFile){
 
 ##########################
 ##### Manage Output ######
-my @outputTab;
-
+my $ostreamReport;
+my $ostreamGFF;
+my $ostreamLog;
 if (defined($opt_output) ) {
   if (-f $opt_output){
       print "Cannot create a directory with the name $opt_output because a file with this name already exists.\n";exit();
@@ -147,48 +148,21 @@ if (defined($opt_output) ) {
   if (-d $opt_output){
       print "The output directory choosen already exists. Please geve me another Name.\n";exit();
   }
-  #### Case 1 => option ouput option onlyStat
   mkdir $opt_output;
 
-  my $ostreamReport=IO::File->new(">".$opt_output."/report.txt" ) or
+  $ostreamReport=IO::File->new(">".$opt_output."/report.txt" ) or
   croak( sprintf( "Can not open '%s' for writing %s", $opt_output."/report.txt", $! ));
-  push (@outputTab, $ostreamReport);
 
-  #### Case 2 => option ouput NO option onlyStat
-  my $ostreamCoding=Bio::Tools::GFF->new(-file => ">".$opt_output."/AllFeatures.gff", -gff_version => 3 ) or
-  croak(sprintf( "Can not open '%s' for writing %s", $opt_output."AllFeatures.gff", $! ));
-  push (@outputTab, $ostreamCoding);
+  $ostreamGFF=Bio::Tools::GFF->new(-file => ">".$opt_output."/$opt_reffile", -gff_version => 3 ) or
+  croak(sprintf( "Can not open '%s' for writing %s", $opt_output."/$opt_reffile", $! ));
   
-  my $ostreamNormalGene=Bio::Tools::GFF->new(-file => ">".$opt_output."/codingGeneFeatures.gff", -gff_version => 3 ) or
-  croak( sprintf( "Can not open '%s' for writing %s", $opt_output."/codingGeneFeatures.gff", $! ));
-  push (@outputTab, $ostreamNormalGene);
-
-  my $ostreamOtherRNAGene=Bio::Tools::GFF->new(-file => ">".$opt_output."/otherRNAfeatures.gff", -gff_version => 3 ) or
-  croak(sprintf( "Can not open '%s' for writing %s", $opt_output."/otherRNAfeatures.gff", $! ));
-  push (@outputTab, $ostreamOtherRNAGene);
-
-  my $ostreamRepeats=Bio::Tools::GFF->new(-file => ">".$opt_output."/repeatsFeatures.gff", -gff_version => 3 )or
-  croak( sprintf( "Can not open '%s' for writing %s", $opt_output."/repeatsFeatures.gff", $! ));
-  push (@outputTab, $ostreamRepeats);
-
+  $ostreamLog=IO::File->new(">".$opt_output."/error.txt" ) or
+  croak( sprintf( "Can not open '%s' for writing %s", $opt_output."/log.txt", $! ));
 }
-### Case 3 => No output option => everithing will be display on screen. 
-### Case 4 => If option onlyStat provided the script will stop before writting results.
 else {
-  my $ostreamReport = \*STDOUT or die ( sprintf( "Can not open '%s' for writing %s", "STDOUT", $! ));
-  push (@outputTab, $ostreamReport);
-
-  my $ostream  = IO::File->new();
-  $ostream->fdopen( fileno(STDOUT), 'w' ) or croak( sprintf( "Can not open STDOUT for writing: %s", $! ) );
-  my $outputGFF = Bio::Tools::GFF->new( -fh => $ostream, -gff_version => 3) or croak( sprintf( "Can not open STDOUT for writing: %s", $! ) );
-
-  #my $outputGFF = Bio::Tools::GFF->new( \*STDOUT, -gff_version => 3 ) or
-  #croak( sprintf( "Can not open STDOUT for writing: %s", $! ) );
-  push (@outputTab, $outputGFF);
-  push (@outputTab, $outputGFF);
-  push (@outputTab, $outputGFF);
-  push (@outputTab, $outputGFF);
-  push (@outputTab, $outputGFF); ### Creation of a list of output stream <= In this case every time the same ! Because it for display to the screen                                 
+  $ostreamReport = \*STDOUT or die ( sprintf( "Can not open '%s' for writing %s", "STDOUT", $! ));
+  $ostreamLog = \*STDOUT or die ( sprintf( "Can not open '%s' for writing %s", "STDOUT", $! ));
+  $ostreamGFF = Bio::Tools::GFF->new( -fh => \*STDOUT, -gff_version => 3) or croak( sprintf( "Can not open STDOUT for writing: %s", $! ) );
 }
 
 ###############################################
@@ -199,18 +173,18 @@ my $stringPrint = strftime "%m/%d/%Y", localtime;
 $stringPrint .= "\nusage: $0 @copyARGV\n";
 if ($opt_name){
   $prefixName=$opt_name;
-  $stringPrint .= "->IDs will be changed using $opt_name as prefix.\nIn the case of discontinuous features (i.e. a single feature that exists over multiple genomic locations) the same ID may appear on multiple lines.".
+  $stringPrint .= "->IDs are changed using <$opt_name> as prefix.\nIn the case of discontinuous features (i.e. a single feature that exists over multiple genomic locations) the same ID may appear on multiple lines.".
   " All lines that share an ID collectively represent a signle feature.\n";
 }
 if ($opt_nameU){
-  $stringPrint .= "->IDs will be changed using $opt_nameU as prefix. Id of features that share an ID collectively will be change in different and uniq ID.\n";
+  $stringPrint .= "->IDs will be changed using <$opt_nameU> as prefix. Features that shared an ID collectively (e.g. CDS, UTRs, etc...) will now have each an uniq ID.\n";
   $prefixName=$opt_nameU;
 }
 
 
 
 # Display
-$outputTab[0]->print($stringPrint);
+$ostreamReport->print($stringPrint);
 if($opt_output){ print_time("$stringPrint");} # When ostreamReport is a file we have to also display on screen
 
 
@@ -224,18 +198,20 @@ if($opt_output){ print_time("$stringPrint");} # When ostreamReport is a file we 
 ######################
 ### Parse GFF input #
 my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($opt_reffile);
-print_time("Parsing Finished\n\n");
+print_time("Parsing Finished\n");
 ### END Parse GFF input #
 #########################
 
 #Print directly what has been read 
 my ($stat, $distri) = gff3_statistics($hash_omniscient);
+$ostreamReport->print("Statistics:\n==========\n");
+if($opt_output){print "Statistics:\n==========\n";} # When ostreamReport is a file we have to also display on screen
 foreach my $infoList (@$stat){
   foreach my $info (@$infoList){
-    $outputTab[0]->print("$info");
-    if($opt_output){print_time(print "$info");} # When ostreamReport is a file we have to also display on screen
+    $ostreamReport->print("$info");
+    if($opt_output){print "$info";} # When ostreamReport is a file we have to also display on screen
   }
-  $outputTab[0]->print("\n");
+  $ostreamReport->print("\n");
   if($opt_output){print "\n";} # When ostreamReport is a file we have to also display on screen
 }
 
@@ -378,7 +354,7 @@ if ($opt_BlastFile || $opt_InterproFile ){#|| $opt_BlastFile || $opt_InterproFil
 ###########################
 # change names if asked for
 if ($opt_nameU || $opt_name ){#|| $opt_BlastFile || $opt_InterproFile){
-  print_time( "load new IDs\n");
+  print_time("load new IDs");
   
   my %hash_sortBySeq;
   foreach my $tag_level1 ( keys %{$hash_omniscient->{'level1'}}){
@@ -500,7 +476,7 @@ if ($opt_nameU || $opt_name ){#|| $opt_BlastFile || $opt_InterproFile){
 ###########################
 
 ##############################
-# print FUNCITONAL INFORMATION
+# print FUNCTIONAL INFORMATION
 
 # first table name\tfunction
 if($opt_output){
@@ -543,13 +519,12 @@ if ($opt_InterproFile){
     $listOfFunction.="$funct,";
   }
   chop $listOfFunction;
-  $stringPrint .= "nb mRNA without Functional annotation ($listOfFunction) = $nbmRNAwithoutFunction\n";
-  $stringPrint .= "nb mRNA with Functional annotation ($listOfFunction) = $nbmRNAwithFunction\n";
   my $nbGeneWithoutFunction= keys %geneWithoutFunction;
-  $stringPrint .= "nb gene without Functional annotation ($listOfFunction) = $nbGeneWithoutFunction\n";
   my $nbGeneWithFunction= keys %geneWithFunction;
-  $stringPrint .= "nb gene with Functional annotation ($listOfFunction) = $nbGeneWithFunction\n";
-  
+  $stringPrint .= "nb mRNA without Functional annotation ($listOfFunction) = $nbmRNAwithoutFunction\n".
+                  "nb mRNA with Functional annotation ($listOfFunction) = $nbmRNAwithFunction\n".
+                  "nb gene without Functional annotation ($listOfFunction) = $nbGeneWithoutFunction\n".
+                  "nb gene with Functional annotation ($listOfFunction) = $nbGeneWithFunction\n"; 
 }
 
 if($opt_BlastFile){
@@ -559,6 +534,7 @@ if($opt_BlastFile){
   "Among them there are $nbGeneDuplicated names that are shared at least per two genes for a total of $nbDuplicateNameGiven genes.\n";
   # "We have $nbDuplicateName gene names duplicated ($nbDuplicateNameGiven - $nbGeneDuplicated).";
 
+  #Lets keep track the duplicated names
   if($opt_output){
     my $duplicatedNameOut=IO::File->new(">".$opt_output."/duplicatedNameFromBlast.txt" );
     foreach my $name (sort { $duplicateNameGiven{$b} <=> $duplicateNameGiven{$a} } keys %duplicateNameGiven){
@@ -567,24 +543,24 @@ if($opt_BlastFile){
   }
 }
 
+if($opt_name or $opt_nameU){
+  $stringPrint .= "\nList of Letter use to create the uniq ID:\n";
+  foreach my $tag ( keys %tag_hash){
+    $stringPrint .= "$tag => $tag_hash{$tag}\n";
+  }
+  $stringPrint .= "\n";
+}
 
 # Display
-$outputTab[0]->print("$stringPrint");
+$ostreamReport->print("$stringPrint");
 if(defined $opt_output){print_time( "$stringPrint" ) ;}
 
 ####################
 # PRINT IN FILES
 ####################
-#print step
-printf("Writing result\n");
-if($opt_output){
-  #print gene (mRNA)
-  print_omniscient($hash_omniscient, $outputTab[2]);
-}
-else{
-  #print gene (mRNA)
-  print_omniscient($hash_omniscient, $outputTab[1]);
-}
+print_time("Writing result...");
+print_omniscient($hash_omniscient, $ostreamGFF);
+
       ######################### 
       ######### END ###########
       #########################
@@ -607,14 +583,13 @@ sub get_letter_tag{
 
   $tag = lc($tag);
   if(! exists_keys (\%tag_hash,( $tag ))) {
-    my $letter = substr($tag, 0, 1);
-    $letter = uc($letter);
+    
     my $substringLength=1;
-
+    my $letter = uc(substr($tag, 0, $substringLength));
+    
     while(  grep( /^\Q$letter\E$/, @tag_list) ) { # to avoid duplicate
       $substringLength++;
-      $letter = substr($tag, 0, $substringLength);
-      $letter = uc($letter);     
+      $letter = uc(substr($tag, 0, $substringLength));  
     }
     $tag_hash{ $tag }=uc($letter);
     push(@tag_list, $letter)
@@ -756,15 +731,15 @@ sub parse_blast {
 				}
 				
 			}
-			else{print "No Protein Existence (PE) information in this header: $header\n";}
+			else{$ostreamLog->print("No Protein Existence (PE) information in this header: $header\n")if($opt_verbose or $opt_output); }
 		}
 		else{ 
-			print "No gene name (GN=) in this header $header\n" if($opt_verbose); 
+			$ostreamLog->print( "No gene name (GN=) in this header $header\n") if($opt_verbose or $opt_output); 
 			$candidates{$l2_name}=["error", $evalue, $prot_name."-".$l2_name];
 		}
 	}
 	else{
-		print "ERROR $prot_name not found among the db! You probably didn't give to me the same fasta file than the one used for the blast. (l2=$l2_name)\n" if($opt_verbose);
+		$ostreamLog->print( "ERROR $prot_name not found among the db! You probably didn't give to me the same fasta file than the one used for the blast. (l2=$l2_name)\n" ) if($opt_verbose or $opt_output);
 		$candidates{$l2_name}=["error", $evalue, $prot_name."-".$l2_name];
 	}
       }
@@ -781,23 +756,23 @@ sub parse_blast {
                                 }
 
                         }
-                        else{print "No Protein Existence (PE) information in this header: $header\n";}                        
+                        else{ $ostreamLog->print( "No Protein Existence (PE) information in this header: $header\n") if($opt_verbose or $opt_output); }                        
                 }
-                else{ print "No gene name (GN=) in this header $header\n" if($opt_verbose); }
+                else{ $ostreamLog->print("No gene name (GN=) in this header $header\n") if($opt_verbose or $opt_output); }
         }
-	else{print "ERROR $prot_name not found among the db! You probably didn't give to me the same fasta file than the one used for the blast. (l2=$l2_name)\n" if($opt_verbose);}      
+	else{ $ostreamLog->print( "ERROR $prot_name not found among the db! You probably didn't give to me the same fasta file than the one used for the blast. (l2=$l2_name)\n") if($opt_verbose or $opt_output);}      
     }
   }
 
   my $nb_desc = keys %candidates;
-  print "We have $nb_desc description candidates.\n";
+  $ostreamLog->print( "We have $nb_desc description candidates.\n") if($opt_verbose or $opt_output);
 
   my %geneName; 
   my %linkBmRNAandGene;
   #go through all candidates
   foreach my $l2 (keys %candidates){
       if( $candidates{$l2}[0] eq "error" ){
-	print "error nothing found for $candidates{$l2}[2]\n";next;
+	$ostreamLog->print( "error nothing found for $candidates{$l2}[2]\n") if($opt_verbose or $opt_output); next;
       }
       my $header = $candidates{$l2}[0];
       print "header: ".$header."\n" if($opt_verbose);
@@ -828,9 +803,9 @@ sub parse_blast {
 			push ( @{ $geneName{lc($geneID)} }, lc($nameGene) );
 	        	push( @{ $linkBmRNAandGene{lc($geneID)}}, lc($l2)); # save mRNA name for each gene name 
 		}
-		else{print "No parent found for $l2 (defined in the blast file) in hash_mRNAGeneLink (created by the gff file).\n";}
+		else{ $ostreamLog->print( "No parent found for $l2 (defined in the blast file) in hash_mRNAGeneLink (created by the gff file).\n") if($opt_verbose or $opt_output); }
 	}
-	else{print "Header from the db fasta file doesn't match the regular expression: $header\n";}
+	else{ $ostreamLog->print( "Header from the db fasta file doesn't match the regular expression: $header\n") if($opt_verbose or $opt_output); }
      }
   }
   
@@ -981,7 +956,8 @@ sub parse_interpro_tsv {
 
 sub sizedPrint{
   my ($term,$size) = @_;
-  my $result; my $sizeTerm=length($term);
+  my $result; 
+  my $sizeTerm = ($term) ? length($term) : 0;
   if ($sizeTerm > $size ){
     $result=substr($term, 0,$size);
     return $result;
@@ -1008,17 +984,12 @@ __END__
 
 =head1 NAME
 
-gff3manager_JD.pl -
-The script take a gff3 file as input. -
-Without option the script only sort the data. -
-With corresponding parameters, it can add functional annotations from <annie> output files
->The blast against Prot Database file from annie allows to fill the field NAME for gene and PRODUCT for mRNA.
->The blast against Interpro Database tsv file from annie allows to fill the DBXREF field with pfam, tigr, interpro and GO terms data.
-The script expand exons sharing multiple mRNA (Parent attributes contains multiple parental mRNA). One exon by parental mRNA will be created.
+gff3_sp_manage_functional_annotation.pl -
+The script take a gff3 file as input and blast and/or interpro output in order to attach functional annotation to corresponding features within the gff file. 
+>The blast against Protein Database (outfmt 6) allows to fill the field/attribute NAME for gene and PRODUCT for mRNA.
+>The Interpro result (.tsv) file allows to fill the DBXREF field/attribute with pfam, tigr, interpro, GO, KEGG, etc... terms data.
 With the <id> option the script will change all the ID field by an Uniq ID created from the given prefix, a letter to specify the kind of feature (G,T,C,E,U), and the feature number.
-
 The result is written to the specified output file, or to STDOUT.
-Remark: If there is duplicate in the file they will be removed in the output. In that case you should be informed.
 
 About the TSV format from interproscan:
 =======================================
@@ -1064,8 +1035,8 @@ Currently the best e-value win... That means another hit with a lower e-value ( 
 
 =head1 SYNOPSIS
 
-    ./gff3manager_JD.pl -f=infile.gff [ -b blast_infile -i interpro_infile.tsv -e --id ABCDEF [-gf 20] -s -utr -utrr 10 --output outfile ]
-    ./gff3manager_JD.pl --help
+    ./gff3_sp_manage_functional_annotation.pl -f=infile.gff [ -b blast_infile --db uniprot.fasta -i interpro_infile.tsv -e --id ABCDEF --output outfile ]
+    ./gff3_sp_manage_functional_annotation.pl --help
 
 =head1 OPTIONS
 
@@ -1100,13 +1071,6 @@ You can decide until which protein existence level you want to consider to lift 
 Input interpro file (.tsv) that will be used to complement the features read from
 the first file (specified with B<--ref>).
 
-<<<<<<< HEAD
-=item B<--ie> or B<--interproscan_evalue>
-
- Maximum e-value to keep the annotaiton from the interproscan file. By default 10.
-
-=======
->>>>>>> 63f488d2ac80bbccf7f563e9b2015559d6670b67
 =item B<-id>
 
 This option will changed the id name. It will create from id prefix (usually 6 letters) given as input, uniq IDs like prefixE00000000001. Where E mean exon. Instead E we can have C for CDS, G for gene, T for mRNA, U for Utr.

@@ -11,9 +11,9 @@ use BILS::Handler::GXFhandler qw(:Ok);
 
 my $header = qq{
 ########################################################
-# BILS 2016 - Sweden                                   #  
-# jacques.dainat\@bils.se                               #
-# Please cite BILS (www.bils.se) when using this tool. #
+# NBIS 2016 - Sweden                                   #  
+# jacques.dainat\@nbis.se                               #
+# Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 };
 
@@ -22,10 +22,12 @@ my $help= 0;
 my @opt_tag=();
 my $outfile=undef;
 my $prefix=undef;
+my $nbIDstart=1;
 
 if ( !GetOptions(
     "help|h" => \$help,
     "gff|f=s" => \$gff,
+    "nb=i" => \$nbIDstart,
     "prefix=s" => \$prefix,
     "p|t|l=s" => \@opt_tag,
     "output|outfile|out|o=s" => \$outfile))
@@ -92,8 +94,8 @@ else{
                 #####################
 
 my %keepTrack;
-my %dynamicTrackExonToE;
-my %dynamicTrackEtoExon;
+my %tag_hash;
+my @tagLetter_list;
 
 ######################
 ### Parse GFF input #
@@ -118,10 +120,10 @@ foreach my $seqid (sort alphaNum keys %hash_sortBySeq){ # loop over all the feat
       my $id_l1 = lc($feature_l1->_tag_value('ID'));
       my $l1_ID_modified=undef;
 
-      $keepTrack{$tag_l1}++;
-      if(exists ($ptagList{$tag_l1}) or  exists ($ptagList{'level1'}) ){ 
+      if(exists ($ptagList{$tag_l1}) or  exists ($ptagList{'level1'}) ){
+        if(! exists_keys(\%keepTrack,($tag_l1))){$keepTrack{$tag_l1}=$nbIDstart;}
         manage_attributes($feature_l1,\%keepTrack, $prefix);
-
+        $keepTrack{$tag_l1}++;
         $l1_ID_modified=$feature_l1->_tag_value('ID');
         $hash_omniscient->{'level1'}{$tag_l1}{lc($l1_ID_modified)} = delete $hash_omniscient->{'level1'}{$tag_l1}{$id_l1};    
       }
@@ -137,9 +139,10 @@ foreach my $seqid (sort alphaNum keys %hash_sortBySeq){ # loop over all the feat
             my $l2_ID_modified=undef;
             my $level2_ID = lc($feature_l2->_tag_value('ID'));
 
-            $keepTrack{$tag_l2}++;
             if(exists ($ptagList{$tag_l2}) or  exists ($ptagList{'level2'}) ){
+              if(! exists_keys(\%keepTrack,($tag_l2))){$keepTrack{$tag_l2}=$nbIDstart;}
               manage_attributes($feature_l2,\%keepTrack, $prefix);
+              $keepTrack{$tag_l2}++;
               $l2_ID_modified=$feature_l2->_tag_value('ID');
             }
 
@@ -157,9 +160,10 @@ foreach my $seqid (sort alphaNum keys %hash_sortBySeq){ # loop over all the feat
 
                 foreach my $feature_l3 ( sort {$a->start <=> $b->start} @{$hash_omniscient->{'level3'}{$tag_l3}{$level2_ID}}) {
                   
-                  $keepTrack{$tag_l3}++;
                   if(exists ($ptagList{$tag_l3}) or  exists ($ptagList{'level3'}) ){
+                    if(! exists_keys(\%keepTrack,($tag_l3))){$keepTrack{$tag_l3}=$nbIDstart;}
                     manage_attributes($feature_l3,\%keepTrack, $prefix);
+                    $keepTrack{$tag_l3}++;
                   }
 
                   #Modify parent if necessary
@@ -226,34 +230,26 @@ sub  manage_attributes{
   }
 }
 
+#Select the proper abbreviation for the tag
 sub  select_abb{
   my  ($feature)=@_;
 
-  
+  # get the tag 
   my $primary_tag = lc($feature->primary_tag);
 
-  if(exists_keys(\%dynamicTrackExonToE, ($primary_tag) ) ){
-    return $dynamicTrackExonToE{$primary_tag};
-  }
- else{
+  if(! exists_keys (\%tag_hash,( $primary_tag ))) {
+    
     my $cpt=1;
     my $letter = uc(substr($primary_tag, 0, $cpt));
 
-    if(exists_keys(\%dynamicTrackEtoExon, ($letter) ) ){
-
-      while (exists_keys (\%dynamicTrackEtoExon, ($letter) ) ){
-          $cpt++;
-          $letter = uc(substr($primary_tag, 0, $cpt));
-      }
-      $dynamicTrackExonToE{$primary_tag}=$letter;
-      $dynamicTrackEtoExon{$letter}=$primary_tag;
+    while(  grep( /^\Q$letter\E$/, @tagLetter_list) ) { # to avoid duplicate
+      $cpt++;
+      $letter = uc(substr($primary_tag, 0, $cpt));
     }
-    else{
-      $dynamicTrackExonToE{$primary_tag}=$letter;
-      $dynamicTrackEtoExon{$letter}=$primary_tag;
-    }
-  return $letter;
+    $tag_hash{$primary_tag}=$letter;
+    push(@tagLetter_list, $letter)
   }
+  return $tag_hash{$primary_tag}
 }
 
 #Sorting mixed strings => Sorting alphabetically first, then numerically
@@ -269,8 +265,16 @@ __END__
 =head1 NAME
 
 gff3_manageIDs.pl -
-The script take a gff3 file as input. -
-The script allows to give uniq ID. 
+The script take a gff3 file as input and will go through all feature to overwrite the uniq ID.
+By default the ID is build as follow: 
+  primary_tag(i.e. 3rd column)-Number.
+If you provide a specific prefix the ID is build as follow (Ensembl like format ENSG00000000022):
+ $prefix.$letterCode.0*.Number where the number of 0 i adapted in order to have 11 digits 
+
+By default the numbering start to 1, but you can decide to change this value using the --nb option.
+The $letterCode is generated on the fly to be uniq. By defaut it used the first letter of the feature type (3rd colum). If two feature types
+start with the same letter, the second one meet will have the two first letter as $letterCode (and so one).
+
 
 =head1 SYNOPSIS
 
@@ -287,7 +291,7 @@ Input GFF3 file that will be read (and sorted)
 
 =item B<--prefix>
 
-To add a specific prefix to the ID
+String. Add a specific prefix to the ID
 
 =item B<-p>,  B<-t> or  B<-l>
 
@@ -296,7 +300,11 @@ You can specified a specific feature by given its primary tag name (column 3) as
 You can specify directly all the feature of a particular level: 
       level2=mRNA,ncRNA,tRNA,etc
       level3=CDS,exon,UTR,etc
-By default all feature are taking in account. fill the option by the value "all" will have the same behaviour.
+By default all feature are taken into account. fill the option by the value "all" will have the same behaviour.
+
+=item B<--nb>
+
+Integer. Start numbering to this value.
 
 =item B<-o> , B<--output> , B<--out> or B<--outfile>
 
