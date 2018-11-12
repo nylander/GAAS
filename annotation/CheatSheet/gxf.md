@@ -10,12 +10,21 @@ It's often hard to understand and differentiate all GFF/GTF formats/flavors. Her
 ⇨	I the same way, when I use the term gtf it includes all gtf formats/flavors.  
 ⇨	I have created the term **gxf** that means all the gff and gtf formats/flavors.
 
+Richard Durbin and David Haussler are the founder of this format.
 
 ## GFF1(1999):
 [Here a snapshot of the original page from SANGER (1999)](snapshots/sanger_original_gff.md)
+ 
 
 ## GFF2(2000):
 [Here a snapshot of the original page from SANGER (2000)](snapshots/sanger_gff2.md)
+2000-9-29 The default version for GFF files is now Version 2. The main change from Version 1 to Version 2 is the requirement for a tag-value type structure (essentially semicolon-separated .ace format) for any additional material on the line, following the mandatory fields. Version 2 also allows '.' as a score, for features for which there is no score.
+
+## GTF (2003)
+Formats designed specifically for the human genome project.
+
+## GTF2 (2003)
+[Here the description from the Washington University in St. Louis] (https://web.archive.org/web/20031212200757/http://genes.cse.wustl.edu/GTF2.html)
 
 ## GTF2.2 (2007)
 [Here the description from the Brent Lab (The Washington University in St. Louis) (http://mblab.wustl.edu/GTF22.html)
