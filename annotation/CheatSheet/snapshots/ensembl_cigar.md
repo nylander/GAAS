@@ -4,25 +4,7 @@
 
 Copy from <a href="https://web.archive.org/web/20050316014923/http://www.ensembl.org:80/Docs/wiki/html/EnsemblDocs/CigarFormat.html">web.archive.org</a>.
 
-<table border="0" cellpadding="0" cellspacing="0" width="100%">
-    <tr>
-        <td valign="top" width="20" bgcolor="#e2e2ff">&nbsp;&nbsp;&nbsp;</td>
-        <td><table border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#e2e2ff">
-            <tr>
-				<td colspan="3">&nbsp;</td>
-			</tr>
-			<tr>
-                <td><a href="/web/20050210133134/http://www.ensembl.org:80/cgi-bin/wiki/search.pl/EnsemblDocs?text=CigarFormat&amp;options=topic"><h2>CigarFormat</h2></a>
-                </td>
-				<td width="100%">&nbsp;</td>				
-                <td align="right" nowrap><h2>EnsemblDocs <font color="#BC384D">W</font><font color="#E4A327">i</font><font color="#008000">k</font><font color="#000080">i</font>&nbsp;&nbsp;&nbsp;</h2></td>
-            </tr>
-			</table>
-        <table border="0" cellpadding="8" cellspacing="0" width="100%" bordercolor="#FFFFFF">
-            <tr>
-                <td colspan="2" width="100%"><h3>Description</h3>
-
-<p> 
+<a href="/web/20050210133134/http://www.ensembl.org:80/cgi-bin/wiki/search.pl/EnsemblDocs?text=CigarFormat&amp;options=topic"><h2>CigarFormat</h2></a>
 
 <a href="/web/20050210133134/http://www.ensembl.org:80/Docs/wiki/html/EnsemblDocs/CigarFormat.html">CigarFormat</a> is one of the output formats which can be generated
 
