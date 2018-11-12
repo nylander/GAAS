@@ -1,7 +1,8 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
 <html>
-Copy from <a href="https://web.archive.org/web/19990209163146/http://www.sanger.ac.uk:80/Software/GFF/">web.archive.org</a>.
-
+Copy from <a href="https://web.archive.org/web/19990209163146/http://www.sanger.ac.uk:80/Software/GFF/">web.archive.org</a>.  
+  
+Other interesting information from <a href="https://web.archive.org/web/20010619132027/http://www.sanger.ac.uk:80/Software/formats/GFF/">web.archive.org</a>.
 
   <h1>
   The Sanger Centre : Gene-Finding Format
