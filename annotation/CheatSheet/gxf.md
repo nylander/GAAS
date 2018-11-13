@@ -24,7 +24,7 @@ Richard Durbin and David Haussler are the founder of this format.
 Formats designed specifically for the human genome project.
 
 ## GTF2 (2003)
-[Here the description from the Washington University in St. Louis] (https://web.archive.org/web/20031212200757/http://genes.cse.wustl.edu/GTF2.html)
+[Here the description from the Washington University in St. Louis](https://web.archive.org/web/20031212200757/http://genes.cse.wustl.edu/GTF2.html). Foudn from the Eval publication received the 18 july 2003 mentioning the address http://genes.cse.wustl.edu/GTF2.html that has been archived in the web-archive the 12/12/2003. Prior to the publication E. Kleiber released a Master project report named "Eval: A Gene Set Comparison System" where it mention and describe the GTF, maybe the first version of the format. 
 
 ## GTF2.2 (2007)
 [Here the description from the Brent Lab (The Washington University in St. Louis) (http://mblab.wustl.edu/GTF22.html)
