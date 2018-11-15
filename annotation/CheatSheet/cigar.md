@@ -54,7 +54,7 @@ Below is the idiodyncracies/conventions describefd in the man page of exonerate-
               this will be the sum of the substitution matrix scores and the gap penalties.
 
 
-## Original Exonerate CIGAR (before 2003)
+## Original Exonerate CIGAR (From 2002)
 
 We cannot talk about the CIGAR format without talking first about the [**SUGAR** format](sugar.md). Sugar is Simple UnGapped Alignment Report, which displays ungapped alignments one-per-line. The sugar line starts with the string "sugar:" for easy extraction from the output, and is followed by the following 9 fields in the order below:
 
@@ -74,16 +74,19 @@ Here an example of SUGAR format:
 The **CIGAR** format starts  with  the same 9 fields as SUGAR output (see above), and is followed by a series of <operation, length> pairs where operation is one of **match**, **insert** or **delete**, and the length describes the number of times this operation is repeated
 Cigar format looks like this:
 
-`cigar: hs989235.cds 5 468 + hsnfg9.embl 25689 27450 + 1916 M 13 I 1 M 35 I 1 M 4 I 1 M 13 D 1 M 4 I 1 M 115 D 404 M 37 D 1 M 164 I 1 M 12 D 898 M 16 I 1 M 12 I 1 M 21 D 1 M 10`
+`cigar: hs989235.cds 15 459 - hsnfg9.embl 25698 27440 - 1820.20 M 22 D 1 M 12 D 1 M 16 N 898 M 12 D 1 M 164 I 1 M 37 N 404 M 133 D 1 M 4 D 1 M 39`
 
-The 10th field is actually the **CIGAR string** and are defined in pairs. Each pair is also called a run. The cigar string describes the edit path throught the alignment. These contain a M,I or D corresponding to a Match, Insert or Delete, followed by the length.
+The 10th field is actually the **CIGAR string** and are defined in pairs. Each pair is also called a run. The cigar string describes the edit path throught the alignment. These contain a M,I and D corresponding to a Match, Insert and Delete, followed by the length.
+
+**/!\ the N operator:**    
+The ensembl documentation from july 2002 says about the exonerate's operators: "These contain a M,I,D or N corresponding to a Match, Insert, Delete or iNtron, followed by the length."  
+Delete and intron are finaly a similar concept and I have rarely meet a N operator except in the CIGAR example above ([from ensembl Wiki July 2002](https://web.archive.org/web/20020717044729/http://www.ensembl.org:80/Docs/wiki/html/EnsemblDocs/CigarFormat.html)). In the first exonerate documentation I found (0.7.0 with a man page from November 2002) they do not talk about the intron (N) operator while the ensembl documentation has always mentioned it. Hard to say if it has existed originaly.
 
 Operator | Description
 -- | --
 M    |    **M**atch
 I     |   **I**nsert
 D    |   **D**elete
-
 
 To resume:  
 Each pair/run is encoded by the letter code/operator, whitespace, and the length; multiple pairs/runs are separated by whitespace.
