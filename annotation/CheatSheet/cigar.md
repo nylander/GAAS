@@ -79,7 +79,7 @@ Cigar format looks like this:
 The 10th field is actually the **CIGAR string** and are defined in pairs. Each pair is also called a run. The cigar string describes the edit path throught the alignment. These contain a M,I and D corresponding to a Match, Insert and Delete, followed by the length.
 
 **/!\ the N operator:**    
-The ensembl documentation from 13 November 2001 says about the exonerate's operators: "These contain a M,I,D or N corresponding to a Match, Insert, Delete or iNtron, followed by the length."  
+The ensembl documentation from 13 November 2001 says about the exonerate's operators: `These contain a M,I,D or N corresponding to a Match, Insert, Delete or iNtron, followed by the length.`  
 Delete and intron are finaly a similar concept and I have rarely meet a N operator except in the CIGAR example above ([from ensembl Wiki November 2001](https://web.archive.org/web/20020717044729/http://www.ensembl.org:80/Docs/wiki/html/EnsemblDocs/CigarFormat.html)). In the first exonerate documentation I found (0.7.0 with a man page from November 2002) - I didn't succed to retrieve information about the first version (0.3d) of exonerate that has been mentioned in Nature december 2001 (https://doi.org/10.1038/414865a)) they do not talk about the intron (N) operator. So, we could imagine that N was initially present and has been then removed before November 2002 from exonerate but kept in a not updadted documentation of Ensembl.
 
 Operator | Description
