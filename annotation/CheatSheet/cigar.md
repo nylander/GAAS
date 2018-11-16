@@ -54,7 +54,7 @@ Below is the idiodyncracies/conventions describefd in the man page of exonerate-
               this will be the sum of the substitution matrix scores and the gap penalties.
 
 
-## Original Exonerate CIGAR (From 2002)
+## Original Exonerate CIGAR (From 2001)
 
 We cannot talk about the CIGAR format without talking first about the [**SUGAR** format](sugar.md). Sugar is Simple UnGapped Alignment Report, which displays ungapped alignments one-per-line. The sugar line starts with the string "sugar:" for easy extraction from the output, and is followed by the following 9 fields in the order below:
 
@@ -79,8 +79,8 @@ Cigar format looks like this:
 The 10th field is actually the **CIGAR string** and are defined in pairs. Each pair is also called a run. The cigar string describes the edit path throught the alignment. These contain a M,I and D corresponding to a Match, Insert and Delete, followed by the length.
 
 **/!\ the N operator:**    
-The ensembl documentation from july 2002 says about the exonerate's operators: "These contain a M,I,D or N corresponding to a Match, Insert, Delete or iNtron, followed by the length."  
-Delete and intron are finaly a similar concept and I have rarely meet a N operator except in the CIGAR example above ([from ensembl Wiki July 2002](https://web.archive.org/web/20020717044729/http://www.ensembl.org:80/Docs/wiki/html/EnsemblDocs/CigarFormat.html)). In the first exonerate documentation I found (0.7.0 with a man page from November 2002) they do not talk about the intron (N) operator while the ensembl documentation has always mentioned it. Hard to say if it has existed originaly.
+The ensembl documentation from 13 November 2001 says about the exonerate's operators: "These contain a M,I,D or N corresponding to a Match, Insert, Delete or iNtron, followed by the length."  
+Delete and intron are finaly a similar concept and I have rarely meet a N operator except in the CIGAR example above ([from ensembl Wiki November 2001](https://web.archive.org/web/20020717044729/http://www.ensembl.org:80/Docs/wiki/html/EnsemblDocs/CigarFormat.html)). In the first exonerate documentation I found (0.7.0 with a man page from November 2002) - I didn't succed to retrieve information about the first version (0.3d) of exonerate that has been mentioned in Nature december 2001 (https://doi.org/10.1038/414865a)) they do not talk about the intron (N) operator. So, we could imagine that N was initially present and has been then removed before November 2002 from exonerate but kept in a not updadted documentation of Ensembl.
 
 Operator | Description
 -- | --
