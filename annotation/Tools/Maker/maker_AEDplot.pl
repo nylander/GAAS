@@ -356,3 +356,11 @@ The AED score value is between 0 and 1. You can define how precise the plot will
 =item B<--output>, B<-o>
 
 Output name of the pdf file created. If none provided, the default output is ouputPlot.pdf
+
+=item B<-h> or B<--help>
+
+Display this helpful text.
+
+=back
+
+=cut

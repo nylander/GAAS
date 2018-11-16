@@ -2,16 +2,22 @@
 
 use strict;
 use Getopt::Long;
+use Pod::Usage;
 use Scalar::Util qw(openhandle);
 use Time::Piece;
 use Time::Seconds;
 use File::Basename;
 use Cwd;
 
+my $header = qq{
+########################################################
+# NBIS 2018 - Sweden                                   #  
+# jacques.dainat\@nbis.se                               #
+# Please cite NBIS (www.nbis.se) when using this tool. #
+########################################################
+};
+
 my $dir = getcwd;
-
-
-
 my $outfile = "genome.rm.fa";
 my $out_fh = undef;
 my $maker_dir = undef;
@@ -30,7 +36,8 @@ if ( !GetOptions( "help|h" => \$opt_help,
 }
 if ($opt_help) {
     pod2usage( { -verbose => 2,
-                 -exitval => 0 } );
+                 -exitval => 2,
+                 -message => "$header\n" } );
 }
 
 
@@ -175,7 +182,7 @@ close ($IN);
 
 =head1 NAME
 
-maker_get_rm_genome.pl -
+maker_get_rm_genome.pl
 
 Must be executed in the folder from which Maker was run and will find the maker output
 on its own and create a concatenated masked assembly.

@@ -52,7 +52,6 @@ if ($help) {
 ### MANAGE OPTIONS ####
 #######################
 
-
 # MANAGE IN
 my @inDir;
 my $dir = getcwd;
