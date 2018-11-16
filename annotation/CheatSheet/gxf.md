@@ -17,9 +17,9 @@ The GFF fomat has been developed to be easy to parse and process by a variety of
 
 A GFF record is an extension of a basic (name,start,end) tuple (or "NSE") that can be used to identify a substring of a biological sequence. 
 
-##GFF0(before 1997-11-13)
+## GFF0(before 1997-11-13)
 
-There is no clear information about how look the format at this time but was close to the GFF1 format specification without the field "source" that has been added the 1997-11-13.
+There is no clear information about how look the format at that time but it was close to the GFF1 format specification without the field "source" added the 1997-11-13.
 
 ## GFF1(1997-11-13):
 [Here a snapshot of the olderst description of the format I found (2000)]((http://htmlpreview.github.io/?https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/snapshots/GFF_Spec.html).
