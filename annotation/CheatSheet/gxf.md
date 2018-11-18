@@ -22,14 +22,14 @@ A GFF record is an extension of a basic (name,start,end) tuple (or "NSE") that c
 There is no clear information about how look the format at that time but it was close to the GFF1 format specification without the field "source" added the 1997-11-13.
 
 ## GFF1(1997-11-13):
+Here the oldest complete description I found of the GFF1 format: https://web.archive.org/web/19980222142332/http://www.sanger.ac.uk:80/~rd/gff.html
 [Here a snapshot of the olderst description of the format I found (2000)]((http://htmlpreview.github.io/?https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/snapshots/GFF_Spec.html).
-https://web.archive.org/web/19990428173150/http://www.sanger.ac.uk:80/Users/rd/gff.html  
 
 I consider the format as GFF1 when they definitly defined the 9 fields of the format (1997-11-13 rd: added extra "source" field as discussed at Newton Institute meeting 971029). Before that the format was existing but was at the stage of version 0.
 
 This GFF1 format contains 8 madatory fields and 9th one optional. Fields are:  
 
-    <seqname> <source> <feature> <start> <end> <score> <strand> <frame> <group>
+    <seqname> <source> <feature> <start> <end> <score> <strand> <frame> [group]
 
 Definition of these fields are:
 
@@ -39,18 +39,21 @@ Definition of these fields are:
         The source of this feature. This field will normally be used to indicate the program making the prediction, or if it comes from public database annotation, or is experimentally verified, etc.
     <feature>
         The feature type name. We hope to suggest a standard set of features, to facilitate import/export, comparison etc.. Of course, people are free to define new ones as needed. For example, Genie splice detectors account for a region of DNA, and multiple detectors may be available for the same site, as shown above.
-    􏰊<start>􏰋, <end􏰋>
-        Integers. 􏰊start􏰋 must be less than or equal to 􏰊end􏰋, so reverse strand coor- dinates must be defined in forward coords. Numbering starts at 1, so these numbers should be between 1 and the length of the relevant sequence, inclusive
-     <score>
-         A floating point value. When there is no score you have to write 0. 
-     <strand>
-        One of '+', '-' or '.'. '.' should be used when strand is not relevant, e.g. for dinucleotide repeats. 
-     <frame>
-        One of '0', '1', '2' or '.'. '0' indicates that the specified region is in frame, i.e. that its first base corresponds to the first base of a codon. '1' indicates that there is one extra base, i.e. that the second base of the region corresponds to the first base of a codon, and '2' means that the third base of the region is the first base of a codon. If the strand is '-', then the first base of the region is value of <end>, because the corresponding coding region will run from <end> to <start> on the reverse strand. As with <strand>, if the frame is not relevant then set <frame> to '.'. It has been pointed out that "phase" might be a better descriptor than "frame" for this field.
-     <group>
-        An optional string-valued field that can be used as a name to group together a set of records. Typical uses might be to group the introns and exons in one gene prediction (or experimentally verified gene structure), or to group multiple regions of match to another sequence, such as an EST or a protein.
+    <start>, <end>
+        Integers. <start> must be less than or equal to <end>. Sequence numbering starts at 1, so these numbers should be between 1 and the length of the relevant sequence, inclusive.
+    <score>
+        A floating point value. When there is no score (i.e. for a sensor that just records the possible presence of a signal, as "splice5" above) you must give something, by convention 0.
+    <strand>
+        One of '+', '-' or '.'. '.' should be used when strand is not relevant, e.g. for dinucleotide repeats.
+    <frame>
+        One of '0', '1', '2' or '.'. '0' indicates that the specified region is in frame, i.e. that its first base corresponds to the first base of a codon. '1' indicates that there is one extra base, i.e. that the second base of the region corresponds to the first base of a codon, and '2' means that the third base of the region is the first base of a codon. If the strand is '-', then the first base of the region is value of <end>, because the corresponding coding region will run from <end> to <start> on the reverse strand.
+    [group]
+        An optional string-valued field that can be used as a name to group together a set of records. Typical uses might be to group the introns and exons in one gene prediction (or experimentally verified gene structure), or to group multiple regions of match to another sequence, such as an EST or a protein. See below for examples.
+    
+=> All strings (i.e. values of the <seqname>, <feature> or <group> fields) should be under 256 characters long, and should not include whitespace. The whole line should be under 32k long. A character limit is not very desirable, but helps write parsers in some languages. The slightly silly 32k limit is to allow plenty of space for comments/extra data.
+=> Fields must be separated by TAB characters ('\t').
 
-=>  each string had to be under 256 characters long, and the whole line should under 32k long.
+For a complete description of the format please refer to the link cited above.
 
 Here an example of GFF1:  
 
