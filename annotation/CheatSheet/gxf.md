@@ -23,6 +23,8 @@ There is no clear information about how look the format at that time but it was 
 
 ## GFF1(1997-11-13):
 [Here a snapshot of the olderst description of the format I found (2000)]((http://htmlpreview.github.io/?https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/snapshots/GFF_Spec.html).
+https://web.archive.org/web/19990428173150/http://www.sanger.ac.uk:80/Users/rd/gff.html  
+
 I consider the format as GFF1 when they definitly defined the 9 fields of the format (1997-11-13 rd: added extra "source" field as discussed at Newton Institute meeting 971029). Before that the format was existing but was at the stage of version 0.
 
 This GFF1 format contains 8 madatory fields and 9th one optional. Fields are:  
@@ -63,8 +65,9 @@ Here an example of GFF1:
 
 ## GFF2 (become officialy the default version the 2000-9-29 but was proposed since 1998-12-16):
 [Here a snapshot of the original page from SANGER (2000)](snapshots/sanger_gff2.md)
-The GFF1 has evolved step by step and the 2000-9-29 the default version for GFF files became Version 2. Here we will review all the changes occured from the original version 1.
-The **Gene Feature Finding** has been  generalized to accomodate to accommodate RNA and Protein feature files and has been renamed the **General Feature Format** while retaining the same acronym GFF.  
+The GFF1 has evolved step by step and the 2000-9-29 the default version for GFF files became Version 2. Here we will see all the changes occured from the original version 1.
+
+=> The **Gene Feature Finding** has been  generalized to accomodate to accommodate RNA and Protein feature files and has been renamed the **General Feature Format** while retaining the same acronym GFF.  
 
 The main change from Version 1 to Version 2 is the addition of an optional 9th field with tag-value type structure (essentially semicolon-separated .ace format) used for any additional material on the line. Version 2 also allows '.' as a score, for features for which there is no score.
 With the changes taking place to version 2 of the format, we also allow for feature sets to be defined over RNA and Protein sequences, as well as genomic DNA. This is used for example by the EMBOSS project to provide standard format output for all features as an option. In this case the <strand> and <frame> fields should be set to '.'. To assist this transition in specification, a new #Type Meta-Comment has been added.
