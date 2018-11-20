@@ -10,22 +10,23 @@ It's often hard to understand and differentiate all GFF/GTF formats/flavors. Her
 ⇨	I the same way, when I use the term gtf it includes all gtf formats/flavors.  
 ⇨	I have created the term **gxf** that means all the gff and gtf formats/flavors.
 
-The GFF Protocol Specification was initially proposed by Richard Durbin and David Haussler.
+The GFF Protocol Specification was initially proposed by **Richard Durbin** and **David Haussler**.
 The format has been originaly developed to help the gene prediction (or gene finding) world. Indeed the gene prediction methods are based on two main steps, **first** finding signals (starts, splice sites, stops, motifs, etc.) and regions (exons, introns, protein domains etc.); **secondly** combining these to give complete gene, RNA transcript or protein structures. These two steps were usually performed within the same program. In order to decoupled them they have created the format called GFF ('Gene-Finding Format') allowing the transfer of feature information from a tool to another one.
 
 The GFF fomat has been developed to be easy to parse and process by a variety of programs in different languages (e.g Unix tools as grep and sort, perl, awk, etc). For these reasons, they decided that each feature is described on a single line, and line order is not relevant.
 
 A GFF record is an extension of a basic (name,start,end) tuple (or "NSE") that can be used to identify a substring of a biological sequence. 
 
-## GFF0(before 1997-11-13)
+## GFF0(before 13-11-1997)
 
 There is no clear information about how look the format at that time but it was close to the GFF1 format specification without the field "source" added the 1997-11-13.
 
-## GFF1(1997-11-13):
-Here the oldest complete description I found of the GFF1 format: https://web.archive.org/web/19980222142332/http://www.sanger.ac.uk:80/~rd/gff.html
-[Here a snapshot of the olderst description of the format I found (2000)]((http://htmlpreview.github.io/?https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/snapshots/GFF_Spec.html).
+## GFF1(13-11-1997):
 
-I consider the format as GFF1 when they definitly defined the 9 fields of the format (1997-11-13 rd: added extra "source" field as discussed at Newton Institute meeting 971029). Before that the format was existing but was at the stage of version 0.
+For a complete description of the format please refer to this link:
+[https://web.archive.org/web/19980222142332/http://www.sanger.ac.uk:80/~rd/gff.html](https://web.archive.org/web/19980222142332/http://www.sanger.ac.uk:80/~rd/gff.html). This is the oldest description of the format I found (1998-02-22).
+
+I consider the format as GFF1 when they definitly defined the 9th field of the format (1997-11-13 rd: added extra "source" field as discussed at Newton Institute meeting 971029). Before that the format was existing but was at the stage of version 0.
 
 This GFF1 format contains 8 madatory fields and 9th one optional. Fields are:  
 
@@ -50,25 +51,59 @@ Definition of these fields are:
     [group]
         An optional string-valued field that can be used as a name to group together a set of records. Typical uses might be to group the introns and exons in one gene prediction (or experimentally verified gene structure), or to group multiple regions of match to another sequence, such as an EST or a protein. See below for examples.
     
-=> All strings (i.e. values of the <seqname>, <feature> or <group> fields) should be under 256 characters long, and should not include whitespace. The whole line should be under 32k long. A character limit is not very desirable, but helps write parsers in some languages. The slightly silly 32k limit is to allow plenty of space for comments/extra data.
-=> Fields must be separated by TAB characters ('\t').
+    => All strings (i.e. values of the <seqname>, <feature> or <group> fields) should be under 256 characters long, and should not include whitespace. The whole line should be under 32k long. A character limit is not very desirable, but helps write parsers in some languages. The slightly silly 32k limit is to allow plenty of space for comments/extra data.
+    => Fields must be separated by TAB characters ('\t').
 
-For a complete description of the format please refer to the link cited above.
+    Comments
+
+    Comments are allowed, starting with "#" as in Perl, awk etc. Everything following # until the end of the line is ignored. Effectively this can be used in two ways. Either it must be at the beginning of the line (after any whitespace), to make the whole line a comment, or the comment could come after all the required fields on the line.
+    We also permit extra information to be given on the line following the group field without a '#' character. This allows extra method-specific information to be transferred with the line. However, we discourage overuse of this feature: better to find a way to do it with more true feature lines, and perhaps groups.
+
+    ## comment lines for meta information
+
+    There is a set of standardised (i.e. parsable) ## line types that can be used optionally at the top of a gff file. The philosophy is a little like the special set of %% lines at the top of postscript files, used for example to give the BoundingBox for EPS files.
+    Current proposed ## lines are:
+
+     ##gff-version 1 
+    GFF version - in case it is a real success and we want to change it. The current version is 1.
+     ##source-version {source} {version text} 
+    So that people can record what version of a program or package was used to make the data in this file. I suggest the version is text without whitespace. That allows things like 1.3, 4a etc.
+     ##date {date} 
+    The date the file was made, or perhaps that the prediction programs were run. We suggest to use astronomical format: 1997-11-08 for 8th November 1997, first because these sort properly, and second to avoid any US/European bias.
+
+     ##DNA {seqname}
+     ##acggctcggattggcgctggatgatagatcagacgac
+     ##...
+     ##end-DNA
+    To give a DNA sequence. Several people have pointed out that it may be convenient to include the sequence in the file. It should not become mandatory to do so. Often the seqname will be a well-known identifier, and the sequence can easily be retrieved from a database, or an accompanying file.
+     ##sequence-region {seqname} {start} {end} 
+    To indicate that this file only contains entries for the the specified subregion of a sequence.
+    Please feel free to propose new ## lines. The ## line proposal came out of some discussions including Anders Krogh, David Haussler, people at the Newton Institute on 1997-10-29 and some email from Suzanna Lewis. Of course, naive programs can ignore all of these...
 
 Here an example of GFF1:  
 
+    ##gff-version 1 
     SEQ1	EMBL	atg	103	105	.	+	0
     SEQ1	EMBL	exon	103	172	.	+	0
     SEQ1	EMBL	splice5	172	173	.	+	.
     SEQ1	netgene	splice5	172	173	0.94	+	.
+    # this is comment that will be skipped by the parser
     SEQ1	genie	sp5-20	163	182	2.3	+	.
     SEQ1	genie	sp5-10	168	177	2.1	+	.
     SEQ2	grail	ATG	17	19	2.1	-   0
-    SEQ2    pred
+    SEQ3    pred    exon    100 135 .   +   0   locus1 # this is also a comment that will be skipped by the parser
+    SEQ3    pred    exon    235 260 .   +   2   locus1 This is an example of extra information... They discourage overuse of this feature.
+    SEQ3    pred    exon    360 396 .   +   0   locus1
 
-## GFF2 (become officialy the default version the 2000-9-29 but was proposed since 1998-12-16):
-[Here a snapshot of the original page from SANGER (2000)](snapshots/sanger_gff2.md)
-The GFF1 has evolved step by step and the 2000-9-29 the default version for GFF files became Version 2. Here we will see all the changes occured from the original version 1.
+## GFF2 (29-09-2000):
+
+**16/12/98**: Discussions with **Lincoln Stein** and **others**,the Version 2 format of GFF is proposed.
+**17/11/99**: 'Gene Feature Finding' Version 2 format is conceptually generalized to be the 'General Feature Format'
+
+The GFF2 format is conceptualized since the 16/12/98 but becomes officialy the default version the 2000-9-29.
+[Here its officail description](snapshots/sanger_gff2.md).
+
+Here we will review changes occured from the version 1.
 
 => The **Gene Feature Finding** has been  generalized to accomodate to accommodate RNA and Protein feature files and has been renamed the **General Feature Format** while retaining the same acronym GFF.  
 
