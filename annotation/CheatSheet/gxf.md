@@ -216,6 +216,6 @@ Formats designed specifically for the human genome project. Created before June 
 
 ## GFF3 ()
 
-GFF3 addresses several shortcomings in its predecessor GFF2.
+GFF3 addresses several shortcomings in its predecessor GFF2. [First specification](http://rice.bio.indiana.edu:7082/annot/gff3.html) provided by **Lincoln Stein** the 30 September 2004.
 
 ## Resume
