@@ -200,14 +200,15 @@ sub parse_blast
 
 =head1 NAME
  
-gff_filter_by_mrna_id.pl
+gff_filter_by_mrnaBlastValue.pl
+ancient name gff_filter_by_mrna_id.pl
 The script aims to remove from a gff file all the mRNA that have a similarity over THRESHOLD with another mRNA. This is typically useful when creating a list of MRNA to use to train abinitio gene finder. 
 A reciprocal blast of the sequences need to have been performed prior to the use of this script in order to get the blastp input file.
 
 =head1 SYNOPSIS
 
-    ./gff_filter_by_mrna_id.pl --gff=infile.gff3 --blast blastfile --outfile outFile
-    ./gff_filter_by_mrna_id.pl --help
+    ./gff_filter_by_mrnaBlastValue.pl --gff=infile.gff3 --blast blastfile --outfile outFile
+    ./gff_filter_by_mrnaBlastValue.pl --help
 
 =head1 OPTIONS
 

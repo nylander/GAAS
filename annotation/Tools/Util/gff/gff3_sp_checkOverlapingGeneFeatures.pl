@@ -11,7 +11,6 @@ use Pod::Usage;
 use List::MoreUtils qw(uniq);
 use BILS::Handler::GXFhandler qw(:Ok);
 use BILS::Handler::GFF3handler qw(:Ok);
-use Bio::Tools::GFF;
 
 my $usage = qq{
 ########################################################
@@ -69,7 +68,7 @@ else{
 my $error_found=undef;
 ### Parse GFF input #
 print ("Parse file $ref\n");
-my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GFF3handler->slurp_gff3_file_JD($ref);
+my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($ref);
 print ("$ref file parsed\n");
 
 # sort by seq id
