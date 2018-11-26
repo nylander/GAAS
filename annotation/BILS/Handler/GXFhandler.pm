@@ -218,6 +218,7 @@ sub slurp_gff3_file_JD {
 
     #Check if duplicate detected:
     _check_duplicates(\%duplicate, \%omniscient, $verbose);
+    if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
 	_printSurrounded("Check1: _check_sequential",30,"*") if ($verbose >= 1) ;
 
 	if(! $nocheck){
