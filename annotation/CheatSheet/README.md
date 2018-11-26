@@ -41,3 +41,7 @@ Collection of Cheat Sheets / overview / summaries
 ### [Overview of RNA-seq library types](rnaseq_library_types.md)
 
 ### [Screen](screen.md)
+
+# External ressources
+
+### [Bioinformatics one-liners](https://github.com/stephenturner/oneliners)
