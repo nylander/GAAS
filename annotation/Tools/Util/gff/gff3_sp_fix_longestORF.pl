@@ -106,10 +106,11 @@ if(!($model_to_test)){
   $ListModel{2}=0;
   $ListModel{3}=0;
   $ListModel{4}=0;
+  $ListModel{5}=0;
 }else{
   my @fields= split(',', $model_to_test);
   foreach my $field (@fields){
-    if($field =~ m/^[01234]$/){
+    if($field =~ m/^[012345]$/){
       $ListModel{$field}=0;
     }else{
       print "This model $field is not known. Must be an Integer !\n";exit;      
@@ -187,6 +188,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
             #translate cds in protein
             my $original_prot_obj = $cds_obj->translate(-codontable_id => $codonTable) ; #codontable_id by default=1 (Vertebrates). IUPAC => STOP codon even if not sure ...
             my $cds_prot=$original_prot_obj->seq;
+            #print $original_prot_obj->seq."\n"; 
             my $originalProt_size=length($cds_prot);
 
             ################################################
@@ -195,7 +197,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
             my ($exonExtremStart, $mrna_seq, $exonExtremEnd) = concatenate_feature_list(\@exons_features);
             #create the mrna object
             my $mrna_obj = Bio::Seq->new(-seq => $mrna_seq, -alphabet => 'dna' );
-    #        print $mrna_obj->seq."\n"; 
+
             #Reverse complement according to strand
             if ($level2_feature->strand == -1 or $level2_feature->strand eq "-"){
               $mrna_obj = $mrna_obj->revcom();
@@ -247,6 +249,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
             ########################
             # prediction is longer #
             print $id_level2." - size before: ".$originalProt_size." size after: ".$longest_ORF_prot_obj->length()."\n" if $verbose;
+            #print $original_prot_obj->seq."\n";
             if($longest_ORF_prot_obj->length() > $originalProt_size){
               
   #Model1     ###############################################
@@ -255,9 +258,9 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
                 if ( exists($ListModel{1}) ){ 
                   if(!(($longest_ORF_prot_obj->seq =~ m/^X/) and ($longest_ORF_prot_obj->length() < $originalProt_size+$SIZE_OPT))){ #avoid case of ambigous methionine (Written X) -> Need to be over 21 AA to decide ok is longer and can be a M
 
-                    print "mrNA $id_level2 => model1. prot original is shorter:\noriginal:$cds_prot\ncdsStart $cdsExtremStart - cdsEnd $cdsExtremEnd\n".
+                    #print "mrNA $id_level2 => model1. prot original is shorter:\noriginal:$cds_prot\ncdsStart $cdsExtremStart - cdsEnd $cdsExtremEnd\n".
                     $longest_ORF_prot_obj->seq."\n\n";
-                    $ListModel{1}++;
+                    $ListModel{1}++; print "Model 1: gene=$gene_id_tag_key mRNA=$id_level2\n" if ($verbose);
                     modify_gene_model($hash_omniscient, \%omniscient_modified_gene, $gene_feature, $gene_id_tag_key, $level2_feature, $id_level2, \@exons_features, \@cds_feature_list, $cdsExtremStart, $cdsExtremEnd, $realORFstart, $realORFend, 'model1', $gffout);
                     $ORFmodified="yes";
 
@@ -274,8 +277,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
                   my $model;
     
                   if( exists($ListModel{2}) ){
-                     print "mrNA $id_level2 $gene_id_tag_key => model2\n" if $verbose;
-                    $ListModel{2}++;
+                    $ListModel{2}++; print "Model 2: gene=$gene_id_tag_key mRNA=$id_level2\n" if ($verbose);
                     $model=1;
                     if($split_opt){
                       split_gene_model(\@intact_gene_list, $hash_omniscient, \%omniscient_modified_gene, $gene_feature, $gene_id_tag_key, $level2_feature, $id_level2, \@exons_features, \@cds_feature_list, $cdsExtremStart, $cdsExtremEnd, $realORFstart, $realORFend, 'model2', $gffout);
@@ -293,8 +295,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
   #Model3         ###############
                   # original protein and predicted one are different; the predicted one is longest, they overlap each other.
                   if( exists($ListModel{3}) ){ 
-                    $ListModel{3}++;
-                    print "mrNA $id_level2 $gene_id_tag_key => model3\n" if $verbose;
+                    $ListModel{3}++; print "Model 3: gene=$gene_id_tag_key mRNA=$id_level2\n" if ($verbose);
                     
                     modify_gene_model($hash_omniscient, \%omniscient_modified_gene, $gene_feature, $gene_id_tag_key, $level2_feature, $id_level2, \@exons_features, \@cds_feature_list, $cdsExtremStart, $cdsExtremEnd, $realORFstart, $realORFend, 'model3', $gffout);
                     $ORFmodified="yes";
@@ -310,8 +311,8 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
   #Model4     ###############
               # /!\ Here we compare the CDS traduction (traduct in IUPAC) against longest CDS in mRNA IUPAC modified to take in account for stops codon only those that are trustable only (TGA, TAR...).
               if( exists($ListModel{4}) ){ 
-                $ListModel{4}++;
-                print "mrNA $id_level2 $gene_id_tag_key => model4\n" if $verbose;
+                $ListModel{4}++;  print "Model 4: gene=$gene_id_tag_key mRNA=$id_level2\n" if ($verbose);
+
                 print "Original: ".$original_prot_obj->seq."\n" if $verbose;
                 print "longestl: ".$longest_ORF_prot_obj->seq."\n" if $verbose;
                 # contains stop codon but not at the last position
@@ -320,8 +321,8 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
              ## Pseudogene THRESHOLD ##              
     #              my $threshold_size=(length($original_prot_obj->seq)*$pseudo_threshold)/100; #70% of the original size
     #              if(length($longest_ORF_prot_obj->seq) <  $threshold_size){ # inferior to threshold choosen, we suspect it to be a pseudogene
-                    print Dumper($original_prot_obj);
-                    print Dumper($longest_ORF_prot_obj);
+                    #print Dumper($original_prot_obj);
+                    #print Dumper($longest_ORF_prot_obj);
     #                $mrna_pseudo++;
     #                push(@list_mrna_pseudo, $id_level2);
     #              }
@@ -331,6 +332,16 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
     #              }
                 }# Doesn't contain stop in the middle of the sequence
                 else{$special_or_partial_mRNA++;}
+              }
+            }
+            ###########################
+            # The real ORF is same size but check if +1 or +2 bp shit that give same number of AA but give frame shifts
+            elsif( (index($original_prot_obj->seq, '*') != -1 ) and (index($original_prot_obj->seq, '*') != length($original_prot_obj->seq)-1) ){
+              if( exists($ListModel{5}) ){ 
+                $ListModel{5}++;  print "Model 5: gene=$gene_id_tag_key mRNA=$id_level2\n" if ($verbose);
+                print "my CDS was containing stop codon => model5\n" if $verbose;         
+                modify_gene_model($hash_omniscient, \%omniscient_modified_gene, $gene_feature, $gene_id_tag_key, $level2_feature, $id_level2, \@exons_features, \@cds_feature_list, $cdsExtremStart, $cdsExtremEnd, $realORFstart, $realORFend, 'model3', $gffout);
+                $ORFmodified="yes";
               }
             }
 
@@ -422,9 +433,13 @@ if (exists ($ListModel{4})){
  # "According to this threshold, we change the gene status (prinary_tag) of $gene_pseudo_suspected genes (corresponding to $mrna_pseudo_suspected mRNA) to pseudogene.\n".
  # "According to this threshold, we suspect $gene_pseudo_suspected genes to be pseudogenes (corresponding to $mrna_pseudo_suspected mRNA). So they habe been reported in a secpific output file.\n".
  # "$withStop_butstillgene mRNA(s) containing stop but over this treshold has been re-modelate.\n".
- " They have been remodeleted.";
+ " They have been remodeleted.\n";
 
  # "Moreover, $mrna_pseudo_removed putative pseudo mRNA isoforms have been removed because the gene has as well non-pseudo mRNA.\n";
+}
+if (exists ($ListModel{5})){
+  $string_to_print .= "$ListModel{5} model5: The prediction contained stop codons. \n";
+
 }
 
 $string_to_print .="\n/!\\Remind:\n L and M are AA are possible start codons.\nParticular case: If we have a triplet as WTG, AYG, RTG, RTR or ATK it will be seen as a possible Methionine codon start (it's a X aa)\n".
@@ -1141,6 +1156,7 @@ Model1= sequence original is part of new prediction; the predicted one is longes
 Model2= sequence original predicted are different; the predicted one is longest, they don't overlap each other.
 Model3= original protein and predicted one are different; the predicted one is longest, they overlap each other.
 Model4= The prediction is shorter... /!\
+Model5= The prediction is same size but not correct frame (+1 or +2 bp gives frame shift). The predicted... /!\
 
 =item B<-s> or B<--split>
 
@@ -1159,3 +1175,12 @@ Display this helpful text.
 =back
 
 =cut
+
+
+MODEL5 example (extra C at the begining of the CDS):
+sequence= CATGTTCAAACGTCTCGAAAATATAGCCGTCCAATCATCCTCCTTCCCCCAGGCAATCTCCTTGATCCAGCAAAACCACCTCTCTCCAAAACTCTTCTTTGATCCCCAGACCTACTCCAAGATCTTCCAGAAACTCTCCCTCAAAGACCAATACCCTCGTTCCTCCCAGTCCCTATGCATCATAGACTACCACGTAGGCTTCACGCCCTTCTCCTACTTCCTCCATAAGGAGCTACACCCTGCACATCACGTCATCTTCCCCGATAGTGTCGCTGCCAACAAGTTCTGGACCCAGATGCTACTGAAGGACCCCGACTGTAAGGACATGGTCATAGACGAGACTCAGGCAAACACAGTGCTAAAGCACAATTTCCTCAATAGATCGCTGGAATTGGGCCACGTCGTTGCAGTAGAACAGACAGACCTAACTAAGGTCAACGACTCGATACTATTGACCGGTAACTTCGTCGATACTTCCGGCGGGGACTCTCTACGGATCTTACTCTTCTTTAATCAGATGAAAACTTCCGTCTTTCAGTATAATAACGTCAAGTTCTTGGCGTGGCTGCCCGCCTCGGAGTCTCTGAAGTTCATAGGACCGATTGGATCGAGGCATAGACGGTCCAATGCGCTGATGACCAACCTATTTGCCAACGTTGACGTGGTAGCGTACTCTAATTATGGCAAGAAGAAGAGCGTTTCCCGAGTCTTGGACGAATATAAGGACGCTGTCAAGCTACCACAGATTCCTGGACAGAAAGACGTATGTTTGATGGAATTTCAGTCGAACTATTCCAAATACGACATTAAATTTCCTGACGAATTGCATTTGATCATACACAAGATGTTGATATCGCCCAGCAATAAGTTGATTGACAATCTTCATTTGCTTGGGCCCGGTGCAAAGGAGTATTTGGAGACCAAGTTGGATCCCGAGCTGTTACAGAAGCCTGCGCCGAACATTACGGAGCAGGAGTTTATAGATATCAGCGAGGCGTATTATTACTGGCCGTTCAAGCCTAACGTTCACTTGGAGACGTATTTAGGAGATCCTCCGGAGGAGGAGTAG
+GFF = 
+y922_scaffold13 . gene  1  1068  . + . ID=DEKNAAG101268;Name=DEKNAAG101268
+y922_scaffold13 . mRNA  1  1068  . + . ID=DEKNAAT101273;Parent=DEKNAAG101268;Name=DEKNAAT101273;description=Predicted: mitochondrial rna polymerase specificity factor
+y922_scaffold13 . exon  1  1068  . + . ID=DEKNAAE101408;Parent=DEKNAAT101273;Name=DEKNAAE101408
+y922_scaffold13 . CDS 1  1068  . + 0 ID=DEKNAAC101407;Parent=DEKNAAT101273;Name=DEKNAAC101407
