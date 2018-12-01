@@ -11,6 +11,7 @@ synonymtypedef: dbvar "DBVAR"
 synonymtypedef: ebi_variants "ensembl variant terms" 
 synonymtypedef: RNAMOD "RNA modification" EXACT
 ontology: so-xp/subsets/SOFA
+default-namespace: sequence
 
 [Term]
 id: SO:0000000
