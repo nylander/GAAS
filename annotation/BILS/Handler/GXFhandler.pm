@@ -86,7 +86,7 @@ sub slurp_gff3_file_JD {
 	## TO DO 
 	# Handle the parameter with a hash
 	if(! $verbose){$verbose=0;}
-	my $overlapCheck = 0; # option to activate the check for overlapping locus
+	my $overlapCheck = 0; # option to activate the check for overlapping locus. 0 means overlaping genes are considered as different loci.
 
 	my $start_run = time();
 	my $previous_time = undef;	
@@ -1189,9 +1189,9 @@ sub _check_exons{
  	  			if( ! exists_keys(\%checked,($id_l2)) ){ #l2 already checked
 
  	  				my $feature_example=undef; # will be used to create the exon features
-	 	  			my $list_location_Exon=[];
-	 	  			my $list_location_NoExon=[];
-	 	  			my $list_location_NoExon_overlap=[];
+	 	  			my $list_location_Exon=undef;
+	 	  			my $list_location_NoExon=undef;
+	 	  			my $list_location_NoExon_overlap=undef;
 	 	  			my %createIT; # will be usefull to list the feature to create
 #				 	+-----------------------------------------------------
 #					| 			Go through l3 and save info needed		 |
@@ -1280,9 +1280,9 @@ sub _check_exons{
 #				 	+--------------------------------------------------------------------------------------------------------+
 #					| 				COMPARE EXONS POSITION TO THOSE DESCRIBED BY NON-EXON FEATURES 						 |
 #				 	+--------------------------------------------------------------------------------------------------------+
-
+			
  	  				#Case where exon feature exists, we have to check them
-	 	  			if( exists_keys($hash_omniscient,('level3','exon', $id_l2)) ){ #l3 feature but no exon among them... need to recreate them.
+	 	  			if( exists_keys($hash_omniscient,('level3','exon', $id_l2)) ){ #When thre are l3 features but no exon among them... we need to recreate them.
 
 	 	  				#create string to comapre the 2 lists.
 	 	  				my $list_location_Exon_joined="";
@@ -1297,7 +1297,7 @@ sub _check_exons{
 	 	  				# If no overlap we create the exon:
 	 	  				# If overlap:  Redefine internal exon ; Redfine external exon only if too short.
 						if($list_location_Exon_joined ne $list_location_NoExon_joined ){
-							print "_check_exons EXON MISSING ! Let's check that !! \n" if ($verbose >= 2);
+							print "_check_exons EXON problem for $id_l2! coordinates of exons found and coordinate of exons expected according to other feature (i.e. CDS and/or UTR, and/or ...). Let's check that (We will create exon, or modify coordinates, depending of cases. If creation of UTR is needed it will be done in a next step) !! \n" if ($verbose >= 2);
 
 							my $location_cpt=0;
 		 	  				foreach my $location (sort {$a->[1] <=> $b->[1] } @{$list_location_NoExon}){
@@ -1346,7 +1346,7 @@ sub _check_exons{
 			 	  							}
 			 	  						}
 			 	  					}
-			 	  					elsif($overlap){ #location not modified but no overlap, so it means the exon is not defined !
+			 	  					elsif($overlap){ #location not modified but no overlap, so it means the exon is not defined ! <= ?? Not sure this comment is good 27th Nov 2018
 			 	  						$create_exon=undef;
 			 	  					}
 			 	  				}
@@ -1378,40 +1378,41 @@ sub _check_exons{
 					 	}
 				 	}
 
-				 	#Check extremities of exons (If shorter we adapt to the mRNA size, else we adapt the L2 to the exon size)
+				 	#Check extremities of exons (If exon is shorter we adapt it to the mRNA size, else we adapt the L2 size to the exon size)
 	 	  			my $id_l1 = lc($mRNAGeneLink->{lc($id_l2)});
 	 	  			my $getout=undef;
 	 	  			foreach my $tag_l2 ( %{$hash_omniscient->{'level2'}} ){
 	 	  				if( exists_keys($hash_omniscient,('level2', $tag_l2, $id_l1)) ){
 	 	  					foreach my $l2_feature ( @{$hash_omniscient->{'level2'}{$tag_l2}{$id_l1}} ){
 	 	  						if( lc($l2_feature->_tag_value('ID')) eq $id_l2 ){
-	 	  						 	
-	 	  						 	my $myLeftExtremity=$l2_feature->start();
-	 	  						 	my $myRightExtremity=$l2_feature->end();
-			 	  		
-				 	  			 	my @list_exon = sort {$a->start <=> $b->start} @{$hash_omniscient->{'level3'}{'exon'}{$id_l2}};
+	 	  						 	if( exists_keys ($hash_omniscient, ('level3', 'exon', $id_l2))) { # If no exon it could be a case whre no L3 feature need an exon like non_canonical_three_prime_splice_site (they are out of exon). So the list of exon does not exist.
+		 	  						 	my $myLeftExtremity=$l2_feature->start();
+		 	  						 	my $myRightExtremity=$l2_feature->end();
+				 	  		
+					 	  			 	my @list_exon = sort {$a->start <=> $b->start} @{$hash_omniscient->{'level3'}{'exon'}{$id_l2}};
 
-				 	  			 	if( int($list_exon[0]->start) >  int($myLeftExtremity) ){
-				 	  			 		print "_check_exons We modified the exon LEFT extremity from $id_l2! ".$list_exon[0]->start." <to> ".$myLeftExtremity."\n" if($verbose >= 1);;
-				 	  			 		$list_exon[0]->start($myLeftExtremity);
-				 	  			 	}
-				 	  			 	if($list_exon[0]->start <  $myLeftExtremity){  #modify L2 
-				 	  			 		$l2_feature->start($list_exon[0]->start);
-				 	  			 		print "_check_exons We modified the L2 LEFT extremity !\n" if($verbose >= 1);
-				 	  			 	}
+					 	  			 	if( int($list_exon[0]->start) >  int($myLeftExtremity) ){
+					 	  			 		print "_check_exons We modified the exon LEFT extremity from $id_l2! ".$list_exon[0]->start." <to> ".$myLeftExtremity."\n" if($verbose >= 1);;
+					 	  			 		$list_exon[0]->start($myLeftExtremity);
+					 	  			 	}
+					 	  			 	if($list_exon[0]->start <  $myLeftExtremity){  #modify L2 
+					 	  			 		$l2_feature->start($list_exon[0]->start);
+					 	  			 		print "_check_exons We modified the L2 LEFT extremity !\n" if($verbose >= 1);
+					 	  			 	}
 
-				 	  			 	if($list_exon[$#list_exon]->end <  $myRightExtremity){
-				 	  			 		print "_check_exons We modified the exon RIGHT extremity from $id_l2!".$list_exon[$#list_exon]->end." to ".$myRightExtremity."\n" if($verbose >= 1);
-				 	  			 		$list_exon[$#list_exon]->end($myRightExtremity);  			 		
-				 	  			 	}
-				 	  			 	elsif($list_exon[$#list_exon]->end >  $myRightExtremity){ #modify L2 
-				 	  			 		$l2_feature->end($list_exon[$#list_exon]->end);
-				 	  			 		print "_check_exons We modified the L2 RIGHT extremity !\n" if($verbose >= 1);
-				 	  			 	}
+					 	  			 	if($list_exon[$#list_exon]->end <  $myRightExtremity){
+					 	  			 		print "_check_exons We modified the exon RIGHT extremity from $id_l2!".$list_exon[$#list_exon]->end." to ".$myRightExtremity."\n" if($verbose >= 1);
+					 	  			 		$list_exon[$#list_exon]->end($myRightExtremity);  			 		
+					 	  			 	}
+					 	  			 	elsif($list_exon[$#list_exon]->end >  $myRightExtremity){ #modify L2 
+					 	  			 		$l2_feature->end($list_exon[$#list_exon]->end);
+					 	  			 		print "_check_exons We modified the L2 RIGHT extremity !\n" if($verbose >= 1);
+					 	  			 	}
 
-				 	  			 	$getout=1;
-				 	  			 	last;
-				 	  			}
+					 	  			 	$getout=1;
+					 	  			 	last;
+					 	  			}
+					 	  		}
 	 	  					}
 	 	  					if($getout){
 	 	  						last;
@@ -1564,7 +1565,7 @@ sub _check_utrs{
 				 	  							if($tag_l3 =~"utr"){
 				 	  								if( exists_keys($hash_omniscient,('level3', $tag_l3, $id_l2)) ){
 							 	  						foreach my $l3_feature (@{$hash_omniscient->{'level3'}{$tag_l3}{$id_l2} } ){
-							 	  							if($l3_feature->_tag_value('ID') eq $UTR_location->[0][0]){
+							 	  							if($l3_feature->_tag_value('ID') eq $UTR_location->[0][0] and $l3_feature->start eq $UTR_location->[1] and $l3_feature->end eq $UTR_location->[2]){ # we have to check position to be sure we modify the correct one, because UTR could share the same ID
 							 	  								print "UTR location modified: = ".$l3_feature->gff_string."\nnew location:".$UTRexp_location->[1]." ".$UTRexp_location->[2]."\n" if ($verbose >= 3);
 							 	  								$l3_feature->start($UTRexp_location->[1]);
 							 	  								$l3_feature->end($UTRexp_location->[2]);
@@ -2819,6 +2820,7 @@ sub fetcher_JD {
 # @Purpose: retrieve the feature_ontology
 # @input: 3 =>  String file, Hash, Int 
 # @output: 1 => Object Ontology
+# @Remark: Do not deal if multiple ontologies (we will use the first one meet) 
 sub _handle_ontology{
 	my ($gff3headerInfo, $verbose, $quiet) = @_ ;
 
@@ -2868,9 +2870,10 @@ sub _handle_ontology{
 		try{
 			my $full_path = `perldoc -lm BILS::Handler::GXFhandler`;
 			my $index = index($full_path, "BILS/");
-			$index+=5; #To not chrinck BILS/ part of the path
+			$index+=5; #To not shrinck BILS/ part of the path
 			my $path_begin =  substr $full_path, 0, $index;
 			my $correct_path = $path_begin."Ontology/SOFA";
+
 			opendir (DIR, $correct_path) or die $!;
 			my @list_file;
 	
@@ -2878,18 +2881,36 @@ sub _handle_ontology{
 			while (my $file = readdir(DIR)) {
 				next if($file eq "." or  $file eq "..");
 			 	push(@list_file, $file);
-		    	}
+		    }
 	
-		    	#get the most recent file
-		    	my @sorted_list = sort { $a cmp $b } @list_file;
-		    	my $recent_file = pop @sorted_list;
-		    	my $sofa_file_path = $correct_path."/".$recent_file;
-		    	print "We will use the most recent SOFA feature-ontology we have localy: $recent_file\n" if $verbose;
+		    #get the most recent file
+		    my @sorted_list = sort { $a cmp $b } @list_file;
+		    my $recent_file = pop @sorted_list;
+		    my $sofa_file_path = $correct_path."/".$recent_file;
+		    print "We will use the most recent SOFA feature-ontology we have localy: $recent_file\n" if $verbose;
 
 			#parse the ontology
 			my $parser = Bio::OntologyIO->new(-format => "obo",
 	                                      -file => $sofa_file_path);
 			$ontology_obj = $parser->parse();
+			if($verbose) {
+				my $nbroot_terms =0;
+				foreach my $term ($ontology_obj->get_root_terms) {
+					$nbroot_terms++;
+				}
+				my $nbterms =0;
+				foreach my $term ($ontology_obj->get_all_terms) {
+					$nbterms++;
+				}
+				my $nbleaf_terms =0;
+				foreach my $term ($ontology_obj->get_leaf_terms) {
+					$nbleaf_terms++;
+				}
+				print "read ontology $recent_file with ",
+             	"$nbroot_terms root terms, and ",
+             	"$nbterms total terms, and ",
+             	"$nbleaf_terms leaf terms\n";
+			}
 		}
 		catch{
 			print "error: $_\n" if ( $verbose >= 1);
