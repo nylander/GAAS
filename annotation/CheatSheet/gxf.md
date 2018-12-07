@@ -101,7 +101,7 @@ Here an example of GFF1:
 /!\ Note: Some of the changes we will see have been implemented before the offical release of the version 2. As consequence, several interemediate states between version 1 and 2 have existed. We can call them GFF1.X. I will not discuss further these intermediate states.
 
 **16/12/98**: Discussions with **Lincoln Stein** and **others**,the Version 2 format of GFF is proposed.  
-**17/11/99**: 'Gene Feature Finding' Version 2 format is conceptually generalized to be the 'General Feature Format'
+**17/11/99**: **Gene Feature Finding** Version 2 format is conceptually generalized to be the **General Feature Format**
 
 The GFF2 format is conceptualized since the 16/12/98 but becomes officially the default version the 2000-9-29.
 [Here is the official description](snapshots/sanger_gff2.md) which is a snapshot from here: https://web.archive.org/web/20010208224442/http://www.sanger.ac.uk:80/Software/formats/GFF/GFF_Spec.shtml.  
@@ -109,7 +109,7 @@ You can find the first description (03 Feb 2000) of the GFF2 [here] (snapshots/G
 
 Here we will review changes occured from the version 1. 
 
-=> The **Gene Feature Finding** has been  generalized to accomodate to accommodate RNA and Protein feature files and has been renamed the **General Feature Format** while retaining the same acronym GFF.  
+=> The **Gene Feature Finding** has been  generalized to accomodate RNA and Protein feature files and has been renamed the **General Feature Format** while retaining the same acronym GFF.  
 
 The main change from Version 1 to Version 2 is the addition of an optional 9th field with tag-value type structure (essentially semicolon-separated .ace format) used for any additional material on the line. Version 2 also allows '.' as a score, for features for which there is no score.
 With the changes taking place to version 2 of the format, we also allow for feature sets to be defined over RNA and Protein sequences, as well as genomic DNA. This is used for example by the EMBOSS project to provide standard format output for all features as an option. In this case the <strand> and <frame> fields should be set to '.'. To assist this transition in specification, a new #Type Meta-Comment has been added.
@@ -234,16 +234,16 @@ So the oldest paper they point to is the one from Reese et al. from February 9, 
     instance, declaring that submitters should describe
     coding exons with the feature name CDS.
 
-From those information we can understand that in ~2000 for the drosophila genome project they have use the GFF format with original specification that leaded to the emergence of the GTF format.
+From those information we can understand that in ~2000 for the drosophila genome project they have use the GFF format with particuliar specification that leaded to the emergence of the GTF format.
 
 In this paper from (The Human Genome Browser at UCSC. Genome Res. 2002 Jun; 12(6): 996–1006. doi:  [10.1101/gr.229102]) they say that the GTF format has been designed specifically for the human genome project. 
 
     Since August 2001, it has become possible for users to upload their own annotations for display in the browser. These annotations can be in the standard GFF format (http:// www.sanger.ac.uk/Software/formats/GFF), or in some formats designed specifically for the human genome project including GTF, PSL, and BED. The formats are described in detail in the web page http://genome.cse.ucsc.edu/goldenPath/help/ customTrack.html. Note that the GFF and GTF files must be tab delimited rather than space delimited. Uploaded
     
-With this last paper it's hard to understand with which project the GTF format is  finally araised.
+With this last paper it's hard to understand from which project the GTF format is finally born.
 
 ## GTF2 (2003)
-[Here the description from the Washington University in St. Louis](https://web.archive.org/web/20031212200757/http://genes.cse.wustl.edu/GTF2.html). Foudn from the Eval publication received the 18 july 2003 mentioning the address http://genes.cse.wustl.edu/GTF2.html that has been archived in the web-archive the 12/12/2003. Prior to the publication in BMV Bioinformatics (and after 1 January 2003 because it's the most recent  journal cited in his report) E. Kleiber released a Master project report named "Eval: A Gene Set Comparison System" where it mention and describe the GTF, maybe the first version of the format. 
+[Here the description from the Washington University in St. Louis](https://web.archive.org/web/20031212200757/http://genes.cse.wustl.edu/GTF2.html). Found from the Eval publication received the 18 july 2003 mentioning the address http://genes.cse.wustl.edu/GTF2.html that has been archived in the web-archive the 12/12/2003. Prior to the publication in BMC Bioinformatics (and after 1 January 2003 because it's the most recent  journal cited in his report) E. Kleiber released a Master project report named "Eval: A Gene Set Comparison System" where he mention and describe the GTF, maybe the first version of the format. 
 
 ## GTF2.2 (2007)
 [Here the description from the Brent Lab (The Washington University in St. Louis) (http://mblab.wustl.edu/GTF22.html)
@@ -254,3 +254,12 @@ GFF3 addresses several shortcomings in its predecessor GFF2. It has been concept
 
 
 ## Resume
+
+## Extra
+
+Here example of problem encountered due to lake of standardization (from https://genome.ucsc.edu/FAQ/FAQtracks.html):
+Inconsistency in stop codon treatment in GTF tracks
+I've been doing some comparative gene set analysis using the gene annotation tracks and I believe I have run into an inconsistency in the way that stop codons are treated in the annotations. Looking at the Human June 2002 assembly, the annotations for Ensembl, Twinscan, SGP, and Geneid appear to exclude the stop codon in the coding region coordinates. All of the other gene annotation sets include the stop codon as part of the coding region. My guess is that this inconsistency is the result of the gene sets being imported from different file formats. The GTF2 format does not include the stop codon in the terminal exon, while the GenBank format does, and the GFF format does not specify what to do.
+Your guess is correct. We haven't gotten around to fixing this situation. A while ago, the Twinscan group made a GTF validator. It interpreted the stop codon as not part of the coding region. Prior to that, all GFF and GTF annotations that we received did include the stop codon as part of the coding region; therefore, we didn't have special code in our database to enforce it. In response to the validator, Ensembl, SGP and Geneid switched their handling of stop codons to the way that Twinscan does it, hence the discrepancy.```
+
+GFF3 addresses several shortcomings in its predecessor GFF2. It has been conceptualized by by **Lincoln Stein**. [The First specification draft](https://web.archive.org/web/20031207182031/http://song.sourceforge.net:80/gff3.shtml) I found is from 10 September 2003 (version 1.00rc1). [The first offical specification](http://rice.bio.indiana.edu:7082/annot/gff3.html) is the version 1 published the 30 September 2004.
