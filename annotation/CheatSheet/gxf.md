@@ -257,9 +257,10 @@ GFF3 addresses several shortcomings in its predecessor GFF2. It has been concept
 
 ## Extra
 
-Here example of problem encountered due to lake of standardization (from https://genome.ucsc.edu/FAQ/FAQtracks.html):
-Inconsistency in stop codon treatment in GTF tracks
+Here example of problem encountered due to lake of standardization (from https://genome.ucsc.edu/FAQ/FAQtracks.html):  
+
+**Inconsistency in stop codon treatment in GTF tracks**
 I've been doing some comparative gene set analysis using the gene annotation tracks and I believe I have run into an inconsistency in the way that stop codons are treated in the annotations. Looking at the Human June 2002 assembly, the annotations for Ensembl, Twinscan, SGP, and Geneid appear to exclude the stop codon in the coding region coordinates. All of the other gene annotation sets include the stop codon as part of the coding region. My guess is that this inconsistency is the result of the gene sets being imported from different file formats. The GTF2 format does not include the stop codon in the terminal exon, while the GenBank format does, and the GFF format does not specify what to do.
+Answer:  
 Your guess is correct. We haven't gotten around to fixing this situation. A while ago, the Twinscan group made a GTF validator. It interpreted the stop codon as not part of the coding region. Prior to that, all GFF and GTF annotations that we received did include the stop codon as part of the coding region; therefore, we didn't have special code in our database to enforce it. In response to the validator, Ensembl, SGP and Geneid switched their handling of stop codons to the way that Twinscan does it, hence the discrepancy.```
 
-GFF3 addresses several shortcomings in its predecessor GFF2. It has been conceptualized by by **Lincoln Stein**. [The First specification draft](https://web.archive.org/web/20031207182031/http://song.sourceforge.net:80/gff3.shtml) I found is from 10 September 2003 (version 1.00rc1). [The first offical specification](http://rice.bio.indiana.edu:7082/annot/gff3.html) is the version 1 published the 30 September 2004.
