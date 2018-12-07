@@ -245,6 +245,9 @@ In this paper from (The Human Genome Browser at UCSC. Genome Res. 2002 Jun; 12(6
 With this last paper it's hard to understand from which project the GTF format is finally born.
 
 ## GTF2 (2003)
+
+The original GTF described by Ensembl has been adapted and became GTF2 for the need of the the Mouse/Human Annotation Collaboration.
+
 [Here the description from the Washington University in St. Louis](https://web.archive.org/web/20031212200757/http://genes.cse.wustl.edu/GTF2.html). Found from the Eval publication received the 18 july 2003 mentioning the address http://genes.cse.wustl.edu/GTF2.html that has been archived in the web-archive the 12/12/2003. Prior to the publication in BMC Bioinformatics (and after 1 January 2003 because it's the most recent  journal cited in his report) E. Kleiber released a Master project report named "Eval: A Gene Set Comparison System" where he mention and describe the GTF, maybe the first version of the format. 
 
 
