@@ -207,12 +207,14 @@ Here an example of GFF2:
 
 ## GTF (2000)
 
+**GTF stands for gene transfer format.**
+
 In this paper from 2003 (Keibler E, Brent M: Eval: a software package for analysis of genome annotations. BMC Bioinformatics 2003, 4:50.)
 they say:
 
     Annotations are submitted to Eval in GTF file format http://genes.cse.wustl.edu/GTF2.html, a community standard developed in the course of several collaborative genome annotations projects [Reese MG, Hartzell G, Harris NL, Ohler U, Abril JF, Lewis SE. Genome annotation assessment in Drosophila melanogaster. Genome Res. 2000;10:483–501. doi: 10.1101/gr.10.4.483. | Mouse Genome Sequencing Consortium Initial sequencing and comparative analysis of the mouse genome. Nature. 2002;420:520–562. doi: 10.1038/nature01262. ]. As such it can be run on the output of any annotation system.
 
-So the oldest paper they point to is the one from Reese et al. from February 9, 2000 () that says: 
+So the oldest paper they point to is the one from Reese et al. from February 9, 2000 (Genome annotation assessment in Drosophila melanogaster) that says: 
 
     We found that the General Feature Format
     (GFF) (formerly known as the Gene Feature Finding
@@ -245,6 +247,54 @@ With this last paper it's hard to understand from which project the GTF format i
 ## GTF2 (2003)
 [Here the description from the Washington University in St. Louis](https://web.archive.org/web/20031212200757/http://genes.cse.wustl.edu/GTF2.html). Found from the Eval publication received the 18 july 2003 mentioning the address http://genes.cse.wustl.edu/GTF2.html that has been archived in the web-archive the 12/12/2003. Prior to the publication in BMC Bioinformatics (and after 1 January 2003 because it's the most recent  journal cited in his report) E. Kleiber released a Master project report named "Eval: A Gene Set Comparison System" where he mention and describe the GTF, maybe the first version of the format. 
 
+
+The structure is similar to GFF, so the fields are: <seqname><source><feature><start><end><score><strand><frame><attributes>
+
+Definition of these fields are:
+
+    <seqname>
+        The <seqname> field contains the name of the sequence which this gene is on.
+    <source>
+        The <source> field should be a unique label indicating where the annotations came from – typically the name of either a prediction program or a public database.
+    <feature>
+        The <feature> field can take four values: "CDS", "start_codon", "stop_codon", and "exon". The “CDS” feature represents the coding sequence starting with the first translated codon and proceeding to the last translated codon. Unlike Genbank annotation, the stop codon is not included in the “CDS” feature for the terminal exon. The “exon” feature is used to annotate all exons, including non-coding exons. The “start_codon” and “stop_codon” features should have a total length of three for any transcript but may be split onto more than one line in the rare case where an intron falls inside the codon.
+    <start>, <end>
+        Integer start and end coordinates of the feature relative to the beginning of the sequence named in <seqname>. <start> must be less than or equal to <end>. Sequence numbering starts at 1. Values of <start> and <end> must fall inside the sequence on which this feature resides.
+    <score>
+        The <score> field is used to store some score for the feature. This can be any numerical value, or can be left out and replaced with a period.
+    <strand>
+        One of '+', '-' or '.'. '.' should be used when strand is not relevant, e.g. for dinucleotide repeats.
+    <frame>
+       A value of 0 indicates that the first whole codon of the reading frame is located at 5'-most base. 1 means that there is one extra base before the first whole codon and 2 means that there are two extra bases before the first whole codon. Note that the frame is not the length of the CDS mod 3. If the strand is '-', then the first base of the region is value of <end>, because the corresponding coding region will run from <end> to <start> on the reverse strand.
+    <attributes>
+        Each attribute in the <attribute> field should have the form: attribute_name “attribute_value”; 
+        Attributes must end in a semicolon which must then be separated from the start of any subsequent attribute by exactly one space character (NOT a tab character). Attributes’ values should be surrounded by double quotes.  
+       
+       All four features have the same two mandatory attributes at the end of the record: 
+
+qualifier | description
+-- | --
+gene_id | A unique identifier for the genomic source of the transcript. Used to group transcripts into genes.
+transcript_id | A unique identifier for the predicted transcript. Used to group features into transcripts.
+        
+    These attributes are designed for handling multiple transcripts from the same genomic region. Any other attributes or comments must appear after these two.
+    
+    [comments].
+        Any line may contain comments. Comments are indicated by the # character and everything following a # character on any line is a comment. As such, all fields are prohibited from containing # characters
+
+Here an example of GTF:
+
+     Hs-Ch1  Twinscan    exon    150 200 .   +   .   gene_id "1"; transcript_id "1.a";
+     Hs-Ch1  Twinscan    exon    300 401 .   +   .   gene_id "1"; transcript_id "1.a";
+     Hs-Ch1  Twinscan    CDS 380 401 .   +   0   gene_id "1"; transcript_id "1.a";
+     Hs-Ch1  Twinscan    exon    501 650 .   +   .   gene_id "1"; transcript_id "1.a";
+     Hs-Ch1  Twinscan    CDS 501 650 .   +   2   gene_id "1"; transcript_id "1.a";
+     Hs-Ch1  Twinscan    exon    700 800 .   + .   gene_id "1"; transcript_id "1.a";
+     Hs-Ch1  Twinscan    CDS 700 707 .   +   2   gene_id "1"; transcript_id "1.a";
+     Hs-Ch1  Twinscan    exon    900 997 .   + .   gene_id "1"; transcript_id "1.a";
+     Hs-Ch1  Twinscan    start_codon 380 382 .   +   0   gene_id "1"; transcript_id "1.a"; 
+     Hs-Ch1  Twinscan    stop_codon  708 710 .   +   0   gene_id "1"; transcript_id "1.a";
+
 ## GTF2.2 (2007)
 [Here the description from the Brent Lab (The Washington University in St. Louis) (http://mblab.wustl.edu/GTF22.html)
 
@@ -259,7 +309,7 @@ GFF3 addresses several shortcomings in its predecessor GFF2. It has been concept
 
 Here example of problem encountered due to lake of standardization (from https://genome.ucsc.edu/FAQ/FAQtracks.html):  
 
-**Inconsistency in stop codon treatment in GTF tracks**
+**Inconsistency in stop codon treatment in GTF tracks**  
 I've been doing some comparative gene set analysis using the gene annotation tracks and I believe I have run into an inconsistency in the way that stop codons are treated in the annotations. Looking at the Human June 2002 assembly, the annotations for Ensembl, Twinscan, SGP, and Geneid appear to exclude the stop codon in the coding region coordinates. All of the other gene annotation sets include the stop codon as part of the coding region. My guess is that this inconsistency is the result of the gene sets being imported from different file formats. The GTF2 format does not include the stop codon in the terminal exon, while the GenBank format does, and the GFF format does not specify what to do.
 Answer:  
 Your guess is correct. We haven't gotten around to fixing this situation. A while ago, the Twinscan group made a GTF validator. It interpreted the stop codon as not part of the coding region. Prior to that, all GFF and GTF annotations that we received did include the stop codon as part of the coding region; therefore, we didn't have special code in our database to enforce it. In response to the validator, Ensembl, SGP and Geneid switched their handling of stop codons to the way that Twinscan does it, hence the discrepancy.```
