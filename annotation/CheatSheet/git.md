@@ -42,6 +42,10 @@ The staging area helps us to create well-defined commits.
 
 ### [Aliases](https://coderefinery.github.io/git-intro/07-aliases/)
 
+| Command | Comment
+| --- | --- 
+git config --global alias.graph "log --all --graph --decorate --oneline" | the command "log --all --graph --decorate --oneline" can now be called using **git graph** 
+
 ### [Branching and merging](https://coderefinery.github.io/git-intro/09-branches/)
 
 | Command | Comment
