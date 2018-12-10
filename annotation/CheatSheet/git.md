@@ -19,12 +19,11 @@ Most of the documention find here is inspired or copied from the excellent resso
 
 ### [Undoing things](https://coderefinery.github.io/git-intro/05-undoing/)
 
-| Command | Comment
-| --- | --- 
-| git revert f960dd3 | This creates a new commit that does the opposite of the reverted commit. The old commit remains in the history
-| git commit --amend | Amend to the last commit. This can also be used to modify the last commit message.
-Note that this will change the commit hash. This command modifies the history. This means that we never use this command on commits that we have shared with others.
-| git checkout __file__ | Undo unstaged/uncommitted changes.
+| Command | Comment |
+| --- | --- |
+| git revert f960dd3 | This creates a new commit that does the opposite of the reverted commit. The old commit remains in the history |
+| git commit --amend | Amend to the last commit. This can also be used to modify the last commit message. Note that this will change the commit hash. This command modifies the history. This means that we never use this command on commits that we have shared with others. |
+| git checkout <filename> | Undo unstaged/uncommitted changes. |
 
 ### [The staging area](https://coderefinery.github.io/git-intro/06-staging-area/)
 
@@ -61,28 +60,27 @@ The staging area helps us to create well-defined commits.
 | git checkout -b <branch/hash>   | create a branch pointing to <bran
 | git **tag** -a v1.0 -m "message" |  To record particular states or milestones of a project at a given point in time, like for instance versions.
 
-	* Typical workflows
-
+  * Typical workflows
+	
 With this there are two typical workflows:
 
-```
-$ git checkout -b new-feature  # create branch, switch to it
-$ git commit                   # work, work, work, ...
-                               # test
-                               # feature is ready
-$ git checkout master          # switch to master
-$ git merge new-feature        # merge work to master
-$ git branch -d new-feature    # remove branch
-```
+		$ git checkout -b new-feature  # create branch, switch to it
+		$ git commit                   # work, work, work, ...
+					       # test
+					       # feature is ready
+		$ git checkout master          # switch to master
+		$ git merge new-feature        # merge work to master
+		$ git branch -d new-feature    # remove branch
+
 Sometimes you have a wild idea which does not work. Or you want some throw-away branch for debugging:
-```
-$ git checkout -b wild-idea
-                               # work, work, work, ...
-                               # realize it was a bad idea
-$ git checkout master
-$ git branch -D wild-idea      # it is gone, off to a new idea
-                               # -D because we never merged back
-```
+
+		$ git checkout -b wild-idea
+					       # work, work, work, ...
+					       # realize it was a bad idea
+		$ git checkout master
+		$ git branch -D wild-idea      # it is gone, off to a new idea
+					       # -D because we never merged back
+
 No problem: we worked on a branch, branch is deleted, master is clean.
 
 [**Rebase vs. merge**](https://coderefinery.github.io/git-branch-design/01-rebase/) 
@@ -116,14 +114,13 @@ You are in a middle of a development and a colleague wants to fix/commit somethi
 | git stash apply stash@{2} | reapply the work from a specific stash
 
   * Create branches
-```
-git checkout -b temporary  # create a branch and switch to it
-git add <paths>            # stage changes
-git commit                 # commit them
-git checkout master        # back to master
-                             # do your work...
-git checkout temporary     # continue where you left off
-```
+
+		git checkout -b temporary  # create a branch and switch to it
+		git add <paths>            # stage changes
+		git commit                 # commit them
+		git checkout master        # back to master
+					     # do your work...
+		git checkout temporary     # continue where you left off
 
 ### Working with remotes
 
@@ -154,23 +151,23 @@ git checkout temporary     # continue where you left off
 | git checkout -b <name> <hash> | Branch from arbitrary (earlier) hash. Recommended mechanism to inspect old code. remove the | branch once you found what you were looking for.
 
   * bisect
-  ```
-$ git bisect start
-$ git bisect good 89578ed  # this is a commit that worked
-$ git bisect bad HEAD      # last commit is broken
-  # now compile and/or run
-  # after that decide whether
-$ git bisect good
-  # or
-$ git bisect bad
-  # now compile and/or run
-  # after that decide whether
-$ git bisect good
-  # or
-$ git bisect bad
-  # iterate until commit is found
-  ```
-  This can even be automatized with `git bisect run <script>`. For this you write a script that returns zero/non-zero (success/failure).
+  
+		$ git bisect start
+		$ git bisect good 89578ed  # this is a commit that worked
+		$ git bisect bad HEAD      # last commit is broken
+		  # now compile and/or run
+		  # after that decide whether
+		$ git bisect good
+		  # or
+		$ git bisect bad
+		  # now compile and/or run
+		  # after that decide whether
+		$ git bisect good
+		  # or
+		$ git bisect bad
+		  # iterate until commit is found
+
+This can even be automatized with `git bisect run <script>`. For this you write a script that returns zero/non-zero (success/failure).
 
 ### [Cherry Picking](https://www.previousnext.com.au/blog/intro-cherry-picking-git)
 
@@ -189,8 +186,7 @@ Let’s say you are working in an project where you are making changes in a bran
 | git cherry-pick --abort | Cancel the operation and return to the pre-sequence state
 | git cherry-pick -m 1 <hash> | herry pick a merge instead of a commit
 
-**/!\\**  
-Cherry picking is commonly discouraged in developer community. The main reason is because it creates a duplicate commit with the same changes and you lose the ability to track the history of the original commit. If you can merge, then you should use that instead of cherry picking. Use it with caution!
+**/!\\** Cherry picking is commonly discouraged in developer community. The main reason is because it creates a duplicate commit with the same changes and you lose the ability to track the history of the original commit. If you can merge, then you should use that instead of cherry picking. Use it with caution!
 
 
 ### Extra
