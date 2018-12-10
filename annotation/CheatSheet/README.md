@@ -46,7 +46,7 @@ Collection of Cheat Sheets / overview / summaries
 
 ### [Screen](screen.md)
 
-### [Schedulers - LSF/TORQUE/SGE/SLURM...](pictures/scheduler_rosetta.pdf)
+### [Schedulers - LSF/Torque/SGE/Slurm...](pictures/scheduler_rosetta.pdf)
 
 # External ressources
 
