@@ -33,7 +33,7 @@ Collection of Cheat Sheets / overview / summaries
 ### Markdown syntax
   * [Git Markdown](https://guides.github.com/features/mastering-markdown/)
 ### Wiki syntax
-  * [textile](https://textile-lang.com)
+  * [textile](https://textile-lang.com) - Used by Redmine
   
 # Others
 
