@@ -45,3 +45,5 @@ Collection of Cheat Sheets / overview / summaries
 # External ressources
 
 ### [Bioinformatics one-liners](https://github.com/stephenturner/oneliners)
+
+### [Git Markdown](https://guides.github.com/features/mastering-markdown/)
