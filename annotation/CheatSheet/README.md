@@ -37,12 +37,16 @@ Collection of Cheat Sheets / overview / summaries
   
 # Others
 
+### [Git](git.md)
+
 ### Overview of annotation tools
  * [List of annotation tools](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/annotation_tools.md)
 
 ### [Overview of RNA-seq library types](rnaseq_library_types.md)
 
 ### [Screen](screen.md)
+
+### [Schedulers - LSF/TORQUE/SGE/SLURM...](pictures/scheduler_rosetta.pdf)
 
 # External ressources
 
