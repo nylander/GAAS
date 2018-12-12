@@ -6,7 +6,8 @@
 
 Contains development done in the GAA (Genome Assembly Annotation) Service.
 
-[__annotation__](annotation) directory contains development related to annotation side of the service.</br>
+## [__annotation__](annotation)  
+Annotation directory contains development related to annotation side of the service.  
 
 To use the tools in this repository, clone the directory and run `make install` to update some paths:
 ```
@@ -26,3 +27,6 @@ If you are on the NBIS production server:
 ```
 source GAAS/profiles/activate_nbis_env
 ```
+
+## [__assembly__](assembly)  
+Assembly directory contains development related to assembly side of the service.  
