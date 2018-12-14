@@ -1,12 +1,19 @@
 
 [<img align="center" src="NBIS.png" width="200" height="100" />](https://nbis.se) 
-<h2 ><em>G</em>enome <em>A</em>ssembly <em>A</em>nnotation <i>S</i>ervice (GAAS)</h2>
+<h2><em>G</em>enome <em>A</em>ssembly <em>A</em>nnotation <i>S</i>ervice (GAAS)</h2>  
+Contains development done in the GAA (Genome Assembly Annotation) Service.
 
 ---------------------------
 
-Contains development done in the GAA (Genome Assembly Annotation) Service.
+## [__annotation__](annotation)  
+Annotation directory contains development related to annotation side of the service.  
 
-[__annotation__](annotation) directory contains development related to annotation side of the service.</br>
+## [__assembly__](assembly)  
+Assembly directory contains development related to assembly side of the service.  
+
+---------------------------
+
+#### Installation:
 
 To use the tools in this repository, clone the directory and run `make install` to update some paths:
 ```
