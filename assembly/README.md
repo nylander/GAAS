@@ -4,11 +4,13 @@
 
 ---------------------------
 
-# The NBIS assembly toolkit.</br>
+# The NBIS assembly toolkit.
+
 ### (c) The NBIS Genome Assembly Platform
 
 #### [utilities](utilities)
-Custom scripts developed within NBIS for assembly projects
+Custom scripts developed within NBIS for assembly projects.
 
-### [course](https://github.com/NBISweden/workshop-genome_assembly/wiki)
-Genome assembly workshop (Uppsala). Contain a great Wiki with plenty of useful information.
+### [Genome assembly workshop wiki](https://github.com/NBISweden/workshop-genome_assembly/wiki)
+Wiki for the de novo Genome assembly workshop (Uppsala). Contains information on sequencing technologies,
+file formats, links to various assembly datasets, and lots of code snippets to run various assembly tools.
