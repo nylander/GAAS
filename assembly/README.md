@@ -9,3 +9,6 @@
 
 #### [utilities](utilities)
 Custom scripts developed within NBIS for assembly projects
+
+### [course](https://github.com/NBISweden/workshop-genome_assembly/wiki)
+Genome assembly workshop (Uppsala). Contain a great Wiki with plenty of useful information.
