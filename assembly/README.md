@@ -6,9 +6,9 @@
 
 # The NBIS assembly toolkit.
 
-### (c) The NBIS Genome Assembly Platform
+## (c) The NBIS Genome Assembly Platform
 
-#### [utilities](utilities)
+### [Utilities](utilities)
 Custom scripts developed within NBIS for assembly projects.
 
 ### [Genome assembly workshop wiki](https://github.com/NBISweden/workshop-genome_assembly/wiki)
