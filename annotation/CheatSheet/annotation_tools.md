@@ -16,6 +16,7 @@
 1997 | MZEF	| Zhang | | | | | | |
 1997 | HMMGene | Kough | Ab initio | | | | No download version | 
 1997 | GeneWise	| | Evidence based | | | | | 		
+1997 | AAT (Analysis and Annotation Tool) | Huang et al. | Evidence based | | | | Include two paris of programs DPS/NAP and DDS/GAP | 
 1998 | GeneMark.hmm | Lukashin, A. V & Borodovsky, M. GeneMark. hmm: new solutions for gene finding. Nucleic Acids Res. 26, 1107–1115 (1998). | Ab initio | HMM | Prokaryote | 1334 | Self training |
 1999 | Glimmer | Delcher et al. | | | Prokartyote | | |
 1999 | GlimmerM | Salzberg,S.L., Pertea,M., Delcher,A.L., Gardner,M.J. and Tettelin,H. (1999) Interpolated Markov models for eukaryotic gene finding. Genomics, 59, 24–31. | | | Small eukaryote | | developed to find genes in the malaria parasite Plasmodium falciparum. |
