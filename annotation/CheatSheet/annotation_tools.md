@@ -1,19 +1,24 @@
 | year	| Gene finder Name | Publication | Type	| Method | Organism | Nb citation (pubmed 2016) | Comments | Output Format |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-1991 |	GRAIL |	| Ab initio | | | | No longer supported |
-1992 | GeneID |	| Ab initio | WAM, HMM, PD, AD | | | |			
+1991 | GRAIL |	| Ab initio | | | | No longer supported |
+1992 | GeneID |	Gugio et al. | Ab initio | WAM, HMM, PD, AD | | | |			
 1993 | GeneParser | |	Ab initio	| | | | |		
+1993 | GRAIL-II | Milanesi et al. | | | | | |
 1994 | Fgeneh	| | Ab initio | HMM, DP, LDA | Eukaryota | | Finds single exon only |
 1994 | EcoParse	| | Ab initio | HMM | Prokaryote | 393 | |
 1994 | GeneLang | Dong and Searls | Ab initio | Linguistic method HMM, PD, WAM | Eukaryote | | | |
-1996 | Genie	| | Hybrid | | | | |			
+1995 | FGENES| Solovyev et al. | | | | | | |
+1996 | Genie	| Kulp et al. | Hybrid | | | | |			
 1996 | PROCRUSTES | | Evidence based | | | | |			
 1997 | Fgenes	| | Hybrid | | | | | No download version |
 1997 | GeneFinder | | Ab initio | | | | Unpublished work |
-1997 | GenScan	| | Ab initio | | | | | |
+1997 | GenScan	| Burge and Karlin | Ab initio | | | | | |
+1997 | MZEF	| Zhang | | | | | | |
 1997 | HMMGene | Kough | Ab initio | | | | No download version | 
 1997 | GeneWise	| | Evidence based | | | | | 		
 1998 | GeneMark.hmm | Lukashin, A. V & Borodovsky, M. GeneMark. hmm: new solutions for gene finding. Nucleic Acids Res. 26, 1107–1115 (1998). | Ab initio | HMM | Prokaryote | 1334 | Self training |
+1999 | Glimmer | Delcher et al. | | | Prokartyote | | |
+1999 | GlimmerM | Salzberg,S.L., Pertea,M., Delcher,A.L., Gardner,M.J. and Tettelin,H. (1999) Interpolated Markov models for eukaryotic gene finding. Genomics, 59, 24–31. | | | Small eukaryote | | developed to find genes in the malaria parasite Plasmodium falciparum. |
 2000 | GenomeScan | | Comparative | | | | |	
 2001 | Eugene |	| Hybrid | Semi-Markov Conditional Random Fields / IMM, DP | Plant | | Can be seen as a combiner because collect information about splice sites and ATG has to be done outside the program. |
 2001 | Twinscan | | Comparative	| | | | Two genomes |
@@ -25,7 +30,8 @@
 2003 | ETOPE | | Comparative | based on the ratio of non-synonymous to synonymous substitution rates between sequences from different genomes	| Eucaryote |	20	| Based on Genscan output |
 2004 | Ensembl | | Evidence based	| | |	| Pipeline |
 2004 | GeneZilla/TIGRSCAN | |	Ab initio | | | |	No longer supported |
-2004 | GlimmerHMM	| | Ab initio	| | | | |		
+2004 | GlimmerHMM	| Majoros, W.H., Pertea, M.,and Salzberg, S.L. TigrScan and GlimmerHMM: two open-source ab initio eukaryotic gene-finders Bioinformatics 2004 2878-2879. | Ab initio	| GHMM | eukaryote | | |		
+2004 | TigrScan | Majoros, W.H., Pertea, M.,and Salzberg, S.L. TigrScan and GlimmerHMM: two open-source ab initio eukaryotic gene-finders Bioinformatics 2004 2878-2879. | Ab initio	| GHMM | eukaryote | | |		
 2004 | SNAP |	| Ab initio | | | |			
 2005 | JIGSAW	| |  Combiner | | | 137 | select the prediction whose structure best represents the consensus |
 2005 | GeneMark-ES | Lomsadze, A. Gene identification in novel eukaryotic genomes by self-training algorithm. Nucleic Acids Res. 33, 6494–6506 (2005) ; Ter-Hovhannisyan, V., Lomsadze, A., Chernoff, Y. O. & Borodovsky, M. Gene prediction in novel fungal genomes using an ab initio algorithm with unsupervised training. Genome Res. 18, 1979–1990 (2008). | Ab initio |  | Eucaryote | 243 / 200 | |
