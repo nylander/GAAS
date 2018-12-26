@@ -20,6 +20,7 @@
 1998 | GeneMark.hmm | Lukashin, A. V & Borodovsky, M. GeneMark. hmm: new solutions for gene finding. Nucleic Acids Res. 26, 1107–1115 (1998). | Ab initio | HMM | Prokaryote | 1334 | Self training |
 1999 | Glimmer | Delcher et al. | | | Prokartyote | | |
 1999 | GlimmerM | Salzberg,S.L., Pertea,M., Delcher,A.L., Gardner,M.J. and Tettelin,H. (1999) Interpolated Markov models for eukaryotic gene finding. Genomics, 59, 24–31. | | | Small eukaryote | | developed to find genes in the malaria parasite Plasmodium falciparum. |
+1999 | Veil (the Viterbi Exon-Intron Locator) | Finding Genes in Human DNA with a Hidden Markov Model. J. Henderson, S.L. Salzberg, and K. Fasman. This describes the VEIL system for finding genes. Journal of Computational Biology 4:2 (1997), 127-141. | HMM | | | Eukaryote | | 
 2000 | GenomeScan | | Comparative | | | | |	
 2001 | Eugene |	| Hybrid | Semi-Markov Conditional Random Fields / IMM, DP | Plant | | Can be seen as a combiner because collect information about splice sites and ATG has to be done outside the program. |
 2001 | Twinscan | | Comparative	| | | | Two genomes |
