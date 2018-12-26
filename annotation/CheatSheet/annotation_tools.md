@@ -19,7 +19,7 @@
 2001 | Twinscan | | Comparative	| | | | Two genomes |
 2001 | GeneHacker Plus | | Ab initio | HMM | Prokaryote | 50 | |	
 2001 | GeneMarkS | | Ab initio | HMM | Prokaryote | 742 |	Self training |
-2002 | GAZE	| Howe, K. L. et al. GAZE : A Generic Framework for the Integration of Gene-Prediction Data by Dynamic Programming GAZE : A Generic Framework for the Integration of Gene-Prediction Data by Dynamic Programming. 1418–1427 (2002). doi:10.1101/gr.149502 | Comparative / combiner | | | | |		
+2002 | GAZE	| Howe, K. L. et al. GAZE : A Generic Framework for the Integration of Gene-Prediction Data by Dynamic Programming. 1418–1427 (2002). doi:10.1101/gr.149502 | Comparative / combiner | | | | |		
 2003 | SLAM	| | Comparative |	GHMM | | 187 | |	
 2003 | EasyGene | | Ab initio |	HMM, H | Prokaryote |	153	| |
 2003 | ETOPE | | Comparative | based on the ratio of non-synonymous to synonymous substitution rates between sequences from different genomes	| | Eucaryote |	20	| Based on Genscan output |
