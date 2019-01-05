@@ -4,19 +4,22 @@
 1992 | GeneID |	Gugio et al. | Ab initio | WAM, HMM, PD, AD | | | |			
 1993 | GeneParser | |	Ab initio	| | | | |		
 1993 | GRAIL-II | Milanesi et al. | | | | | |
-1994 | Fgeneh	| | Ab initio | HMM, DP, LDA | Eukaryota | | Finds single exon only |
+1994 | Fgenes	| Solovyev et al. | Ab initio | HMM, DP, LDA | Human | | Finds single exon only |
 1994 | EcoParse	| | Ab initio | HMM | Prokaryote | 393 | |
 1994 | GeneLang | Dong and Searls | Ab initio | Linguistic method HMM, PD, WAM | Eukaryote | | | |
-1995 | FGENES| Solovyev et al. | | | | | | |
+1995 | Geneparser | Snyder EE, Stormo GD J Mol Biol. 1995 Apr 21; 248(1):1-18. | | | |  | |
 1996 | Genie	| Kulp et al. | Hybrid | | | | |			
 1996 | PROCRUSTES | | Evidence based | | | | |			
-1997 | Fgenes	| | Hybrid | | | | | No download version |
+1997 | Fgenesh	| | HMM | | | programs that have organism-specific parameters for human, Drosophila, plants, yeast, and nematode | | |
 1997 | GeneFinder | | Ab initio | | | | Unpublished work |
 1997 | GenScan	| Burge and Karlin | Ab initio | | | | | |
 1997 | MZEF	| Zhang | | | | | | |
 1997 | HMMGene | Kough | Ab initio | | | | No download version | 
 1997 | GeneWise	| | Evidence based | | | | | 		
-1997 | AAT (Analysis and Annotation Tool) | Huang et al. | Evidence based | | | | Include two paris of programs DPS/NAP and DDS/GAP | 
+1997 | AAT (Analysis and Annotation Tool) | Huang et al. | Evidence based | | | | Include two paris of programs DPS/NAP and DDS/GAP |
+1998 | GAIA	| GAIA: framework annotation of genomic sequence. Bailey LC Jr, Fischer S, Schug J, Crabtree J, Gibson M, Overton GC. Genome Res. 1998 Mar; 8(3):234-50. | homology-based | | | | | 		
+1998 | MORGAN (Multi-frame Optimal Rule-based Gene ANalyzer) | Salzberg S, Delcher AL, Fasman KH, Henderson J
+J Comput Biol. 1998 Winter; 5(4):667-80. | | | | | Hybrid tool combining decision trees with dynamic programming and signal sensor algorithm |	
 1998 | GeneMark.hmm | Lukashin, A. V & Borodovsky, M. GeneMark. hmm: new solutions for gene finding. Nucleic Acids Res. 26, 1107–1115 (1998). | Ab initio | HMM | Prokaryote | 1334 | Self training |
 1999 | Glimmer | Delcher et al. | | | Prokartyote | | |
 1999 | GlimmerM | Salzberg,S.L., Pertea,M., Delcher,A.L., Gardner,M.J. and Tettelin,H. (1999) Interpolated Markov models for eukaryotic gene finding. Genomics, 59, 24–31. | | | Small eukaryote | | developed to find genes in the malaria parasite Plasmodium falciparum. |
@@ -44,7 +47,10 @@
 2006 | Metagene	| | | | Metagenomic	| 294 | |	
 2007 | Conrad | | Ab initio | | | | |				
 2007 | Contrast | | Comparative | | | 90 | Can also incorporate information from EST alignment |
-2007 | Genomix	| | | | |	1 | |	
+2007 | Genomix	| | | | |	1 | |
+2007 | Fgenesh+	|  Solovyev V.V. (2007) Statistical approaches in Eukaryotic gene prediction. In Handbook of Statistical genetics (eds. Balding D., Cannings C., Bishop M.), Wiley-Interscience; 3d edition, 1616 p. | HMM plus similar protein-based gene prediction | | | | | Fgenesh+ is a variant of Fgenesh that takes into account some information about similar proteins |
+2008 | SCGPred | SCGPred: a score-based method for gene structure prediction by combining multiple sources of evidence.
+Li X, Ren Q, Weng Y, Cai H, Zhu Y, Zhang Y Genomics Proteomics Bioinformatics. 2008 Dec; 6(3-4):175-85. | Combiner | | |	Eukaryote | automated eukaryotic gene structure annonator that computes weighted consensus gene structure based on multiple sources of available evidence |	
 2008 | Maker | Cantarel, B. L. et al. Maker. Genome Res. 18, 188–96 (2008). | Combiner | | | 306	| It uses proteins, transcripts ... Abinitio: Augustus, Fgnesh,Genemark,snap|
 2008 | Evigan | Liu, Q., Mackey, A. J., Roos, D. S. & Pereira, F. C. N. Evigan: A hidden variable model for integrating gene evidence for eukaryotic gene prediction. Bioinformatics 24, 597–605 (2008). | Combiner |	Unsupervised learning method | | 52 | Choose the best possible set of exons and combine them in a gene model. Weight of different sources.|
 2008 | Evidence Modeler | Haas, B. J. et al. Automated eukaryotic gene structure annotation using EVidenceModeler and the Program to Assemble Spliced Alignments. Genome Biol. 9, R7 (2008). | Combiner | | | | choose the best possible set of exons and combine them in a gene model weight of different sources. Evidence based chooser. | 
@@ -56,10 +62,17 @@
 2012 | eCRAIG | | | | | 4 | |	
 2014 | GeneMark-ET| Lomsadze, A., Burns, P. D. & Borodovsky, M. Integration of mapped RNA-Seq reads into automatic training of eukaryotic gene finding algorithm. 42, 1–8 (2014). | Ab initio | HMM | Eukaryote | 10 | Self training |
 2015 | Ipred | Zickmann, F. & Renard, B. Y. IPred - integrating ab initio and evidence based gene predictions to improve prediction accuracy. BMC Genomics 16, 134 (2015). | Combiner evidence-based | | | | choose the best possible set of exons and combine them in a gene model. Evidence based chooser. Can also model gene form evidence only. |
+2015 | GASS ( Genome Annotation based on Species Similarity) | GASS: genome structural annotation for Eukaryotes based on species similarity. Wang Y, Chen L, Song N, Lei X. BMC Genomics. 2015 Mar 4; 16():150. | comparative | shortest path model and DP | |  | |
 2016 | BRAKER1 | Lange, S., Hof, K., Lomsadze, A., Borodovsky, M. & Stanke, M. BRAKER1 : Unsupervised RNA-Seq-Based Genome Annotation with GeneMark-ET and AUGUSTUS. 24, 2014 (2014). | Hybrid / Pipeline	| | | 1 | Pipeline: GeneMark-ET + Augustus |	
 2016 | Companion | Steinbiss, S. et al. Companion: a web server for annotation and analysis of parasite genomes. Nucleic Acids Res. 44, W29–W34 (2016) | | | | | Pipeline for automatic eukaryotic parasite annotation |
 2016 | Gmove | Dubarry, M. et al. Gmove a tool for eukaryotic gene predictions using various evidences. F1000Reserach 34, 2011 (2016). | | | | | Eukaryotic Gene Predictions using Various Evidences Dubarry |
-2017 | GeMoMa | Keilwagen, J., Hartung, F., Paulini, M., Twardziok, S. O. & Grau, J. Combining RNA-seq data and homology-based gene prediction for plants , animals and fungi. (2017). | | | | | homology-based gene prediction program				
+2017 | GeMoMa | Keilwagen, J., Hartung, F., Paulini, M., Twardziok, S. O. & Grau, J. Combining RNA-seq data and homology-based gene prediction for plants , animals and fungi. (2017). | | | | | homology-based gene prediction program |				
+? | GISMO | | | | |  | |	
+? | RBFN | | | | |  | |	
+? | ZUPLS | | | | |  | |
+? | Geneparser2 | | | | |  | |
+? | Xpound | | | | |  | |
+? | Softberry | | | | |  | |
 _____________________
 __Legend:__  
 Hybrid = ab initio and evidence based;  
