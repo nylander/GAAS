@@ -4,13 +4,13 @@
 1992 | GeneID |	Gugio et al. | Ab initio | WAM, HMM, PD, AD | | | |			
 1993 | GeneParser | |	Ab initio	| | | | |		
 1993 | GRAIL-II | Milanesi et al. | | | | | |
-1994 | Fgenes	| Solovyev et al. | Ab initio | HMM, DP, LDA | Human | | Finds single exon only |
 1994 | EcoParse	| | Ab initio | HMM | Prokaryote | 393 | |
 1994 | GeneLang | Dong and Searls | Ab initio | Linguistic method HMM, PD, WAM | Eukaryote | | | |
+1995 | Fgeneh (Find gene in human)	| Solovyev VV, Salamov AA, Lawrence CB (1995) Identification of human gene structure using linear discriminant functions and dynamic programming. Proceedings/International Conference on Intelligent Systems for Molecular Biology; ISMB International Conference on Intelligent Systems for Molecular Biology 3: 367–375 | Ab initio | HMM, DP, LDA | Human | | Finds single exon only |
 1995 | Geneparser | Snyder EE, Stormo GD J Mol Biol. 1995 Apr 21; 248(1):1-18. | | | |  | |
 1996 | Genie	| Kulp et al. | Hybrid | | | | |			
-1996 | PROCRUSTES | | Evidence based | | | | |			
-1997 | Fgenesh	| | HMM | | | programs that have organism-specific parameters for human, Drosophila, plants, yeast, and nematode | | |
+1996 | PROCRUSTES | | Evidence based | | | | |
+1997 | Fgenes	| Solovyev | Ab initio | HMM, DP, LDA | Human | | |
 1997 | GeneFinder | | Ab initio | | | | Unpublished work |
 1997 | GenScan	| Burge and Karlin | Ab initio | | | | | |
 1997 | MZEF	| Zhang | | | | | | |
@@ -21,9 +21,11 @@
 1998 | MORGAN (Multi-frame Optimal Rule-based Gene ANalyzer) | Salzberg S, Delcher AL, Fasman KH, Henderson J
 J Comput Biol. 1998 Winter; 5(4):667-80. | | | | | Hybrid tool combining decision trees with dynamic programming and signal sensor algorithm |	
 1998 | GeneMark.hmm | Lukashin, A. V & Borodovsky, M. GeneMark. hmm: new solutions for gene finding. Nucleic Acids Res. 26, 1107–1115 (1998). | Ab initio | HMM | Prokaryote | 1334 | Self training |
+1999 | Fgenesh | Solovyev and Salamov | HMM | | | programs that have organism-specific parameters for human, Drosophila, plants, yeast, and nematode | | |
 1999 | Glimmer | Delcher et al. | | | Prokartyote | | |
 1999 | GlimmerM | Salzberg,S.L., Pertea,M., Delcher,A.L., Gardner,M.J. and Tettelin,H. (1999) Interpolated Markov models for eukaryotic gene finding. Genomics, 59, 24–31. | | | Small eukaryote | | developed to find genes in the malaria parasite Plasmodium falciparum. |
 1999 | Veil (the Viterbi Exon-Intron Locator) | Finding Genes in Human DNA with a Hidden Markov Model. J. Henderson, S.L. Salzberg, and K. Fasman. This describes the VEIL system for finding genes. Journal of Computational Biology 4:2 (1997), 127-141. | HMM | | | Eukaryote | | 
+2000 | Fgenesh+	|  Salamov AA, Solovyev VV Genome Res. 2000 Apr; 10(4):516-22.; Solovyev V.V. (2007) Statistical approaches in Eukaryotic gene prediction. In Handbook of Statistical genetics (eds. Balding D., Cannings C., Bishop M.), Wiley-Interscience; 3d edition, 1616 p. | HMM plus similar protein-based gene prediction | | | | | Fgenesh+ is a variant of Fgenesh that takes into account some information about similar proteins |
 2000 | GenomeScan | | Comparative | | | | |	
 2001 | Eugene |	| Hybrid | Semi-Markov Conditional Random Fields / IMM, DP | Plant | | Can be seen as a combiner because collect information about splice sites and ATG has to be done outside the program. |
 2001 | Twinscan | | Comparative	| | | | Two genomes |
@@ -45,10 +47,10 @@ J Comput Biol. 1998 Winter; 5(4):667-80. | | | | | Hybrid tool combining decisio
 2006 | TWINSCAN_EST | | Comparative+Evidence | | | | |
 2006 | N_Scan_EST | | Comparative+Evidence | | | | |		
 2006 | Metagene	| | | | Metagenomic	| 294 | |	
+2006 | FGENESH++ | Solovyev V, Kosarev P, Seledsov I, Vorobyev D. (2006) Automatic annotation of eukaryotic genes, pseudogenes and promoters. Genome Biol. 2006;7 Suppl 1:S10.1-12. | | | | | automated version of FGENESH+ |
 2007 | Conrad | | Ab initio | | | | |				
 2007 | Contrast | | Comparative | | | 90 | Can also incorporate information from EST alignment |
 2007 | Genomix	| | | | |	1 | |
-2007 | Fgenesh+	|  Solovyev V.V. (2007) Statistical approaches in Eukaryotic gene prediction. In Handbook of Statistical genetics (eds. Balding D., Cannings C., Bishop M.), Wiley-Interscience; 3d edition, 1616 p. | HMM plus similar protein-based gene prediction | | | | | Fgenesh+ is a variant of Fgenesh that takes into account some information about similar proteins |
 2008 | SCGPred | SCGPred: a score-based method for gene structure prediction by combining multiple sources of evidence.
 Li X, Ren Q, Weng Y, Cai H, Zhu Y, Zhang Y Genomics Proteomics Bioinformatics. 2008 Dec; 6(3-4):175-85. | Combiner | | |	Eukaryote | automated eukaryotic gene structure annonator that computes weighted consensus gene structure based on multiple sources of available evidence |	
 2008 | Maker | Cantarel, B. L. et al. Maker. Genome Res. 18, 188–96 (2008). | Combiner | | | 306	| It uses proteins, transcripts ... Abinitio: Augustus, Fgnesh,Genemark,snap|
@@ -72,7 +74,6 @@ Li X, Ren Q, Weng Y, Cai H, Zhu Y, Zhang Y Genomics Proteomics Bioinformatics. 2
 ? | ZUPLS | | | | |  | |
 ? | Geneparser2 | | | | |  | |
 ? | Xpound | | | | |  | |
-? | FGENESH++ | | | | | | automated version of FGENESH+ |
 ? | FGENESH++C | | | | | | maps known mRNA/EST sequences from RefSeq and then performs FGENESH++-like gene prediction |
 _____________________
 __Legend:__  
