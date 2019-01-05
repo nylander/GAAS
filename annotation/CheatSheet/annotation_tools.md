@@ -72,7 +72,8 @@ Li X, Ren Q, Weng Y, Cai H, Zhu Y, Zhang Y Genomics Proteomics Bioinformatics. 2
 ? | ZUPLS | | | | |  | |
 ? | Geneparser2 | | | | |  | |
 ? | Xpound | | | | |  | |
-? | Softberry | | | | |  | |
+? | FGENESH++ | | | | | | automated version of FGENESH+ |
+? | FGENESH++C | | | | | | maps known mRNA/EST sequences from RefSeq and then performs FGENESH++-like gene prediction |
 _____________________
 __Legend:__  
 Hybrid = ab initio and evidence based;  
