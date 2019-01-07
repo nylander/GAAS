@@ -19,8 +19,7 @@
 1997 | GeneWise	| | Evidence based | | | | | 		
 1997 | AAT (Analysis and Annotation Tool) | Huang et al. | Evidence based | | | | Include two paris of programs DPS/NAP and DDS/GAP |
 1998 | GAIA	| GAIA: framework annotation of genomic sequence. Bailey LC Jr, Fischer S, Schug J, Crabtree J, Gibson M, Overton GC. Genome Res. 1998 Mar; 8(3):234-50. | homology-based | | | | | 		
-1998 | MORGAN (Multi-frame Optimal Rule-based Gene ANalyzer) | Salzberg S, Delcher AL, Fasman KH, Henderson J
-J Comput Biol. 1998 Winter; 5(4):667-80. | | | | | Hybrid tool combining decision trees with dynamic programming and signal sensor algorithm |	
+1998 | MORGAN (Multi-frame Optimal Rule-based Gene ANalyzer) | Salzberg S, Delcher AL, Fasman KH, Henderson J. J Comput Biol. 1998 Winter; 5(4):667-80. | | | | | Hybrid tool combining decision trees with dynamic programming and signal sensor algorithm |	
 1998 | GeneMark.hmm | Lukashin, A. V & Borodovsky, M. GeneMark.hmm: new solutions for gene finding. Nucleic Acids Res. 26, 1107–1115 (1998). | Ab initio | HMM | Prokaryote | 1334 | Self training |
 1999 | Fgenesh | Solovyev and Salamov | HMM | | | programs that have organism-specific parameters for human, Drosophila, plants, yeast, and nematode | | |
 1999 | Glimmer | Delcher et al. | | | Prokartyote | | |
