@@ -1,9 +1,11 @@
 | year	| Gene finder Name | Publication | Type	| Method | Organism | Nb citation (pubmed 2016) | Comments | Output Format |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-1991 | GRAIL |	| Ab initio | | | | No longer supported |
-1992 | GeneID |	Gugio et al. | Ab initio | WAM, HMM, PD, AD | | | |			
+1991 | GRAIL | Uberbacher and Mural	1991. Mural et al. 1992 | Ab initio (sensors + Neural network) | | | | No longer supported |
+1991 | NetGene | Brunak et al.	| Ab initio | | | | |
+1992 | GeneID |	Gugio et al. | Ab initio | WAM, HMM, PD, AD | | | |
+1993 | Genemark | Borodovsky and McIninch | Ab initio | | | | |
 1993 | GeneParser | |	Ab initio	| | | | |		
-1993 | GRAIL-II | Milanesi et al. | | | | | |
+1994 | GRAIL-II | Recognizing exons in genomic sequence using GRAIL II. Xu Y, Mural R, Shah M, Uberbacher E. Genet Eng (N Y). 1994; 16():241-53. | | | | | |
 1994 | EcoParse	| | Ab initio | HMM | Prokaryote | 393 | |
 1994 | GeneLang | Dong and Searls | Ab initio | Linguistic method HMM, PD, WAM | Eukaryote | | | |
 1995 | Fgeneh (Find gene in human)	| Solovyev VV, Salamov AA, Lawrence CB (1995) Identification of human gene structure using linear discriminant functions and dynamic programming. Proceedings/International Conference on Intelligent Systems for Molecular Biology; ISMB International Conference on Intelligent Systems for Molecular Biology 3: 367–375 | Ab initio | HMM, DP, LDA | Human | | Finds single exon only |
@@ -13,20 +15,20 @@
 1997 | Fgenes	| Solovyev | Ab initio | HMM, DP, LDA | Human | | |
 1997 | GeneFinder | | Ab initio | | | | Unpublished work |
 1997 | GenScan	| Burge and Karlin | Ab initio | | | | | |
-1997 | MZEF	| Zhang | | | | | | |
+1997 | MZEF	| Identification of protein coding regions in the human genome by quadratic discriminant analysis. Zhang MQ. Proc Natl Acad Sci U S A. 1997 Jan 21; 94(2):565-8. | | | | | | |
 1997 | HMMGene | Kough | Ab initio | | | | No download version | 
 1997 | GeneWise	| | Evidence based | | | | | 		
 1997 | AAT (Analysis and Annotation Tool) | Huang et al. | Evidence based | | | | Include two paris of programs DPS/NAP and DDS/GAP |
 1998 | GAIA	| GAIA: framework annotation of genomic sequence. Bailey LC Jr, Fischer S, Schug J, Crabtree J, Gibson M, Overton GC. Genome Res. 1998 Mar; 8(3):234-50. | homology-based | | | | | 		
 1998 | MORGAN (Multi-frame Optimal Rule-based Gene ANalyzer) | Salzberg S, Delcher AL, Fasman KH, Henderson J
 J Comput Biol. 1998 Winter; 5(4):667-80. | | | | | Hybrid tool combining decision trees with dynamic programming and signal sensor algorithm |	
-1998 | GeneMark.hmm | Lukashin, A. V & Borodovsky, M. GeneMark. hmm: new solutions for gene finding. Nucleic Acids Res. 26, 1107–1115 (1998). | Ab initio | HMM | Prokaryote | 1334 | Self training |
+1998 | GeneMark.hmm | Lukashin, A. V & Borodovsky, M. GeneMark.hmm: new solutions for gene finding. Nucleic Acids Res. 26, 1107–1115 (1998). | Ab initio | HMM | Prokaryote | 1334 | Self training |
 1999 | Fgenesh | Solovyev and Salamov | HMM | | | programs that have organism-specific parameters for human, Drosophila, plants, yeast, and nematode | | |
 1999 | Glimmer | Delcher et al. | | | Prokartyote | | |
 1999 | GlimmerM | Salzberg,S.L., Pertea,M., Delcher,A.L., Gardner,M.J. and Tettelin,H. (1999) Interpolated Markov models for eukaryotic gene finding. Genomics, 59, 24–31. | | | Small eukaryote | | developed to find genes in the malaria parasite Plasmodium falciparum. |
 1999 | Veil (the Viterbi Exon-Intron Locator) | Finding Genes in Human DNA with a Hidden Markov Model. J. Henderson, S.L. Salzberg, and K. Fasman. This describes the VEIL system for finding genes. Journal of Computational Biology 4:2 (1997), 127-141. | HMM | | | Eukaryote | | 
 2000 | Fgenesh+	|  Salamov AA, Solovyev VV Genome Res. 2000 Apr; 10(4):516-22.; Solovyev V.V. (2007) Statistical approaches in Eukaryotic gene prediction. In Handbook of Statistical genetics (eds. Balding D., Cannings C., Bishop M.), Wiley-Interscience; 3d edition, 1616 p. | HMM plus similar protein-based gene prediction | | | | | Fgenesh+ is a variant of Fgenesh that takes into account some information about similar proteins |
-2000 | GenomeScan | | Comparative | | | | |	
+2000 | GenomeScan | Computational inference of homologous gene structures in the human genome. Yeh RF, Lim LP, Burge CB, Genome Res. 2001 May; 11(5):803-16. | Comparative | | | | |	
 2001 | Eugene |	| Hybrid | Semi-Markov Conditional Random Fields / IMM, DP | Plant | | Can be seen as a combiner because collect information about splice sites and ATG has to be done outside the program. |
 2001 | Twinscan | | Comparative	| | | | Two genomes |
 2001 | GeneHacker Plus | | Ab initio | HMM | Prokaryote | 50 | |	
@@ -74,7 +76,15 @@ Li X, Ren Q, Weng Y, Cai H, Zhu Y, Zhang Y Genomics Proteomics Bioinformatics. 2
 ? | ZUPLS | | | | |  | |
 ? | Geneparser2 | | | | |  | |
 ? | Xpound | | | | |  | |
+1997 | HMMgene | Krogh A. Two methods for improving performace of a HMM and their application for gene finding. In: Gaasterland T, Karp P, Karplus K, Ouzounis C, Sander C, Valencia A, editors. The fifth international conference on intelligent Systems for Molecular Biology. CA: Menlo Park: AAAI Press; 1997. pp. 179–186. | | | |  | |
 ? | FGENESH++C | | | | | | maps known mRNA/EST sequences from RefSeq and then performs FGENESH++-like gene prediction |
+2008 | SCGPred | SCGPred: a score-based method for gene structure prediction by combining multiple sources of evidence. Li X, Ren Q, Weng Y, Cai H, Zhu Y, Zhang Y. Genomics Proteomics Bioinformatics. 2008 Dec; 6(3-4):175-85. | | | |  | |
+1996 | Procrustes | Gene recognition via spliced sequence alignment. Gelfand MS, Mironov AA, Pevzner PA. Proc Natl Acad Sci U S A. 1996 Aug 20; 93(17):9061-6. | | | |  | |
+2003 | CRASA | A complexity reduction algorithm for analysis and annotation of large genomic sequences. Chuang TJ, Lin WC, Lee HC, Wang CW, Hsiao KL, Wang ZH, Shieh D, Lin SC, Ch'ang LY. Genome Res. 2003 Feb; 13(2):313-22. | | | |  | |
+2001 | SGP-1 | SGP-1: prediction and validation of homologous genes based on sequence alignments. Wiehe T, Gebauer-Jung S, Mitchell-Olds T, Guigó R. Genome Res. 2001 Sep; 11(9):1574-83. | | | |  | |
+1998 | SIM4 | A computer program for aligning a cDNA sequence with a genomic DNA sequence. Florea L, Hartzell G, Zhang Z, Rubin GM, Miller W. Genome Res. 1998 Sep; 8(9):967-74. | | | |  | |
+2001 | Spidey | Spidey: a tool for mRNA-to-genomic alignments. Wheelan SJ, Church DM, Ostell JM. Genome Res. 2001 Nov; 11(11):1952-7. | | | |  | |
+
 _____________________
 __Legend:__  
 Hybrid = ab initio and evidence based;  
