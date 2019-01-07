@@ -4,12 +4,11 @@
 1991 | NetGene | Brunak et al.	| Ab initio | | | | |
 1992 | GeneID |	Gugio et al. | Ab initio | WAM, HMM, PD, AD | | | |
 1993 | Genemark | Borodovsky and McIninch | Ab initio | | | | |
-1993 | GeneParser | |	Ab initio	| | | | |		
 1994 | GRAIL-II | Recognizing exons in genomic sequence using GRAIL II. Xu Y, Mural R, Shah M, Uberbacher E. Genet Eng (N Y). 1994; 16():241-53. | | | | | |
 1994 | EcoParse	| | Ab initio | HMM | Prokaryote | 393 | |
 1994 | GeneLang | Dong and Searls | Ab initio | Linguistic method HMM, PD, WAM | Eukaryote | | | |
 1995 | Fgeneh (Find gene in human)	| Solovyev VV, Salamov AA, Lawrence CB (1995) Identification of human gene structure using linear discriminant functions and dynamic programming. Proceedings/International Conference on Intelligent Systems for Molecular Biology; ISMB International Conference on Intelligent Systems for Molecular Biology 3: 367–375 | Ab initio | HMM, DP, LDA | Human | | Finds single exon only |
-1995 | Geneparser | Snyder EE, Stormo GD J Mol Biol. 1995 Apr 21; 248(1):1-18. | | | |  | |
+1995 | Geneparser | Snyder EE, Stormo GD J Mol Biol. 1995 Apr 21; 248(1):1-18. | Ab initio | | |  | |
 1996 | Genie	| Kulp et al. | Hybrid | | | | |			
 1996 | PROCRUSTES | | Evidence based | | | | |
 1997 | Fgenes	| Solovyev | Ab initio | HMM, DP, LDA | Human | | |
@@ -104,14 +103,16 @@ WAM: weight array matrix
 LDA: Linear Discriminant Analysis  
 (baczkowski review)  
 
+_____________________
+__Interesting publication__
+
+[Rogic, S., Mackworth, A. K., & Ouellette, F. B. (2001). Evaluation of gene-finding programs on mammalian sequences. Genome research, 11(5), 817-32.](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC311133/#B39)
+[Goodswen, S. J., Kennedy, P. J., & Ellis, J. T. (2012). Evaluating high-throughput ab initio gene finders to discover proteins encoded in eukaryotic pathogen genomes missed by laboratory techniques. PloS one, 7(11), e50609.](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3511556/)
+[Chowdhury, B., Garai, A., & Garai, G. (2017). An optimized approach for annotation of large eukaryotic genomic sequences using genetic algorithm. BMC bioinformatics, 18(1), 460. doi:10.1186/s12859-017-1874-7](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5655831/)
 
 
-
-
-
-
-
-
+__Interesting book__
+Principles of Gene Manipulation and Genomics. De Sandy B. Primrose, Richard Twyman
 
 
 
