@@ -10,7 +10,7 @@
 1995 | Fgeneh (Find gene in human)	| Solovyev VV, Salamov AA, Lawrence CB (1995) Identification of human gene structure using linear discriminant functions and dynamic programming. Proceedings/International Conference on Intelligent Systems for Molecular Biology; ISMB International Conference on Intelligent Systems for Molecular Biology 3: 367–375 | Ab initio | HMM, DP, LDA | Human | | Finds single exon only |
 1995 | Geneparser | Snyder EE, Stormo GD J Mol Biol. 1995 Apr 21; 248(1):1-18. | Ab initio | | |  | |
 1996 | Genie	| Kulp et al. | Hybrid | | | | |			
-1996 | PROCRUSTES | | Evidence based | | | | |
+1996 | Procrustes | Gene recognition via spliced sequence alignment. Gelfand MS, Mironov AA, Pevzner PA. Proc Natl Acad Sci U S A. 1996 Aug 20; 93(17):9061-6. | Evidence based | | |  | |
 1997 | Fgenes	| Solovyev | Ab initio | HMM, DP, LDA | Human | | |
 1997 | GeneFinder | | Ab initio | | | | Unpublished work |
 1997 | GenScan	| Burge and Karlin | Ab initio | | | | | |
@@ -18,6 +18,8 @@
 1997 | HMMGene | Kough | Ab initio | | | | No download version | 
 1997 | GeneWise	| | Evidence based | | | | | 		
 1997 | AAT (Analysis and Annotation Tool) | Huang et al. | Evidence based | | | | Include two paris of programs DPS/NAP and DDS/GAP |
+1997 | HMMgene | Krogh A. Two methods for improving performace of a HMM and their application for gene finding. In: Gaasterland T, Karp P, Karplus K, Ouzounis C, Sander C, Valencia A, editors. The fifth international conference on intelligent Systems for Molecular Biology. CA: Menlo Park: AAAI Press; 1997. pp. 179–186. | | | |  | |
+1998 | SIM4 | A computer program for aligning a cDNA sequence with a genomic DNA sequence. Florea L, Hartzell G, Zhang Z, Rubin GM, Miller W. Genome Res. 1998 Sep; 8(9):967-74. | | | |  | |
 1998 | GAIA	| GAIA: framework annotation of genomic sequence. Bailey LC Jr, Fischer S, Schug J, Crabtree J, Gibson M, Overton GC. Genome Res. 1998 Mar; 8(3):234-50. | homology-based | | | | | 		
 1998 | MORGAN (Multi-frame Optimal Rule-based Gene ANalyzer) | Salzberg S, Delcher AL, Fasman KH, Henderson J. J Comput Biol. 1998 Winter; 5(4):667-80. | | | | | Hybrid tool combining decision trees with dynamic programming and signal sensor algorithm |	
 1998 | GeneMark.hmm | Lukashin, A. V & Borodovsky, M. GeneMark.hmm: new solutions for gene finding. Nucleic Acids Res. 26, 1107–1115 (1998). | Ab initio | HMM | Prokaryote | 1334 | Self training |
@@ -31,10 +33,13 @@
 2001 | Twinscan | | Comparative	| | | | Two genomes |
 2001 | GeneHacker Plus | | Ab initio | HMM | Prokaryote | 50 | |	
 2001 | GeneMarkS | | Ab initio | HMM | Prokaryote | 742 |	Self training |
+2001 | SGP-1 | SGP-1: prediction and validation of homologous genes based on sequence alignments. Wiehe T, Gebauer-Jung S, Mitchell-Olds T, Guigó R. Genome Res. 2001 Sep; 11(9):1574-83. | | | |  | |
+2001 | Spidey | Spidey: a tool for mRNA-to-genomic alignments. Wheelan SJ, Church DM, Ostell JM. Genome Res. 2001 Nov; 11(11):1952-7. | | | |  | |
 2002 | GAZE	| Howe, K. L. et al. GAZE : A Generic Framework for the Integration of Gene-Prediction Data by Dynamic Programming. 1418–1427 (2002). doi:10.1101/gr.149502 | Comparative / combiner | | | | |		
 2003 | SLAM	| | Comparative |	GHMM | | 187 | |	
 2003 | EasyGene | | Ab initio |	HMM, H | Prokaryote |	153	| |
 2003 | ETOPE | | Comparative | based on the ratio of non-synonymous to synonymous substitution rates between sequences from different genomes	| Eucaryote |	20	| Based on Genscan output |
+2003 | CRASA | A complexity reduction algorithm for analysis and annotation of large genomic sequences. Chuang TJ, Lin WC, Lee HC, Wang CW, Hsiao KL, Wang ZH, Shieh D, Lin SC, Ch'ang LY. Genome Res. 2003 Feb; 13(2):313-22. | | | |  | |
 2004 | Ensembl | | Evidence based	| | |	| Pipeline |
 2004 | GeneZilla/TIGRSCAN | |	Ab initio | | | |	No longer supported |
 2004 | GlimmerHMM	| Majoros, W.H., Pertea, M.,and Salzberg, S.L. TigrScan and GlimmerHMM: two open-source ab initio eukaryotic gene-finders Bioinformatics 2004 2878-2879. | Ab initio	| GHMM | eukaryote | | |		
@@ -52,6 +57,7 @@
 2007 | Contrast | | Comparative | | | 90 | Can also incorporate information from EST alignment |
 2007 | Genomix	| | | | |	1 | |
 2008 | SCGPred | SCGPred: a score-based method for gene structure prediction by combining multiple sources of evidence. Li X, Ren Q, Weng Y, Cai H, Zhu Y, Zhang Y Genomics Proteomics Bioinformatics. 2008 Dec; 6(3-4):175-85. | Combiner | | |	Eukaryote | automated eukaryotic gene structure annonator that computes weighted consensus gene structure based on multiple sources of available evidence |	
+2008 | SCGPred | SCGPred: a score-based method for gene structure prediction by combining multiple sources of evidence. Li X, Ren Q, Weng Y, Cai H, Zhu Y, Zhang Y. Genomics Proteomics Bioinformatics. 2008 Dec; 6(3-4):175-85. | | | |  | |
 2008 | Maker | Cantarel, B. L. et al. Maker. Genome Res. 18, 188–96 (2008). | Combiner | | | 306	| It uses proteins, transcripts ... Abinitio: Augustus, Fgnesh,Genemark,snap|
 2008 | Evigan | Liu, Q., Mackey, A. J., Roos, D. S. & Pereira, F. C. N. Evigan: A hidden variable model for integrating gene evidence for eukaryotic gene prediction. Bioinformatics 24, 597–605 (2008). | Combiner |	Unsupervised learning method | | 52 | Choose the best possible set of exons and combine them in a gene model. Weight of different sources.|
 2008 | Evidence Modeler | Haas, B. J. et al. Automated eukaryotic gene structure annotation using EVidenceModeler and the Program to Assemble Spliced Alignments. Genome Biol. 9, R7 (2008). | Combiner | | | | choose the best possible set of exons and combine them in a gene model weight of different sources. Evidence based chooser. | 
@@ -64,7 +70,7 @@
 2014 | GeneMark-ET| Lomsadze, A., Burns, P. D. & Borodovsky, M. Integration of mapped RNA-Seq reads into automatic training of eukaryotic gene finding algorithm. 42, 1–8 (2014). | Ab initio | HMM | Eukaryote | 10 | Self training |
 2015 | Ipred | Zickmann, F. & Renard, B. Y. IPred - integrating ab initio and evidence based gene predictions to improve prediction accuracy. BMC Genomics 16, 134 (2015). | Combiner evidence-based | | | | choose the best possible set of exons and combine them in a gene model. Evidence based chooser. Can also model gene form evidence only. |
 2015 | GASS ( Genome Annotation based on Species Similarity) | GASS: genome structural annotation for Eukaryotes based on species similarity. Wang Y, Chen L, Song N, Lei X. BMC Genomics. 2015 Mar 4; 16():150. | comparative | shortest path model and DP | |  | |
-2016 | BRAKER1 | Lange, S., Hof, K., Lomsadze, A., Borodovsky, M. & Stanke, M. BRAKER1 : Unsupervised RNA-Seq-Based Genome Annotation with GeneMark-ET and AUGUSTUS. 24, 2014 (2014). | Hybrid / Pipeline	| | | 1 | Pipeline: GeneMark-ET + Augustus |	
+2016 | BRAKER1 | Lange, S., Hof, K., Lomsadze, A., Borodovsky, M. & Stanke, M. BRAKER1 : Unsupervised RNA-Seq-Based Genome Annotation with GeneMark-ET and AUGUSTUS. 24, 2014 (2014). | Hybrid / Pipeline	| | | 1 | Pipeline: GeneMark-ET + Augustus |
 2016 | Companion | Steinbiss, S. et al. Companion: a web server for annotation and analysis of parasite genomes. Nucleic Acids Res. 44, W29–W34 (2016) | | | | | Pipeline for automatic eukaryotic parasite annotation |
 2016 | Gmove | Dubarry, M. et al. Gmove a tool for eukaryotic gene predictions using various evidences. F1000Reserach 34, 2011 (2016). | | | | | Eukaryotic Gene Predictions using Various Evidences Dubarry |
 2017 | GeMoMa | Keilwagen, J., Hartung, F., Paulini, M., Twardziok, S. O. & Grau, J. Combining RNA-seq data and homology-based gene prediction for plants , animals and fungi. (2017). | | | | | homology-based gene prediction program |				
@@ -73,14 +79,9 @@
 ? | ZUPLS | | | | |  | |
 ? | Geneparser2 | | | | |  | |
 ? | Xpound | | | | |  | |
-1997 | HMMgene | Krogh A. Two methods for improving performace of a HMM and their application for gene finding. In: Gaasterland T, Karp P, Karplus K, Ouzounis C, Sander C, Valencia A, editors. The fifth international conference on intelligent Systems for Molecular Biology. CA: Menlo Park: AAAI Press; 1997. pp. 179–186. | | | |  | |
 ? | FGENESH++C | | | | | | maps known mRNA/EST sequences from RefSeq and then performs FGENESH++-like gene prediction |
-2008 | SCGPred | SCGPred: a score-based method for gene structure prediction by combining multiple sources of evidence. Li X, Ren Q, Weng Y, Cai H, Zhu Y, Zhang Y. Genomics Proteomics Bioinformatics. 2008 Dec; 6(3-4):175-85. | | | |  | |
-1996 | Procrustes | Gene recognition via spliced sequence alignment. Gelfand MS, Mironov AA, Pevzner PA. Proc Natl Acad Sci U S A. 1996 Aug 20; 93(17):9061-6. | | | |  | |
-2003 | CRASA | A complexity reduction algorithm for analysis and annotation of large genomic sequences. Chuang TJ, Lin WC, Lee HC, Wang CW, Hsiao KL, Wang ZH, Shieh D, Lin SC, Ch'ang LY. Genome Res. 2003 Feb; 13(2):313-22. | | | |  | |
-2001 | SGP-1 | SGP-1: prediction and validation of homologous genes based on sequence alignments. Wiehe T, Gebauer-Jung S, Mitchell-Olds T, Guigó R. Genome Res. 2001 Sep; 11(9):1574-83. | | | |  | |
-1998 | SIM4 | A computer program for aligning a cDNA sequence with a genomic DNA sequence. Florea L, Hartzell G, Zhang Z, Rubin GM, Miller W. Genome Res. 1998 Sep; 8(9):967-74. | | | |  | |
-2001 | Spidey | Spidey: a tool for mRNA-to-genomic alignments. Wheelan SJ, Church DM, Ostell JM. Genome Res. 2001 Nov; 11(11):1952-7. | | | |  | |
+
+
 
 _____________________
 __Legend:__  
