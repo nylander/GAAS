@@ -244,7 +244,7 @@ In this paper from (The Human Genome Browser at UCSC. Genome Res. 2002 Jun; 12(6
     
 With this last paper it's hard to understand from which project the GTF format is finally born.
 
-## GTF2 (2003)
+## GTF2 <=> GFF2.5 (2003)
 
 The original GTF described by Ensembl has been adapted and became GTF2 for the need of the the Mouse/Human Annotation Collaboration.
 
@@ -301,7 +301,9 @@ Here an example of GTF:
 ## GTF2.2 (2007)
 [Here the description from the Brent Lab (The Washington University in St. Louis) (http://mblab.wustl.edu/GTF22.html)
 
-## GFF3 ()
+They included specific 9th column terms: transcript_id, protein_id, gene_id.
+
+## GFF3 (2004)
 
 GFF3 addresses several shortcomings in its predecessor GFF2. It has been conceptualized by by **Lincoln Stein**. [The First specification draft](https://web.archive.org/web/20031207182031/http://song.sourceforge.net:80/gff3.shtml) I found is from 10 September 2003 (version 1.00rc1). [The first offical specification](http://rice.bio.indiana.edu:7082/annot/gff3.html) is the version 1 published the 30 September 2004.
 
