@@ -307,6 +307,8 @@ They included specific 9th column terms: transcript_id, protein_id, gene_id.
 
 GFF3 addresses several shortcomings in its predecessor GFF2. It has been conceptualized by by **Lincoln Stein**. [The First specification draft](https://web.archive.org/web/20031207182031/http://song.sourceforge.net:80/gff3.shtml) I found is from 10 September 2003 (version 1.00rc1). [The first offical specification](http://rice.bio.indiana.edu:7082/annot/gff3.html) is the version 1 published the 30 September 2004.
 
+Last updated the 26 February 2013 with version 1.23
+
 
 ## Resume
 
