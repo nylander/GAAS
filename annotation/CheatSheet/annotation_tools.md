@@ -72,6 +72,7 @@
 2016 | BRAKER1 | Lange, S., Hof, K., Lomsadze, A., Borodovsky, M. & Stanke, M. BRAKER1 : Unsupervised RNA-Seq-Based Genome Annotation with GeneMark-ET and AUGUSTUS. 24, 2014 (2014). | Hybrid / Pipeline	| | | 1 | Pipeline: GeneMark-ET + Augustus |
 2016 | Companion | Steinbiss, S. et al. Companion: a web server for annotation and analysis of parasite genomes. Nucleic Acids Res. 44, W29–W34 (2016) | | | | | Pipeline for automatic eukaryotic parasite annotation |
 2016 | Gmove | Dubarry, M. et al. Gmove a tool for eukaryotic gene predictions using various evidences. F1000Reserach 34, 2011 (2016). | | | | | Eukaryotic Gene Predictions using Various Evidences Dubarry |
+2016 | CAT Comparative Analysis toolkit |  | pipeline | Evidence based, comparative-abinitio | | | takes as input a HAL-format multiple whole genome alignmen |
 2017 | GeMoMa | Keilwagen, J., Hartung, F., Paulini, M., Twardziok, S. O. & Grau, J. Combining RNA-seq data and homology-based gene prediction for plants , animals and fungi. (2017). | | | | | homology-based gene prediction program |				
 ? | GISMO | | | | |  | |	
 ? | RBFN | | | | |  | |	
