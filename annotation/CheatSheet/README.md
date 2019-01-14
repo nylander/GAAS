@@ -48,6 +48,8 @@ Collection of Cheat Sheets / overview / summaries
 
 ### [Schedulers - LSF/Torque/SGE/Slurm...](pictures/scheduler_rosetta.pdf)
 
+### [Taxonomic classification](taxonomic_classification.md)
+
 # External ressources
 
 ### [Bioinformatics one-liners](https://github.com/stephenturner/oneliners)
