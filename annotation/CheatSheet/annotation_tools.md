@@ -64,6 +64,7 @@
 2009 | Orphelia | |	Ab initio |	Neural network | Metagenomic | 78 | | |
 2009 | DAWGPAWS | Estill, J. C. & Bennetzen, J. L. The DAWGPAWS pipeline for the annotation of genes and transposable elements in plant genomes. Plant Methods 5, 1–11 (2009). | | | Eukaryote / Plant  | | pipeline for the annotation of genes and transposable elements in plant genomes | |
 2010 | MetaGeneMark | Zhu, W., Lomsadze, A. & Borodovsky, M. Ab initio gene identification in metagenomic sequences. Nucleic Acids Res. 38, 1–15 (2010). | Ab initio | HMM | Metagenome | 220 | Self training |
+2010 | Gnomon | Souvorov, A. et al. Gnomon — the NCBI eukaryotic gene prediction tool. National Center for Biotechnology Information, (2010). | Abinitio | | |  | uses a hidden Markov model (HMM) tool based on Genscan |
 2011 | MAKER2 | Holt, C. & Yandell, M. MAKER2: an annotation pipeline and genome-database management tool for second-generation genome projects. BMC Bioinformatics 12, 491 (2011). | | | | 184 | It uses proteins, transcripts ... Abinitio: Augustus, Fgnesh,Genemark,snap |	
 2012 | eCRAIG | | | | | 4 | |	
 2014 | GeneMark-ET| Lomsadze, A., Burns, P. D. & Borodovsky, M. Integration of mapped RNA-Seq reads into automatic training of eukaryotic gene finding algorithm. 42, 1–8 (2014). | Ab initio | HMM | Eukaryote | 10 | Self training |
@@ -81,8 +82,6 @@
 ? | Geneparser2 | | | | |  | |
 ? | Xpound | | | | |  | |
 ? | FGENESH++C | | | | | | maps known mRNA/EST sequences from RefSeq and then performs FGENESH++-like gene prediction |
-
-
 
 _____________________
 __Legend:__  
