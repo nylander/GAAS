@@ -82,7 +82,8 @@
 ? | Geneparser2 | | | | |  | |
 ? | Xpound | | | | |  | |
 ? | FGENESH++C | | | | | | maps known mRNA/EST sequences from RefSeq and then performs FGENESH++-like gene prediction |
-
+2013 | Eugene-P | Next-generation Annotation of Prokaryotic Genomes with EuGene-P: Application to Sinorhizobium meliloti 2011. E. Sallet et al. DNA Res. 2013 | | | | Prokaryote | |
+? | Eugene'Hom | | | | |  | |
 _____________________
 __Legend:__  
 Hybrid = ab initio and evidence based;  
