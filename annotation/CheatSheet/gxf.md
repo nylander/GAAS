@@ -304,16 +304,34 @@ In this version they included specific 9th column terms: **transcript_id**, **pr
 
 ## GFF3 (2004)
 
-GFF3 addresses several shortcomings in its predecessor GFF2. It has been conceptualized by by **Lincoln Stein**. [The First specification draft](https://web.archive.org/web/20031207182031/http://song.sourceforge.net:80/gff3.shtml) I found is from 10 September 2003 (version 1.00rc1). [The first offical specification](http://rice.bio.indiana.edu:7082/annot/gff3.html) is the version 1 published the 30 September 2004.
+GFF3 addresses several shortcomings in its predecessor GFF2. Actually it addresses the most common extensions to GFF, while preserving back-ward compatibility with previous formats. It has been conceptualized by by **Lincoln Stein**. [The First specification draft](https://web.archive.org/web/20031207182031/http://song.sourceforge.net:80/gff3.shtml) I found is from 10 September 2003 (version 1.00rc1). [The first offical specification](http://rice.bio.indiana.edu:7082/annot/gff3.html) is the version 1 published the 30 September 2004.
 
 Last updated the 26 February 2013 with version 1.23.
 Here is the last description of the specifications: [https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md](https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md)
 
+The majors updates are:  
+        * the limitations of the feature type (3rd column) that is constrained to be either a term from the Sequence Ontology or an SO accession number (2278 possibilities).  
+        * Some attribute's tags have predefined meanings: ID, Name, Alias, Parent, Target, Gap, Derives_from, Note, Dbxref, Ontology_term, Is_circular. 
+        * Parent, Alias, Note, Dbxref and Ontology_term attributes can have multiple values (separated with the comma "," character).  
+        * The **ID** indicates the ID of the feature. The ID attribute is required for features that have children (e.g. gene and mRNAs), or for those that span multiple lines, but are optional for other features. IDs for each feature must be unique within the scope of the GFF file. In the case of discontinuous features (i.e. a single feature that exists over multiple genomic locations) the same ID may appear on multiple lines. All lines that share an ID must collectively represent a single feature.  
+        * The reserved Parent attribute can be used to establish a part-of relationship between two features. A feature that has the Parent attribute set is interpreted as asserting that it is a part of the specified Parent feature
 
 ## Resume
 __Timeline of the different formats:__  
 <img align="center" src="pictures/gff_history.jpg"/>
 
+format version | description
+-- | --
+GFF| 
+GFF2|
+GFF2.5|
+GFF3|
+
+format version | description
+-- | --
+GTF| 
+GTF2|
+GTF2.2|
 
 ## Extra
 
