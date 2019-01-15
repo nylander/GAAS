@@ -8,7 +8,7 @@ List of tools to perform Taxonomic classification
 | | Kaiju | | | x | x | |
 | | QIIME2 | | | x | ? | |
 | | MetaPhlAn | | | ? | ? | |
-| | Clark | | method based on a supervised sequence classification using discriminative k-mers. | x | x | |
+| | Clark | | method based on a supervised sequence classification using discriminative k-mers. | x | x | | http://clark.cs.ucr.edu
 | | blastn + MEGAN | | | x | x | |
 | | diamond + MEGAN | | | x | x | |
 | | BBSketch | | | x | x | | BBSketch does taxonomic classification of contigs or reads. However, it does not weight contigs by the number of reads used
