@@ -299,9 +299,8 @@ Here an example of GTF:
      Hs-Ch1  Twinscan    stop_codon  708 710 .   +   0   gene_id "1"; transcript_id "1.a";
 
 ## GTF2.2 (2007)
-[Here the description from the Brent Lab (The Washington University in St. Louis) (http://mblab.wustl.edu/GTF22.html)
-
-They included specific 9th column terms: transcript_id, protein_id, gene_id.
+In this version they included specific 9th column terms: **transcript_id**, **protein_id** and **gene_id**.  
+[Here the description from the Brent Lab] (The Washington University in St. Louis) (http://mblab.wustl.edu/GTF22.html)
 
 ## GFF3 (2004)
 
