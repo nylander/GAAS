@@ -66,6 +66,7 @@
 2010 | MetaGeneMark | Zhu, W., Lomsadze, A. & Borodovsky, M. Ab initio gene identification in metagenomic sequences. Nucleic Acids Res. 38, 1–15 (2010). | Ab initio | HMM | Metagenome | 220 | Self training |
 2010 | Gnomon | Souvorov, A. et al. Gnomon — the NCBI eukaryotic gene prediction tool. National Center for Biotechnology Information, (2010). | Abinitio | | |  | uses a hidden Markov model (HMM) tool based on Genscan |
 2011 | MAKER2 | Holt, C. & Yandell, M. MAKER2: an annotation pipeline and genome-database management tool for second-generation genome projects. BMC Bioinformatics 12, 491 (2011). | | | | 184 | It uses proteins, transcripts ... Abinitio: Augustus, Fgnesh,Genemark,snap |	
+2011 | GenSAS | Lee T, Peace C, Jung S, Zheng P, Main D, Cho I (2011) GenSAS: an online integrated genome sequence annotation pipeline. In: 4th International conference on biomedical engineering and informatics (BMEI), Shanghai, 2011, pp. 1967–1973. doi: 10.1109/BMEI.2011.6098712 | pipeline | | | An online integrated genome sequence annotation pipeline | |
 2012 | eCRAIG | | | | | 4 | |	
 2014 | GeneMark-ET| Lomsadze, A., Burns, P. D. & Borodovsky, M. Integration of mapped RNA-Seq reads into automatic training of eukaryotic gene finding algorithm. 42, 1–8 (2014). | Ab initio | HMM | Eukaryote | 10 | Self training |
 2015 | Ipred | Zickmann, F. & Renard, B. Y. IPred - integrating ab initio and evidence based gene predictions to improve prediction accuracy. BMC Genomics 16, 134 (2015). | Combiner evidence-based | | | | choose the best possible set of exons and combine them in a gene model. Evidence based chooser. Can also model gene form evidence only. |
@@ -84,6 +85,9 @@
 ? | FGENESH++C | | | | | | maps known mRNA/EST sequences from RefSeq and then performs FGENESH++-like gene prediction |
 2013 | Eugene-P | Next-generation Annotation of Prokaryotic Genomes with EuGene-P: Application to Sinorhizobium meliloti 2011. E. Sallet et al. DNA Res. 2013 | | | | Prokaryote | |
 ? | Eugene'Hom | | | | |  | |
+2018 | G-OnRamp | | Ab-initio Web-based | Augustus,GlimmerHMM,SNAP | |  | |
+| year	| Gene finder Name | Publication | Type	| Method | Organism | Nb citation (pubmed 2016) | Comments | Output Format |
+
 _____________________
 __Legend:__  
 Hybrid = ab initio and evidence based;  
