@@ -52,6 +52,7 @@ my @tag_list;
 my %nameBlast;
 my %geneNameBlast;
 my %mRNANameBlast;
+my %mRNAUniprotIDFromBlast;
 my %mRNAproduct;
 my %geneNameGiven;
 my %duplicateNameGiven;
@@ -313,11 +314,20 @@ if ($opt_BlastFile || $opt_InterproFile ){#|| $opt_BlastFile || $opt_InterproFil
             
             #Manage Name if option set
             if($opt_BlastFile){
+              # add gene Name
               if (exists ($mRNANameBlast{$level2_ID})){
                 my $mRNABlastName=$mRNANameBlast{$level2_ID};
                 create_or_replace_tag($feature_level2, 'Name', $mRNABlastName);
               }
               my $productData=printProductFunct($level2_ID);
+              
+              #add UniprotID attribute
+              if (exists ($mRNAUniprotIDFromBlast{$level2_ID})){
+                my $mRNAUniprotID=$mRNAUniprotIDFromBlast{$level2_ID};
+                create_or_replace_tag($feature_level2, 'uniprot_id', $mRNAUniprotID);
+              }
+
+              #add product attribute
               if ($productData ne ""){
                 create_or_replace_tag($feature_level2, 'product', $productData);
               }
@@ -708,112 +718,133 @@ sub addFunctions{
 sub parse_blast {
   my($file_in, $opt_blastEvalue, $hash_mRNAGeneLink) = @_;
 
+#################################################################################
+####### Step 1 : CATCH all candidates (the better candidate for each mRNA)####### (with a gene name)
+
   my %candidates; 
-  #catch all candidates first (better candidate for each mRNA)
+
   while( my $line = <$file_in>)  {
     my @values = split(/\t/, $line);
      my $l2_name = lc($values[0]);
      my $prot_name = $values[1];
+      my @prot_name_sliced = split(/\|/, $values[1]);
+      my $uniprot_id = $prot_name_sliced[1];
+      print "uniprot_id: ".$uniprot_id."\n" if($opt_verbose);
      my $evalue = $values[10];
      print "Evalue: ".$evalue."\n" if($opt_verbose);
 
      #if does not exist fill it if over the minimum evalue
     if (! exists_keys(\%candidates,($l2_name)) or @{$candidates{$l2_name}}> 2 ){ # the second one means we saved an error message as candidates we still have to try to find a proper one
       if( $evalue < $opt_blastEvalue ) {
-	my $protID_correct=undef;
-    	if( exists $allIDs{lc($prot_name)}){
-      		$protID_correct = $allIDs{lc($prot_name)};
-      		my $header = $db->header( $protID_correct );
-		if ($header =~ m/GN=/){
-			if($header =~ /PE=([1-5])\s/){
-				if($1 <= $opt_pe){
-					$candidates{$l2_name}=[$header, $evalue];
-				}
-				
-			}
-			else{$ostreamLog->print("No Protein Existence (PE) information in this header: $header\n")if($opt_verbose or $opt_output); }
-		}
-		else{ 
-			$ostreamLog->print( "No gene name (GN=) in this header $header\n") if($opt_verbose or $opt_output); 
-			$candidates{$l2_name}=["error", $evalue, $prot_name."-".$l2_name];
-		}
-	}
-	else{
-		$ostreamLog->print( "ERROR $prot_name not found among the db! You probably didn't give to me the same fasta file than the one used for the blast. (l2=$l2_name)\n" ) if($opt_verbose or $opt_output);
-		$candidates{$l2_name}=["error", $evalue, $prot_name."-".$l2_name];
-	}
+        my $protID_correct=undef;
+        if( exists $allIDs{lc($prot_name)}){
+        	$protID_correct = $allIDs{lc($prot_name)};
+        	my $header = $db->header( $protID_correct );
+      	
+        	if ($header =~ m/GN=/){
+      			if($header =~ /PE=([1-5])\s/){
+      				if($1 <= $opt_pe){
+      					$candidates{$l2_name}=[$header, $evalue, $uniprot_id];
+      				}    				
+      			}
+      			else{$ostreamLog->print("No Protein Existence (PE) information in this header: $header\n")if($opt_verbose or $opt_output); }
+      		}
+      		else{ 
+      			$ostreamLog->print( "No gene name (GN=) in this header $header\n") if($opt_verbose or $opt_output); 
+      			$candidates{$l2_name}=["error", $evalue, $prot_name."-".$l2_name];
+      		}
+      	}
+      	else{
+      		$ostreamLog->print( "ERROR $prot_name not found among the db! You probably didn't give to me the same fasta file than the one used for the blast. (l2=$l2_name)\n" ) if($opt_verbose or $opt_output);
+      		$candidates{$l2_name}=["error", $evalue, $prot_name."-".$l2_name];
+      	}
       }
     }
     elsif( $evalue > $candidates{$l2_name}[1] ) { # better evalue for this record
-	my $protID_correct=undef;
-        if( exists $allIDs{lc($prot_name)}){
-                $protID_correct = $allIDs{lc($prot_name)};
-                my $header = $db->header( $protID_correct );
-                if ($header =~ m/GN=/){
-                      if($header =~ /PE=([1-5])\s/){
-                                if($1 <= $opt_pe){
-                                        $candidates{$l2_name}=[$header, $evalue];
-                                }
-
-                        }
-                        else{ $ostreamLog->print( "No Protein Existence (PE) information in this header: $header\n") if($opt_verbose or $opt_output); }                        
-                }
-                else{ $ostreamLog->print("No gene name (GN=) in this header $header\n") if($opt_verbose or $opt_output); }
+      my $protID_correct=undef;
+      if( exists $allIDs{lc($prot_name)}){
+        $protID_correct = $allIDs{lc($prot_name)};
+        my $header = $db->header( $protID_correct );
+      
+        if ($header =~ m/GN=/){
+          if($header =~ /PE=([1-5])\s/){
+            if($1 <= $opt_pe){
+              $candidates{$l2_name}=[$header, $evalue, $uniprot_id];
+            }
+          }
+          else{ $ostreamLog->print( "No Protein Existence (PE) information in this header: $header\n") if($opt_verbose or $opt_output); }                        
         }
-	else{ $ostreamLog->print( "ERROR $prot_name not found among the db! You probably didn't give to me the same fasta file than the one used for the blast. (l2=$l2_name)\n") if($opt_verbose or $opt_output);}      
+        else{ $ostreamLog->print("No gene name (GN=) in this header $header\n") if($opt_verbose or $opt_output); }
+      }
+	    else{ $ostreamLog->print( "ERROR $prot_name not found among the db! You probably didn't give to me the same fasta file than the one used for the blast. (l2=$l2_name)\n") if($opt_verbose or $opt_output);}      
     }
   }
 
   my $nb_desc = keys %candidates;
   $ostreamLog->print( "We have $nb_desc description candidates.\n") if($opt_verbose or $opt_output);
 
+##################################################
+####### Step 2 : go through all candidates ####### report gene name for each mRNA
+  
   my %geneName; 
   my %linkBmRNAandGene;
-  #go through all candidates
+
   foreach my $l2 (keys %candidates){
-      if( $candidates{$l2}[0] eq "error" ){
-	$ostreamLog->print( "error nothing found for $candidates{$l2}[2]\n") if($opt_verbose or $opt_output); next;
-      }
-      my $header = $candidates{$l2}[0];
-      print "header: ".$header."\n" if($opt_verbose);
-      if ($header =~ m/(^[^\s]+)(.+?(?= \w{2}=))(.+)/){
-	      my $protID = $1;
-	      my $description = $2;
-	      my $theRest = $3;
-	      $theRest =~ s/\n//g;
-	      $theRest =~ s/\r//g;
-	      my $nameGene = undef;
-	      push ( @{ $mRNAproduct{$l2} }, $description );     
+    if( $candidates{$l2}[0] eq "error" ){
+      $ostreamLog->print( "error nothing found for $candidates{$l2}[2]\n") if($opt_verbose or $opt_output); next;
+    }
+    
+    #Save uniprot id of the best match
+    print "save for $l2  ".$candidates{$l2}[2]."\n";
+    $mRNAUniprotIDFromBlast{$l2} = $candidates{$l2}[2];
+    
+    my $header = $candidates{$l2}[0];
+    print "header: ".$header."\n" if($opt_verbose);
+    
+    if ($header =~ m/(^[^\s]+)\s(.+?(?= \w{2}=))(.+)/){
+	    my $protID = $1;
+	    my $description = $2;
+	    my $theRest = $3;
+	    $theRest =~ s/\n//g;
+	    $theRest =~ s/\r//g;
+	    my $nameGene = undef;
+	    push ( @{ $mRNAproduct{$l2} }, $description );     
 	
-	      #deal with the rest
-	      my %hash_rest;
-	      my $tuple=undef;
-	      while ($theRest){
-	  	($theRest, $tuple) = stringCatcher($theRest);     
-	 	my ($type,$value) = split /=/,$tuple;
-		#print "$protID: type:$type --- value:$value\n";
-		$hash_rest{lc($type)}=$value;
-	      }
-	      if(exists($hash_rest{"gn"})){
-		$nameGene=$hash_rest{"gn"};
+	    #deal with the rest
+	    my %hash_rest;
+	    my $tuple=undef;
+	    while ($theRest){
+        ($theRest, $tuple) = stringCatcher($theRest);     
+        my ($type,$value) = split /=/,$tuple;
+		    #print "$protID: type:$type --- value:$value\n";
+		    $hash_rest{lc($type)}=$value;
+	    }
+	     
+      if(exists($hash_rest{"gn"})){
+		    $nameGene=$hash_rest{"gn"};
 	        
-		if(exists_keys ($hash_mRNAGeneLink,($l2)) ){
-			my $geneID = $hash_mRNAGeneLink->{$l2};      
-	       	 	#print "push $geneID $nameGene\n";
-			push ( @{ $geneName{lc($geneID)} }, lc($nameGene) );
-	        	push( @{ $linkBmRNAandGene{lc($geneID)}}, lc($l2)); # save mRNA name for each gene name 
-		}
-		else{ $ostreamLog->print( "No parent found for $l2 (defined in the blast file) in hash_mRNAGeneLink (created by the gff file).\n") if($opt_verbose or $opt_output); }
-	}
-	else{ $ostreamLog->print( "Header from the db fasta file doesn't match the regular expression: $header\n") if($opt_verbose or $opt_output); }
-     }
+		    if(exists_keys ($hash_mRNAGeneLink,($l2)) ){
+			    my $geneID = $hash_mRNAGeneLink->{$l2};      
+	       	#print "push $geneID $nameGene\n";
+			    push ( @{ $geneName{lc($geneID)} }, lc($nameGene) );
+	        push( @{ $linkBmRNAandGene{lc($geneID)}}, lc($l2)); # save mRNA name for each gene name 
+		    }
+		    else{ $ostreamLog->print( "No parent found for $l2 (defined in the blast file) in hash_mRNAGeneLink (created by the gff file).\n") if($opt_verbose or $opt_output); }
+	    }
+	    else{ $ostreamLog->print( "Header from the db fasta file doesn't match the regular expression: $header\n") if($opt_verbose or $opt_output); }
+    }
   }
   
-  ################
-   # secondly Manage NAME (If several)
-   manageGeneNameBlast(\%geneName); # Remove redundancy to have only one name for each gene
+  ####################################################
+  ####### Step 3 : Manage NAME final gene name ####### several isoforms could have different gene name reported. So we have to keep that information in some way to report only one STRING to gene name attribute of the gene feature.
+  ################# Remove redundancy to have only one name for each gene
+
+   manageGeneNameBlast(\%geneName); 
   
-   #Then CLEAN NAMES REDUNDANCY inter gene
+  
+  ##########################################################
+  ####### Step 4 : CLEAN NAMES REDUNDANCY inter gene ####### 
+
    my %geneNewNameUsed;
    foreach my $geneID (keys %geneName){
      $nbGeneNameInBlast++;
