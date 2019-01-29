@@ -154,8 +154,8 @@ if (defined($opt_output) ) {
   $ostreamReport=IO::File->new(">".$opt_output."/report.txt" ) or
   croak( sprintf( "Can not open '%s' for writing %s", $opt_output."/report.txt", $! ));
 
-  $ostreamGFF=Bio::Tools::GFF->new(-file => ">".$opt_output."/$opt_reffile", -gff_version => 3 ) or
-  croak(sprintf( "Can not open '%s' for writing %s", $opt_output."/$opt_reffile", $! ));
+  $ostreamGFF=Bio::Tools::GFF->new(-file => ">".$opt_output."/".$opt_reffile, -gff_version => 3 ) or
+  croak(sprintf( "Can not open '%s' for writing %s", $opt_output."/".$opt_reffile, $! ));
   
   $ostreamLog=IO::File->new(">".$opt_output."/error.txt" ) or
   croak( sprintf( "Can not open '%s' for writing %s", $opt_output."/log.txt", $! ));
@@ -795,7 +795,7 @@ sub parse_blast {
     }
     
     #Save uniprot id of the best match
-    print "save for $l2  ".$candidates{$l2}[2]."\n";
+    print "save for $l2  ".$candidates{$l2}[2]."\n" if($opt_verbose);
     $mRNAUniprotIDFromBlast{$l2} = $candidates{$l2}[2];
     
     my $header = $candidates{$l2}[0];
