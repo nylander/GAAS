@@ -2,6 +2,7 @@
 
 #libraries
 use strict;
+use File::Basename;
 use warnings;
 use Data::Dumper;
 use Carp;
@@ -154,7 +155,8 @@ if (defined($opt_output) ) {
   $ostreamReport=IO::File->new(">".$opt_output."/report.txt" ) or
   croak( sprintf( "Can not open '%s' for writing %s", $opt_output."/report.txt", $! ));
 
-  $ostreamGFF=Bio::Tools::GFF->new(-file => ">".$opt_output."/".$opt_reffile, -gff_version => 3 ) or
+  my $file_out_name = fileparse($opt_reffile);
+  $ostreamGFF=Bio::Tools::GFF->new(-file => ">$opt_output/$file_out_name", -gff_version => 3 ) or
   croak(sprintf( "Can not open '%s' for writing %s", $opt_output."/".$opt_reffile, $! ));
   
   $ostreamLog=IO::File->new(">".$opt_output."/error.txt" ) or
