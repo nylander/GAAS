@@ -25,12 +25,19 @@ cd GAAS
 
   * A) For the use through ***env***  
 
-    * A.1) Updates paths in the environment profiles to point to the correct GAAS repository location
+    * A.1) Updates paths in the environment profiles to point to the correct GAAS repository location  
     ```
     make install   
     ```
 
-    * A.2) Load the correct profiles (add NBIS libs and tools to the PATH)  
+    * A.2) Dependencies
+      *  You might check that all dependencies are filled up. Depending the scripts you want to use, all dependencies are not required.  
+      ```
+      make check
+      ```
+      * install the missing dependencies of your choice
+
+    * A.3) Load the correct profiles (add NBIS libs and tools to the PATH)  
     Three profiles are available to setup the necessary environment variables to use the scripts:
 
       * By default:
