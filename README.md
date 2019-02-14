@@ -35,8 +35,16 @@ cd GAAS
       ```
       make check
       ```
-      * install the missing dependencies of your choice
-
+      * install the missing dependencies of your choice  
+        * Bioperl and perl libraries with cpanm
+        ```
+        cpanm bioperl
+        cpanm Clone
+        cpanm Moose 
+        cpanm Graph::Directed
+        cpanm LWP::UserAgent
+        cpanm Statistics::R
+        
     * A.3) Load the correct profiles (add NBIS libs and tools to the PATH)  
     Three profiles are available to setup the necessary environment variables to use the scripts:
 
