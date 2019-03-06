@@ -39,7 +39,7 @@ my $opt_removeUTR;
 my $opt_removemRNAduplicated;
 my $opt_verbose=undef;
 my $opt_help = 0;
-my $opt_blastEvalue=10;
+my $opt_blastEvalue=1e-6;
 my $opt_dataBase = undef;
 my $opt_pe = 5;
 my %numbering;
@@ -736,8 +736,8 @@ sub parse_blast {
      print "Evalue: ".$evalue."\n" if($opt_verbose);
 
      #if does not exist fill it if over the minimum evalue
-    if (! exists_keys(\%candidates,($l2_name)) or @{$candidates{$l2_name}}> 2 ){ # the second one means we saved an error message as candidates we still have to try to find a proper one
-      if( $evalue < $opt_blastEvalue ) {
+    if (! exists_keys(\%candidates,($l2_name)) or @{$candidates{$l2_name}}> 3 ){ # the second one means we saved an error message as candidates we still have to try to find a proper one
+      if( $evalue <= $opt_blastEvalue ) {
         my $protID_correct=undef;
         if( exists $allIDs{lc($prot_name)}){
         	$protID_correct = $allIDs{lc($prot_name)};
@@ -762,7 +762,7 @@ sub parse_blast {
       	}
       }
     }
-    elsif( $evalue > $candidates{$l2_name}[1] ) { # better evalue for this record
+    elsif( $evalue < $candidates{$l2_name}[1] ) { # better evalue for this record
       my $protID_correct=undef;
       if( exists $allIDs{lc($prot_name)}){
         $protID_correct = $allIDs{lc($prot_name)};
@@ -799,7 +799,7 @@ sub parse_blast {
     #Save uniprot id of the best match
     print "save for $l2  ".$candidates{$l2}[2]."\n" if($opt_verbose);
     $mRNAUniprotIDFromBlast{$l2} = $candidates{$l2}[2];
-    
+    print "save for $l2  ".$candidates{$l2}[2]."\n";  
     my $header = $candidates{$l2}[0];
     print "header: ".$header."\n" if($opt_verbose);
     
@@ -812,7 +812,7 @@ sub parse_blast {
 	    my $nameGene = undef;
 	    push ( @{ $mRNAproduct{$l2} }, $description );     
 	
-	    #deal with the rest
+ 	    #deal with the rest
 	    my %hash_rest;
 	    my $tuple=undef;
 	    while ($theRest){
@@ -1086,7 +1086,7 @@ the first file (specified with B<--ref>).
 
 =item B<--be> or B<--blast_evalue>
 
- Maximum e-value to keep the annotaiton from the blast file. By default 10.
+ Maximum e-value to keep the annotation from the blast file. By default 1e-6.
 
 =item B<--pe>
 
