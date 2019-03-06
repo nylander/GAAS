@@ -328,15 +328,14 @@ __Timeline of the different formats:__
 
 __Main points and differences of the formats:__
 
-format version | year | col1 - seqname | col2 -source | col3 - feature | col4 - start | col5 - end | col6 - score | col7 - strand | col8 - frame | col9 - attribute | Comment
+format version | year | col1 - seqname | col2 - source | col3 - feature | col4 - start | col5 - end | col6 - score | col7 - strand | col8 - frame | col9 - attribute | Comment
 -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | --
-GFF1| 1997 | | can be anything | integer | integer
-GFF2| 2000 | | can be anything
-GTF| 2000 | |
-GFF2.5| 2003 | |
-GTF2 | 2003 | |
-GFF3| 2004 | \[a-zA-Z0-9.:^*$@!+_?-\|\] | Column name changed in <type>. This is constrained to be either a term from the Sequence Ontology or an SO accession number. |
-GTF2.2| 2007 | |
+GFF1| 1997 | | can be anything | integer | integer | numerical value or 0 | 
+GFF2| 2000 | | can be anything | integer | integer | numerical value or  '.' |
+GTF| 2000 | | CDS, start_codon, stop_codon, exon  | integer | integer | numerical value or  '.' |
+GTF2 / GFF2.5| 2003 | | CDS, start_codon, stop_codon, exon  | integer | integer |  numerical value or  '.' |
+GFF3| 2004 | \[a-zA-Z0-9.:^*$@!+_?-\|\] | Column name changed in <type>. This is constrained to be either a term from the Sequence Ontology or an SO accession number. | numerical value or  '.' |
+GTF2.2| 2007 | | feature types required: "CDS", "start_codon", "stop_codon". The features "5UTR", "3UTR", "inter", "inter_CNS", "intron_CNS" and "exon" are optional. All other features will be ignored. The types must have the correct capitalization shown here. | integer | integer | numerical value or  '.' |
 
 ## Extra
 
