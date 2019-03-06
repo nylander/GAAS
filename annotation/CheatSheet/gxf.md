@@ -334,7 +334,7 @@ GFF1| 1997 | | can be anything | integer | integer | numerical value or 0 | '+',
 GFF2| 2000 | | can be anything | integer | integer | numerical value or  '.' | '+', '-' or '.' |  '0', '1', '2' or '.' |
 GTF| 2000 | | CDS, start_codon, stop_codon, exon  | integer | integer | numerical value or  '.' | '+', '-' or '.' |  '0', '1', '2' or '.' |
 GTF2 / GFF2.5| 2003 | | CDS, start_codon, stop_codon, exon  | integer | integer |  numerical value or  '.' | '+', '-' or '.' |  '0', '1', '2' or '.' | form: **attribute_name “attribute_value”;** Two mandatory attributes: gene_id, transcript_id |
-GFF3| 2004 | \[a-zA-Z0-9.:^*$@!+_?-\|\] | integer | integer |Column name changed in <type>. This is constrained to be either a term from the Sequence Ontology or an SO accession number. | numerical value or  '.' | '+', '-' or '.' |  '0', '1', '2' or '.' |
+GFF3| 2004 | \[a-zA-Z0-9.:^*$@!+_?-\|\] | Column name changed by <type>. This is constrained to be either a term from the Sequence Ontology or an SO accession number. |  integer | integer | numerical value or  '.' | '+', '-' or '.' | Column name changed by <phase> '0', '1', '2' or '.' |
 GTF2.2| 2007 | | feature types required: "CDS", "start_codon", "stop_codon". The features "5UTR", "3UTR", "inter", "inter_CNS", "intron_CNS" and "exon" are optional. All other features will be ignored. The types must have the correct capitalization shown here. | integer | integer | numerical value or  '.' | '+', '-' or '.' |  '0', '1', '2' or '.' |
 
 ## Extra
