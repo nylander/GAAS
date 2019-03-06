@@ -207,7 +207,7 @@ Here an example of GFF2:
 
 ## GTF (2000)
 
-**GTF stands for gene transfer format.**
+**GTF stands for Gene Transfer Format.**
 
 In this paper from 2003 [(Keibler E, Brent M: Eval: a software package for analysis of genome annotations. BMC Bioinformatics 2003, 4:50.)](https://doi.org/10.1186/1471-2105-4-50)
 they say:
@@ -243,6 +243,8 @@ In another paper [The Human Genome Browser at UCSC. Genome Res. 2002 Jun; 12(6):
     Since August 2001, it has become possible for users to upload their own annotations for display in the browser. These annotations can be in the standard GFF format (http:// www.sanger.ac.uk/Software/formats/GFF), or in some formats designed specifically for the human genome project including GTF, PSL, and BED. The formats are described in detail in the web page http://genome.cse.ucsc.edu/goldenPath/help/ customTrack.html. Note that the GFF and GTF files must be tab delimited rather than space delimited. Uploaded
     
 With this last paper it's hard to understand from which project the GTF format is finally born.
+
+The most comprehensive description of this format version I found was in the Masters Project Report of Evan Keibler `Eval: A Gene Set Comparison System`. From this work he published the paper about Eval in BMC Bioinformatics (2003).
 
 ## GTF2 <=> GFF2.5 (2003)
 
@@ -298,10 +300,6 @@ Here an example of GTF:
      Hs-Ch1  Twinscan    start_codon 380 382 .   +   0   gene_id "1"; transcript_id "1.a"; 
      Hs-Ch1  Twinscan    stop_codon  708 710 .   +   0   gene_id "1"; transcript_id "1.a";
 
-## GTF2.2 (2007)
-In this version they included specific 9th column terms: **transcript_id**, **protein_id** and **gene_id**.  
-[Here the description from the Brent Lab] (The Washington University in St. Louis) (http://mblab.wustl.edu/GTF22.html)
-
 ## GFF3 (2004)
 
 GFF3 addresses several shortcomings in its predecessor GFF2. Actually it addresses the most common extensions to GFF, while preserving back-ward compatibility with previous formats. It has been conceptualized by by **Lincoln Stein**. [The First specification draft](https://web.archive.org/web/20031207182031/http://song.sourceforge.net:80/gff3.shtml) I found is from 10 September 2003 (version 1.00rc1). [The first offical specification](http://rice.bio.indiana.edu:7082/annot/gff3.html) is the version 1 published the 30 September 2004.
@@ -316,22 +314,29 @@ The majors updates are:
         * The **ID** indicates the ID of the feature. The ID attribute is required for features that have children (e.g. gene and mRNAs), or for those that span multiple lines, but are optional for other features. IDs for each feature must be unique within the scope of the GFF file. In the case of discontinuous features (i.e. a single feature that exists over multiple genomic locations) the same ID may appear on multiple lines. All lines that share an ID must collectively represent a single feature.  
         * The reserved Parent attribute can be used to establish a part-of relationship between two features. A feature that has the Parent attribute set is interpreted as asserting that it is a part of the specified Parent feature
 
+## GTF2.2 (2007)
+In this version they included specific 9th column terms: **transcript_id**, **protein_id** and **gene_id**.  
+[Here the description from the Brent Lab] (The Washington University in St. Louis) (http://mblab.wustl.edu/GTF22.html)
+
+## GTF3 (2013)
+This version is unofficial. I call it like that to differentiate it against the previous version of the GTF. It is based on update made by the Ensembl database. The difference bettween GTF2.2 and GTF3 is that before only 4 features where described (cds,exon,…). Other features had to be deduce from these “core feature”.
+In the GTF version 3 all features are described (gene, transcript, exon, cds, etc)
+
 ## Resume
 __Timeline of the different formats:__  
 <img align="center" src="pictures/gff_history.jpg"/>
 
-format version | description
--- | --
-GFF| 
-GFF2|
-GFF2.5|
-GFF3|
+__Main points and differences of the formats:__
 
-format version | description
--- | --
-GTF| 
-GTF2|
-GTF2.2|
+format version | year | col1 - seqname | col2 -source | col3 - feature | col4 - start | col5 - end | col6 - score | col7 - strand | col8 - frame | col9 - attribute | Comment
+-- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | --
+GFF1| 1997 | | can be anything | integer | integer
+GFF2| 2000 | | can be anything
+GTF| 2000 | |
+GFF2.5| 2003 | |
+GTF2 | 2003 | |
+GFF3| 2004 | \[a-zA-Z0-9.:^*$@!+_?-\|\] | Column name changed in <type>. This is constrained to be either a term from the Sequence Ontology or an SO accession number. |
+GTF2.2| 2007 | |
 
 ## Extra
 
@@ -340,5 +345,19 @@ Here example of problem encountered due to lake of standardization (from https:/
 **Inconsistency in stop codon treatment in GTF tracks**  
 I've been doing some comparative gene set analysis using the gene annotation tracks and I believe I have run into an inconsistency in the way that stop codons are treated in the annotations. Looking at the Human June 2002 assembly, the annotations for Ensembl, Twinscan, SGP, and Geneid appear to exclude the stop codon in the coding region coordinates. All of the other gene annotation sets include the stop codon as part of the coding region. My guess is that this inconsistency is the result of the gene sets being imported from different file formats. The GTF2 format does not include the stop codon in the terminal exon, while the GenBank format does, and the GFF format does not specify what to do.
 Answer:  
-Your guess is correct. We haven't gotten around to fixing this situation. A while ago, the Twinscan group made a GTF validator. It interpreted the stop codon as not part of the coding region. Prior to that, all GFF and GTF annotations that we received did include the stop codon as part of the coding region; therefore, we didn't have special code in our database to enforce it. In response to the validator, Ensembl, SGP and Geneid switched their handling of stop codons to the way that Twinscan does it, hence the discrepancy.```
+Your guess is correct. We haven't gotten around to fixing this situation. A while ago, the Twinscan group made a GTF validator. It interpreted the stop codon as not part of the coding region. Prior to that, all GFF and GTF annotations that we received did include the stop codon as part of the coding region; therefore, we didn't have special code in our database to enforce it. In response to the validator, Ensembl, SGP and Geneid switched their handling of stop codons to the way that Twinscan does it, hence the discrepancy.
 
+
+**Inconsistency in GTF format reported by Evan Keibler in his Masters Project Report**  
+Although the GTF file format is a fairly simple and well defined format, data is often
+claimed to be in GTF format when it does not comply completely with the specification.
+Most data is generated in some proprietary format specific to the particular program or
+lab which produced it. These proprietary formats often differ in small subtle ways, such
+as the sequence being indexed starting at position 0 or 1, or the start/stop codon being
+inside or outside of the initial/terminal exon. If the data is to be effectively shared with
+others it must be in a standard, well defined format. Though many labs do convert their
+data to GTF format, the files they generate rarely comply completely with the
+specification. For this reason the GTF validator was created. The validator allows the
+user to verify that the data is in correct GTF format before sharing with others. This
+makes communication more efficient because the receiver does not have to locate and fix
+the subtle differences between the many file formats.
