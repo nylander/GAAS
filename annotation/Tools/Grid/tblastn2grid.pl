@@ -102,7 +102,7 @@ else {
 
 # .. set up log file
 
-my $logfile = "$outdir/blastp2grid.log";
+my $logfile = "$outdir/tblastn2grid.log";
 msg("Writing log to: $logfile");
 open LOG, '>', $logfile or err ("Can't open logfile");
 
@@ -151,7 +151,7 @@ write_chunk( $outfile, @seqarray );
 if ( !defined($nb_seq) ) {
     for ( my $i = 1; $i <= $chunk_counter; $i++ ) {
         my $cmd =
-          "blastp -evalue $eval -num_alignments 100000 " .
+          "tblastn -evalue $eval -num_alignments 100000 " .
           "-seg yes -outfmt 6 -db $db -query $outdir/chunk_$i.fa " .
           "-out $outdir/chunk_$i.tab";
         push( @cmds, $cmd );
@@ -160,7 +160,7 @@ if ( !defined($nb_seq) ) {
 else {
     for ( my $i = 1; $i <= $chunk_counter; $i++ ) {
         my $cmd =
-          "blastp -dbsize $nb_seq -evalue $eval " .
+          "tblastn -dbsize $nb_seq -evalue $eval " .
           "-num_alignments 100000 -seg yes -outfmt 6 -db $db " .
           "-query $outdir/chunk_$i.fa -out $outdir/chunk_$i.tab";
         push( @cmds, $cmd );
@@ -177,10 +177,10 @@ msg("Merging outputs from chunks");
 my @files = <$outdir/*.tab>;
 
 foreach my $file (@files) {
-    system("cat $file >> $outdir/blastp.merged");
+    system("cat $file >> $outdir/tblastn.merged");
 }
 
-msg("Finished BLASTp grid run.");
+msg("Finished tBLASTn grid run.");
 
 # --------------------
 
