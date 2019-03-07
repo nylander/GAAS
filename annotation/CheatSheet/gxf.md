@@ -18,6 +18,8 @@ It's often hard to understand and differentiate all GFF/GTF formats/flavors. Her
    * [GTF2.5 unofficial (2012)](#gtf25)
    * [GTF3 unofficial (2013)](#gtf3)
    * [Resume](#resume)
+      * [Timeline of the different formats](#timeline-of-the-different-formats)
+      * [Main points and differences of the formats](#main-points-and-differences-of-the-formats)
    * [Extra](#extra)
 
       
@@ -380,10 +382,10 @@ Originally Ensembl has created the GTF format that has been then slighly modifie
 In the new GTF flavor they adopted from release 75, which I call GTF version 3,  more features types are used: gene, transcript, exon, CDS, Selenocysteine, start_codon, stop_codon, and UTR (three_prime_utr and five_prime_utr).
 
 ## Resume
-__Timeline of the different formats:__  
+### Timeline of the different formats  
 <img align="center" src="pictures/gff_history.jpg"/>
 
-__Main points and differences of the formats:__
+### Main points and differences of the formats  
 
 format version | year | col1 - seqname | col2 - source | col3 - feature | col4 - start | col5 - end | col6 - score | col7 - strand | col8 - frame | col9 - attribute | Comment
 -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | --
