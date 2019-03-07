@@ -397,3 +397,6 @@ The gene annotation is the same in both files. The only exception is that the ge
 In addition, the GENCODE GTF contains a number of attributes not present in the Ensembl GTF, including annotation remarks, APPRIS tags and other tags highlighting transcripts experimentally validated by the GENCODE project or 3-way-consensus pseudogenes (predicted by Havana, Yale and UCSC). See our complete list of tags for more information.
 
 Please note that the Ensembl GTF covers the annotation in all sequence regions whereas GENCODE produces a similar file but also a GTF file with the annotation on the reference chromosomes only.
+
+**Feature type limitation wihtin GTF**
+As the feature types of the 3rd column is limited by the GTF format, many groups/infrastrucutre use the 9th column to describe other features like tRNA, pseudogenes, etc. As example, ENSEMBL use the attribute **gene_biotype** to define if a **transcript** feature is coding or non-coding.
