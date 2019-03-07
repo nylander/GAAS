@@ -2,10 +2,26 @@ The gene-finding format / general feature format
 GFF / GFF1 / GFF2 / GFF2.5 / GFF3 / GTF / GTF2 / GTF2.1 / GTF2.2 / GTF2.5 / GTF3 formats
 ===========================
 
-It's often hard to understand and differentiate all GFF/GTF formats/flavors. Here is an overview of the format and its history to help disentangle this complexity.
+It's often hard to understand and differentiate all GFF/GTF formats/flavors. Here is an overview of the formats and their histories to help disentangle this complexity.
 
+## Table of Contents
 
-## Forewords:
+   * [Forewords](#forewords)
+   * [GFF0 (before 13-11-1997)](#gff0)
+   * [GFF1 (13-11-1997)](#gff1)
+   * [GFF2 (29-09-2000)  ](#gff2)
+   * [GTF (2000)](#gtf)
+   * [GTF2 and GFF2.5 (2003)](#gtf2-and-gff25)
+   * [GFF3 (2004)](#gff3)
+   * [GTF2.1 (2005)](#gtf21)
+   * [GTF2.2 (2007)](#gtf22)
+   * [GTF2.5 unofficial (2012)](#gtf25)
+   * [GTF3 unofficial (2013)](#gtf3)
+   * [Resume](#resume)
+   * [Extra](#extra)
+
+      
+## Forewords  
 ⇨	When I use the term gff it includes all gff formats/flavors. (The first version of the format was not called gff1 but gff. But to make it easier I will always express the version of the format saying gff1 when it's the first version of it. So from now when I say gff it means all gff formats/flavors).  
 ⇨	I the same way, when I use the term gtf it includes all gtf formats/flavors.  
 ⇨	I have created the term **gxf** that means all the gff and gtf formats/flavors.
@@ -17,11 +33,13 @@ The GFF fomat has been developed to be easy to parse and process by a variety of
 
 A GFF record is an extension of a basic (name,start,end) tuple (or "NSE") that can be used to identify a substring of a biological sequence. 
 
-## GFF0(before 13-11-1997)
+## GFF0  
+(before 13-11-1997)  
 
 There is no clear information about how look the format at that time but it was close to the GFF1 format specification without the field "source" added the 1997-11-13.
 
-## GFF1(13-11-1997):
+## GFF1  
+(13-11-1997)  
 
 For a complete description of the format please refer to this link:
 [https://web.archive.org/web/19980222142332/http://www.sanger.ac.uk:80/~rd/gff.html](https://web.archive.org/web/19980222142332/http://www.sanger.ac.uk:80/~rd/gff.html). This is the oldest description of the format I found (1998-02-22).
@@ -97,7 +115,9 @@ Here an example of GFF1:
     SEQ3    pred    exon    235 260 .   +   2   locus1 This is an example of extra information... They discourage overuse of this feature.
     SEQ3    pred    exon    360 396 .   +   0   locus1
 
-## GFF2 (29-09-2000):
+## GFF2  
+(29-09-2000)  
+
 /!\ Note: Some of the changes we will see have been implemented before the offical release of the version 2. As consequence, several interemediate states between version 1 and 2 have existed. We can call them GFF1.X. I will not discuss further these intermediate states.
 
 **16/12/98**: Discussions with **Lincoln Stein** and **others**,the Version 2 format of GFF is proposed.  
@@ -205,7 +225,8 @@ Here an example of GFF2:
     SEQ3    BLASTX    similarity    235 260 .   +   2   Target "HBA_HUMAN" ; E_value 0.0005
     SEQ3    BLASTX    similarity    360 396 .   +   0   Target "HBA_HUMAN" ; E_value 0.001
 
-## GTF (2000)
+## GTF  
+(2000)  
 
 **GTF stands for Gene Transfer Format.**
 
@@ -254,7 +275,8 @@ Until now I havn't find a comprehensive description of the original GTF version 
   * <strand>
         The strand value must be “+”, “-“, or “.”.
     
-## GTF2 <=> GFF2.5 (2003)
+## GTF2 and GFF2.5  
+(2003)  
 
 The original GTF described by Ensembl has been adapted and became GTF2 for the need of the the Mouse/Human Annotation Collaboration.
 
@@ -309,7 +331,8 @@ Here an example of GTF:
      Hs-Ch1  Twinscan    start_codon 380 382 .   +   0   gene_id "1"; transcript_id "1.a"; 
      Hs-Ch1  Twinscan    stop_codon  708 710 .   +   0   gene_id "1"; transcript_id "1.a";
 
-## GFF3 (2004)
+## GFF3  
+(2004)  
 
 GFF3 addresses several shortcomings in its predecessor GFF2. Actually it addresses the most common extensions to GFF, while preserving back-ward compatibility with previous formats. It has been conceptualized by by **Lincoln Stein**. [The First specification draft](https://web.archive.org/web/20031207182031/http://song.sourceforge.net:80/gff3.shtml) I found is from 10 September 2003 (version 1.00rc1). [The first offical specification](http://rice.bio.indiana.edu:7082/annot/gff3.html) is the version 1 published the 30 September 2004.
 
@@ -323,12 +346,16 @@ The majors updates are:
         * The **ID** indicates the ID of the feature. The ID attribute is required for features that have children (e.g. gene and mRNAs), or for those that span multiple lines, but are optional for other features. IDs for each feature must be unique within the scope of the GFF file. In the case of discontinuous features (i.e. a single feature that exists over multiple genomic locations) the same ID may appear on multiple lines. All lines that share an ID must collectively represent a single feature.  
         * The reserved Parent attribute can be used to establish a part-of relationship between two features. A feature that has the Parent attribute set is interpreted as asserting that it is a part of the specified Parent feature
 
-## GTF2.1 (2005)
+## GTF2.1  
+(2005)  
+
 [Here the description from the Brent Lab at the Washington University in St. Louis](http://mblab.wustl.edu/GTF21.html).
 In this version the **feature** field change a little bit and can contain 6 different types:
 ```The following feature types are required: "CDS", "start_codon", "stop_codon". The features "5UTR", "3UTR", and "exon" are optional. All other features will be ignored.```
 
-## GTF2.2 (2007)
+## GTF2.2  
+(2007)  
+
 In this version they included specific 9th column terms: **transcript_id**, **protein_id** and **gene_id**.  
 [Here the description from the Brent Lab at the Washington University in St. Louis](http://mblab.wustl.edu/GTF22.html).  
 The **<feature>** field change a little bit and can contain 9 different types:
@@ -336,14 +363,18 @@ The **<feature>** field change a little bit and can contain 9 different types:
 
  "inter" and "inter_CNS" should have an empty transcript_id and gene_id attribute: **gene_id ""; transcript_id "";**
 
-## GTF2.5 (2012)
+## GTF2.5  
+(2012)  
+
 This version is unofficial. I call it like that to differentiate it against the other GTF flavors. This GTF flavor has been developed by the GENCODE project.
 [Here is the first desciption of this format.](https://web.archive.org/web/20130116085529/https://www.gencodegenes.org/gencodeformat.html)  
 [Here is the last desciption of this format.](https://www.gencodegenes.org/pages/data_format.html)   
 The **<feature>** field change a little bit and can contain 8 different types: gene, transcript, exon, CDS, UTR, start_codon, stop_codon, Selenocysteine.
 The tags/key-name of the **<attribute>** field started with 9 mandatories and 34 optionals (30 from Havanna project and 4 specific to Genecode). The most recent description of the format shows that it has existed until 11 different mandatory tags, but depending of the version and the line (feature type) the number of mandatory tags has varied a lot. There is also 76 that are optionals (70 comes from of a special set of tags, and 6 are specifics). For GRCh38 annotation lifted back to GRCh3 there is 6 other optional tags.
 
-## GTF3 (2013)
+## GTF3  
+(2013)  
+
 This version is unofficial. I call it like that to differentiate it against the other GTF flavors. 
 Originally Ensembl has created the GTF format that has been then slighly modified into GTF2 and then broadly used. Ensembl has adopted GTF2 and used only 4 different type of feature (CDS, exon, start_codon, stop_codon) and a lot of specific attributes.
 In the new GTF flavor they adopted from release 75, which I call GTF version 3,  more features types are used: gene, transcript, exon, CDS, Selenocysteine, start_codon, stop_codon, and UTR (three_prime_utr and five_prime_utr).
