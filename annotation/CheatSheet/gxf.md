@@ -1,5 +1,5 @@
 The gene-finding format / general feature format  
-GFF / GFF1 / GFF2 / GFF2.5 / GFF3 / GTF / GTF2.2 formats
+GFF / GFF1 / GFF2 / GFF2.5 / GFF3 / GTF / GTF2 / GTF2.1 / GTF2.2 formats
 ===========================
 
 It's often hard to understand and differentiate all GFF/GTF formats/flavors. Here is an overview of the format and its history to help disentangle this complexity.
@@ -209,6 +209,9 @@ Here an example of GFF2:
 
 **GTF stands for Gene Transfer Format.**
 
+GTF borrows from the GFF file format [1], but has additional structure that warrants a separate definition and format name.
+The structure is similar to GFF, so the fields are: <seqname><source><feature><start><end><score><strand><frame><attributes>
+
 In this paper from 2003 [(Keibler E, Brent M: Eval: a software package for analysis of genome annotations. BMC Bioinformatics 2003, 4:50.)](https://doi.org/10.1186/1471-2105-4-50)
 they say:
 
@@ -244,15 +247,19 @@ In another paper [The Human Genome Browser at UCSC. Genome Res. 2002 Jun; 12(6):
     
 With this last paper it's hard to understand from which project the GTF format is finally born.
 
-The most comprehensive description of this format version I found was in the Masters Project Report of Evan Keibler `Eval: A Gene Set Comparison System`. From this work he published the paper about Eval in BMC Bioinformatics (2003).
+Until now I havn't find a comprehensive description of the original GTF version (Ensembl version ?) but based some hints from the Masters Project Report of Evan Keibler `Eval: A Gene Set Comparison System` and from other ressources I can say that the GTF1 was similar to GTF2. With few differences listed here:
 
+  * <feature>
+        The <feature> field can take 5 values: "CDS", "start_codon", "stop_codon", "exon" and "intron".
+    
 ## GTF2 <=> GFF2.5 (2003)
 
 The original GTF described by Ensembl has been adapted and became GTF2 for the need of the the Mouse/Human Annotation Collaboration.
 
-[Here the description from the Washington University in St. Louis](https://web.archive.org/web/20031212200757/http://genes.cse.wustl.edu/GTF2.html). Found from the Eval publication received the 18 july 2003 mentioning the address http://genes.cse.wustl.edu/GTF2.html that has been archived in the web-archive the 12/12/2003. Prior to the publication in BMC Bioinformatics (and after 1 January 2003 because it's the most recent  journal cited in his report) E. Kleiber released a Master project report named "Eval: A Gene Set Comparison System" where he mention and describe the GTF, maybe the first version of the format. 
+[Here the description from the Brent Lab at the Washington University in St. Louis](https://web.archive.org/web/20031212200757/http://genes.cse.wustl.edu/GTF2.html).
+Found from the Eval publication received the 18 july 2003 mentioning the address http://genes.cse.wustl.edu/GTF2.html that has been archived in the web-archive the 12/12/2003. Prior to the publication in BMC Bioinformatics (and after 1 January 2003 because it's the most recent  journal cited in his report) E. Kleiber released a Master project report named "Eval: A Gene Set Comparison System" where he mention and describe the GTF, maybe the first version of the GTF2 format. 
 
-
+GTF borrows from the GFF file format [1], but has additional structure that warrants a separate definition and format name.
 The structure is similar to GFF, so the fields are: <seqname><source><feature><start><end><score><strand><frame><attributes>
 
 Definition of these fields are:
@@ -262,7 +269,7 @@ Definition of these fields are:
     <source>
         The <source> field should be a unique label indicating where the annotations came from – typically the name of either a prediction program or a public database.
     <feature>
-        The <feature> field can take four values: "CDS", "start_codon", "stop_codon", and "exon". The “CDS” feature represents the coding sequence starting with the first translated codon and proceeding to the last translated codon. Unlike Genbank annotation, the stop codon is not included in the “CDS” feature for the terminal exon. The “exon” feature is used to annotate all exons, including non-coding exons. The “start_codon” and “stop_codon” features should have a total length of three for any transcript but may be split onto more than one line in the rare case where an intron falls inside the codon.
+        The <feature> field can take 4 values: "CDS", "start_codon", "stop_codon" and "exon". The “CDS” feature represents the coding sequence starting with the first translated codon and proceeding to the last translated codon. Unlike Genbank annotation, the stop codon is not included in the “CDS” feature for the terminal exon. The “exon” feature is used to annotate all exons, including non-coding exons. The “start_codon” and “stop_codon” features should have a total length of three for any transcript but may be split onto more than one line in the rare case where an intron falls inside the codon.
     <start>, <end>
         Integer start and end coordinates of the feature relative to the beginning of the sequence named in <seqname>. <start> must be less than or equal to <end>. Sequence numbering starts at 1. Values of <start> and <end> must fall inside the sequence on which this feature resides.
     <score>
@@ -314,9 +321,18 @@ The majors updates are:
         * The **ID** indicates the ID of the feature. The ID attribute is required for features that have children (e.g. gene and mRNAs), or for those that span multiple lines, but are optional for other features. IDs for each feature must be unique within the scope of the GFF file. In the case of discontinuous features (i.e. a single feature that exists over multiple genomic locations) the same ID may appear on multiple lines. All lines that share an ID must collectively represent a single feature.  
         * The reserved Parent attribute can be used to establish a part-of relationship between two features. A feature that has the Parent attribute set is interpreted as asserting that it is a part of the specified Parent feature
 
+## GTF2.1 (2005)
+[Here the description from the Brent Lab at the Washington University in St. Louis](http://mblab.wustl.edu/GTF21.html).
+In this version the **feature** field change a little bit and can contain 6 different types:
+```The following feature types are required: "CDS", "start_codon", "stop_codon". The features "5UTR", "3UTR", and "exon" are optional. All other features will be ignored.```
+
 ## GTF2.2 (2007)
 In this version they included specific 9th column terms: **transcript_id**, **protein_id** and **gene_id**.  
-[Here the description from the Brent Lab] (The Washington University in St. Louis) (http://mblab.wustl.edu/GTF22.html)
+[Here the description from the Brent Lab at the Washington University in St. Louis](http://mblab.wustl.edu/GTF22.html).  
+The **feature** field change a little bit and can contain 9 different types:
+```The following feature types are required: "CDS", "start_codon", "stop_codon". The features "5UTR", "3UTR", "inter", "inter_CNS", "intron_CNS" and "exon" are optional.```
+
+ "inter" and "inter_CNS" should have an empty transcript_id and gene_id attribute: **gene_id ""; transcript_id "";**
 
 ## GTF3 (2013)
 This version is unofficial. I call it like that to differentiate it against the previous version of the GTF. It is based on update made by the Ensembl database. The difference bettween GTF2.2 and GTF3 is that before only 4 features where described (cds,exon,…). Other features had to be deduce from these “core feature”.
@@ -330,12 +346,13 @@ __Main points and differences of the formats:__
 
 format version | year | col1 - seqname | col2 - source | col3 - feature | col4 - start | col5 - end | col6 - score | col7 - strand | col8 - frame | col9 - attribute | Comment
 -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | --
-GFF1| 1997 | | can be anything | integer | integer | numerical value or 0 | '+', '-' or '.' | '0', '1', '2' or '.' | '0', '1', '2' or '.' | This field is originaly called group. An optional string-valued field that can be used as a name to group together a set of records. | Each String had to be under 256 characters + whole line under 32 000 characters long
-GFF2| 2000 | | can be anything | integer | integer | numerical value or  '.' | '+', '-' or '.' |  '0', '1', '2' or '.' | This optional must have an tag value structure following the syntax used within objects in a .ace file, flattened onto one line by semicolon separators. Tags must be standard identifiers ([A-Za-z][A-Za-z0-9_]*). Free text values must be quoted with double quotes. Note: all non-printing characters in such free text value strings (e.g. newlines, tabs, control characters, etc) must be explicitly represented by their C (UNIX) style backslash-escaped representation (e.g. newlines as '\n', tabs as '\t'). As in ACEDB, multiple values can follow a specific tag. form: **Target "HBA_HUMAN" 11 55 ; E_value 0.0003**
-GTF| 2000 | | CDS, start_codon, stop_codon, exon  | integer | integer | numerical value or  '.' | '+', '-' or '.' |  '0', '1', '2' or '.' | Attributes must end in a semicolon which must then be separated from the start of any subsequent attribute by exactly one space character (NOT a tab character). Attributes’ values should be surrounded by double quotes. form: **attribute_name “attribute_value”;** Two mandatory attributes: gene_id, transcript_id. Any other attributes or comments must appear after these two and will be ignored. | 
-GTF2 / GFF2.5| 2003 | | CDS, start_codon, stop_codon, exon  | integer | integer |  numerical value or  '.' | '+', '-' or '.' |  '0', '1', '2' or '.' | Attributes must end in a semicolon which must then be separated from the start of any subsequent attribute by exactly one space character (NOT a tab character). Attributes’ values should be surrounded by double quotes. form: **attribute_name “attribute_value”;** Two mandatory attributes: gene_id, transcript_id. Any other attributes or comments must appear after these two and will be ignored. |
-GFF3| 2004 | \[a-zA-Z0-9.:^*$@!+_?-\|\] | Column name changed by <type>. This is constrained to be either a term from the Sequence Ontology or an SO accession number. |  integer | integer | numerical value or  '.' | '+', '-' or '.' | Column name changed by <phase> '0', '1', '2' or '.' | Multiple tag=value pairs are separated by semicolons. URL escaping rules are used for tags or values containing the following characters: ",=;". Spaces are allowed in this field, but tabs must be replaced with the %09 URL escape. Attribute values do not need to be and should not be quoted. The quotes should be included as part of the value by parsers and not stripped. form: **ID=cds00004;Parent=mRNA00001,mRNA00002;Name=edenprotein.4**. Some tags have predefined meaning, they start by capital letter.  The ID attributes are only mandatory for those features that have children (the gene and mRNAs), or for those that span multiple lines. Consequently features having parents must have the Parent attribute.
-GTF2.2| 2007 | | feature types required: "CDS", "start_codon", "stop_codon". The features "5UTR", "3UTR", "inter", "inter_CNS", "intron_CNS" and "exon" are optional. All other features will be ignored. The types must have the correct capitalization shown here. | integer | integer | numerical value or  '.' | '+', '-' or '.' |  '0', '1', '2' or '.' | Attributes must end in a semicolon which must then be separated from the start of any subsequent attribute by exactly one space character (NOT a tab character). Attributes’ values should be surrounded by double quotes. form: **attribute_name “attribute_value”;** Two mandatory attributes: gene_id, transcript_id. Any other attributes or comments must appear after these two and will be ignored. |
+GFF1| 1997 | | can be anything | integer | integer | numerical value or 0 | '+', '-' or '.' | '0', '1', '2' or '.' | '0', '1', '2' or '.' | This field is originaly called group. An optional string-valued field that can be used as a name to group together a set of records. | Each String had to be under 256 characters + whole line under 32 000 characters long |
+GFF2| 2000 | | can be anything | integer | integer | numerical value or  '.' | '+', '-' or '.' |  '0', '1', '2' or '.' | This optional must have an tag value structure following the syntax used within objects in a .ace file, flattened onto one line by semicolon separators. Tags must be standard identifiers ([A-Za-z][A-Za-z0-9_]*). Free text values must be quoted with double quotes. Note: all non-printing characters in such free text value strings (e.g. newlines, tabs, control characters, etc) must be explicitly represented by their C (UNIX) style backslash-escaped representation (e.g. newlines as '\n', tabs as '\t'). As in ACEDB, multiple values can follow a specific tag. form: **Target "HBA_HUMAN" 11 55 ; E_value 0.0003** | The START and STOP codons are included in the CDS |
+GTF| 2000 | | CDS, start_codon, stop_codon, exon, intron  | integer | integer | numerical value or  '.' | '+', '-' or '.' |  '0', '1', '2' or '.' | porbably similar to GTF2 | probably similar to GTF2 |
+GTF2 / GFF2.5| 2003 | | CDS, start_codon, stop_codon, exon  | integer | integer |  numerical value or  '.' | '+', '-' or '.' |  '0', '1', '2' or '.' | Attributes must end in a semicolon which must then be separated from the start of any subsequent attribute by exactly one space character (NOT a tab character). Attributes’ values should be surrounded by double quotes. form: **attribute_name “attribute_value”;** Two mandatory attributes: gene_id, transcript_id. Any other attributes or comments must appear after these two and will be ignored. |  Unlike Genbank annotation, the stop codon is not included in the CDS for the terminal exon |
+GFF3| 2004 | \[a-zA-Z0-9.:^*$@!+_?-\|\] | Column name changed by <type>. This is constrained to be either a term from the Sequence Ontology or an SO accession number. |  integer | integer | numerical value or  '.' | '+', '-' or '.' | Column name changed by <phase> '0', '1', '2' or '.' | Multiple tag=value pairs are separated by semicolons. URL escaping rules are used for tags or values containing the following characters: ",=;". Spaces are allowed in this field, but tabs must be replaced with the %09 URL escape. Attribute values do not need to be and should not be quoted. The quotes should be included as part of the value by parsers and not stripped. form: **ID=cds00004;Parent=mRNA00001,mRNA00002;Name=edenprotein.4**. Some tags have predefined meaning, they start by capital letter.  The ID attributes are only mandatory for those features that have children (the gene and mRNAs), or for those that span multiple lines. Consequently features having parents must have the Parent attribute. | The START and STOP codons are included in the CDS
+GTF2.1| 2005 | | CDS, start_codon, stop_codon, exon, 5UTR, 3UTR | integer | integer |  numerical value or  '.' | '+', '-' or '.' |  '0', '1', '2' or '.' | Attributes must end in a semicolon which must then be separated from the start of any subsequent attribute by exactly one space character (NOT a tab character). Attributes’ values should be surrounded by double quotes. form: **attribute_name “attribute_value”;** Two mandatory attributes: gene_id, transcript_id. Any other attributes or comments must appear after these two and will be ignored. |  Unlike Genbank annotation, the stop codon is not included in the CDS for the terminal exon |
+GTF2.2| 2007 | | CDS, start_codon, stop_codon, 5UTR, 3UTR", inter, inter_CNS, intron_CNS and exon | integer | integer | numerical value or  '.' | '+', '-' or '.' |  '0', '1', '2' or '.' | Attributes must end in a semicolon which must then be separated from the start of any subsequent attribute by exactly one space character (NOT a tab character). Attributes’ values should be surrounded by double quotes. form: **attribute_name “attribute_value”;** Two mandatory attributes: gene_id, transcript_id. Any other attributes or comments must appear after these two and will be ignored. | Unlike Genbank annotation, the stop codon is not included in the CDS for the terminal exon |
 
 ## Extra
 
