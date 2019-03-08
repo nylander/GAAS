@@ -29,7 +29,7 @@ It's often hard to understand and differentiate all GFF/GTF formats/flavors. Her
 ⇨	I have created the term **gxf** that means all the gff and gtf formats/flavors.
 
 The GFF Protocol Specification was initially proposed by **Richard Durbin** and **David Haussler**.
-The format has been originaly developed to help the gene prediction (or gene finding) world. Indeed the gene prediction methods are based on two main steps, **first** finding signals (starts, splice sites, stops, motifs, etc.) and regions (exons, introns, protein domains etc.); **secondly** combining these to give complete gene, RNA transcript or protein structures. These two steps were usually performed within the same program. In order to decoupled them they have created the format called GFF ('Gene-Finding Format') allowing the transfer of feature information from a tool to another one.
+The format has been originaly developed to help the gene prediction (or gene finding) world. Indeed the gene prediction methods are based on two main steps, **first** finding signals (starts, splice sites, stops, motifs, etc.) and regions (exons, introns, protein domains etc.); **secondly** combining these to give complete gene, RNA transcript or protein structures. These two steps were usually performed within the same program. In order to decoupled them they have created the format called GFF (**Gene-Finding Format**) allowing the transfer of feature information from a tool to another one.
 
 The GFF fomat has been developed to be easy to parse and process by a variety of programs in different languages (e.g Unix tools as grep and sort, perl, awk, etc). For these reasons, they decided that each feature is described on a single line, and line order is not relevant.
 
