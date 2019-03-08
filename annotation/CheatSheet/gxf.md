@@ -21,7 +21,8 @@ It's often hard to understand and differentiate all GFF/GTF formats/flavors. Her
       * [Timeline of the different formats](#timeline-of-the-different-formats)
       * [Main points and differences of the formats](#main-points-and-differences-of-the-formats)
    * [Extra](#extra)
-
+      * [Problem encountered due to lake of standardization](#problem-encountered-due-to-lake-of-standardization)
+      * [Difference between GENCODE and Ensembl GTF](#difference-between-gencode-and-ensembl-gtf)
       
 ## Forewords  
 ⇨	When I use the term gff it includes all gff formats/flavors. (The first version of the format was not called gff1 but gff. But to make it easier I will always express the version of the format saying gff1 when it's the first version of it. So from now when I say gff it means all gff formats/flavors).  
@@ -401,15 +402,15 @@ GTF3| 2013 | | | gene, transcript, exon, CDS, Selenocysteine, start_codon, stop_
 
 ## Extra
 
-Here example of problem encountered due to lake of standardization (from https://genome.ucsc.edu/FAQ/FAQtracks.html):  
+### Problem encountered due to lake of standardization
 
-**Inconsistency in stop codon treatment in GTF tracks**  
+**Inconsistency in stop codon treatment in GTF tracks** (from https://genome.ucsc.edu/FAQ/FAQtracks.html):  
 I've been doing some comparative gene set analysis using the gene annotation tracks and I believe I have run into an inconsistency in the way that stop codons are treated in the annotations. Looking at the Human June 2002 assembly, the annotations for Ensembl, Twinscan, SGP, and Geneid appear to exclude the stop codon in the coding region coordinates. All of the other gene annotation sets include the stop codon as part of the coding region. My guess is that this inconsistency is the result of the gene sets being imported from different file formats. The GTF2 format does not include the stop codon in the terminal exon, while the GenBank format does, and the GFF format does not specify what to do.
 Answer:  
 Your guess is correct. We haven't gotten around to fixing this situation. A while ago, the Twinscan group made a GTF validator. It interpreted the stop codon as not part of the coding region. Prior to that, all GFF and GTF annotations that we received did include the stop codon as part of the coding region; therefore, we didn't have special code in our database to enforce it. In response to the validator, Ensembl, SGP and Geneid switched their handling of stop codons to the way that Twinscan does it, hence the discrepancy.
 
 
-**Inconsistency in GTF format reported by Evan Keibler in his Masters Project Report**  
+**Inconsistency in GTF format** (reported by Evan Keibler in his Masters Project Report):  
 Although the GTF file format is a fairly simple and well defined format, data is often
 claimed to be in GTF format when it does not comply completely with the specification.
 Most data is generated in some proprietary format specific to the particular program or
@@ -423,7 +424,9 @@ user to verify that the data is in correct GTF format before sharing with others
 makes communication more efficient because the receiver does not have to locate and fix
 the subtle differences between the many file formats.
 
-**What is the difference between GENCODE GTF and Ensembl GTF?** From [here](https://www.gencodegenes.org/pages/faq.html)  
+### Difference between GENCODE and Ensembl GTF  
+
+From [here](https://www.gencodegenes.org/pages/faq.html).  
 
 The gene annotation is the same in both files. The only exception is that the genes which are common to the human chromosome X and Y PAR regions can be found twice in the GENCODE GTF, while they are shown only for chromosome X in the Ensembl file.
 
