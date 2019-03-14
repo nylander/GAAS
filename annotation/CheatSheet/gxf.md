@@ -23,6 +23,7 @@ It's often hard to understand and differentiate all GFF/GTF formats/flavors. Her
       * [Timeline of the different formats](#timeline-of-the-different-formats)
       * [Main points and differences between GFF formats](#main-points-and-differences-between-gff-formats)
       * [Main points and differences between GTF formats](#main-points-and-differences-between-gtf-formats)
+      * [Discussion](#discussion)
    * [Extra](#extra)
       * [Problem encountered due to lake of standardization](#problem-encountered-due-to-lake-of-standardization)
       * [Difference between GENCODE and Ensembl GTF](#difference-between-gencode-and-ensembl-gtf)
@@ -415,6 +416,17 @@ GTF2.2| 2007 | | | CDS, start_codon, stop_codon, 5UTR, 3UTR", inter, inter_CNS, 
 GTF2.5| 2012 | | | gene,transcript,exon,CDS,UTR,start_codon,stop_codon,Selenocysteine | integer | integer | numerical value or  '.' | '+' or '-' |  '0', '1', '2' or '.' | Attributes must end in a semicolon which must then be separated from the start of any subsequent attribute by exactly one space character (NOT a tab character). Attributes’ values should be surrounded by double quotes. form: **attribute_name “attribute_value”; attribute_name “attribute_value”;** ~9 mandatory tags but this number varies depending of the version and the type of feature. Number of optional tag varies between 34 and 82 depending of the version | Unlike Genbank annotation, the stop codon is not included in the CDS for the terminal exon |
 GTF3| 2013 | | | gene, transcript, exon, CDS, Selenocysteine, start_codon, stop_codon, three_prime_utr and five_prime_utr | integer | integer | numerical value or  '.' | '+' or '-' |  '0', '1', '2' or '.' | Attributes must end in a semicolon which must then be separated from the start of any subsequent attribute by exactly one space character (NOT a tab character). Attributes’ values should be surrounded by double quotes. form: **attribute_name “attribute_value”; attribute_name “attribute_value”;** Two mandatory attributes: gene_id, transcript_id. Any other attributes or comments must appear after these two and will be ignored. | Unlike Genbank annotation, the stop codon is not included in the CDS for the terminal exon |
 
+## Discussion
+
+Then main differences between GTF and GFF formats are the 3rd and 9th colomn. The feature type value of the 3rd column in GTF is constrained by a list of few feature types (<10) while in GFF it is much more vast. It was not constrained until version 3 where it is now constrained to be either a term from the Sequence Ontology or an SO accession number ( 2278 possible terms ).  
+The structure of the 9th column is slightly different between the two formats:  
+  * GTF2.2: **attribute_name “attribute_value”; attribute_name “attribute_value”;**  
+  * GFF3: **ID=cds00004;Parent=mRNA00001,mRNA00002;Name=edenprotein.4**  
+Within that colum the mandatory attributes are differents.
+
+**Feature type limitation wihtin GTF**  
+As the feature types of the 3rd column is limited by the GTF format, many groups/infrastrucutre use the 9th column to describe other features like tRNA, pseudogenes, etc. As example, ENSEMBL use the attribute **gene_biotype** to define if a **transcript** feature is coding or non-coding.
+
 # Extra
 
 ## Problem encountered due to lake of standardization
@@ -448,6 +460,3 @@ The gene annotation is the same in both files. The only exception is that the ge
 In addition, the GENCODE GTF contains a number of attributes not present in the Ensembl GTF, including annotation remarks, APPRIS tags and other tags highlighting transcripts experimentally validated by the GENCODE project or 3-way-consensus pseudogenes (predicted by Havana, Yale and UCSC). See our complete list of tags for more information.
 
 Please note that the Ensembl GTF covers the annotation in all sequence regions whereas GENCODE produces a similar file but also a GTF file with the annotation on the reference chromosomes only.
-
-**Feature type limitation wihtin GTF**
-As the feature types of the 3rd column is limited by the GTF format, many groups/infrastrucutre use the 9th column to describe other features like tRNA, pseudogenes, etc. As example, ENSEMBL use the attribute **gene_biotype** to define if a **transcript** feature is coding or non-coding.
