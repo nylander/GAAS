@@ -26,7 +26,9 @@ It's often hard to understand and differentiate all GFF/GTF formats/flavors. Her
       * [Discussion](#discussion)
    * [Extra](#extra)
       * [Problem encountered due to lake of standardization](#problem-encountered-due-to-lake-of-standardization)
-      * [Difference between GENCODE and Ensembl GTF](#difference-between-gencode-and-ensembl-gtf)
+      * [Ensembl GTF formats](#ensembl-gtf-formats)
+        * [Evolution of the 3rd and 9th column](#evolution-of-the-3rd-and-9th-column)
+        * [Difference between GENCODE and Ensembl GTF](#difference-between-gencode-and-ensembl-gtf)
       
 # Forewords  
 ⇨	When I use the term gff it includes all gff formats/flavors. (The first version of the format was not called gff1 but gff. But to make it easier I will always express the version of the format saying gff1 when it's the first version of it. So from now when I say gff it means all gff formats/flavors).  
@@ -450,9 +452,9 @@ user to verify that the data is in correct GTF format before sharing with others
 makes communication more efficient because the receiver does not have to locate and fix
 the subtle differences between the many file formats.
 
-## Ensembl GTF format
+## Ensembl GTF formats
 
-### evolution of the 3rd and 9th column  
+### Evolution of the 3rd and 9th column  
 
 **Here the example of the human annotation:**  
 
@@ -465,8 +467,6 @@ Homo_sapiens.GRCh37.81.gtf | 81 | 8: CDS<br/>Selenocysteine<br/>UTR<br/>exon<br/
 Homo_sapiens.GRCh37.82.gtf | 82 | 9: CDS<br/>Selenocysteine<br/>exon<br/>five_prime_utr<br/>gene<br/>start_codon<br/>stop_codon<br/>three_prime_utr<br/>transcript   | 22: same as before
 Homo_sapiens.GRCh38.95.gtf | 95 | 9: CDS<br/>Selenocysteine<br/>exon<br/>five_prime_utr<br/>gene<br/>start_codon<br/>stop_codon<br/>three_prime_utr<br/>transcript  | 18: ccds_id<br/>exon_id<br/>exon_number<br/>exon_version<br/>gene_biotype<br/>gene_id<br/>gene_name<br/>gene_source<br/>gene_version<br/>protein_id<br/>protein_version<br/>tag<sup>*</sup><br/>transcript_biotype<br/>transcript_id<br/>transcript_name<br/>transcript_source<br/>transcript_support_level<br/>transcript_version<br/>
 <sup>*</sup>Tags are additional flags used to indicate attibutes of the transcript.
-
-### evolution of feature type (3rd column):
 
 
 ### Difference between GENCODE and Ensembl GTF  
