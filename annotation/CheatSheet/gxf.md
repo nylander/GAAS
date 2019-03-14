@@ -386,11 +386,10 @@ The **<feature>** field change a little bit and can contain 8 different types: g
 The tags/key-name of the **<attribute>** field started with 9 mandatories and 34 optionals (30 from Havanna project and 4 specific to Genecode). The most recent description of the format shows that it has existed until 11 different mandatory tags, but depending of the version and the line (feature type) the number of mandatory tags has varied a lot. There is also 76 that are optionals (70 comes from of a special set of tags, and 6 are specifics). For GRCh38 annotation lifted back to GRCh3 there is 6 other optional tags.
 
 ## GTF3  
-(2013)  
+(2015)  
 
 This version is unofficial. I call it like that to differentiate it against the other GTF flavors. 
-Originally Ensembl has created the GTF format that has been then slighly modified into GTF2 and then broadly used. Ensembl has adopted GTF2 and used only 4 different type of feature (CDS, exon, start_codon, stop_codon) and a lot of specific attributes.
-In the new GTF flavor they adopted from release 75, which I call GTF version 3,  more features types are used: gene, transcript, exon, CDS, Selenocysteine, start_codon, stop_codon, and UTR (three_prime_utr and five_prime_utr).
+Originally Ensembl has created the GTF format that has been then slightly modified into GTF2 and then broadly used. Ensembl has adopted GTF2 and used only 4 different type of feature (CDS, exon, start_codon, stop_codon) and a lot of specific attributes. Then they adopted from release 75 the GTF 2.5. More features types are used: gene, transcript, exon, CDS, Selenocysteine, start_codon, stop_codon, and UTR. Then from release 82 they move on in the format I call GTF3 where they replaced UTR by three_prime_utr and five_prime_utr.
 
 # Resume
 
@@ -409,12 +408,12 @@ GFF3| 2004 | \[a-zA-Z0-9.:^*$@!+_?-\|\] | | Column name changed by <type>. This 
 
 format version | year | col1 - seqname | col2 - source | col3 - feature | col4 - start | col5 - end | col6 - score | col7 - strand | col8 - frame | col9 - attribute | Comment
 -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | --
-GTF1| 2000 | | | CDS, start_codon, stop_codon, exon, intron  | integer | integer | numerical value or  '.' | '+', '-' or '.' |  '0', '1', '2' or '.' | porbably similar to GTF2 | probably similar to GTF2 |
-GTF2 / GFF2.5| 2003 | | | CDS, start_codon, stop_codon, exon  | integer | integer |  numerical value or  '.' | '+' or '-' |  '0', '1', '2' or '.' | Attributes must end in a semicolon which must then be separated from the start of any subsequent attribute by exactly one space character (NOT a tab character). Attributes’ values should be surrounded by double quotes. form: **attribute_name “attribute_value”; attribute_name “attribute_value”;** Two mandatory attributes: gene_id, transcript_id. Any other attributes or comments must appear after these two and will be ignored. |  Unlike Genbank annotation, the stop codon is not included in the CDS for the terminal exon |
+GTF1| 2000 | | | CDS, start_codon, stop_codon, exon, intron | integer | integer | numerical value or  '.' | '+', '-' or '.' |  '0', '1', '2' or '.' | porbably similar to GTF2 | probably similar to GTF2 |
+GTF2 / GFF2.5| 2003 | | | CDS, start_codon, stop_codon, exon | integer | integer |  numerical value or  '.' | '+' or '-' |  '0', '1', '2' or '.' | Attributes must end in a semicolon which must then be separated from the start of any subsequent attribute by exactly one space character (NOT a tab character). Attributes’ values should be surrounded by double quotes. form: **attribute_name “attribute_value”; attribute_name “attribute_value”;** Two mandatory attributes: gene_id, transcript_id. Any other attributes or comments must appear after these two and will be ignored. |  Unlike Genbank annotation, the stop codon is not included in the CDS for the terminal exon |
 GTF2.1| 2005 | | | CDS, start_codon, stop_codon, exon, 5UTR, 3UTR | integer | integer |  numerical value or  '.' | '+' or '-' |  '0', '1', '2' or '.' | Attributes must end in a semicolon which must then be separated from the start of any subsequent attribute by exactly one space character (NOT a tab character). Attributes’ values should be surrounded by double quotes. form: **attribute_name “attribute_value”; attribute_name “attribute_value”;** Two mandatory attributes: gene_id, transcript_id. Any other attributes or comments must appear after these two and will be ignored. |  Unlike Genbank annotation, the stop codon is not included in the CDS for the terminal exon |
 GTF2.2| 2007 | | | CDS, start_codon, stop_codon, 5UTR, 3UTR", inter, inter_CNS, intron_CNS and exon | integer | integer | numerical value or  '.' | '+' or '-' |  '0', '1', '2' or '.' | Attributes must end in a semicolon which must then be separated from the start of any subsequent attribute by exactly one space character (NOT a tab character). Attributes’ values should be surrounded by double quotes. form: **attribute_name “attribute_value”; attribute_name “attribute_value”;** Two mandatory attributes: gene_id, transcript_id. Any other attributes or comments must appear after these two and will be ignored. | Unlike Genbank annotation, the stop codon is not included in the CDS for the terminal exon |
 GTF2.5| 2012 | | | gene,transcript,exon,CDS,UTR,start_codon,stop_codon,Selenocysteine | integer | integer | numerical value or  '.' | '+' or '-' |  '0', '1', '2' or '.' | Attributes must end in a semicolon which must then be separated from the start of any subsequent attribute by exactly one space character (NOT a tab character). Attributes’ values should be surrounded by double quotes. form: **attribute_name “attribute_value”; attribute_name “attribute_value”;** ~9 mandatory tags but this number varies depending of the version and the type of feature. Number of optional tag varies between 34 and 82 depending of the version | Unlike Genbank annotation, the stop codon is not included in the CDS for the terminal exon |
-GTF3| 2013 | | | gene, transcript, exon, CDS, Selenocysteine, start_codon, stop_codon, three_prime_utr and five_prime_utr | integer | integer | numerical value or  '.' | '+' or '-' |  '0', '1', '2' or '.' | Attributes must end in a semicolon which must then be separated from the start of any subsequent attribute by exactly one space character (NOT a tab character). Attributes’ values should be surrounded by double quotes. form: **attribute_name “attribute_value”; attribute_name “attribute_value”;** Two mandatory attributes: gene_id, transcript_id. Any other attributes or comments must appear after these two and will be ignored. | Unlike Genbank annotation, the stop codon is not included in the CDS for the terminal exon |
+GTF3| 2015 | | | gene, transcript, exon, CDS, Selenocysteine, start_codon, stop_codon, three_prime_utr and five_prime_utr | integer | integer | numerical value or  '.' | '+' or '-' |  '0', '1', '2' or '.' | Attributes must end in a semicolon which must then be separated from the start of any subsequent attribute by exactly one space character (NOT a tab character). Attributes’ values should be surrounded by double quotes. form: **attribute_name “attribute_value”; attribute_name “attribute_value”;** Two mandatory attributes: gene_id, transcript_id. Any other attributes or comments must appear after these two and will be ignored. | Unlike Genbank annotation, the stop codon is not included in the CDS for the terminal exon |
 
 ## Discussion
 
@@ -451,7 +450,26 @@ user to verify that the data is in correct GTF format before sharing with others
 makes communication more efficient because the receiver does not have to locate and fix
 the subtle differences between the many file formats.
 
-## Difference between GENCODE and Ensembl GTF  
+## Ensembl GTF format
+
+### evolution of the 3rd and 9th column  
+
+**Here the example of the human annotation:**  
+
+annotation file | ensembl version | nb feature type (3rd column) | nb attribute tag (9th column) 
+-- | -- | -- | -- 
+Homo_sapiens.NCBI36.43.gtf | 43 | 4: CDS<br/>exon<br/>start_codon<br/>stop_codon | 6: exon_number<br/>gene_id<br/>gene_name<br/>protein_id<br/>transcript_id<br/>transcript_name
+Homo_sapiens.GRCh37.74.gtf | 74 | 4: CDS<br/>exon<br/>start_codon<br/>stop_codon | 8: exon_id<br/>exon_number<br/>gene_biotype<br/>gene_id<br/>gene_name<br/>protein_id<br/>transcript_id<br/>transcript_name
+Homo_sapiens.GRCh37.75.gtf | 75 | 8: CDS<br/>Selenocysteine<br/>UTR<br/>exon<br/>gene<br/>start_codon<br/>stop_codon<br/>transcript | 12: ccds_id<br/>exon_id<br/>exon_number<br/>gene_biotype<br/>gene_id<br/>gene_name<br/>gene_source<br/>protein_id<br/>tag<sup>*</sup><br/>transcript_id<br/>transcript_name<br/>transcript_source
+Homo_sapiens.GRCh37.81.gtf | 81 | 8: CDS<br/>Selenocysteine<br/>UTR<br/>exon<br/>gene<br/>start_codon<br/>stop_codon<br/>transcript | 12: ccds_id<br/>exon_id<br/>exon_number<br/>gene_biotype<br/>gene_id<br/>gene_name<br/>gene_source<br/>protein_id<br/>tag<sup>*</sup><br/>transcript_id<br/>transcript_name<br/>transcript_source
+Homo_sapiens.GRCh37.81.gtf | 82 | 9: CDS<br/>Selenocysteine<br/>exon<br/>five_prime_utr<br/>gene<br/>start_codon<br/>stop_codon<br/>three_prime_utr<br/>transcript   | 12: ccds_id<br/>exon_id<br/>exon_number<br/>gene_biotype<br/>gene_id<br/>gene_name<br/>gene_source<br/>protein_id<br/>tag<sup>*</sup><br/>transcript_id<br/>transcript_name<br/>transcript_source
+Homo_sapiens.GRCh38.95.gtf | 95 | 9: CDS<br/>Selenocysteine<br/>exon<br/>five_prime_utr<br/>gene<br/>start_codon<br/>stop_codon<br/>three_prime_utr<br/>transcript  | 18: ccds_id<br/>exon_id<br/>exon_number<br/>exon_version<br/>gene_biotype<br/>gene_id<br/>gene_name<br/>gene_source<br/>gene_version<br/>protein_id<br/>protein_version<br/>tag<sup>*</sup><br/>transcript_biotype<br/>transcript_id<br/>transcript_name<br/>transcript_source<br/>transcript_support_level<br/>transcript_version<br/>
+<sup>*</sup>Tags are additional flags used to indicate attibutes of the transcript.
+
+### evolution of feature type (3rd column):
+
+
+### Difference between GENCODE and Ensembl GTF  
 
 From [here](https://www.gencodegenes.org/pages/faq.html).  
 
