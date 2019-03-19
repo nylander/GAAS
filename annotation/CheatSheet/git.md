@@ -63,6 +63,7 @@ git config --global alias.graph "log --all --graph --decorate --oneline" | the c
 | git reflog                      | show me a log of past hashes I have visited
 | git checkout -b \<branch/hash\>   | create a branch pointing to <bran
 | git **tag** -a v1.0 -m "message" |  To record particular states or milestones of a project at a given point in time, like for instance versions.
+| git push origin <tagname>. | To push a tag to remote servers.
 
   * Typical workflows
 	
