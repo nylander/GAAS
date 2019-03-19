@@ -76,7 +76,7 @@
 2016 | Gmove | Dubarry, M. et al. Gmove a tool for eukaryotic gene predictions using various evidences. F1000Reserach 34, 2011 (2016). | | | | | Eukaryotic Gene Predictions using Various Evidences Dubarry |
 2016 | CAT Comparative Analysis toolkit |  | pipeline | Evidence based, comparative-abinitio | | | takes as input a HAL-format multiple whole genome alignmen | GFF3 + many plots
 2017 | GeMoMa | Keilwagen, J., Hartung, F., Paulini, M., Twardziok, S. O. & Grau, J. Combining RNA-seq data and homology-based gene prediction for plants , animals and fungi. (2017). | | | | | homology-based gene prediction program |	
-2017 | funannotate | doi.org/10.5281/zenodo.2576527 | Pipeline | Evidence Modeler + Augustus + GeneMark-ES/ET + evidence | built specifically for fungi, but will also work with higher eukaryotes | | homology-based gene prediction program |
+2017 | funannotate | doi.org/10.5281/zenodo.2576527 | Pipeline | Evidence Modeler + Augustus + GeneMark-ES/ET + evidence + PASA | built specifically for fungi, but will also work with higher eukaryotes | | homology-based gene prediction program |
 2018 | FunGAP | Min B, Grigoriev IV, Choi IG. FunGAP: Fungal Genome Annotation Pipeline using evidence-based gene model evaluation. Bioinformatics (Oxford, England). 2017;33(18):2936–7. | pipeline | | |  | |
 2018 | BRAKER2 | | | | |  | |	
 ? | GISMO | | | | |  | |	
