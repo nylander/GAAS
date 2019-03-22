@@ -62,7 +62,6 @@ git config --global alias.graph "log --all --graph --decorate --oneline" | the c
 | git rebase \<branch/hash\>        | cut current branch off and transplant it on top of \<branch/hash\>
 | git reflog                      | show me a log of past hashes I have visited
 | git checkout -b \<branch/hash\>   | create a branch pointing to <bran
-| git **tag** -a v1.0 -m "message" |  To record particular states or milestones of a project at a given point in time, like for instance versions.
 
   * Typical workflows
 	
@@ -89,6 +88,15 @@ No problem: we worked on a branch, branch is deleted, master is clean.
 
 [**Rebase vs. merge**](https://coderefinery.github.io/git-branch-design/01-rebase/) 
 [**Git rebase and commit squashing**](https://coderefinery.github.io/git-branch-design/03-squashing-exercise/)
+
+### Tagging
+
+| Command | Comment
+| --- | --- 
+| git **tag** -a v1.0 -m "message" |  To record particular states or milestones of a project at a given point in time, like for instance versions.
+| git push origin \<tagname\> | To push a tag to remote servers.
+| git push --delete origin \<tagname\> | To delete the remote tag.
+| git tag --delete \<tagname\> | To delete the local tag.
 
 ### [Conflict resolution](https://coderefinery.github.io/git-intro/10-conflicts/)
 
