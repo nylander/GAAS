@@ -1058,26 +1058,25 @@ sub append_omniscient {
 
 	foreach my $feature (@$level1){
 		my $primaryTag = lc($feature->primary_tag);
-		my @values = $feature->get_tag_values('ID');
-		my $id = lc(shift @values) ;
+		my $id  = lc($feature->_tag_value('ID'));
+
 		if( ! exists_keys($omniscient, ('level1', $primaryTag, $id)) ){
 			$omniscient->{"level1"}{$primaryTag}{$id}=$feature;
 		}
 	}
 	foreach my $feature (@$level2){ # if exist, try to append the list
 		my $primaryTag = lc($feature->primary_tag);
-		my @values = $feature->get_tag_values('Parent');
-		my $parent_id = lc(shift @values) ;
+		my $parent_id  = lc($feature->_tag_value('Parent'));
+		
 		if( ! exists_keys($omniscient, ('level2', $primaryTag, $parent_id)) ){
 			push(@{$omniscient->{"level2"}{$primaryTag}{$parent_id}}, $feature);###
 		}
 		else{ # append element in the list if not existing
 			my $exist_in_list="no";
-			my @values = $feature->get_tag_values('ID');
-			my $id = lc(shift @values) ;
+			my $id = lc($feature->_tag_value('ID'));
+			
 			foreach my $feature_original (@{$omniscient->{"level2"}{$primaryTag}{$parent_id}}){
-				my @original_values = $feature_original->get_tag_values('ID');
-				my $original_id = lc(shift @values);
+				my $original_id = lc($feature_original->_tag_value('ID'));
 				if ($original_id eq $id){
 					$exist_in_list="yes"; last;
 				}
@@ -1089,18 +1088,19 @@ sub append_omniscient {
 	}
 	foreach my $feature (@$level3){
 		my $primaryTag = lc($feature->primary_tag);
-		my @values = $feature->get_tag_values('Parent');
-		my $parent_id = lc(shift @values) ;
+		my $parent_id = lc($feature->_tag_value('Parent'));
+		
 		if( ! exists_keys($omniscient, ('level3', $primaryTag, $parent_id)) ){
 			push(@{$omniscient->{"level3"}{$primaryTag}{$parent_id}}, $feature);
 		}
 		else{ # append element in the list if not existing
 			my $exist_in_list="no";
-			my @values = $feature->get_tag_values('ID');
-			my $id = lc(shift @values) ;
+			my $id = lc($feature->get_tag_values('ID'));
+
 			foreach my $feature_original (@{$omniscient->{"level3"}{$primaryTag}{$parent_id}}){
-				my @original_values = $feature_original->get_tag_values('ID');
-				my $original_id = lc(shift @values);
+				print $primaryTag;
+				my $original_id = lc($feature_original->get_tag_values('ID'));
+
 				if ($original_id eq $id){
 					$exist_in_list="yes"; last;
 				}
