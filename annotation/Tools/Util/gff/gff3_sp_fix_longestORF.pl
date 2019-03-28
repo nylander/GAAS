@@ -450,12 +450,14 @@ sub modify_gene_model{
   my ($hash_omniscient, $omniscient_modified_gene, $gene_feature, $gene_id_tag_key, $level2_feature, $id_level2, $exons_features, $cds_feature_list, $cdsExtremStart, $cdsExtremEnd, $realORFstart, $realORFend, $model, $gffout)=@_;
 
                   ###############################################
-                  # modelate level3 features for new prediction #
+                  # create CDS for new prediction #
                   my ($new_pred_utr5_list, $new_pred_cds_list, $new_pred_utr3_list) = modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop($exons_features, $realORFstart, $realORFend);
                  
                   #########
                   #RE-SHAPE last/first exon if less than 3 nucleotides (1  or 2 must be romved) when the CDS finish 1 or 2 nuclotide before... because cannot be defined as UTR
                   shape_exon_extremity($exons_features, $new_pred_cds_list);
+                  
+                  # Create UTR
                   my ($new_pred_utr5_list, $variable_not_needed, $new_pred_utr3_list) = modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop($exons_features, $realORFstart, $realORFend);
 
                   #############################################################
@@ -568,12 +570,15 @@ sub split_gene_model{
         # Remodelate New Prediction
         ###################################
                   ###############################################
-                  # modelate level3 features for new prediction #
+                  # Create CDS #
                   my ($new_pred_utr5_list, $new_pred_cds_list, $new_pred_utr3_list) = modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop($newPred_exon_list, $realORFstart, $realORFend);
 
                   ####################################
                   #RE-SHAPE last/first exon if less than 3 nucleotides (1  or 2 must be romved) when the CDS finish 1 or 2 nuclotide before... because cannot be defined as UTR
                   shape_exon_extremity($newPred_exon_list, $new_pred_cds_list);  
+                  
+                  #create UTR
+                  my ($new_pred_utr5_list, $variable_not_needed, $new_pred_utr3_list) = modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop($exons_features, $realORFstart, $realORFend);
 
                   ######################################################
                   # Modelate gene and mRNA features for new prediction #
@@ -897,14 +902,13 @@ sub translate_JD {
       $complete, $throw, $codonTable, $offset) = @args;
    }
     
-    print "codonTableId=".$codonTableId."\n";
     ## Initialize termination codon, unknown codon, codon table id, frame
     $terminator = '*'    unless (defined($terminator) and $terminator ne '');
     $unknown = "X"       unless (defined($unknown) and $unknown ne '');
     $frame = 0           unless (defined($frame) and $frame ne '');
     $codonTableId = 1    unless (defined($codonTableId) and $codonTableId ne '');
     $complete_codons ||= $complete || 0;
-    print "codonTableId2=".$codonTableId."\n";
+
     ## Get a CodonTable, error if custom CodonTable is invalid
     if ($codonTable) {
      $self->throw("Need a Bio::Tools::CodonTable object, not ". $codonTable)
