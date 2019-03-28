@@ -15,31 +15,6 @@ use Cwd;
 use Carp;
 no strict qw(subs refs);
 
-my $usage = qq{
-perl my_script.pl
-  Getting help:
-    [--help]
-
-  Input:
-    [--fasta filename]
-        The name of the protein file to read.
-    [--db name]
-        The name of the database use to blast.
-    [--chunk_size]
-        The number of sequence by job.  If not provided, default size
-        will be 500.
-    [--nb_seq]
-        The number of proteins contained in the db. Useful to cheat on
-        the database size. (OrthoMCL aggregation as example). If not
-        provided, the current database size is used.
-    [--eval]
-        The evalue of the sequences kept in the result
-Ouput:
-    [--outdir name]
-        The name of the output directory.
-
-};
-
 my $outdir         = undef;
 my $db             = undef;
 my $fasta          = undef;
@@ -52,18 +27,24 @@ my @cmds   = ();    # Stores the commands to send to farm
 my $quiet;
 my $help;
 
-GetOptions( "help"         => \$help,
+if ( !GetOptions( "help"         => \$help,
             "fasta=s"      => \$fasta,
             "db=s"         => \$db,
             "chunk_size=i" => \$chunk_size,
             "nb_seq=i"     => \$nb_seq,
             "eval"         => \$eval,
-            "outdir=s"     => \$outdir );
+            "outdir=s"     => \$outdir,
+            "h|help!"         => \$help ) )
+{
+    pod2usage( { -message => 'Failed to parse command line',
+                 -verbose => 1,
+                 -exitval => 1 } );
+}
 
 # Print Help and exit
 if ($help) {
-    print $usage;
-    exit(0);
+    pod2usage( { -verbose => 1,
+                 -exitval => 0 } );
 }
 #check all parameters
 if ( !( defined($db) ) ) {
@@ -226,3 +207,53 @@ sub err
     msg(@_);
     exit(2);
 }
+
+__END__
+
+=head1 NAME
+
+The script allows to generate a tblastn using Grid
+
+=head1 SYNOPSIS
+
+    tblastn2grid.pl --chunck 100 --db genome.fa --eval 1e-6 --outdir blastouput --fasta db.fasta
+    tblastn2grid.pl --help
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--fasta>
+
+The name of the protein file to read.
+
+=item B<--db>
+
+The name of the database use to blast.
+
+=item B<--chunk_size>
+
+The number of sequence by job.  If not provided, default size will be 500.
+
+=item B<--nb_seq>
+
+The number of proteins contained in the db. Useful to cheat on
+the database size. (OrthoMCL aggregation as example). If not
+provided, the current database size is used.
+
+=item B<--eval>
+
+The evalue of the sequences kept in the result
+
+=item B<--outdir>
+
+The name of the output directory.
+
+=item B<-h> or B<--help>
+
+Display this helpful text.
+
+=back
+
+=cut
+

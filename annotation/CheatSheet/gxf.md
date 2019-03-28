@@ -25,7 +25,7 @@ It's often hard to understand and differentiate all GFF/GTF formats/flavors. Her
       * [Main points and differences between GTF formats](#main-points-and-differences-between-gtf-formats)
       * [Discussion](#discussion)
    * [Extra](#extra)
-      * [Problem encountered due to lake of standardization](#problem-encountered-due-to-lake-of-standardization)
+      * [Problem encountered due to lack of standardization](#problem-encountered-due-to-lack-of-standardization)
       * [Ensembl GTF formats](#ensembl-gtf-formats)
         * [Evolution of the 3rd and 9th column](#evolution-of-the-3rd-and-9th-column)
         * [Difference between GENCODE and Ensembl GTF](#difference-between-gencode-and-ensembl-gtf)
@@ -430,7 +430,7 @@ As the feature types of the 3rd column is limited by the GTF format, many groups
 
 # Extra
 
-## Problem encountered due to lake of standardization
+## Problem encountered due to lack of standardization
 
 **Inconsistency in stop codon treatment in GTF tracks** (from https://genome.ucsc.edu/FAQ/FAQtracks.html):  
 I've been doing some comparative gene set analysis using the gene annotation tracks and I believe I have run into an inconsistency in the way that stop codons are treated in the annotations. Looking at the Human June 2002 assembly, the annotations for Ensembl, Twinscan, SGP, and Geneid appear to exclude the stop codon in the coding region coordinates. All of the other gene annotation sets include the stop codon as part of the coding region. My guess is that this inconsistency is the result of the gene sets being imported from different file formats. The GTF2 format does not include the stop codon in the terminal exon, while the GenBank format does, and the GFF format does not specify what to do.
