@@ -99,7 +99,7 @@ while ( my $seq = $fasta1->next_seq() ) {
         $id_seq = $seq->id."_".$start."_".$seq->length();
         $seqObj->id($id_seq);
         $ostream->write_seq($seqObj);
-	last;
+	     last;
       }
       $start = $end - $opt_overlap;
       $end = $start + $opt_chunck_size;
@@ -132,8 +132,8 @@ __END__
 
 =head1 NAME
 
-fasta_filer_by_size.pl -
-This script filter sequences by size. It will remove from the output all sequences under a certain size (1000bp by default)
+fasta_spliter_overlap.pl -
+This script split sequences by size with an overlaped part.
 
 =head1 SYNOPSIS
 
