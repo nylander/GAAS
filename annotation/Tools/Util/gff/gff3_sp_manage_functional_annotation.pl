@@ -514,20 +514,20 @@ if ($opt_InterproFile){
   my $lineB=       "___________________________________________________________________________________________________";
   $stringPrint .= " ".$lineB."\n";
   $stringPrint .= "|          | Nb Total term | Nb mRNA with term  | Nb mRNA updated by term | Nb gene updated by term |\n";
-  $stringPrint .= "|          | in Annie File |   in Annie File    | in our annotation file  | in our annotation file  |\n";
+  $stringPrint .= "|          | in raw File |   in raw File    | in our annotation file  | in our annotation file  |\n";
   $stringPrint .= "|".$lineB."|\n";
 
   foreach my $type (keys %functionData){
     my $total_type = $TotalTerm{$type};
-    my $mRNA_type_Annie = $functionDataAdded{$type};
+    my $mRNA_type_raw = $functionDataAdded{$type};
     my $mRNA_type = keys %{$mRNAAssociatedToTerm{$type}};
     my $gene_type = keys %{$GeneAssociatedToTerm{$type}};
-    $stringPrint .= "|".sizedPrint(" $type",10)."|".sizedPrint($total_type,15)."|".sizedPrint($mRNA_type_Annie,20)."|".sizedPrint($mRNA_type,25)."|".sizedPrint($gene_type,25)."|\n|".$lineB."|\n";
+    $stringPrint .= "|".sizedPrint(" $type",10)."|".sizedPrint($total_type,15)."|".sizedPrint($mRNA_type_raw,20)."|".sizedPrint($mRNA_type,25)."|".sizedPrint($gene_type,25)."|\n|".$lineB."|\n";
   }
 
   #RESUME TOTAL OF FUNCTION ATTACHED
   my $listOfFunction;
-  foreach my $funct (keys %functionData){
+  foreach my $funct (sort keys %functionData){
     $listOfFunction.="$funct,";
   }
   chop $listOfFunction;
@@ -716,7 +716,7 @@ sub addFunctions{
   return $functionAdded;
 }
 
-# method to par annie blast file
+# method to parse blast file
 sub parse_blast {
   my($file_in, $opt_blastEvalue, $hash_mRNAGeneLink) = @_;
 
