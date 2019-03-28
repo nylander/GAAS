@@ -108,8 +108,7 @@ while (my $feature = $ref_in->next_feature() ) {
 #print "We added $nbNameAdded Name attributes\n";
 my $out = IO::File->new();
 if ($outfile) {
-          $outfile=~ s/.gff//g;
-          open($out, '>', $outfile.".txt") or die "Could not open file $outfile.txt $!";
+          open($out, '>', $outfile) or die "Could not open file $outfile.txt $!";
 }
 else{
           $out->fdopen( fileno(STDOUT), 'w' );
