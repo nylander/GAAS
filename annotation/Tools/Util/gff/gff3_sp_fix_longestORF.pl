@@ -31,8 +31,8 @@ my $SIZE_OPT=21;
 my $header = qq{
 ########################################################
 # BILS 2015 - Sweden                                   #  
-# jacques.dainat\@bils.se                               #
-# Please cite BILS (www.bils.se) when using this tool. #
+# jacques.dainat\@nbis.se                               #
+# Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 };
 
@@ -41,7 +41,7 @@ my $gff = undef;
 my $model_to_test = undef;
 my $file_fasta=undef;
 my $split_opt=undef;
-my $codonTable=1;
+my $codonTable=0;
 my $verbose = undef;
 my $help= 0;
 
@@ -79,12 +79,15 @@ if ( ! (defined($gff)) or !(defined($file_fasta)) ){
 if($codonTable<0 and $codonTable>25){
   print "$codonTable codon table is not a correct value. It should be between 0 and 25 (0,23 and 25 can be problematic !)\n";
 }
+else{
+  print "We will use the codon table ".$codonTable.". If it is not what you want please stop the tool and use the --table option. \n";
+}
 
 ######################
 # Manage output file #
 my $gffout;
 my $gffout2;
-my $gffout3;
+my $report;
 #my $gffout4;
 if ($outfile) {
   $outfile=~ s/.gff//g;
@@ -92,7 +95,7 @@ open(my $fh, '>', $outfile."-intact.gff") or die "Could not open file '$outfile'
   $gffout= Bio::Tools::GFF->new(-fh => $fh, -gff_version => 3 );
 open(my $fh2, '>', $outfile."-only_modified.gff") or die "Could not open file '$outfile' $!";
   $gffout2= Bio::Tools::GFF->new(-fh => $fh2, -gff_version => 3 );
-open($gffout3, '>', $outfile."-report.txt") or die "Could not open file '$outfile' $!";
+open($report, '>', $outfile."-report.txt") or die "Could not open file '$outfile' $!";
 #open(my $fh3, '>', $outfile."-pseudogenes.gff") or die "Could not open file '$outfile' $!";
 #  $gffout4= Bio::Tools::GFF->new(-fh => $fh3, -gff_version => 3 );
 }
@@ -186,7 +189,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
               $cds_obj = $cds_obj->revcom();
             }
             #translate cds in protein
-            my $original_prot_obj = $cds_obj->translate(-codontable_id => $codonTable) ; #codontable_id by default=1 (Vertebrates). IUPAC => STOP codon even if not sure ...
+            my $original_prot_obj = $cds_obj->translate(-codontable_id => $codonTable) ; #codontable_id by default=0 strict M as start codon. IUPAC => STOP codon even if not sure ...
             my $cds_prot=$original_prot_obj->seq;
             #print $original_prot_obj->seq."\n"; 
             my $originalProt_size=length($cds_prot);
@@ -205,28 +208,10 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
             
             #######################
             # Get the longest ORF ## record ORF = start, end (half-open), length, and frame
-            my $longest_ORF_prot_obj;
-            my $orf_cds_region;
-            my ($longest_ORF_prot_objM, $orf_cds_regionM) = translate_JD($mrna_obj, 
-                                                                        -nostartbyaa => 'L',
+            my ($longest_ORF_prot_obj, $orf_cds_region) = translate_JD($mrna_obj, 
                                                                         -orf => 'longest',
                                                                         -codontable_id => $codonTable);
-            my ($longest_ORF_prot_objL, $orf_cds_regionL) = translate_JD($mrna_obj, 
-                                                                        -nostartbyaa => 'M',
-                                                                        -orf => 'longest',
-                                                                        -codontable_id => $codonTable);
-            if($longest_ORF_prot_objL->length()+$SIZE_OPT > $longest_ORF_prot_objM ){ # In a randomly generated DNA sequence with an equal percentage of each nucleotide, a stop-codon would be expected once every 21 codons. Deonier et al. 2005
-              $longest_ORF_prot_obj=$longest_ORF_prot_objL;                    # As Leucine L (9/100) occur more often than Metionine M (2.4) JD arbitrary choose to use the L only if we strength the sequence more than 21 AA. Otherwise we use M start codon.
-              $orf_cds_region=$orf_cds_regionL;
-              $counter_case21++;
-            }
-            else{
-
-              $longest_ORF_prot_obj=$longest_ORF_prot_objM;
-              $orf_cds_region=$orf_cds_regionM;
-
-            }
-      #       print Dumper($orf_cds_region)."\n";
+      #     print Dumper($orf_cds_region)."\n";
             # set real start and stop to orf
             my $realORFstart;
             my $realORFend;
@@ -258,9 +243,8 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
                 if ( exists($ListModel{1}) ){ 
                   if(!(($longest_ORF_prot_obj->seq =~ m/^X/) and ($longest_ORF_prot_obj->length() < $originalProt_size+$SIZE_OPT))){ #avoid case of ambigous methionine (Written X) -> Need to be over 21 AA to decide ok is longer and can be a M
 
-                    #print "mrNA $id_level2 => model1. prot original is shorter:\noriginal:$cds_prot\ncdsStart $cdsExtremStart - cdsEnd $cdsExtremEnd\n".
-                    $longest_ORF_prot_obj->seq."\n\n";
                     $ListModel{1}++; print "Model 1: gene=$gene_id_tag_key mRNA=$id_level2\n" if ($verbose);
+                    print "original:$cds_prot\nnew:". $longest_ORF_prot_obj->seq."\n" if $verbose;
                     modify_gene_model($hash_omniscient, \%omniscient_modified_gene, $gene_feature, $gene_id_tag_key, $level2_feature, $id_level2, \@exons_features, \@cds_feature_list, $cdsExtremStart, $cdsExtremEnd, $realORFstart, $realORFend, 'model1', $gffout);
                     $ORFmodified="yes";
 
@@ -409,7 +393,7 @@ else{
 }
 
 #END
-my $string_to_print="usage: $0 @copyARGV\n";
+my $string_to_print="usage: $0 @copyARGV\nCodon table used:".$codonTable."\n";
 $string_to_print .="Results:\n";
 $string_to_print .= "$geneCounter genes has been modified. These gene has  $mRNACounter mRNA, and among them  $mRNACounter_fixed had their ORF fixed.\n";
 if (exists ($ListModel{1})){
@@ -447,7 +431,7 @@ $string_to_print .="\n/!\\Remind:\n L and M are AA are possible start codons.\nP
 
 print $string_to_print;
 if($outfile){
-  print $gffout3 $string_to_print
+  print $report $string_to_print
 }
 print "Bye Bye.\n";
 #######################################################################################################################
@@ -913,13 +897,14 @@ sub translate_JD {
       $complete, $throw, $codonTable, $offset) = @args;
    }
     
+    print "codonTableId=".$codonTableId."\n";
     ## Initialize termination codon, unknown codon, codon table id, frame
     $terminator = '*'    unless (defined($terminator) and $terminator ne '');
     $unknown = "X"       unless (defined($unknown) and $unknown ne '');
     $frame = 0           unless (defined($frame) and $frame ne '');
     $codonTableId = 1    unless (defined($codonTableId) and $codonTableId ne '');
     $complete_codons ||= $complete || 0;
-    
+    print "codonTableId2=".$codonTableId."\n";
     ## Get a CodonTable, error if custom CodonTable is invalid
     if ($codonTable) {
      $self->throw("Need a Bio::Tools::CodonTable object, not ". $codonTable)
@@ -1149,6 +1134,11 @@ Input GFF3 file that will be read (and sorted)
 Genome fasta file
 The name of the fasta file containing the genome to work with.
 
+
+=item B<--ct>, B<--codon> or B<--table>
+
+Codon table to use. 1 By default.
+
 =item B<-m> or B<--model>
 
 Kind of ORF fix Model you want. By default all are used. To define specific model writte: --model 1,4
@@ -1167,6 +1157,10 @@ We keep the longest. If you want to split it type: -s
 
 Output GFF file.  If no output file is specified, the output will be
 written to STDOUT.
+
+=item B<-v>
+
+verbose
 
 =item B<-h> or B<--help>
 
