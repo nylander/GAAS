@@ -161,6 +161,8 @@ You are in a middle of a development and a colleague wants to fix/commit somethi
 | git log --oneline --grep "__term__" | grepping commit messages
 | git log -S '__term__' \<filename\> | Finding removed code (__term__) from file \<filename\>
 | git checkout -b \<name\> \<hash\> | Branch from arbitrary (earlier) hash. Recommended mechanism to inspect old code. remove the | branch once you found what you were looking for.
+| git shortlog --summary --numbered | To show all users and the number of commits
+
 
   * bisect
   
