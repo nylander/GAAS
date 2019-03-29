@@ -140,8 +140,7 @@ You are in a middle of a development and a colleague wants to fix/commit somethi
 | --- | --- 
 | git clone https://host.com/user/project.git project | cloning a repository
 | git push origin master | push the change to the upstream repository
-| git pull origin master | Pull updates from the upstream repository (It is equivalent to `git fetch origin`
-+ `git merge origin/master`)
+| git pull origin master | Pull updates from the upstream repository (It is equivalent to `git fetch origin` + `git merge origin/master`)
 | git pull --rebase origin master | alternative to avoid merge commits
 | git push origin -u branchName | Push your change as a new branch branchName
 | git push origin somefeature | push to the remote branch somefeature
@@ -161,6 +160,8 @@ You are in a middle of a development and a colleague wants to fix/commit somethi
 | git log --oneline --grep "__term__" | grepping commit messages
 | git log -S '__term__' \<filename\> | Finding removed code (__term__) from file \<filename\>
 | git checkout -b \<name\> \<hash\> | Branch from arbitrary (earlier) hash. Recommended mechanism to inspect old code. remove the | branch once you found what you were looking for.
+| git shortlog --summary --numbered | To show all users and the number of commits
+
 
   * bisect
   
