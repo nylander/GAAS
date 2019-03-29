@@ -140,8 +140,7 @@ You are in a middle of a development and a colleague wants to fix/commit somethi
 | --- | --- 
 | git clone https://host.com/user/project.git project | cloning a repository
 | git push origin master | push the change to the upstream repository
-| git pull origin master | Pull updates from the upstream repository (It is equivalent to `git fetch origin`
-+ `git merge origin/master`)
+| git pull origin master | Pull updates from the upstream repository (It is equivalent to `git fetch origin` + `git merge origin/master`)
 | git pull --rebase origin master | alternative to avoid merge commits
 | git push origin -u branchName | Push your change as a new branch branchName
 | git push origin somefeature | push to the remote branch somefeature
