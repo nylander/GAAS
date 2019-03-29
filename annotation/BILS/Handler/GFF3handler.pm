@@ -1098,7 +1098,7 @@ sub append_omniscient {
 			my $id = lc($feature->get_tag_values('ID'));
 
 			foreach my $feature_original (@{$omniscient->{"level3"}{$primaryTag}{$parent_id}}){
-				print $primaryTag;
+
 				my $original_id = lc($feature_original->get_tag_values('ID'));
 
 				if ($original_id eq $id){
