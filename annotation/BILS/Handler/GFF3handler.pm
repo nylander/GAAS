@@ -1095,7 +1095,7 @@ sub append_omniscient {
 		}
 		else{ # append element in the list if not existing
 			my $exist_in_list="no";
-			my $id = lc($feature->get_tag_values('ID'));
+			my $id = lc($feature->_tag_value('ID'));
 
 			foreach my $feature_original (@{$omniscient->{"level3"}{$primaryTag}{$parent_id}}){
 
