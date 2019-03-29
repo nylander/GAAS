@@ -272,7 +272,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
                     $ORFmodified="yes";
                   }
                 } # End they don't overlap
-               
+                
                 #########################################
                 # Prediction Overlap original CDS #
                 else { # They overlap
@@ -371,6 +371,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
     }
   }
 }
+
 ###
 # Fix frame
 fil_cds_frame(\%omniscient_modified_gene);
@@ -564,7 +565,6 @@ sub split_gene_model{
                     # append gene modified in omniscient_modified_gene
                     my @level1_list=($gene_id_tag_key);
                     fill_omniscient_from_other_omniscient_level1_id(\@level1_list, $hash_omniscient, $omniscient_modified_gene); # If already exists in omniscient_modified_gene, it will be replaced by the modified one
-                  
                   }
         ###################################
         # Remodelate New Prediction
@@ -578,7 +578,7 @@ sub split_gene_model{
                   shape_exon_extremity($newPred_exon_list, $new_pred_cds_list);  
                   
                   #create UTR
-                  my ($new_pred_utr5_list, $variable_not_needed, $new_pred_utr3_list) = modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop($exons_features, $realORFstart, $realORFend);
+                  my ($new_pred_utr5_list, $variable_not_needed, $new_pred_utr3_list) = modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop($newPred_exon_list, $realORFstart, $realORFend);
 
                   ######################################################
                   # Modelate gene and mRNA features for new prediction #
