@@ -8,6 +8,12 @@ Contains development done in the GAA (Genome Assembly Annotation) Service.
 ## [__annotation__](annotation)  
 Annotation directory contains development related to annotation side of the service.  
 
+#### Shorcuts: 
+   - [Tools](annotation/Tools/bin/) 
+
+   - [Cheat Sheets](annotation/CheatSheet)
+
+
 ## [__assembly__](assembly)  
 Assembly directory contains development related to assembly side of the service.  
 
