@@ -12,9 +12,9 @@ use Bio::Seq;
 
 our $VERSION     = 1.00;
 our @ISA         = qw(Exporter);
-our @EXPORT_OK   = qw(complement_omniscients_by_size convert_omniscient_to_ensembl_style remove_l2_related_feature l2_identical group_l1IDs_from_omniscient complement_omniscients rename_ID_existing_in_omniscient keep_only_uniq_from_list2 check_gene_overlap_at_CDSthenEXON location_overlap_update location_overlap print_omniscient_as_match nb_feature_level1 check_gene_positions find_overlap_between_geneFeature_and_sortBySeqId sort_by_seq_id sort_by_seq webapollo_compliant extract_cds_sequence group_l1features_from_omniscient create_omniscient_from_idlevel2list get_feature_l2_from_id_l2_l1 remove_omniscient_elements_from_level2_feature_list remove_omniscient_elements_from_level2_ID_list featuresList_identik group_features_from_omniscient featuresList_overlap check_level1_positions check_level2_positions info_omniscient fil_cds_frame exists_keys remove_element_from_omniscient append_omniscient merge_omniscients remove_omniscient_elements_from_level1_id_list fill_omniscient_from_other_omniscient_level1_id print_omniscient_from_level1_id_list check_if_feature_overlap remove_tuple_from_omniscient print_ref_list_feature print_omniscient create_or_replace_tag remove_element_from_omniscient_attributeValueBased get_longest_cds_level2);
+our @EXPORT_OK   = qw(complement_omniscients_by_size convert_omniscient_to_ensembl_style remove_l2_related_feature l2_identical group_l1IDs_from_omniscient complement_omniscients rename_ID_existing_in_omniscient keep_only_uniq_from_list2 check_gene_overlap_at_CDSthenEXON location_overlap_update location_overlap print_omniscient_as_match nb_feature_level1 check_gene_positions find_overlap_between_geneFeature_and_sortBySeqId sort_by_seq_id sort_by_seq webapollo_compliant extract_cds_sequence group_l1features_from_omniscient create_omniscient_from_idlevel2list get_feature_l2_from_id_l2_l1 remove_omniscient_elements_from_level2_feature_list remove_omniscient_elements_from_level2_ID_list featuresList_identik group_features_from_omniscient featuresList_overlap check_level1_positions check_level2_positions info_omniscient fil_cds_frame exists_keys remove_element_from_omniscient append_omniscient merge_omniscients remove_omniscient_elements_from_level1_id_list fill_omniscient_from_other_omniscient_level1_id print_omniscient_from_level1_id_list subsample_omniscient_from_level1_id_list check_if_feature_overlap remove_tuple_from_omniscient print_ref_list_feature print_omniscient create_or_replace_tag remove_element_from_omniscient_attributeValueBased get_longest_cds_level2);
 our %EXPORT_TAGS = ( DEFAULT => [qw()],
-                 Ok    => [qw(complement_omniscients_by_size convert_omniscient_to_ensembl_style remove_l2_related_feature l2_identical group_l1IDs_from_omniscient complement_omniscients rename_ID_existing_in_omniscient keep_only_uniq_from_list2 check_gene_overlap_at_CDSthenEXON location_overlap_update location_overlap print_omniscient_as_match nb_feature_level1 check_gene_positions find_overlap_between_geneFeature_and_sortBySeqId sort_by_seq_id sort_by_seq webapollo_compliant extract_cds_sequence group_l1features_from_omniscient create_omniscient_from_idlevel2list get_feature_l2_from_id_l2_l1 remove_omniscient_elements_from_level2_feature_list remove_omniscient_elements_from_level2_ID_list featuresList_identik group_features_from_omniscient featuresList_overlap check_level1_positions check_level2_positions info_omniscient fil_cds_frame exists_keys remove_element_from_omniscient append_omniscient merge_omniscients remove_omniscient_elements_from_level1_id_list fill_omniscient_from_other_omniscient_level1_id print_omniscient_from_level1_id_list check_if_feature_overlap remove_tuple_from_omniscient print_ref_list_feature print_omniscient create_or_replace_tag remove_element_from_omniscient_attributeValueBased get_longest_cds_level2)]);
+                 Ok    => [qw(complement_omniscients_by_size convert_omniscient_to_ensembl_style remove_l2_related_feature l2_identical group_l1IDs_from_omniscient complement_omniscients rename_ID_existing_in_omniscient keep_only_uniq_from_list2 check_gene_overlap_at_CDSthenEXON location_overlap_update location_overlap print_omniscient_as_match nb_feature_level1 check_gene_positions find_overlap_between_geneFeature_and_sortBySeqId sort_by_seq_id sort_by_seq webapollo_compliant extract_cds_sequence group_l1features_from_omniscient create_omniscient_from_idlevel2list get_feature_l2_from_id_l2_l1 remove_omniscient_elements_from_level2_feature_list remove_omniscient_elements_from_level2_ID_list featuresList_identik group_features_from_omniscient featuresList_overlap check_level1_positions check_level2_positions info_omniscient fil_cds_frame exists_keys remove_element_from_omniscient append_omniscient merge_omniscients remove_omniscient_elements_from_level1_id_list fill_omniscient_from_other_omniscient_level1_id print_omniscient_from_level1_id_list subsample_omniscient_from_level1_id_list check_if_feature_overlap remove_tuple_from_omniscient print_ref_list_feature print_omniscient create_or_replace_tag remove_element_from_omniscient_attributeValueBased get_longest_cds_level2)]);
 =head1 SYNOPSIS
 
 
@@ -1218,6 +1218,7 @@ sub remove_omniscient_elements_from_level2_feature_list {
 	}
 }
 
+# After cleaning if nothing left attache to level 2 we removed it, and the same for level1
 sub remove_omniscient_elements_from_level2_ID_list {
 
 	my ($hash_omniscient, $ID_l2_list) = @_  ;
@@ -1477,6 +1478,52 @@ sub create_omniscient_from_idlevel2list{
 	return \%omniscient_new;
 }
 
+# @Purpose: filter an omniscient to return a new omnicient containing only data related by the list of level1 IDs
+# @input: 1 =>  omniscient hash reference
+# @output 1 =>  omniscient hash reference
+sub subsample_omniscient_from_level1_id_list {
+
+	my ($hash_omniscient, $level_id_list) = @_  ;
+
+	my %new_hash;
+
+	#################
+	# == LEVEL 1 == #
+	#################
+	foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
+
+		foreach my $id_tag_key_level1_raw (@$level_id_list){
+			my $id_tag_key_level1 = lc($id_tag_key_level1_raw);
+			if(exists ($hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1})){
+
+				$new_hash{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1} = delete $hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1};
+
+				#################
+				# == LEVEL 2 == #
+				#################
+				foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
+					if ( exists ($hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1} ) ){
+						foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1}}) {
+							my $level2_ID = lc($feature_level2->_tag_value('ID'));
+
+							#################
+							# == LEVEL 3 == #
+							#################
+							foreach my $primary_tag_key_level3 (keys %{$hash_omniscient->{'level3'}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
+								if ( exists ($hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID} ) ){
+									$new_hash{'level3'}{$primary_tag_key_level3}{$level2_ID} = delete $hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID};
+								}
+							}
+						}
+						$new_hash{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1} = delete $hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1};
+					}
+				}
+			}
+		}
+	}
+	return \%new_hash;
+}
+
 #				   +------------------------------------------------------+
 #				   |+----------------------------------------------------+|
 #				   || 					Miscenaleous					 ||
@@ -1582,15 +1629,15 @@ sub info_omniscient {
 #check if reference exists in hash. Deep infinite : hash{a} or hash{a}{b} or hash{a}{b}{c}, etc.
 # usage example: exists_keys($hash_omniscient,('level3','cds',$level2_ID)
 sub exists_keys {
-    my ($hash, $key, @keys) = @_;
+    my ($hash, @keys) = @_;
 
-    if (ref $hash eq 'HASH' && exists $hash->{$key}) {
-        if (@keys) {
-            return exists_keys($hash->{$key}, @keys);
-        }
-        return 1;
+    for my $key (@keys) {
+    	if (ref $hash ne 'HASH' or ! exists $hash->{$key}) {
+    		return '';
+    	}
+		$hash = $hash->{$key};
     }
-    return '';
+    return 1;
 }
 
 # omniscient is a hash containing a whole gXf file in memory sorted in a specific way (3 levels)
