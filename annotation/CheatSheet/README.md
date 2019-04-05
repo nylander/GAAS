@@ -11,7 +11,10 @@ Collection of Cheat Sheets / overview / summaries
  * [Cheat Sheet Level3](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/Bash_cheat_%20sheet_level3.pdf) 
  
  * [others](bash_other.md)
- 
+
+### Perl
+ * [Perl code profiler](perl_code_profiler.md)
+
 # Format
 
 ### External tutorial about lot of different formats:
