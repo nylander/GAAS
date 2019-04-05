@@ -112,61 +112,34 @@ foreach my $infoList (@$stat){
   print $out "\n";
 }
 
-# #Check if we have isoforms
-# if($nbLevel1 != $nbLevel2){
-
-#   print $out "\nApparently we have isoforms : Number level1 features: $nbLevel1 / Number of level2 features $nbLevel2\n";
-#   print $out "We will proceed to the statistics analysis using only the mRNA with the longest cds\n";
-
-#   #create list of level2 where we kept only level2 that have cds and only the longest isoform !
-#   my $list_id_l2 = get_longest_cds_level2($hash_omniscient);
-
-#   # create a new omniscient with only one mRNA isoform per gene
-#   my $omniscientNew = create_omniscient_from_idlevel2list($hash_omniscient, $hash_mRNAGeneLink, $list_id_l2);
-  
-#   # print stats
-#   my $stat;
-#   my $distri;
-#   if($opt_genomeSize){
-#     ($stat, $distri) = gff3_statistics($omniscientNew, $opt_genomeSize);
-#   }else{ 
-#     ($stat, $distri) = gff3_statistics($omniscientNew);
-#   }
-
-#   #print statistics
-#   foreach my $infoList (@$stat){
-#     foreach my $info (@$infoList){
-#       print $out "$info";
-#     }
-#     print $out "\n";
-#   }
-# }
-
 ###############################################################
 ### Print Statistics function 
 ###############################################################:
-my %names_l1=undef;
+my %names_l1;
 my $name_l1_nb=undef;
-my %names_l2=undef;
+my %names_l2;
 my $name_l2_nb=undef;
-my %products=undef;
+my %products;
 my $product_l2_nb=undef;
-my %descriptions=undef;
+my %descriptions;
 my $description_l2_nb=undef;
-my %ontology_terms=undef;
+my %ontology_terms;
 my $ontology_term_l2_nb=undef;
 
-my %DB_omni_mrna=undef ;
-my %DB_omni_gene=undef ;
+my %DB_omni_mrna;
+my %DB_omni_gene;
 
-my $nbmRNAwithFunction=0;
-my $nbGeneWithFunction=0;
+my $nbmRNAwithFunction = 0;
+my $nbGeneWithFunction = 0;
+my $total_nb_l1 = 0;
+my $total_nb_l2 = 0;
 
   #################
   # == LEVEL 1 == #
   #################
 foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
   foreach my $gene_id_tag_key (keys %{$hash_omniscient->{'level1'}{$primary_tag_key_level1}}){
+    $total_nb_l1++;
     my $l1_have_function=undef;
     my $gene_feature=$hash_omniscient->{'level1'}{$primary_tag_key_level1}{$gene_id_tag_key};
     my $id_gene=$gene_feature->_tag_value('ID');
@@ -175,7 +148,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
     if($gene_feature->has_tag('Name') ){
       my $value = $gene_feature->_tag_value('Name');
       $names_l1{$value}++;
-      $name_l2_nb++
+      $name_l1_nb++;
       #print "l1 has tag name with value:".$value."\n";
     }
 
@@ -184,6 +157,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
     foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
       if ( exists_keys( $hash_omniscient, ('level2', $primary_tag_key_level2, $gene_id_tag_key) ) ){
         foreach my $level2_feature ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$gene_id_tag_key}}) {
+          $total_nb_l2++;
           my $l2_have_function=undef;
           my $id_mrna=$level2_feature->_tag_value('ID');
 
@@ -216,13 +190,16 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
 
           #Check For Ontology_term 
           if($level2_feature->has_tag('Ontology_term') ){
-            my @value = $level2_feature->_tag_value('Ontology_term');
-            $ontology_terms{$value}++;
-            $ontology_term_l2_nb++;
-            $l2_have_function=1;
-            $DB_omni_mrna{'Ontology_term'}{$id_mrna}++;
-            $DB_omni_gene{'Ontology_term'}{$id_gene}++;
-            #print "l2 has tag ontology_term with value:".$value."\n";
+            my @values = $level2_feature->get_tag_values('Ontology_term');
+            foreach my $tuple (@values){
+              my ($type,$value) = split /:/,$tuple;
+              $ontology_terms{$value}++;
+              $ontology_term_l2_nb++;
+              $l2_have_function=1;
+              $DB_omni_mrna{'Ontology_term'}{$id_mrna}++;
+              $DB_omni_gene{'Ontology_term'}{$id_gene}++;
+              #print "l2 has tag ontology_term with value:".$value."\n";
+            }
           }
 
           #Check For Dbxref 
@@ -230,12 +207,10 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
             my @values = $level2_feature->get_tag_values('Dbxref');
             foreach my $tuple (@values){
               my ($type,$value) = split /:/,$tuple;
-              print $type." ".$value."\n";
-              if($type == ""){print "stop";exit;}
               $DB_omni_mrna{$type}{$id_mrna}++;
               $DB_omni_gene{$type}{$id_gene}++;
+              $l2_have_function=1;
             }
-            $l2_have_function=1;
           }
 
           if($l2_have_function){
@@ -251,8 +226,8 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
   }
 }
 
-my $nbmRNAwithoutFunction=0;
-my $nbGeneWithoutFunction=0;
+my $nbmRNAwithoutFunction= $total_nb_l2 - $nbmRNAwithFunction;
+my $nbGeneWithoutFunction= $total_nb_l1 - $nbGeneWithFunction;
 
 my $listOfFunction;
 foreach my $funct (sort keys %DB_omni_mrna){
@@ -262,10 +237,10 @@ chop $listOfFunction;
 
 # NOW summerize
 my $stringPrint=undef;
-
-my $lineB=       "___________________________________________________________________________________________________";
+my $lineB=       "________________________________________________________________________________________";
 $stringPrint .= " ".$lineB."\n";
-$stringPrint .= "|          | Nb term linked to mRNA | Nb mRNA with term | Nb gene with term |\n";
+#$stringPrint .= "|          | Nb term linked to mRNA | Nb mRNA with term | Nb gene with term |\n";
+$stringPrint .= "|".sizedPrint(" ",10)."|".sizedPrint("Nb term linked to mRNA",25)."|".sizedPrint("Nb mRNA with term",25)."|".sizedPrint("Nb gene with term",25)."|\n";
 $stringPrint .= "|".$lineB."|\n";
 
 foreach my $type (keys %DB_omni_mrna){
@@ -282,11 +257,27 @@ foreach my $type (keys %DB_omni_mrna){
   }
 
 
-$stringPrint .= "nb mRNA without Functional annotation ($listOfFunction) = $nbmRNAwithoutFunction;\n".
-                  "nb mRNA with Functional annotation ($listOfFunction) = $nbmRNAwithFunction\n".
-                  "nb gene without Functional annotation ($listOfFunction) = $nbGeneWithoutFunction\n".
-                  "nb gene with Functional annotation ($listOfFunction) = $nbGeneWithFunction\n"; 
 
+$stringPrint .= "\nnb mRNA without Functional annotation ($listOfFunction) = $nbmRNAwithoutFunction (remind: total gene = $total_nb_l2)\n".
+                  "nb mRNA with Functional annotation ($listOfFunction) = $nbmRNAwithFunction (remind: total gene = $total_nb_l2)\n".
+                  "nb gene without Functional annotation ($listOfFunction) = $nbGeneWithoutFunction (remind: total gene = $total_nb_l1)\n".
+                  "nb gene with Functional annotation ($listOfFunction) = $nbGeneWithFunction (remind: total gene = $total_nb_l1)\n\n"; 
+
+if ($name_l1_nb){
+  $stringPrint .= "We found $name_l1_nb gene with <Name> attribute. (remind: total gene = $total_nb_l1)\n"; 
+}
+if ($name_l2_nb){
+  $stringPrint .= "We found $name_l2_nb mRNA with <Name> attribute. They probably have the same names as their parent genes. (remind: total mRNA = $total_nb_l2)\n"; 
+}
+if ($description_l2_nb){
+  $stringPrint .= "We have $description_l2_nb mRNA with <description> attribute.\n"; 
+}
+if ($product_l2_nb){
+  $stringPrint .= "We have $product_l2_nb mRNA with <product> attribute.\n"; 
+}
+if (! $description_l2_nb and ! $product_l2_nb){
+  $stringPrint .= "No <product> or <description> attribute found.\n"; 
+}
 
 print $out $stringPrint;
 # END STATISTICS #
@@ -315,8 +306,17 @@ sub sizedPrint{
   }
   else{
     my $nbBlanc=$size-$sizeTerm;
-    $result=$term;
-    for (my $i = 0; $i < $nbBlanc; $i++){
+    
+    my $float = $nbBlanc/2;
+    my $nbBlanc_before = sprintf "%.0f", $float;
+    my $nbBlanc_after = $nbBlanc - $nbBlanc_before;
+
+    $result="";    
+    for (my $i = 0; $i < $nbBlanc_before; $i++){
+      $result.=" ";
+    }
+    $result.=$term;
+    for (my $i = 0; $i < $nbBlanc_after; $i++){
       $result.=" ";
     }
     return $result;
@@ -325,83 +325,6 @@ sub sizedPrint{
 
 
 __END__
-
-########################
-# Manage Interpro File #
-if (defined $opt_InterproFile){
-  parse_interpro_tsv($streamInter,$opt_InterproFile);
-  
-  # create streamOutput
-  if($opt_output){
-    foreach my $type (keys %functionData){
-      my $ostreamFunct = IO::File->new(); 
-      $ostreamFunct->open( $opt_output."/$type.txt", 'w' ) or
-          croak(
-              sprintf( "Can not open '%s' for writing %s", $opt_output."/$type.txt", $! )
-          );
-      $functionStreamOutput{$type}=$ostreamFunct;
-    }
-  }
-}
-# END MANAGE FUNCTIONAL INPUT FILE #
-####################################
-
-##############################
-# print FUNCTIONAL INFORMATION
-
-# first table name\tfunction
-if($opt_output){
-  foreach my $function_type (keys %functionOutput){
-    my $streamOutput=$functionStreamOutput{$function_type};
-    foreach my $ID (keys %{$functionOutput{$function_type}}){
-
-        print $streamOutput  $ID."\t".$functionOutput{$function_type}{$ID}."\n";
-
-    }
-  }
-}
-
-
-# NOW summerize
-$stringPrint =""; # reinitialise (use at the beginning)
-if ($opt_InterproFile){
-  #print INFO
-  my $lineB=       "___________________________________________________________________________________________________";
-  $stringPrint .= " ".$lineB."\n";
-  $stringPrint .= "|          | Nb Total term | Nb mRNA with term  | Nb mRNA updated by term | Nb gene updated by term |\n";
-  $stringPrint .= "|          | in Annie File |   in Annie File    | in our annotation file  | in our annotation file  |\n";
-  $stringPrint .= "|".$lineB."|\n";
-
-  foreach my $type (keys %functionData){
-    my $total_type = $TotalTerm{$type};
-    my $mRNA_type_Annie = $functionDataAdded{$type};
-    my $mRNA_type = keys %{$mRNAAssociatedToTerm{$type}};
-    my $gene_type = keys %{$GeneAssociatedToTerm{$type}};
-    $stringPrint .= "|".sizedPrint(" $type",10)."|".sizedPrint($total_type,15)."|".sizedPrint($mRNA_type_Annie,20)."|".sizedPrint($mRNA_type,25)."|".sizedPrint($gene_type,25)."|\n|".$lineB."|\n";
-  }
-
-  #RESUME TOTAL OF FUNCTION ATTACHED
-  my $listOfFunction;
-  foreach my $funct (keys %functionData){
-    $listOfFunction.="$funct,";
-  }
-  chop $listOfFunction;
-  my $nbGeneWithoutFunction= keys %geneWithoutFunction;
-  my $nbGeneWithFunction= keys %geneWithFunction;
-  $stringPrint .= "nb mRNA without Functional annotation ($listOfFunction) = $nbmRNAwithoutFunction\n".
-                  "nb mRNA with Functional annotation ($listOfFunction) = $nbmRNAwithFunction\n".
-                  "nb gene without Functional annotation ($listOfFunction) = $nbGeneWithoutFunction\n".
-                  "nb gene with Functional annotation ($listOfFunction) = $nbGeneWithFunction\n"; 
-}
-
-
-  #Lets keep track the duplicated names
-  if($opt_output){
-    my $duplicatedNameOut=IO::File->new(">".$opt_output."/duplicatedNameFromBlast.txt" );
-    foreach my $name (sort { $duplicateNameGiven{$b} <=> $duplicateNameGiven{$a} } keys %duplicateNameGiven){
-      print $duplicatedNameOut "$name\t".($duplicateNameGiven{$name}+1)."\n";
-    }
-  }
 
 =head1 NAME
 
