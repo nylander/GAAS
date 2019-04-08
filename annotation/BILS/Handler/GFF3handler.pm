@@ -12,9 +12,9 @@ use Bio::Seq;
 
 our $VERSION     = 1.00;
 our @ISA         = qw(Exporter);
-our @EXPORT_OK   = qw(complement_omniscients_by_size convert_omniscient_to_ensembl_style remove_l2_related_feature l2_identical group_l1IDs_from_omniscient complement_omniscients rename_ID_existing_in_omniscient keep_only_uniq_from_list2 check_gene_overlap_at_CDSthenEXON location_overlap_update location_overlap print_omniscient_as_match nb_feature_level1 check_gene_positions find_overlap_between_geneFeature_and_sortBySeqId sort_by_seq_id sort_by_seq webapollo_compliant extract_cds_sequence group_l1features_from_omniscient create_omniscient_from_idlevel2list get_feature_l2_from_id_l2_l1 remove_omniscient_elements_from_level2_feature_list remove_omniscient_elements_from_level2_ID_list featuresList_identik group_features_from_omniscient featuresList_overlap check_level1_positions check_level2_positions info_omniscient fil_cds_frame exists_keys remove_element_from_omniscient append_omniscient merge_omniscients remove_omniscient_elements_from_level1_id_list fill_omniscient_from_other_omniscient_level1_id print_omniscient_from_level1_id_list subsample_omniscient_from_level1_id_list check_if_feature_overlap remove_tuple_from_omniscient print_ref_list_feature print_omniscient create_or_replace_tag remove_element_from_omniscient_attributeValueBased get_longest_cds_level2);
+our @EXPORT_OK   = qw(check_record_positions complement_omniscients_by_size convert_omniscient_to_ensembl_style remove_l2_related_feature l2_identical group_l1IDs_from_omniscient complement_omniscients rename_ID_existing_in_omniscient keep_only_uniq_from_list2 check_gene_overlap_at_CDSthenEXON location_overlap_update location_overlap print_omniscient_as_match nb_feature_level1 check_gene_positions find_overlap_between_geneFeature_and_sortBySeqId sort_by_seq_id sort_by_seq webapollo_compliant extract_cds_sequence group_l1features_from_omniscient create_omniscient_from_idlevel2list get_feature_l2_from_id_l2_l1 remove_omniscient_elements_from_level2_feature_list remove_omniscient_elements_from_level2_ID_list featuresList_identik group_features_from_omniscient featuresList_overlap check_level1_positions check_level2_positions info_omniscient fil_cds_frame exists_keys remove_element_from_omniscient append_omniscient merge_omniscients remove_omniscient_elements_from_level1_id_list fill_omniscient_from_other_omniscient_level1_id print_omniscient_from_level1_id_list subsample_omniscient_from_level1_id_list check_if_feature_overlap remove_tuple_from_omniscient print_ref_list_feature print_omniscient create_or_replace_tag remove_element_from_omniscient_attributeValueBased get_longest_cds_level2);
 our %EXPORT_TAGS = ( DEFAULT => [qw()],
-                 Ok    => [qw(complement_omniscients_by_size convert_omniscient_to_ensembl_style remove_l2_related_feature l2_identical group_l1IDs_from_omniscient complement_omniscients rename_ID_existing_in_omniscient keep_only_uniq_from_list2 check_gene_overlap_at_CDSthenEXON location_overlap_update location_overlap print_omniscient_as_match nb_feature_level1 check_gene_positions find_overlap_between_geneFeature_and_sortBySeqId sort_by_seq_id sort_by_seq webapollo_compliant extract_cds_sequence group_l1features_from_omniscient create_omniscient_from_idlevel2list get_feature_l2_from_id_l2_l1 remove_omniscient_elements_from_level2_feature_list remove_omniscient_elements_from_level2_ID_list featuresList_identik group_features_from_omniscient featuresList_overlap check_level1_positions check_level2_positions info_omniscient fil_cds_frame exists_keys remove_element_from_omniscient append_omniscient merge_omniscients remove_omniscient_elements_from_level1_id_list fill_omniscient_from_other_omniscient_level1_id print_omniscient_from_level1_id_list subsample_omniscient_from_level1_id_list check_if_feature_overlap remove_tuple_from_omniscient print_ref_list_feature print_omniscient create_or_replace_tag remove_element_from_omniscient_attributeValueBased get_longest_cds_level2)]);
+                 Ok    => [qw(check_record_positions complement_omniscients_by_size convert_omniscient_to_ensembl_style remove_l2_related_feature l2_identical group_l1IDs_from_omniscient complement_omniscients rename_ID_existing_in_omniscient keep_only_uniq_from_list2 check_gene_overlap_at_CDSthenEXON location_overlap_update location_overlap print_omniscient_as_match nb_feature_level1 check_gene_positions find_overlap_between_geneFeature_and_sortBySeqId sort_by_seq_id sort_by_seq webapollo_compliant extract_cds_sequence group_l1features_from_omniscient create_omniscient_from_idlevel2list get_feature_l2_from_id_l2_l1 remove_omniscient_elements_from_level2_feature_list remove_omniscient_elements_from_level2_ID_list featuresList_identik group_features_from_omniscient featuresList_overlap check_level1_positions check_level2_positions info_omniscient fil_cds_frame exists_keys remove_element_from_omniscient append_omniscient merge_omniscients remove_omniscient_elements_from_level1_id_list fill_omniscient_from_other_omniscient_level1_id print_omniscient_from_level1_id_list subsample_omniscient_from_level1_id_list check_if_feature_overlap remove_tuple_from_omniscient print_ref_list_feature print_omniscient create_or_replace_tag remove_element_from_omniscient_attributeValueBased get_longest_cds_level2)]);
 =head1 SYNOPSIS
 
 
@@ -2581,6 +2581,62 @@ sub featuresList_identik {
 	else{$identik=undef;}
 	return $identik;
 }
+
+# @Purpose: Check the start and end of l1 l2 features from l3 features.
+# @input: 2 => hash(omniscient hash), string(gene identifier)
+# @output: none
+sub check_record_positions {
+	my ($hash_omniscient, $gene_id_raw)=@_;
+	  
+	my $gene_id = lc($gene_id_raw);
+	my $ExtremStart=1000000000000;
+	my $ExtremEnd=0;
+
+  	foreach my $primary_tag_l2 (keys %{$hash_omniscient->{'level2'}} ){ 
+	  	if (exists_keys($hash_omniscient, ('level2', $primary_tag_l2, $gene_id ) ) ){ 
+		    foreach my $mrna_feature ( @{$hash_omniscient->{'level2'}{$primary_tag_l2}{$gene_id}} ) {
+		      	my $l2_id = lc($mrna_feature->_tag_value('ID'));
+		      	my $l2_ExtremStart=1000000000000;
+	  			my $l2_ExtremEnd=0;
+		      	foreach my $tag_l3 ( keys %{$hash_omniscient->{'level3'}} ) { 
+	  				if ( exists_keys ( $hash_omniscient, ('level3', $tag_l3, $l2_id ) ) ){ 
+		    			foreach my $feature_l3 ( @{$hash_omniscient->{'level3'}{$tag_l3}{$l2_id}} ) {
+
+						    if ($feature_l3->start() < $l2_ExtremStart){
+						       $l2_ExtremStart = $feature_l3->start();
+						    }
+						    if($feature_l3->end() > $l2_ExtremEnd){
+						       $l2_ExtremEnd = $feature_l3->end();
+			      			}
+			      		}
+		      		}
+		      	}
+		      	if ($mrna_feature->start != $l2_ExtremStart and $l2_ExtremStart != 1000000000000){
+			      $mrna_feature->start($l2_ExtremStart);
+			   	}
+			  	if($mrna_feature->end != $l2_ExtremEnd and $l2_ExtremEnd != 0){
+			   	 $mrna_feature->end($l2_ExtremEnd);
+			  	}
+			  	if ( $l2_ExtremStart < $ExtremStart ){
+			  		$ExtremStart = $l2_ExtremStart;
+			  	}
+			  	if ($l2_ExtremEnd > $ExtremEnd  ){
+			  		$ExtremEnd = $l2_ExtremStart;
+			  	}
+		    }
+		}
+
+
+	  	my $gene_feature=$hash_omniscient->{'level1'}{'gene'}{$gene_id};
+	  	if ($gene_feature->start != $ExtremStart and $ExtremStart != 1000000000000){
+	      $gene_feature->start($ExtremStart);
+	   	}
+	  	if($gene_feature->end != $ExtremEnd and $ExtremEnd != 0){
+	   	 $gene_feature->end($ExtremEnd);
+	  	}
+	}
+}
+
 
 # @Purpose: Check the start and end of gene feature based on its mRNAs and eventualy fix it.
 # @input: 2 => hash(omniscient hash), string(gene identifier)
