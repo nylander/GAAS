@@ -2,8 +2,8 @@
 
 #libraries
 use strict;
-use File::Basename;
 use warnings;
+use File::Basename;
 use Data::Dumper;
 use Carp;
 use Time::Piece;
@@ -22,7 +22,7 @@ use BILS::Handler::GXFhandler qw(:Ok);
 
 my $header = qq{
 ########################################################
-# BILS 2018 - Sweden                                   #  
+# BILS 2019 - Sweden                                   #  
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
@@ -1084,6 +1084,10 @@ Input GFF3 file that will be read (and sorted)
 Input blast ( outfmt 6 = tabular )file that will be used to complement the features read from
 the first file (specified with B<--ref>).
 
+=item B<-d> or B<--db>
+
+The fasta file that has been used as DB for the blast. Gene names and products/descriptions will be fished from this file.
+
 =item B<--be> or B<--blast_evalue>
 
  Maximum e-value to keep the annotation from the blast file. By default 1e-6.
@@ -1122,6 +1126,10 @@ This option is used to define the number that will be used to begin the numberin
 
 Output GFF file.  If no output file is specified, the output will be
 written to STDOUT.
+
+=item B<-v>
+
+Verbose (bolean). For debug purpose.
 
 =item B<-h> or B<--help>
 
