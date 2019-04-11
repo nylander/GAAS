@@ -1,8 +1,10 @@
 #!/usr/bin/env perl
 
-use Carp;
 use strict;
+use warnings;
+use Carp;
 use Getopt::Long;
+use POSIX qw(strftime);
 use Data::Dumper;
 use Pod::Usage;
 use File::Basename;
@@ -23,6 +25,7 @@ my $ref = undef;
 my $verbose = undef;
 my $help= 0;
 
+my @copyARGV=@ARGV;
 if ( !GetOptions(
     "help|h" => \$help,
     "f|file|gff3|gff=s" => \$ref,
@@ -53,17 +56,26 @@ if ( ! (defined($ref)) ){
 ######################
 # Manage output file #
 my $gffout;
+my $reportout;
 if ($outfile) {
-my ($filename,$path,$ext) = fileparse($outfile,qr/\.[^.]*/);
-open(my $fh, '>', $filename.".gff3") or die "Could not open file '$filename' $!";
+  my ($filename,$path,$ext) = fileparse($outfile,qr/\.[^.]*/);
+  $reportout=IO::File->new(">".$filename."_report.txt" ) or croak( sprintf( "Can not open '%s' for writing %s", $filename."_report.txt", $! ));
+
+  open(my $fh, '>', $filename.".gff3") or die "Could not open file '$filename' $!";
   $gffout= Bio::Tools::GFF->new(-fh => $fh, -gff_version => 3 );
 }
 else{
+  $reportout = \*STDOUT or die ( sprintf( "Can not open '%s' for writing %s", "STDOUT", $! ));
   $gffout = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 3);
 }
 # END Manage Ouput Directory / File #
 #####################################
 
+
+my $string1 = strftime "%m/%d/%Y at %Hh%Mm%Ss", localtime;
+$string1 .= "\n\nusage: $0 @copyARGV\n\n";
+print $reportout $string1;
+if($outfile){print $string1;}
 
                   ######################
                   #        MAIN        #
@@ -280,7 +292,9 @@ $string_print .= "We found $nb_case2b cases where l2 from different gene identif
 $string_print .= "Whe removed $nb_gene_removed genes because no more l2 were linked to them.\n";
 $string_print .= "We found $nb_case3 cases where 2 genes have same location while CDS are differents. In that case we modified the gene locations by clipping UTRs.\n";
 print_omniscient($omniscient, $gffout); #print gene modified
-print $string_print;
+
+print $reportout $string_print;
+if($outfile){print $string_print;}
 
 #######################################################################################################################
         ####################
