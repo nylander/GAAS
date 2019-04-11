@@ -19,7 +19,7 @@ use BILS::GFF3::Statistics qw(:Ok);
 
 my $header = qq{
 ########################################################
-# BILS 2019 - Sweden                                   #  
+# NBIS 2019 - Sweden                                   #  
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
@@ -174,23 +174,30 @@ foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){
     if ($shortest_intron < $Xsize){ 
       print "flag the gene $id_l1\n";
       $nb_cases++;
-      foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){
-        foreach my $id_l1 (keys %{$hash_omniscient->{'level2'}{$tag_l1}}){
           
-          my $feature_l1 = $hash_omniscient->{'level2'}{$tag_l1}{$id_l1};
-          $feature_l1->add_tag_value($tag, $shortest_intron);
+      my $feature_l1 = $hash_omniscient->{'level1'}{$tag_l1}{$id_l1};
+      $feature_l1->add_tag_value($tag, $shortest_intron);
+      if($feature_l1->has_tag('product') ){
+        $feature_l1->add_tag_value('note', $feature_l1->get_tag_values('product'));
+        $feature_l1->remove_tag('product');
+      }
+      foreach my $tag_l2 (keys %{$hash_omniscient->{'level2'}}){
+        if (exists_keys ($hash_omniscient, ('level2', $tag_l2, $id_l1) ) ) {
+          foreach my $feature_l2 (@{$hash_omniscient->{'level2'}{$tag_l2}{$id_l1}}){
+            my $level2_ID = lc($feature_l2->_tag_value('ID'));
+            $feature_l2->add_tag_value($tag, $shortest_intron);
+            if($feature_l2->has_tag('product') ){
+              $feature_l2->add_tag_value('note', $feature_l2->get_tag_values('product'));
+              $feature_l2->remove_tag('product');
+            }
 
-          foreach my $tag_l2 (keys %{$hash_omniscient->{'level2'}}){
-            if (exists_keys ($hash_omniscient->{'level1'}{$tag_l2}{$id_l1})){
-              foreach my $feature_l2 (@{$hash_omniscient->{'level2'}{$id_l1}}){
-                my $level2_ID = lc($feature_l2->_tag_value('ID'));
-                $feature_l2->add_tag_value($tag, $shortest_intron);
-
-                foreach my $tag_l3 (keys %{$hash_omniscient->{'level3'}}){
-                  if ( exists_keys($hash_omniscient,('level3',$tag_l3,$level2_ID)) ){
-                    foreach my $feature_l3 (@{$hash_omniscient->{'level3'}{$tag_l3}{$level2_ID}}){
-                      $feature_l3->add_tag_value($tag, $shortest_intron);
-                    }
+            foreach my $tag_l3 (keys %{$hash_omniscient->{'level3'}}){
+              if ( exists_keys($hash_omniscient, ('level3', $tag_l3, $level2_ID) ) ){
+                foreach my $feature_l3 (@{$hash_omniscient->{'level3'}{$tag_l3}{$level2_ID}}){
+                  $feature_l3->add_tag_value($tag, $shortest_intron);
+                  if($feature_l3->has_tag('product') ){
+                    $feature_l3->add_tag_value('note', $feature_l3->get_tag_values('product'));
+                    $feature_l3->remove_tag('product');
                   }
                 }
               }
