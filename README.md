@@ -8,18 +8,22 @@ Contains development done in the GAA (Genome Assembly Annotation) Service.
 ## [__annotation__](annotation)  
 Annotation directory contains development related to annotation side of the service.  
 
-#### Shorcuts: 
+#### Shorcuts:  
    - [Tools](annotation/Tools/bin/) 
 
    - [Cheat Sheets](annotation/CheatSheet)
 
+   - [Genome annotation workshop](https://nbisweden.github.io/workshop-genome_annotation/)
 
 ## [__assembly__](assembly)  
 Assembly directory contains development related to assembly side of the service.  
 
+#### Shorcuts:  
+   - [Genome assembly workshop](https://nbisweden.github.io/workshop-genome_assembly/)  
+
 ---------------------------
 
-#### Installation
+## Installation
 
   * Clone and install GAAS
   
