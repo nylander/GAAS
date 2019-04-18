@@ -524,14 +524,14 @@ __END__
 
 =head1 NAME
 
-gff_checkOverlapingGeneFeatures.pl - Check a gff3 annotation file to
+gff3_sp_fix_features_locations_duplicated.pl - Check a gff3 annotation file to
 find cases where differents gene features have CDS that overlap. In this case the gene features will be merged in only one. 
 One gene is choosen as reference, and the mRNA from the other gene will be linked to it. So, it creates isoforms.
 
 =head1 SYNOPSIS
 
-    ./gff_checkOverlapingGeneFeatures.pl -f infile  [-o outfile]
-    ./gff_checkOverlapingGeneFeatures.pl --help
+    ./gff3_sp_fix_features_locations_duplicated.pl -f infile  [-o outfile]
+    ./gff3_sp_fix_features_locations_duplicated.pl --help
 
 =head1 OPTIONS
 
