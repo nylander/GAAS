@@ -82,6 +82,7 @@ if($outfile){print $string1;}
                   ######################
 
 my $nb_case1=0;
+my $nb_case2aa=0;
 my $nb_case2a=0;
 my $nb_case2b=0;
 my $nb_case3=0;
@@ -105,6 +106,7 @@ foreach my $seqid (keys %{$hash_sortBySeq}){ # loop over all the feature level1
       my @sorted_genefeature_ids = sort {$hash_sortBySeq->{$seqid}{'level1'}{$tag}{$a}[1] <=> $hash_sortBySeq->{$seqid}{'level1'}{$tag}{$b}[1] }  keys %{$hash_sortBySeq->{$seqid}{'level1'}{$tag}};
       foreach my $gene_feature_id (@sorted_genefeature_ids){
        
+        if (! exists_keys($omniscient, ('level1',$tag,$gene_feature_id) ) ){ next;} #feature has been removed from previous check
         $checked_l1{$gene_feature_id}{$gene_feature_id}++; # to not check agaisnt himself
         my $gene_feature = $omniscient->{'level1'}{$tag}{$gene_feature_id};
 
@@ -188,12 +190,12 @@ foreach my $seqid (keys %{$hash_sortBySeq}){ # loop over all the feature level1
             #print $gene_feature_id.":".$hash_sortBySeq->{$seqid}{'level1'}{$tag}{$gene_feature_id}[1]." $gene_feature_id2:".$hash_sortBySeq->{$seqid}{'level1'}{$tag}{$gene_feature_id2}[1]."\n";
             if ( $hash_sortBySeq->{$seqid}{'level1'}{$tag}{$gene_feature_id2}[1] > $hash_sortBySeq->{$seqid}{'level1'}{$tag}{$gene_feature_id}[1] ) { last; } # start of gene2 is over start of gene 1 we could stop to loop... no need to look at following genes in the list            
             if (! exists_keys($omniscient, ('level1',$tag,$gene_feature_id2) ) ){ next;} #feature has been removed from previous check
-            
+
             $checked_l1{$gene_feature_id }{$gene_feature_id2}++;
             $checked_l1{$gene_feature_id2 }{$gene_feature_id}++;
             my @L2_list_to_remove = ();
             my $gene_feature2 = $omniscient->{'level1'}{$tag}{$gene_feature_id2};    
-            
+
             #The two genes overlap
             if( ($gene_feature2->start <= $gene_feature->end() ) and ($gene_feature2->end >= $gene_feature->start) ){ 
               print "$gene_feature_id and $gene_feature_id2 overlap\n" if $verbose;
@@ -222,34 +224,44 @@ foreach my $seqid (keys %{$hash_sortBySeq}){ # loop over all the feature level1
                                 if(featuresList_identik(\@{$omniscient->{'level3'}{'exon'}{$id_l2_1}}, \@{$omniscient->{'level3'}{'exon'}{$id_l2_2}}, $verbose )){
                                   #EXON CDS
                                   print "case2: $id_l2_2 and $id_l2_1 have same exon list\n" if $verbose;
-                                  if(featuresList_identik(\@{$omniscient->{'level3'}{'cds'}{$id_l2_1}}, \@{$omniscient->{'level3'}{'cds'}{$id_l2_2}}, $verbose )){
-                                    print "case2: $id_l2_2 and $id_l2_1 have same CDS list\n" if $verbose;
-                                    $nb_case2a++;
-                                    my $size_cds1 =  cds_size($omniscient, $id_l2_1);
-                                    my $size_cds2 =  cds_size($omniscient, $id_l2_2);
-                                    if($size_cds1 >= $size_cds2 ){
-                                      push(@L2_list_to_remove, $id_l2_2);
-                                      print "case2: push1 $size_cds1 $size_cds2\n" if $verbose;
-                                    }
-                                    elsif($size_cds1 < $size_cds2){
-                                      push(@L2_list_to_remove, $id_l2_1);
-                                      print "case2: push2\n" if $verbose;
-                                    }
-                                    elsif($size_cds1){
-                                      push(@L2_list_to_remove, $id_l2_2);
-                                      print "case2: push3\n" if $verbose;
-                                    }
-                                    else{
-                                      push(@L2_list_to_remove, $id_l2_1);
-                                      print "case2: push4\n" if $verbose;
-                                    }
+                                  if ( ! exists_keys($omniscient, ('level3','cds',$id_l2_1)) and  ! exists_keys($omniscient, ('level3','cds',$id_l2_2) ) ) {
+                                       print "case2aa: $id_l2_2 and $id_l2_1 have no CDS\n" if $verbose;
+                                       $nb_case2aa++;
+                                       push(@L2_list_to_remove, $id_l2_2);
                                   }
-                                  # CDS are not identic Let's reshape UTRS
                                   else{
-                                    $nb_case2b++;
-                                    reshape_the_2_gene_models($omniscient, $gene_feature_id, $gene_feature_id2, $verbose);
-                                    print "case2-A (Exon structure identic from different genes, but CDS different, Let's reshape the UTRs to make them different.): $id_l2_1 <=> $id_l2_2\n";
-                                  }
+                                    if(featuresList_identik(\@{$omniscient->{'level3'}{'cds'}{$id_l2_1}}, \@{$omniscient->{'level3'}{'cds'}{$id_l2_2}}, $verbose )){
+                                      print "case2: $id_l2_2 and $id_l2_1 have same CDS list\n" if $verbose;
+                                      $nb_case2a++;
+                                      #identik because no CDS, we could remove one randaomly
+
+                                      my $size_cds1 =  cds_size($omniscient, $id_l2_1);
+                                      my $size_cds2 =  cds_size($omniscient, $id_l2_2);
+                                      if($size_cds1 >= $size_cds2 ){
+                                        push(@L2_list_to_remove, $id_l2_2);
+                                        print "case2: push1 $size_cds1 $size_cds2\n" if $verbose;
+                                      }
+                                      elsif($size_cds1 < $size_cds2){
+                                        push(@L2_list_to_remove, $id_l2_1);
+                                        print "case2: push2\n" if $verbose;
+                                      }
+                                      elsif($size_cds1){
+                                        push(@L2_list_to_remove, $id_l2_2);
+                                        print "case2: push3\n" if $verbose;
+                                      }
+                                      else{
+                                        push(@L2_list_to_remove, $id_l2_1);
+                                        print "case2: push4\n" if $verbose;
+                                      }
+                                    }
+
+                                    # CDS are not identic Let's reshape UTRS
+                                    else{
+                                      $nb_case2b++;
+                                      reshape_the_2_gene_models($omniscient, $gene_feature_id, $gene_feature_id2, $verbose);
+                                      print "case2-A (Exon structure identic from different genes, but CDS different, Let's reshape the UTRs to make them different.): $id_l2_1 <=> $id_l2_2\n";
+                                    }
+                                  } 
                                 }
                               }
                             }
@@ -261,7 +273,7 @@ foreach my $seqid (keys %{$hash_sortBySeq}){ # loop over all the feature level1
                 }
               }
               if(@L2_list_to_remove){
-                print "case2 (removing mRNA identic from different genes): ".join(",", @L2_list_to_remove)."\n";
+                print "case2 (removing mRNA identic from different genes: ".join(",", @L2_list_to_remove)."\n";
                 remove_omniscient_elements_from_level2_ID_list($omniscient, \@L2_list_to_remove);
                 if (! exists_keys($omniscient, ('level1',$tag,$gene_feature_id2) ) or ! exists_keys($omniscient, ('level1',$tag,$gene_feature_id) ) ){ $nb_gene_removed++;}
               }
@@ -287,6 +299,7 @@ foreach my $seqid (keys %{$hash_sortBySeq}){ # loop over all the feature level1
 }
 
 my $string_print = "\nWe found $nb_case1 cases where isoforms have identical exon structures (we removed duplicates by keeping the one with longest CDS).\n";
+$string_print .= "We found $nb_case2aa cases where l2 from different gene identifier have identical exon but no CDS at all (we removed one duplicate).\n";
 $string_print .= "We found $nb_case2a cases where l2 from different gene identifier have identical exon and CDS structures (we removed duplicates by keeping the one with longest CDS).\n";
 $string_print .= "We found $nb_case2b cases where l2 from different gene identifier have identical exon structures (we reshaped UTRs to modify gene locations).\n";
 $string_print .= "Whe removed $nb_gene_removed genes because no more l2 were linked to them.\n";
