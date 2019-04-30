@@ -7,7 +7,6 @@ use strict;
 use warnings;
 use Data::Dumper;
 use Exporter qw(import);
-use Sort::Naturally;
 use URI::Escape;
 use Bio::Seq;
 
