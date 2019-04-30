@@ -153,7 +153,7 @@ if($nbLevel1 != $nbLevel2){
     print_distribution($opt_plot, "with_isoforms", $distri);
   }
 
-  print $out "\nApparently we have isoforms : Number level1 features: $nbLevel1 / Number of level2 features $nbLevel2\n";
+  print $out "\nApparently we have isoforms : Number of level1 features: $nbLevel1 / Number of level2 features: $nbLevel2\n";
   print $out "We will proceed to the statistics analysis using only the mRNA with the longest cds\n";
 
   #create list of level2 where we kept only level2 that have cds and only the longest isoform !
