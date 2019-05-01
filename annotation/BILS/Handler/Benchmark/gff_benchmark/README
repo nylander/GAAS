@@ -32,8 +32,10 @@ Launch the tester.sh script to check the parser and all these files.
 27: One L2 is an identical isoform but not same ID. It has to be removed.
 28: Mitos output. Only one line by record, no ID, no locus tag. We have to use the option '-c Name' to specifiy that we will use the Name attribute as a locus_tag as they are uniq identifiers.
 29: Gnomom output. Two isoforms do not have CDS described but only exons. (was raising error at some point. See issue #9, fixed now)
+30: Level1 and level3 linked by comon tag ... but level2 missing ...
 
-/!\ If only level3 features are difined, and no locus tag present (see test 26), the tool cannot deal with it. I will create by default one umbrela level1, or if you on attribute as uniq locus ID, It will create a l1 for each feature => If only exon or only CDS features so the result will be fine, but if there are two different features that has to be linked together (two CDS or a CDS and a signal peptide as in the test case 26) , the tool will not perform properly.
+
+/!\ If only level3 features are defined, and no locus tag present (see test 26), the tool cannot deal with it. I will create by default one umbrela level1, or if you on attribute as uniq locus ID, It will create a l1 for each feature => If only exon or only CDS features so the result will be fine, but if there are two different features that has to be linked together (two CDS or a CDS and a signal peptide as in the test case 26) , the tool will not perform properly.
 
 The phylosophy of the parser is to
 - Parse by Parent/child ELSE 
