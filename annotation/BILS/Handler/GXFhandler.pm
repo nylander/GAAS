@@ -101,13 +101,13 @@ sub slurp_gff3_file_JD {
 
 	# Declare all variables and fill them 
 	my ($file, $gff_version, $locus_tag, $verbose, $nocheck, $quiet, $overlapCheck);
-	if( exists($args->{input})) {$file = $args->{input};} 		else{ print "Input data --input is mandatory when using slurp_gff3_file_JD!"; exit;}
-	if( ! exists($args->{gff_version})) {$gff_version = undef;} else{ $gff_version = $args->{gff_version}; }
-	if( ! exists($args->{locus_tag})) {$locus_tag = undef;}     else{ push @comon_tag_list, $locus_tag; } #add a new comon tag to the list if provided.}			
-	if( ! exists($args->{verbose}) ) {$verbose = 0;}    		else{ $verbose = $args->{verbose}; }
-	if( ! exists($args->{nocheck})) {$nocheck = undef;} 		else{ $nocheck = $args->{nocheck}; }
-	if( ! exists($args->{quiet})) {$quiet = undef;}     		else{ $quiet = $args->{quiet}; }
-	if( ! exists($args->{overlapCheck})) {$overlapCheck = 0;} 	else{ $overlapCheck = $args->{overlapCheck}; }# option to activate the check for overlapping locus. 0 means overlaping genes are considered as different loci.
+	if( defined($args->{input})) {$file = $args->{input};} 		 else{ print "Input data --input is mandatory when using slurp_gff3_file_JD!"; exit;}
+	if( ! defined($args->{gff_version})) {$gff_version = undef;} else{ $gff_version = $args->{gff_version}; }
+	if( ! defined($args->{locus_tag})) {$locus_tag = undef;}     else{ push @comon_tag_list, $args->{locus_tag}; } #add a new comon tag to the list if provided.}			
+	if( ! defined($args->{verbose}) ) {$verbose = 0;}    		 else{ $verbose = $args->{verbose}; }
+	if( ! defined($args->{nocheck})) {$nocheck = undef;} 		 else{ $nocheck = $args->{nocheck}; }
+	if( ! defined($args->{quiet})) {$quiet = undef;}     		 else{ $quiet = $args->{quiet}; }
+	if( ! defined($args->{overlapCheck})) {$overlapCheck = 0;} 	 else{ $overlapCheck = $args->{overlapCheck}; }# option to activate the check for overlapping locus. 0 means overlaping genes are considered as different loci.
 
 #	+-----------------------------------------+
 #	|	HANDLE GFF HEADER					  |
