@@ -81,24 +81,37 @@ my @comon_tag_list = ('locus_tag','gene_id');
 #Priority Parent > locus_tag > sequential
 # ====== INPUT =======:
 # $file => string (file)
-# $comonTagAttribute => list of tags to consider for gathering features
-# $gffVersion => Int (if is used, force the parser to use this gff parser instead of guessing)
+# $locus_tag => list of tags to consider for gathering features
+# $gff_version => Int (if is used, force the parser to use this gff parser instead of guessing)
 # $verbose =>define the deepth of verbosity
 # $nocheck is to deactivate sanity check. It's in devellopement. We should be able to tune the deactivation of selected checks.
 
 sub slurp_gff3_file_JD {
-	
-	my ($self, $file, $comonTagAttribute, $gffVersion, $verbose, $nocheck, $quiet) = @_  ;
-
-	## TO DO 
-	# Handle the parameter with a hash
-	if(! $verbose){$verbose=0;}
-	my $overlapCheck = 0; # option to activate the check for overlapping locus. 0 means overlaping genes are considered as different loci.
-
-	if ($comonTagAttribute){push @comon_tag_list, $comonTagAttribute; } #add a new comon tag to the list if provided.
 
 	my $start_run = time();
 	my $previous_time = undef;	
+
+#	+-----------------------------------------+
+#	|			HANDLE ARGUMENTS			  |
+#	+-----------------------------------------+	
+	my ($args) = @_  ;
+
+	# Check we receive a hash as ref
+	if(ref($args) ne 'HASH'){ print "Hash Arguments expected for slurp_gff3_file_JD. Please check the call.\n";exit;	}
+
+	# Declare all variables and fill them 
+	my ($file, $gff_version, $locus_tag, $verbose, $nocheck, $quiet, $overlapCheck);
+	if( exists($args->{input})) {$file = $args->{input};} 		else{ print "Input data --input is mandatory when using slurp_gff3_file_JD!"; exit;}
+	if( ! exists($args->{gff_version})) {$gff_version = undef;} else{ $gff_version = $args->{gff_version}; }
+	if( ! exists($args->{locus_tag})) {$locus_tag = undef;}     else{ push @comon_tag_list, $locus_tag; } #add a new comon tag to the list if provided.}			
+	if( ! exists($args->{verbose}) ) {$verbose = 0;}    		else{ $verbose = $args->{verbose}; }
+	if( ! exists($args->{nocheck})) {$nocheck = undef;} 		else{ $nocheck = $args->{nocheck}; }
+	if( ! exists($args->{quiet})) {$quiet = undef;}     		else{ $quiet = $args->{quiet}; }
+	if( ! exists($args->{overlapCheck})) {$overlapCheck = 0;} 	else{ $overlapCheck = $args->{overlapCheck}; }# option to activate the check for overlapping locus. 0 means overlaping genes are considered as different loci.
+
+#	+-----------------------------------------+
+#	|	HANDLE GFF HEADER					  |
+#	+-----------------------------------------+
 
 	#get header information 
 	my $gff3headerInfo = _check_header($file);
@@ -144,9 +157,9 @@ sub slurp_gff3_file_JD {
 	  	}
 	 };
 
-#	+-----------------------------------------+
-#	|			HANDLE FEATUTRES PARSING ACCORDING TO TYPE 			  |
-#	+-----------------------------------------+
+#	+-------------------------------------------------------------------------+
+#	|			HANDLE FEATUTRES PARSING ACCORDING TO TYPE OF INPUTS		  |
+#	+-------------------------------------------------------------------------+
 
 	my %mRNAGeneLink; #Hast that keep track about link between l2 and l1
 	my %omniscient; #Hast where all the feature will be saved
@@ -200,7 +213,7 @@ sub slurp_gff3_file_JD {
 
 		#GFF format used for parser
 		my $format;
-		if($gffVersion){$format = $gffVersion;}
+		if($gff_version){$format = $gff_version;}
 		else{ $format = select_gff_format($file);}
 
 		print "=>GFF version parser used: $format\n";
