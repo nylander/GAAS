@@ -68,7 +68,8 @@ else{
 my $error_found=undef;
 ### Parse GFF input #
 print ("Parse file $ref\n");
-my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($ref);
+my ($hash_omniscient, $hash_mRNAGeneLink) = slurp_gff3_file_JD({ input => $ref
+                                                              });
 print ("$ref file parsed\n");
 
 # sort by seq id

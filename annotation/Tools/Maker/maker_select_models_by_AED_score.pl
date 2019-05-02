@@ -102,7 +102,10 @@ $stringPrint .= "\nusage: $0 @copyARGV\n";
 
 ######################
 ### Parse GFF input #
-my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($opt_gff);
+my ($hash_omniscient, $hash_mRNAGeneLink) =  slurp_gff3_file_JD({
+                                                               input => $opt_gff,
+                                                               verbose => 1
+                                                               });
 print("Parsing Finished\n\n");
 ### END Parse GFF input #
 #########################

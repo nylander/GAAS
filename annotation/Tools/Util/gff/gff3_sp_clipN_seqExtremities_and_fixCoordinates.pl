@@ -83,7 +83,8 @@ else{
 ######################
 ### Parse GFF input #
 print "Reading file $opt_gfffile\n";
-my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($opt_gfffile);
+my ($hash_omniscient, $hash_mRNAGeneLink) = slurp_gff3_file_JD({ input => $opt_gfffile
+                                                              });  
 print "Parsing Finished\n";
 ### END Parse GFF input #
 #########################

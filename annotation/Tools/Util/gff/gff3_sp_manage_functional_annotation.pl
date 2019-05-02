@@ -200,7 +200,8 @@ if($opt_output){ print_time("$stringPrint");} # When ostreamReport is a file we 
 
 ######################
 ### Parse GFF input #
-my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($opt_reffile);
+my ($hash_omniscient, $hash_mRNAGeneLink) = slurp_gff3_file_JD({ input => $opt_reffile
+                                                              });  
 print_time("Parsing Finished\n");
 ### END Parse GFF input #
 #########################

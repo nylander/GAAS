@@ -112,7 +112,10 @@ if($opt_plot){
 ######################
 ### Parse GFF input #
 print "Reading file $gff\n";
-my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($gff, undef, undef, 1);
+my ($hash_omniscient, $hash_mRNAGeneLink) =  slurp_gff3_file_JD({
+                                                               input => $gff,
+                                                               verbose => 1
+                                                               });
 print "Parsing Finished\n";
 ### END Parse GFF input #
 #########################

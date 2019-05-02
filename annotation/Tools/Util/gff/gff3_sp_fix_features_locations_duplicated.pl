@@ -90,7 +90,8 @@ my $nb_gene_removed=0;
 
 ### Parse GFF input #
 print ("Parse file $ref\n");
-my ($omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($ref);
+my ($omniscient, $hash_mRNAGeneLink) = slurp_gff3_file_JD({ input => $ref
+                                                              });
 print ("$ref file parsed\n");
 
 # sort by seq id

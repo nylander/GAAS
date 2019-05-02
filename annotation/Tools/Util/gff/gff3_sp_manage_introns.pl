@@ -144,7 +144,8 @@ foreach my $file (@opt_files){
 
   ######################
   ### Parse GFF input #
-  my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($file);
+  my ($hash_omniscient, $hash_mRNAGeneLink) = slurp_gff3_file_JD({ input => $file
+                                                              });
   print("Parsing Finished\n\n");
   ### END Parse GFF input #
   #########################

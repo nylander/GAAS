@@ -65,7 +65,11 @@ else{
 
 ######################
 ### Parse GFF input #
-my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($opt_gfffile, $opt_comonTag, undef, $opt_verbose);
+my ($hash_omniscient, $hash_mRNAGeneLink) =  slurp_gff3_file_JD({
+                                                               input => $opt_gfffile,
+                                                               locus_tag => $opt_comonTag,
+                                                               verbose => $opt_verbose
+                                                               });
 print ("GFF3 file parsed\n");
 
 

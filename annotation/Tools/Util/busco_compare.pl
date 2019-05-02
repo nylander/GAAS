@@ -217,7 +217,8 @@ if (-d $augustus_gff_folder){
           if (-f $path ){
             my  $found=undef;
             print $path."\n" if $verbose;
-            my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($path);
+            my ($hash_omniscient, $hash_mRNAGeneLink) = slurp_gff3_file_JD({ input => $path
+                                                                          });
             if (!keys %{$hash_omniscient}){
               print "No gene found for $path\n";exit;
             }

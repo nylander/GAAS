@@ -78,7 +78,8 @@ else{
 
 ######################
 ### Parse GFF input #
-my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($gff);
+my ($hash_omniscient, $hash_mRNAGeneLink) = slurp_gff3_file_JD({ input => $gff
+                                                              });
 print ("GFF3 file parsed\n");
 
 my $hash_by_group=group_features_from_omniscient($hash_omniscient);

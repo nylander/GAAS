@@ -59,7 +59,8 @@ else{
 }
 
 ### Parse GTF input file 
-my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($gff);
+my ($hash_omniscient, $hash_mRNAGeneLink) = slurp_gff3_file_JD({ input => $gff
+                                                              });  
 # END parsing
 
 
