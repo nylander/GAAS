@@ -17,6 +17,7 @@ use File::Basename;
 
 my $start_run = time();
 my $opt_gfffile;
+my $opt_kingdom = undef;
 my $opt_comonTag=undef;
 my $opt_verbose=undef;
 my $opt_output;
@@ -24,11 +25,12 @@ my $opt_help = 0;
 my $gffVersion= undef;
 
 # OPTION MANAGMENT
-if ( !GetOptions( 'g|gff=s' => \$opt_gfffile,
-                  'c|ct=s'      => \$opt_comonTag,
-                  'v=i'      => \$opt_verbose,
+if ( !GetOptions( 'g|gff=s'         => \$opt_gfffile,
+                  'c|ct=s'          => \$opt_comonTag,
+                  'v=i'             => \$opt_verbose,
                   'o|output=s'      => \$opt_output,
-                  'gff_version=i'      => \$gffVersion,
+                  'gff_version=i'   => \$gffVersion,
+                  'kingdom|k=s'     => \$opt_kingdom,
                   'h|help!'         => \$opt_help ) )
 {
     pod2usage( { -message => 'Failed to parse command line',
@@ -77,7 +79,8 @@ my ($hash_omniscient, $hash_mRNAGeneLink) = slurp_gff3_file_JD({
                                                                input => $opt_gfffile,
                                                                locus_tag => $opt_comonTag,
                                                                gff_version => $gffVersion,
-                                                               verbose => $opt_verbose
+                                                               verbose => $opt_verbose,
+                                                               kingdom => $opt_kingdom
                                                                });
 print ("GFF3 file parsed\n");
 
@@ -113,6 +116,11 @@ Input GFF3 file that will be read (and sorted)
 =item B<-c> or B<--ct> 
 
 When the gff file provided is not correcly formated and features are linked to each other by a comon tag (by default locus_tag), this tag can be provided to parse the file correctly.
+
+=item B<-k> or B<--kingdom> 
+
+Default eukaryote. You can set it to prokaryote (p/prok/proka/prokaryote). In eukaryote mode, when features overlap at level3 and come from two different level 2 features of the same type, they will be merged under the same level 1 feature. In prokaryote case they don't because genes can overlap.
+
 
 =item B<-v> 
 

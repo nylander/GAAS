@@ -41,7 +41,7 @@ our %EXPORT_TAGS = ( DEFAULT => [qw()],
 # When creating a parent check its type from the value in the constant hash
 
 #===== INFO ===== 	
-# _manage_location and _check_overlap_name_diff are methods which compare list of list to look at overlap* (next ot each other is considered as overlap for the first method - mandatory). The first method
+# _manage_location and _merge_overlap_features are methods which compare list of list to look at overlap* (next ot each other is considered as overlap for the first method - mandatory). The first method
 # rechek all the element if one modification is done, the second one go through element from left to right.  
 
 
@@ -89,14 +89,25 @@ sub slurp_gff3_file_JD {
 	if(ref($args) ne 'HASH'){ print "Hash Arguments expected for slurp_gff3_file_JD. Please check the call.\n";exit;	}
 
 	# Declare all variables and fill them 
-	my ($file, $gff_version, $locus_tag, $verbose, $nocheck, $quiet, $overlapCheck);
+	my ($file, $gff_version, $locus_tag, $verbose, $nocheck, $quiet, $kingdom);
 	if( defined($args->{input})) {$file = $args->{input};} 		 else{ print "Input data --input is mandatory when using slurp_gff3_file_JD!"; exit;}
 	if( ! defined($args->{gff_version})) {$gff_version = undef;} else{ $gff_version = $args->{gff_version}; }
 	if( ! defined($args->{locus_tag})) {$locus_tag = undef;}     else{ push @COMONTAG, $args->{locus_tag}; } #add a new comon tag to the list if provided.}			
 	if( ! defined($args->{verbose}) ) {$verbose = 0;}    		 else{ $verbose = $args->{verbose}; }
 	if( ! defined($args->{nocheck})) {$nocheck = undef;} 		 else{ $nocheck = $args->{nocheck}; }
 	if( ! defined($args->{quiet})) {$quiet = undef;}     		 else{ $quiet = $args->{quiet}; }
-	if( ! defined($args->{overlapCheck})) {$overlapCheck = 0;} 	 else{ $overlapCheck = $args->{overlapCheck}; }# option to activate the check for overlapping locus. 0 means overlaping genes are considered as different loci.
+	# $kingdom => Default eukaryote. In eukaryote mode, when features overlap at level3 and come from two different level 2 features of the same type, they will be merged under the same level 1 feature. In prokaryote case they don't because genes can overlap.
+	if( defined($args->{kingdom}) and (($args->{kingdom} =~ 'prok') or ($args->{kingdom} eq 'p') ) ){
+		$kingdom="proka";
+		print "prokaryote mode\n";
+	} 
+	else {
+		if( defined($args->{kingdom}) and ($args->{kingdom} !~ 'euk') ){
+			print "WARNING we don't understand the kingdom defined, has to be <prokaryote> or <eukaryote>! <$args->{kingdom}> is not a correct value! We will use <eukaryote> by default.\n";
+		}
+		$kingdom ='euka';
+		print "eukaryote mode\n";
+	}
 
 #	+-----------------------------------------+
 #	|			HANDLE json level			  |
@@ -288,9 +299,9 @@ sub slurp_gff3_file_JD {
 		
 
 		#check loci names (when overlap should be the same if type is the same)
-		if ($overlapCheck){
-			_printSurrounded("Check9: _check_overlap_name_diff",30,"*") if ($verbose >= 1) ;
-			_check_overlap_name_diff(\%omniscient, \%mRNAGeneLink, $verbose);
+		if ($kingdom eq "euka"){
+			_printSurrounded("Check9: _merge_overlap_features",30,"*") if ($verbose >= 1) ;
+			_merge_overlap_features(\%omniscient, \%mRNAGeneLink, $verbose);
 		    if($verbose >= 1)  {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
 		}
 
@@ -2237,7 +2248,7 @@ sub check_mrna_positions{
 # @Purpose: When two feature overlap at level3, and are the same type level 2 they have to be merged under the same level 1 feature.
 # @input: 2 =>  hash,  integer for verbosity
 # @output: 0 
-sub _check_overlap_name_diff{
+sub _merge_overlap_features{
 	my ($omniscient, $mRNAGeneLink, $verbose) = @_;
 	my $resume_case=undef;
 
@@ -2972,6 +2983,10 @@ sub _handle_ontology{
 	return $ontology_obj;
 }
 
+# @Purpose: load all parameter (about level of the features i.e. gene = level1, mRNA=level2, exon=level3 (and if they are spread or not like cds,utr) stored in json file 
+# @input: 3 =>  integer, bolean
+# @output: 1 => none (because it load information in variable accessible from everywhere in this file)
+# @Remark: none
 sub _load_levels_from_json{
 	
 	my ($verbose, $quiet) = @_ ;
