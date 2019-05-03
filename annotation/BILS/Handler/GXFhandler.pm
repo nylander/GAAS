@@ -1728,104 +1728,130 @@ sub _manage_location{
 	
 	if ($locationTargetList){ #check number of location -> List not empty
 		
-		my $check_list=1;
-		my $nb_ref = $#{$locationRefList};
-
-		while($check_list){
-			$check_list=undef;
-			
-			my %tupleChecked=();
-			my %locationSaved=();
-			foreach my $location_from_ref_list (@{$locationRefList}){
-
-				if($verbose >= 4){print "\n==Location REF:".$location_from_ref_list->[1]." ".$location_from_ref_list->[2]."==\n";}
-				my $location_skipped=undef; #keep track for later. If it has never been further, we will not save it later, because it will cause duplicates
+		foreach my $location_from_ref_list (sort {$a->[1] <=> $b->[1]} @{$locationRefList}){
+			#if($verbose >= 4){print "\n==Location REF:".$location_from_ref_list->[1]." ".$location_from_ref_list->[2]."==\n";}
 				
-				foreach my $location_from_target_list (@{$locationTargetList}){
-					if($verbose >= 4){print "location_from_ref_list:".Dumper($location_from_ref_list)."\nAGAINST\nlocation_from_target_list:".Dumper($location_from_target_list)."\n";}
+			foreach my $location_from_target_list (sort {$a->[1] <=> $b->[1]} @{$locationTargetList} ){
+				if ($location_from_target_list->[1] > $location_from_ref_list->[1]){
+					last;
+				}
+				#if($verbose >= 4){print "location_from_ref_list:".Dumper($location_from_ref_list)."\nAGAINST\nlocation_from_target_list:".Dumper($location_from_target_list)."\n";}
 
-					#skip case test already done
-					my @tuple = sort {$a->[1] <=> $b->[1]} ($location_from_ref_list,$location_from_target_list);
-					my @tuple_ok = (@{$tuple[0]->[0]},$tuple[0]->[1],$tuple[0]->[2], @{$tuple[1]->[0]},$tuple[1]->[1],$tuple[1]->[2]);
-					my $tupleString = join(' ', @tuple_ok);
-
-					if(exists_keys (\%tupleChecked,($tupleString) ) ) {
-						if($verbose >= 4){print "skip tested: $tupleString\n";}
-						$location_skipped=1;
-						next;
-					}
-
-					# FOLLOWING UP OF REF-TARGET / TARGET-REF test
-					$tupleChecked{$tupleString}++;  # track tuple checked when we conpare a lsit aginst itself. Because a test A<=>B is equal to B<=>A
-	
-					#check if we modify the location or not
-					my ($new_location, $overlap);
-					if($method eq 'adjacent'){
-					 ($new_location, $overlap) = _manage_location_lowLevel_adjacent($location_from_ref_list, $location_from_target_list);
-					}else{
-					 ($new_location, $overlap) = _manage_location_lowLevel_overlap($location_from_ref_list, $location_from_target_list);
-					}
-
-					my $loc = join(' ', @$new_location);
-					if(! exists_keys (\%locationSaved,($loc) ) ){ #If location already saved--- we skip it
-						if($verbose >= 4){print "          push1:".$new_location->[1]." ".$new_location->[2]."\n\n";}
-						
-						#TO PUSH THE TARGET, MODIFIED OR INTACT
-						push @new_location_list, [@$new_location];
-						
-						$locationSaved{$loc}++;
-
-						# FOLLOWING UP OF NewLoc-NewLoc test
-						my @NewLoc_tuple = sort {$a->[1] <=> $b->[1]} ($new_location,$new_location);
-						my @NewLoc_tuple_ok = (@{$NewLoc_tuple[0]->[0]},$NewLoc_tuple[0]->[1],$NewLoc_tuple[0]->[2], @{$NewLoc_tuple[1]->[0]},$NewLoc_tuple[1]->[1],$NewLoc_tuple[1]->[2]);
-						my $NewLoctString = join(' ', @NewLoc_tuple_ok);
-						$tupleChecked{$NewLoctString}++;
-					}
-
-					# FOLLOWING UP OF Target-Target test
-					my @TargetTarget_tuple = sort {$a->[1] <=> $b->[1]} ($location_from_target_list,$location_from_target_list);
-					my @TargetTarget_tuple_ok = (@{$TargetTarget_tuple[0]->[0]},$TargetTarget_tuple[0]->[1],$TargetTarget_tuple[0]->[2], @{$TargetTarget_tuple[1]->[0]},$TargetTarget_tuple[1]->[1],$TargetTarget_tuple[1]->[2]);
-					my $TargetTargetString = join(' ', @TargetTarget_tuple_ok);
-					$tupleChecked{$TargetTargetString}++;
-
-					if( ($new_location->[1] !=  $location_from_target_list->[1] or $new_location->[2] !=  $location_from_target_list->[2]) ){ # location has been modified or not modifier but overlap (It means overlap completly ... it is included in)
-						$check_list=1;
-						if($verbose >= 4){print "LOCATION MODIFIED: ".$location_from_target_list->[2]." ".$new_location->[2]."\n";}
-					}
-					elsif($overlap){#position not modified but overlap (A is completely included in B); Need to keep track of it to not save the position when we are out of the loop
-						$location_skipped=1; 
-					}
+				#check if we modify the location or not
+				my $overlap;
+				my $original_location;
+				if($method eq 'adjacent'){
+					($location_from_ref_list, $overlap) = _manage_location_lowLevel_adjacent($location_from_ref_list, $location_from_target_list);
+				}else{
+					($location_from_ref_list, $overlap) = _manage_location_lowLevel_overlap($location_from_ref_list, $location_from_target_list);
 				}
 
-				#TO PUSH THE REF
-				if(! $check_list and ! $location_skipped){ #No modification done
-					my $loc = join(' ', @$location_from_ref_list);
-
-					if(! exists_keys (\%locationSaved,($loc) ) ){
-						if($verbose >= 4){print " push LocationREF = add new value !!\n";}
-						push @new_location_list, [@{$location_from_ref_list}];
-					}
-				}
+				print "          original location:".Dumper($original_location)."\nNew location".Dumper($location_from_ref_list)."\n\n";
 			}
-
-			#modification done we have to re-check all location between each other
-			if($check_list){ 
-
-				if (scalar @new_location_list == 1){
-					$check_list = undef; #Do not check the list if it is size one ! Because we will be stuck => case test againt himself is skipped !
-				}
-				elsif($nb_ref > 0){ #Case where the target list as input was more than 1 element, we have to check all against all  due to case like Ref=> -------    ---------
-					$locationTargetList = [@new_location_list];																						# Tearget ------------
-					$locationRefList = [@new_location_list];
-					$nb_ref = $#{$locationRefList}; #reinitialise the value
-					if($verbose >= 4){print "Location in memory:".@new_location_list." ".Dumper(\@new_location_list)." NNNNNNNNNNNNNNNNNNNNNNNow check aginst itself !\n";}
-					@new_location_list=();
-					%tupleChecked=();
-				}
-				else{$check_list=undef;}					
-			}
+			
+			#TO PUSH THE TARGET, MODIFIED OR INTACT
+			push @new_location_list, [@$location_from_ref_list];
 		}
 	}
+
+		# my $check_list=1;
+		# my $nb_ref = $#{$locationRefList};
+
+		# while($check_list){
+		# 	$check_list=undef;
+			
+		# 	my %tupleChecked=();
+		# 	my %locationSaved=();
+		# 	foreach my $location_from_ref_list (@{$locationRefList}){
+
+		# 		if($verbose >= 4){print "\n==Location REF:".$location_from_ref_list->[1]." ".$location_from_ref_list->[2]."==\n";}
+		# 		my $location_skipped=undef; #keep track for later. If it has never been further, we will not save it later, because it will cause duplicates
+				
+		# 		foreach my $location_from_target_list (@{$locationTargetList}){
+		# 			if($verbose >= 4){print "location_from_ref_list:".Dumper($location_from_ref_list)."\nAGAINST\nlocation_from_target_list:".Dumper($location_from_target_list)."\n";}
+
+		# 			#skip case test already done
+		# 			my @tuple = sort {$a->[1] <=> $b->[1]} ($location_from_ref_list,$location_from_target_list);
+		# 			my @tuple_ok = (@{$tuple[0]->[0]},$tuple[0]->[1],$tuple[0]->[2], @{$tuple[1]->[0]},$tuple[1]->[1],$tuple[1]->[2]);
+		# 			my $tupleString = join(' ', @tuple_ok);
+
+		# 			if(exists_keys (\%tupleChecked,($tupleString) ) ) {
+		# 				if($verbose >= 4){print "skip tested: $tupleString\n";}
+		# 				$location_skipped=1;
+		# 				next;
+		# 			}
+
+		# 			# FOLLOWING UP OF REF-TARGET / TARGET-REF test
+		# 			$tupleChecked{$tupleString}++;  # track tuple checked when we conpare a lsit aginst itself. Because a test A<=>B is equal to B<=>A
+	
+		# 			#check if we modify the location or not
+		# 			my ($new_location, $overlap);
+		# 			if($method eq 'adjacent'){
+		# 			 ($new_location, $overlap) = _manage_location_lowLevel_adjacent($location_from_ref_list, $location_from_target_list);
+		# 			}else{
+		# 			 ($new_location, $overlap) = _manage_location_lowLevel_overlap($location_from_ref_list, $location_from_target_list);
+		# 			}
+
+		# 			my $loc = join(' ', @$new_location);
+		# 			if(! exists_keys (\%locationSaved,($loc) ) ){ #If location already saved--- we skip it
+		# 				if($verbose >= 4){print "          push1:".$new_location->[1]." ".$new_location->[2]."\n\n";}
+						
+		# 				#TO PUSH THE TARGET, MODIFIED OR INTACT
+		# 				push @new_location_list, [@$new_location];
+						
+		# 				$locationSaved{$loc}++;
+
+		# 				# FOLLOWING UP OF NewLoc-NewLoc test
+		# 				my @NewLoc_tuple = sort {$a->[1] <=> $b->[1]} ($new_location,$new_location);
+		# 				my @NewLoc_tuple_ok = (@{$NewLoc_tuple[0]->[0]},$NewLoc_tuple[0]->[1],$NewLoc_tuple[0]->[2], @{$NewLoc_tuple[1]->[0]},$NewLoc_tuple[1]->[1],$NewLoc_tuple[1]->[2]);
+		# 				my $NewLoctString = join(' ', @NewLoc_tuple_ok);
+		# 				$tupleChecked{$NewLoctString}++;
+		# 			}
+
+		# 			# FOLLOWING UP OF Target-Target test
+		# 			my @TargetTarget_tuple = sort {$a->[1] <=> $b->[1]} ($location_from_target_list,$location_from_target_list);
+		# 			my @TargetTarget_tuple_ok = (@{$TargetTarget_tuple[0]->[0]},$TargetTarget_tuple[0]->[1],$TargetTarget_tuple[0]->[2], @{$TargetTarget_tuple[1]->[0]},$TargetTarget_tuple[1]->[1],$TargetTarget_tuple[1]->[2]);
+		# 			my $TargetTargetString = join(' ', @TargetTarget_tuple_ok);
+		# 			$tupleChecked{$TargetTargetString}++;
+
+		# 			if( ($new_location->[1] !=  $location_from_target_list->[1] or $new_location->[2] !=  $location_from_target_list->[2]) ){ # location has been modified or not modifier but overlap (It means overlap completly ... it is included in)
+		# 				$check_list=1;
+		# 				if($verbose >= 4){print "LOCATION MODIFIED: ".$location_from_target_list->[2]." ".$new_location->[2]."\n";}
+		# 			}
+		# 			elsif($overlap){#position not modified but overlap (A is completely included in B); Need to keep track of it to not save the position when we are out of the loop
+		# 				$location_skipped=1; 
+		# 			}
+		# 		}
+
+		# 		#TO PUSH THE REF
+		# 		if(! $check_list and ! $location_skipped){ #No modification done
+		# 			my $loc = join(' ', @$location_from_ref_list);
+
+		# 			if(! exists_keys (\%locationSaved,($loc) ) ){
+		# 				if($verbose >= 4){print " push LocationREF = add new value !!\n";}
+		# 				push @new_location_list, [@{$location_from_ref_list}];
+		# 			}
+		# 		}
+		# 	}
+
+		# 	#modification done we have to re-check all location between each other
+		# 	if($check_list){ 
+
+		# 		if (scalar @new_location_list == 1){
+		# 			$check_list = undef; #Do not check the list if it is size one ! Because we will be stuck => case test againt himself is skipped !
+		# 		}
+		# 		elsif($nb_ref > 0){ #Case where the target list as input was more than 1 element, we have to check all against all  due to case like Ref=> -------    ---------
+		# 			$locationTargetList = [@new_location_list];																						# Tearget ------------
+		# 			$locationRefList = [@new_location_list];
+		# 			$nb_ref = $#{$locationRefList}; #reinitialise the value
+		# 			if($verbose >= 4){print "Location in memory:".@new_location_list." ".Dumper(\@new_location_list)." NNNNNNNNNNNNNNNNNNNNNNNow check aginst itself !\n";}
+		# 			@new_location_list=();
+		# 			%tupleChecked=();
+		# 		}
+		# 		else{$check_list=undef;}					
+		# 	}
+		#}
+
 	else{#check number of location -> none
 		_printSurrounded("Return",25,"-","\n\n") if ($verbose >= 4);
 		if($verbose >= 4){print "returnA: ".Dumper($locationRefList)."\n\n\n";}
