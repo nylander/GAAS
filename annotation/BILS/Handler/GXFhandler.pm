@@ -6,6 +6,7 @@ use strict;
 use warnings;
 use Data::Dumper;
 use File::Basename;
+use JSON;
 use Try::Tiny;
 use LWP::UserAgent;
 use Bio::OntologyIO::obo;
@@ -46,32 +47,20 @@ our %EXPORT_TAGS = ( DEFAULT => [qw()],
 
 ##########################
 #     DEFINE CONSTANT    # 
-#/!\ Has to be defined in lowercase !
-#level1 are features without parent
-use constant LEVEL1 => { gene => 1, ncrna_gene => 2, mirna_gene => 3, lincrna_gene => 4, rrna_gene => 5, snrna_gene => 6, snorna_gene => 7, pseudogene => 8, sirna_gene => 10, pirna_gene => 11, sts => 12,
-						 match => 9, protein_match => 13,  cDNA_match => 14, EST_match => 15, translated_nucleotide_match => 16, nucleotide_to_protein_match => 17, nucleotide_motif => 18, polypeptide => 19};
-#level2 are features with parent and potentially a child (no child as example for match)
-use constant LEVEL2 => { mrna => "gene", transcript => "gene", processed_transcript => "gene", nmd_transcript_variant => "gene", aberrant_processed_transcript => "gene", rna => "gene", trna => "gene",
-						ncrna => "ncrna_gene", mirna => "mirna_gene", lcrna => "lincrna_gene", lincrna => "lincrna_gene", rrna => "rrna_gene", snrna => "snrna_gene", snorna => "snorna_gene",  
-						trna_pseudogene => "pseudogene", pseudogenic_transcript => "pseudogene", processed_pseudogene => "pseudogene", unitary_pseudogene => "pseudogene",
-						match_part => "match", similarity => "match", 
-						nc_primary_transcript => "gene",
-						misc_rna => "gene", rnase_p_rna => "gene", tmrna => "gene", srp_rna => "gene", vaultrna => "gene", sirna => "sirna_gene", piRNA => "pirna_gene"};
-#level3 features have parents, but no child
-# cds => "exon" mean that cds is included into an exon				
-use constant LEVEL3 => { cds => "exon", exon => 2, stop_codon => "exon", start_codon => "exon", three_prime_utr => "exon", five_prime_utr => "exon", utr => "exon", selenocysteine => 8, non_canonical_three_prime_splice_site => 8, non_canonical_five_prime_splice_site => 10,
-						stop_codon_read_through => "exon", sig_peptide => "exon", tss => "exon", tts => "exon", intron => 15 };
-#feature that can be split over different locations
-use constant SPREADFEATURE => {cds => 1, three_prime_utr => 2, five_prime_utr => 3, utr => 4};
 use constant PREFIXL2 => "nbis_noL2id";
 
 #####################################
 #     DEFINE file scope variable    # 
 my $createL3forL2orphan = 1;
 my $fh_error = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 3);
+my $LEVEL1; # level1 are features without parent
+my $LEVEL2; # level2 are features with parent and potentially a child (no child as example for match)
+my $LEVEL3; # level3 features have parents, but no child. ( cds => "exon" mean that cds is included into an exon)	
+my $SPREADFEATURE; # feature that can be split over different locations
+
 # Tag used in old gff format allowing to group features together. Priority to comonTag compare to sequential read
-# comon_tag_list is accessible from the whole file. if a tag has been specified by a user, it is added to this list when slurp_gff3_file_JD is called
-my @comon_tag_list = ('locus_tag','gene_id'); 
+# COMONTAG is accessible from the whole file. if a tag has been specified by a user, it is added to this list when slurp_gff3_file_JD is called
+my @COMONTAG = ('locus_tag','gene_id'); 
 
 # ====== PURPOSE =======:
 # Save in omniscient hash (sorted in a specific way (3 levels)) a whole gff3 file
@@ -103,11 +92,19 @@ sub slurp_gff3_file_JD {
 	my ($file, $gff_version, $locus_tag, $verbose, $nocheck, $quiet, $overlapCheck);
 	if( defined($args->{input})) {$file = $args->{input};} 		 else{ print "Input data --input is mandatory when using slurp_gff3_file_JD!"; exit;}
 	if( ! defined($args->{gff_version})) {$gff_version = undef;} else{ $gff_version = $args->{gff_version}; }
-	if( ! defined($args->{locus_tag})) {$locus_tag = undef;}     else{ push @comon_tag_list, $args->{locus_tag}; } #add a new comon tag to the list if provided.}			
+	if( ! defined($args->{locus_tag})) {$locus_tag = undef;}     else{ push @COMONTAG, $args->{locus_tag}; } #add a new comon tag to the list if provided.}			
 	if( ! defined($args->{verbose}) ) {$verbose = 0;}    		 else{ $verbose = $args->{verbose}; }
 	if( ! defined($args->{nocheck})) {$nocheck = undef;} 		 else{ $nocheck = $args->{nocheck}; }
 	if( ! defined($args->{quiet})) {$quiet = undef;}     		 else{ $quiet = $args->{quiet}; }
 	if( ! defined($args->{overlapCheck})) {$overlapCheck = 0;} 	 else{ $overlapCheck = $args->{overlapCheck}; }# option to activate the check for overlapping locus. 0 means overlaping genes are considered as different loci.
+
+#	+-----------------------------------------+
+#	|			HANDLE json level			  |
+#	+-----------------------------------------+	
+	#my $json = encode_json \%LEVEL1;
+	#print Dumper($json );exit;
+	#print Dumper(\%LEVEL1);exit;
+	_load_levels_from_json($verbose,$quiet);
 
 #	+-----------------------------------------+
 #	|	HANDLE GFF HEADER					  |
@@ -507,7 +504,7 @@ sub manage_one_feature{
 				}
 				else{ # case where previous level1 exists
 					# Stricly sequential at level2 feature. We create a new L1 at every L2 met except if two L2 are in a row
-					if ( ($lastL1_new and not exists(LEVEL2->{$last_f->primary_tag}) ) and (!$locusTAGvalue or ($locusTAGvalue ne $last_locusTAGvalue) ) ){ # if previous L1 newly created and last feature is not f2 (if several f2 in a row we attach them to the same newly created l1 feature)
+					if ( ($lastL1_new and not exists($LEVEL2->{$last_f->primary_tag}) ) and (!$locusTAGvalue or ($locusTAGvalue ne $last_locusTAGvalue) ) ){ # if previous L1 newly created and last feature is not f2 (if several f2 in a row we attach them to the same newly created l1 feature)
 						print "create L1 feature stritcly\n" if ($verbose >=3);
 						$l1_ID = _create_ID($miscCount, $uniqID, $uniqIDtoType, $primary_tag, $id, "nbis_noL1id");					
 						$last_l1_f = clone($feature);
@@ -780,7 +777,7 @@ sub _get_comon_tag_value{
 	my ( $feature, $locusTAG_uniq, $level)=@_;
 
 	my $locusName=undef;
-   	foreach my $tag (@comon_tag_list){
+   	foreach my $tag (@COMONTAG){
 
    		#check if we have the tag
 		if($feature->has_tag($tag)){
@@ -904,13 +901,13 @@ sub get_level{
 	## PECULIARITIES FROM HAVANA / ENSEMBL ##
 	#########################################
 
-	if (exists(LEVEL1->{$primary_tag}) ){
+	if (exists($LEVEL1->{$primary_tag}) ){
 		return 'level1';
 	}
-	elsif(exists(LEVEL2->{$primary_tag}) ){
+	elsif(exists($LEVEL2->{$primary_tag}) ){
 		return 'level2';
 	}
-	elsif(exists(LEVEL3->{$primary_tag}) ){
+	elsif(exists($LEVEL3->{$primary_tag}) ){
 		return 'level3';
 	}
 }
@@ -922,14 +919,14 @@ sub _create_string{
 	my $string=$feature->seq_id().$feature->primary_tag().$feature->start().$feature->end();
 
 	my $primary_tag = lc($feature->primary_tag);
-	if ( exists(LEVEL1->{$primary_tag}) ){
+	if ( exists($LEVEL1->{$primary_tag}) ){
 		$string .= $uniqID->{$feature->_tag_value('ID')}; # compare with original ID
 	}
-	if ( exists(LEVEL2->{$primary_tag}) ){
+	if ( exists($LEVEL2->{$primary_tag}) ){
 		$string .= $uniqID->{$feature->_tag_value('ID')}; # compare with original ID
 		$string .= $uniqID->{$feature->_tag_value('Parent')}; # compare with original Parent
 	}
-	if ( exists(LEVEL3->{$primary_tag}) ){
+	if ( exists($LEVEL3->{$primary_tag}) ){
 		$string .= $uniqID->{$feature->_tag_value('Parent')}; # compare with original Parent
 	}
 
@@ -964,7 +961,7 @@ sub _check_uniq_id{
 	# CHECK THE ID TO SEE IF IT's uniq, otherwise we have to create a new uniq ID
 	if($id){
 		# In case of non-spreadfeature (avoid CDS and UTR that can share identical IDs)
-		if(! SPREADFEATURE->{$primary_tag}){ 
+		if(! exists_keys($SPREADFEATURE,($primary_tag) ) ){ 
 			$uID = _create_ID($miscCount, $uniqID, $uniqIDtoType, $primary_tag, $id, 'nbis_NEW'); #method will push the uID
 			if(	$id ne $uID ){ #push the new ID if there is one
 				create_or_replace_tag($feature, 'ID', $uID);
@@ -1129,7 +1126,7 @@ sub _check_l2_linked_to_l3{
 						# Check if one as a common tag value == to L1 common tag value (then when creating l2 in check3 add parent for L2 of the L1 Id)
 						foreach my $id_l1 (keys %{$hash_omniscient->{'level1'}{$tag_l1}}){	 
 							my $l1_feature = $hash_omniscient->{"level1"}{$tag_l1}{$id_l1};
-							foreach my $tag (@comon_tag_list){
+							foreach my $tag (@COMONTAG){
 							  	#check if we have the tag
 								if($l1_feature->has_tag($tag)){
 					   				my $l1_ct_value=lc($l1_feature->_tag_value($tag)); #get the value
@@ -1252,7 +1249,7 @@ sub _check_exons{
 	 	  			foreach my $tag_l3 (keys %{$hash_omniscient->{'level3'}}){
 	 	  				
 	 	  				# LIST NON-EXON LOCATIONS THAT NEED TO BE IN AN EXON LOCATION
-	 	  				if ($tag_l3 ne "exon" and LEVEL3->{$tag_l3} eq "exon" ){
+	 	  				if ($tag_l3 ne "exon" and $LEVEL3->{$tag_l3} eq "exon" ){
 
 				 	  		if( exists_keys($hash_omniscient,('level3',$tag_l3, $id_l2)) ){				 	  		
 
@@ -2975,4 +2972,58 @@ sub _handle_ontology{
 	return $ontology_obj;
 }
 
+sub _load_levels_from_json{
+	
+	my ($verbose, $quiet) = @_ ;
+
+	try{
+		my $full_path = `perldoc -lm BILS::Handler::GXFhandler`;
+		my $index = index($full_path, "BILS/Handler/");
+		$index+=13; #To not shrinck BILS/Handler/ part of the path
+		my $path_begin =  substr $full_path, 0, $index;
+
+		# --Deal with feature L1--
+		my $correct_path_level = $path_begin."Feature_levels/features_level1.json";
+		$LEVEL1 = load_json($correct_path_level);		
+		# --Deal with feature L2--
+		$correct_path_level = $path_begin."Feature_levels/features_level2.json";
+		$LEVEL2 = load_json($correct_path_level);
+		# --Deal with feature L3--
+		$correct_path_level = $path_begin."Feature_levels/features_level3.json";
+		$LEVEL3 = load_json($correct_path_level);
+		# --Deal feature spread--
+		$correct_path_level = $path_begin."Feature_levels/features_spread.json";
+		$SPREADFEATURE = load_json($correct_path_level);
+	}
+	catch{
+		print "error: Feature levels not found we cannot continue.\n";
+	};
+}
+
+# @Purpose: load json data into variable
+# @input: 3 =>  String path to the json file
+# @output: 1 => hash reference with data 
+# @Remark: none
+sub load_json{
+
+	my ($file_path) = @_;
+
+	my $result = undef;
+	my $json_text = do {
+		open(my $json_fh, "<:encoding(UTF-8)", $file_path)
+		or die("Can't open \$file_path\": $!\n");
+		local $/;
+		<$json_fh>
+	};
+	
+	my $json = JSON->new;
+	try{
+		$result = $json->decode($json_text);
+	}
+	catch{
+		print "error while parsing $file_path. Please verify the sanity of your json file.\n";
+	};
+
+	return $result;
+}
 1;
