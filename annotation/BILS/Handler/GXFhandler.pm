@@ -40,11 +40,6 @@ our %EXPORT_TAGS = ( DEFAULT => [qw()],
 #===== TO  DO ===== 
 # When creating a parent check its type from the value in the constant hash
 
-#===== INFO ===== 	
-# _manage_location and _merge_overlap_features are methods which compare list of list to look at overlap* (next ot each other is considered as overlap for the first method - mandatory). The first method
-# rechek all the element if one modification is done, the second one go through element from left to right.  
-
-
 ##########################
 #     DEFINE CONSTANT    # 
 use constant PREFIXL2 => "nbis_noL2id";
@@ -58,7 +53,7 @@ my $LEVEL2; # level2 are features with parent and potentially a child (no child 
 my $LEVEL3; # level3 features have parents, but no child. ( cds => "exon" mean that cds is included into an exon)	
 my $SPREADFEATURE; # feature that can be split over different locations
 
-# Tag used in old gff format allowing to group features together. Priority to comonTag compare to sequential read
+# Comon_tag is used in old gff format and in gtf (with gene_id) to group features together. Priority to comonTag compare to sequential read
 # COMONTAG is accessible from the whole file. if a tag has been specified by a user, it is added to this list when slurp_gff3_file_JD is called
 my @COMONTAG = ('locus_tag','gene_id'); 
 
@@ -66,14 +61,15 @@ my @COMONTAG = ('locus_tag','gene_id');
 # Save in omniscient hash (sorted in a specific way (3 levels)) a whole gff3 file
 # Parser phylosophy: Parse by Parent/child ELSE 
 #						Parse by comon_tag  ELSE
-#							Parse by sequential (mean group feattures in a bucket, and the bucket change at each level2 feature, and bucket are join in a comon tag at each new L1 feature)
-#Priority Parent > locus_tag > sequential
+#							Parse by sequential (mean group features in a bucket, and the bucket change at each level2 feature, and bucket are join in a comon tag at each new L1 feature)
+#							So if only level3 feature (i.e rast or some prokka files, sequential will not work. A comon_tag must be provided)
+# Priority Parent > locus_tag > sequential
 # ====== INPUT =======:
-# $file => string (file)
-# $locus_tag => list of tags to consider for gathering features
+# $file => string (file) / list / hash
+# $locus_tag => tag to consider for gathering features (in top of the default one)
 # $gff_version => Int (if is used, force the parser to use this gff parser instead of guessing)
 # $verbose =>define the deepth of verbosity
-# $nocheck is to deactivate sanity check. It's in devellopement. We should be able to tune the deactivation of selected checks.
+# $nocheck is to deactivate sanity check. It's in devellopement. We should be able to tune the deactivation of selected checks. Cuurently linked to kraken analysis, we deativate everythong except _remove_orphan_l1
 
 sub slurp_gff3_file_JD {
 
@@ -95,7 +91,7 @@ sub slurp_gff3_file_JD {
 	if( ! defined($args->{locus_tag})) {$locus_tag = undef;}     else{ push @COMONTAG, $args->{locus_tag}; } #add a new comon tag to the list if provided.}			
 	if( ! defined($args->{verbose}) ) {$verbose = 0;}    		 else{ $verbose = $args->{verbose}; }
 	if( ! defined($args->{nocheck})) {$nocheck = undef;} 		 else{ $nocheck = $args->{nocheck}; }
-	if( ! defined($args->{quiet})) {$quiet = undef;}     		 else{ $quiet = $args->{quiet}; }
+	if( ! defined($args->{quiet})) {$quiet = undef;}     		 else{ $quiet = $args->{quiet}; $verbose=0; }
 	# $kingdom => Default eukaryote. In eukaryote mode, when features overlap at level3 and come from two different level 2 features of the same type, they will be merged under the same level 1 feature. In prokaryote case they don't because genes can overlap.
 	if( defined($args->{kingdom}) and (($args->{kingdom} =~ 'prok') or ($args->{kingdom} eq 'p') ) ){
 		$kingdom="proka";
@@ -112,28 +108,21 @@ sub slurp_gff3_file_JD {
 #	+-----------------------------------------+
 #	|			HANDLE json level			  |
 #	+-----------------------------------------+	
-	#my $json = encode_json \%LEVEL1;
-	#print Dumper($json );exit;
-	#print Dumper(\%LEVEL1);exit;
-	_load_levels_from_json($verbose,$quiet);
+	_load_levels_from_json($verbose);
 
 #	+-----------------------------------------+
 #	|	HANDLE GFF HEADER					  |
 #	+-----------------------------------------+
-
-	#get header information 
 	my $gff3headerInfo = _check_header($file);
 
 #	+-----------------------------------------+
 #	|	HANDLE SOFA (feature-ontology)		  |
 #	+-----------------------------------------+
-
 	my $ontology = {};
 	my $ontology_obj = _handle_ontology($gff3headerInfo, $verbose, $quiet);
 	if($ontology_obj){
 		$ontology = create_term_and_id_hash($ontology_obj);
 	}
-
 	if(! keys %{$ontology} ){ #hash is empty
 		print "No data retrieved among the feature-ontology.\n" unless $quiet;
 	}
@@ -141,10 +130,9 @@ sub slurp_gff3_file_JD {
 #	+-----------------------------------------+
 #	|			HANDLE WARNING 				  |
 #	+-----------------------------------------+
-	# Handle to not print to much warning
 	my %WARNS;
 	my %globalWARNS;
-	my $nbWarnLimit=100;
+	my $nbWarnLimit=10; # Handle to not print to much warning
   	local $SIG{__WARN__} = sub {
     my $message = shift;
     my @thematic=split /@/,$message ;
@@ -163,12 +151,11 @@ sub slurp_gff3_file_JD {
 				}
 		  	}
 	  	}
-	 };
+	};
 
 #	+-------------------------------------------------------------------------+
 #	|			HANDLE FEATUTRES PARSING ACCORDING TO TYPE OF INPUTS		  |
 #	+-------------------------------------------------------------------------+
-
 	my %mRNAGeneLink; #Hast that keep track about link between l2 and l1
 	my %omniscient; #Hast where all the feature will be saved
 	my %duplicate;# Hash to store duplicated feature info
@@ -184,13 +171,13 @@ sub slurp_gff3_file_JD {
 	my $last_f=undef;# last feature handled
 	my $lastL1_new =undef; # Bolean to check if last l1 feature is a newly created one. Important to deal with strict sequential
 
-	# ARRAY CASE <============================
+	# ============================> ARRAY CASE <============================
 	if(ref($file) eq 'ARRAY'){
 		 foreach my $feature (@{$file}) {
 			($locusTAGvalue, $last_l1_f, $last_l2_f, $last_l3_f, $last_f, $lastL1_new) = manage_one_feature($ontology, $feature, \%omniscient, \%mRNAGeneLink, \%duplicate, \%miscCount, \%uniqID, \%uniqIDtoType, \%locusTAG, \%infoSequential, $locusTAGvalue, $last_l1_f, $last_l2_f, $last_l3_f, $last_f, $lastL1_new, $verbose);
    		}
 	}
-	# HASH CASE <============================
+	# ============================> HASH CASE <============================
 	elsif(ref($file) eq 'HASH'){
 
 		foreach my $level (keys %{$file}){
@@ -216,7 +203,7 @@ sub slurp_gff3_file_JD {
 			}
 		}
 	}
-	# FILE CASE <============================
+	# ============================> FILE CASE <============================
 	else{
 
 		#GFF format used for parser
@@ -237,12 +224,22 @@ sub slurp_gff3_file_JD {
 	    $gffio->close();
 	}
 
-    if($verbose  >= 1) {_printSurrounded("parsing done in ".(time() - $start_run)." seconds",30,".","\n"); $previous_time = time();}
+	#------- Inform user about warnings encountered during parsing ---------------
+    foreach my $thematic (keys %WARNS){
+  		my $nbW = $WARNS{$thematic};
+  		if($nbW > $nbWarnLimit){
+  			print "$nbW warning messages: $thematic\n";
+  		}	
+  	}
+  	_handle_globalWARNS(\%globalWARNS, $ontology);
+  	delete $globalWARNS{$_} for (keys %globalWARNS); # re-initialize the hash
+  	delete $WARNS{$_} for (keys %WARNS); # re-initialize the hash
+
+  	if($verbose  >= 1) {_printSurrounded("parsing done in ".(time() - $start_run)." seconds",30,".","\n"); $previous_time = time();}
 
 #	+-----------------------------------------+
 #	|			CHECK OMNISCIENT			  |
 #	+-----------------------------------------+
-
     _printSurrounded("Start extra check",50,"#","\n") if $verbose;
     _printSurrounded("Check0: _check_duplicates",30,"*","\n") if ($verbose >= 1) ;
 
@@ -311,49 +308,16 @@ sub slurp_gff3_file_JD {
 		 if($verbose >= 1)  {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
 	}
 
-    # To keep track of How many Warnings we got....
+	#------- Inform user about warnings encountered during checking ---------------
     foreach my $thematic (keys %WARNS){
   		my $nbW = $WARNS{$thematic};
   		if($nbW > $nbWarnLimit){
   			print "$nbW warning messages: $thematic\n";
   		}	
   	}
+  	_handle_globalWARNS(\%globalWARNS, $ontology);
 
 	print "Parsing and check done in ", time() - $start_run," seconds\n\n\n" if ($verbose >= 1);
-
-#	+-----------------------------------------+
-#	|			HANDLE GLOBAL WARNING 		  |
-#	+-----------------------------------------+
-	if( keys %globalWARNS ){
-		if(exists($globalWARNS{"parser1"}) ) {
-			my %hash   = map { $_, 1 } @{$globalWARNS{parser1}};
-			my @unique = keys %hash;
-			my $string = "Primary tag values (3rd column) not expected => @unique\n".
-			"Those primary tag are not yet taken into account !\n".
-			"Please modify the code to define one of the three possible levels of this feature or provide this information on the fly through the corresponding parameter (level1, level2 or level3).\n".
-			"To resume:\n".
-			"- it must be a level1 feature if it has no parent.\n".
-			"- it must be a level2 feature if it has a parent and this parent is from level1.\n".
-			"- it must be a level3 feature if it has a parent and this parent has also a parent.\n\n".
-			"Currently the tool just ignore them, So if they where Level1,level2, a gene or RNA feature will be created accordingly.";
-			_printSurrounded($string,150,"*") ;
-		}
-		if(exists($globalWARNS{"ontology1"}) ) {
-			if( keys %{$ontology} ){
-				my $string = "Primary tag values (3rd column) not expected => @{$globalWARNS{ontology1}}\n".
-				"Those values are not compatible with gff3 format and the tool cannot guess to which one they correspond to.\n".
-				"If you want to follow rigourously the gff3 format, please visit this website:\n".
-				"https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md\n".
-				"They provide tools to check the gff3 format.\n".
-				"Even if you have this warning, you should be able to use the gff3 output in most of gff3 tools.";
-				_printSurrounded($string,150,"*") ;
-			}
-			else{
-				my $string = "No feature-ontology was available, we haven't checked that the feature types (3rd column) correspond to the gff3 specifactions.";
-				_printSurrounded($string,150,"*") ;
-			}
-		}
-	}
 
     #return
 	return \%omniscient, \%mRNAGeneLink	;
@@ -491,7 +455,7 @@ sub manage_one_feature{
 				create_or_replace_tag($feature,'Parent',$feature->_tag_value('gene_id')); #modify Parent To keep only one
 				$locusTAGvalue=$parent;
 			}
-			else{warn "WARNING gff3 reader level2 : No Parent attribute found for @ the feature: ".$feature->gff_string()."\n";
+			else{warn "WARNING gff3 reader level2 : No Parent attribute found @ for the feature: ".$feature->gff_string()."\n";
 
 				#################
  	       		# COMON TAG PART1
@@ -814,7 +778,7 @@ sub _get_comon_tag_value{
 
 	# In case where no parent, no comon tag, and no sequential, we cannot deal at all with it !!!!
 	if(! $locusName and $level ne 'level1'){
-		warn "WARNING gff3 reader: Hmmm, be aware that your feature doesn't contain any Parent and locus tag. No worries, we will handle it by considered it as striclty sequential. If you are not ok with that, provide an ID or a comon tag by locus. @ the feature is:\n".$feature->gff_string()."\n";
+		warn "WARNING gff3 reader: Hmmm, be aware that your feature doesn't contain any Parent and locus tag. No worries, we will handle it by considering it as striclty sequential. If you are not ok with that, provide an ID or a comon tag by locus. @ the feature is:\n".$feature->gff_string()."\n";
 	}
 
 	return $locusName;
@@ -1277,7 +1241,11 @@ sub _check_exons{
 
 				 	  			#Rare case when a feature of the same type is badly defined
 				 	  			if($#{$list_location_l3} < $#{$hash_omniscient->{'level3'}{$tag_l3}{$id_l2}}){
-				 	  				warn "Peculiar rare case, we should remove existing $tag_l3 which are supernumerary.Not yet implemented\n";
+				 	  				my $message = "Peculiar rare case, we found ".$#{$list_location_l3}." ".$tag_l3." while ".$#{$hash_omniscient->{'level3'}{$tag_l3}{$id_l2}}." expected.\n";
+									$message .=	"Either some are supernumerary or some have been merged they overlap or are adjacent while they are not suppose to.\n";
+				 	  				$message .= "In case you were using gtf file as input (no parent/id attributes), check you provide the attribute (i.e comon_tag) used to group features together (e.g. locus_tag, gene_id, etc.).\n";
+				 	  				$message .= "(In case your file contains only CDS features, and your organism is prokaryote (e.g rast file), using ID as comon_tag might be the solution.)\n";
+				 	  				warn $message;
 				 	  			}
 				 	  			push @{$list_location_NoExon_overlap}, @{$list_location_l3}; #list of all feature that has been checked in overlap mode
 				 	  		}
@@ -1335,7 +1303,6 @@ sub _check_exons{
 
 				 	print "list_location_Exon: ".Dumper($list_location_Exon) if ($verbose >= 3); 
 				 	print "list_location_NOEXON: ".Dumper($list_location_NoExon) if ($verbose >= 3);  
- 	  				
 
 #				 	+--------------------------------------------------------------------------------------------------------+
 #					| 				COMPARE EXONS POSITION TO THOSE DESCRIBED BY NON-EXON FEATURES 						 |
@@ -1721,137 +1688,56 @@ sub _check_utrs{
 sub _manage_location{
 	my ($locationRefList, $locationTargetList, $method, $verbose) = @_;
 
+	my @new_location_list; #new location list that will be returned once filled
+
 	_printSurrounded("Enter",25,"+","\n\n") if ($verbose >= 4); 
 	print "Enter Ref: ".Dumper($locationRefList)."\nEnter Target: ".Dumper($locationTargetList) if ($verbose >= 4); 
-
-	my @new_location_list; #new location list that will be returned once filled
 	
-	if ($locationTargetList){ #check number of location -> List not empty
+	if ($locationTargetList and @$locationTargetList >= 1){ #check number of location -> List not empty
 		
-		foreach my $location_from_ref_list (sort {$a->[1] <=> $b->[1]} @{$locationRefList}){
-			#if($verbose >= 4){print "\n==Location REF:".$location_from_ref_list->[1]." ".$location_from_ref_list->[2]."==\n";}
-				
-			foreach my $location_from_target_list (sort {$a->[1] <=> $b->[1]} @{$locationTargetList} ){
-				if ($location_from_target_list->[1] > $location_from_ref_list->[1]){
-					last;
-				}
-				#if($verbose >= 4){print "location_from_ref_list:".Dumper($location_from_ref_list)."\nAGAINST\nlocation_from_target_list:".Dumper($location_from_target_list)."\n";}
+		my @locations = (@{$locationRefList},@{$locationTargetList});
+		my @locations_sorted = sort {$a->[1] <=> $b->[1]} @locations;
 
-				#check if we modify the location or not
-				my $overlap;
-				my $original_location;
-				if($method eq 'adjacent'){
-					($location_from_ref_list, $overlap) = _manage_location_lowLevel_adjacent($location_from_ref_list, $location_from_target_list);
-				}else{
-					($location_from_ref_list, $overlap) = _manage_location_lowLevel_overlap($location_from_ref_list, $location_from_target_list);
-				}
+		my $location_modified = undef;
+		my $overlap = undef;
+		my $location1=undef;
+		my $location2 = undef;
 
-				print "          original location:".Dumper($original_location)."\nNew location".Dumper($location_from_ref_list)."\n\n";
-			}
+		foreach my $i (0 .. $#locations_sorted-1){
 			
-			#TO PUSH THE TARGET, MODIFIED OR INTACT
-			push @new_location_list, [@$location_from_ref_list];
+			if($location_modified){ 
+				$location1 = $location_modified;
+				$location_modified = undef;
+			} 
+			else{
+				$location1 = $locations_sorted[$i];
+			}
+			$location2 = $locations_sorted[$i+1];
+			
+			if ($location2->[1] > $location1->[2]+1 and $i+1 != $#locations_sorted){ #locations do not overlap and not before last of the list
+				push @new_location_list, [@$location1];
+			}
+			else{
+				my $location_back = undef;
+				if($method eq 'adjacent'){
+					($location_back, $overlap) = _manage_location_lowLevel_adjacent($location1, $location2);
+					if($overlap){$location_modified=$location_back;}
+				}
+				else{
+					($location_back, $overlap) = _manage_location_lowLevel_overlap($location1, $location2);
+					if($overlap){$location_modified=$location_back;}
+				}
+			}
+		}
+		#if last round was not overlaping we should add the last value in the list
+		if( $overlap ){
+			push @new_location_list, [@$location_modified];
+		}
+		else{
+			push @new_location_list, [@$location1];
+			push @new_location_list, [@$location2];
 		}
 	}
-
-		# my $check_list=1;
-		# my $nb_ref = $#{$locationRefList};
-
-		# while($check_list){
-		# 	$check_list=undef;
-			
-		# 	my %tupleChecked=();
-		# 	my %locationSaved=();
-		# 	foreach my $location_from_ref_list (@{$locationRefList}){
-
-		# 		if($verbose >= 4){print "\n==Location REF:".$location_from_ref_list->[1]." ".$location_from_ref_list->[2]."==\n";}
-		# 		my $location_skipped=undef; #keep track for later. If it has never been further, we will not save it later, because it will cause duplicates
-				
-		# 		foreach my $location_from_target_list (@{$locationTargetList}){
-		# 			if($verbose >= 4){print "location_from_ref_list:".Dumper($location_from_ref_list)."\nAGAINST\nlocation_from_target_list:".Dumper($location_from_target_list)."\n";}
-
-		# 			#skip case test already done
-		# 			my @tuple = sort {$a->[1] <=> $b->[1]} ($location_from_ref_list,$location_from_target_list);
-		# 			my @tuple_ok = (@{$tuple[0]->[0]},$tuple[0]->[1],$tuple[0]->[2], @{$tuple[1]->[0]},$tuple[1]->[1],$tuple[1]->[2]);
-		# 			my $tupleString = join(' ', @tuple_ok);
-
-		# 			if(exists_keys (\%tupleChecked,($tupleString) ) ) {
-		# 				if($verbose >= 4){print "skip tested: $tupleString\n";}
-		# 				$location_skipped=1;
-		# 				next;
-		# 			}
-
-		# 			# FOLLOWING UP OF REF-TARGET / TARGET-REF test
-		# 			$tupleChecked{$tupleString}++;  # track tuple checked when we conpare a lsit aginst itself. Because a test A<=>B is equal to B<=>A
-	
-		# 			#check if we modify the location or not
-		# 			my ($new_location, $overlap);
-		# 			if($method eq 'adjacent'){
-		# 			 ($new_location, $overlap) = _manage_location_lowLevel_adjacent($location_from_ref_list, $location_from_target_list);
-		# 			}else{
-		# 			 ($new_location, $overlap) = _manage_location_lowLevel_overlap($location_from_ref_list, $location_from_target_list);
-		# 			}
-
-		# 			my $loc = join(' ', @$new_location);
-		# 			if(! exists_keys (\%locationSaved,($loc) ) ){ #If location already saved--- we skip it
-		# 				if($verbose >= 4){print "          push1:".$new_location->[1]." ".$new_location->[2]."\n\n";}
-						
-		# 				#TO PUSH THE TARGET, MODIFIED OR INTACT
-		# 				push @new_location_list, [@$new_location];
-						
-		# 				$locationSaved{$loc}++;
-
-		# 				# FOLLOWING UP OF NewLoc-NewLoc test
-		# 				my @NewLoc_tuple = sort {$a->[1] <=> $b->[1]} ($new_location,$new_location);
-		# 				my @NewLoc_tuple_ok = (@{$NewLoc_tuple[0]->[0]},$NewLoc_tuple[0]->[1],$NewLoc_tuple[0]->[2], @{$NewLoc_tuple[1]->[0]},$NewLoc_tuple[1]->[1],$NewLoc_tuple[1]->[2]);
-		# 				my $NewLoctString = join(' ', @NewLoc_tuple_ok);
-		# 				$tupleChecked{$NewLoctString}++;
-		# 			}
-
-		# 			# FOLLOWING UP OF Target-Target test
-		# 			my @TargetTarget_tuple = sort {$a->[1] <=> $b->[1]} ($location_from_target_list,$location_from_target_list);
-		# 			my @TargetTarget_tuple_ok = (@{$TargetTarget_tuple[0]->[0]},$TargetTarget_tuple[0]->[1],$TargetTarget_tuple[0]->[2], @{$TargetTarget_tuple[1]->[0]},$TargetTarget_tuple[1]->[1],$TargetTarget_tuple[1]->[2]);
-		# 			my $TargetTargetString = join(' ', @TargetTarget_tuple_ok);
-		# 			$tupleChecked{$TargetTargetString}++;
-
-		# 			if( ($new_location->[1] !=  $location_from_target_list->[1] or $new_location->[2] !=  $location_from_target_list->[2]) ){ # location has been modified or not modifier but overlap (It means overlap completly ... it is included in)
-		# 				$check_list=1;
-		# 				if($verbose >= 4){print "LOCATION MODIFIED: ".$location_from_target_list->[2]." ".$new_location->[2]."\n";}
-		# 			}
-		# 			elsif($overlap){#position not modified but overlap (A is completely included in B); Need to keep track of it to not save the position when we are out of the loop
-		# 				$location_skipped=1; 
-		# 			}
-		# 		}
-
-		# 		#TO PUSH THE REF
-		# 		if(! $check_list and ! $location_skipped){ #No modification done
-		# 			my $loc = join(' ', @$location_from_ref_list);
-
-		# 			if(! exists_keys (\%locationSaved,($loc) ) ){
-		# 				if($verbose >= 4){print " push LocationREF = add new value !!\n";}
-		# 				push @new_location_list, [@{$location_from_ref_list}];
-		# 			}
-		# 		}
-		# 	}
-
-		# 	#modification done we have to re-check all location between each other
-		# 	if($check_list){ 
-
-		# 		if (scalar @new_location_list == 1){
-		# 			$check_list = undef; #Do not check the list if it is size one ! Because we will be stuck => case test againt himself is skipped !
-		# 		}
-		# 		elsif($nb_ref > 0){ #Case where the target list as input was more than 1 element, we have to check all against all  due to case like Ref=> -------    ---------
-		# 			$locationTargetList = [@new_location_list];																						# Tearget ------------
-		# 			$locationRefList = [@new_location_list];
-		# 			$nb_ref = $#{$locationRefList}; #reinitialise the value
-		# 			if($verbose >= 4){print "Location in memory:".@new_location_list." ".Dumper(\@new_location_list)." NNNNNNNNNNNNNNNNNNNNNNNow check aginst itself !\n";}
-		# 			@new_location_list=();
-		# 			%tupleChecked=();
-		# 		}
-		# 		else{$check_list=undef;}					
-		# 	}
-		#}
-
 	else{#check number of location -> none
 		_printSurrounded("Return",25,"-","\n\n") if ($verbose >= 4);
 		if($verbose >= 4){print "returnA: ".Dumper($locationRefList)."\n\n\n";}
@@ -3009,13 +2895,52 @@ sub _handle_ontology{
 	return $ontology_obj;
 }
 
+# @Purpose: Handle global warnings to provide momre information to the user according to problems encountered
+# @input: 3 =>  hash,
+# @output: 1 => none (because it will just display infromation)
+# @Remark: none
+sub _handle_globalWARNS{	
+	my ($globalWARNS, $ontology) = @_;
+
+	if( keys %{$globalWARNS} ){
+		if(exists($globalWARNS->{"parser1"}) ) {
+			my %hash   = map { $_, 1 } @{$globalWARNS->{parser1}};
+			my @unique = keys %hash;
+			my $string = "Primary tag values (3rd column) not expected => @unique\n".
+			"Those primary tag are not yet taken into account !\n".
+			"If you wish to use it/them, pleast update the parameter feature json files accordingly (features_level1, features_level2 or features_level3).\n".
+			"To resume:\n".
+			"- it must be a level1 feature if it has no parent.\n".
+			"- it must be a level2 feature if it has a parent and this parent is from level1.\n".
+			"- it must be a level3 feature if it has a parent and this parent has also a parent.\n\n".
+			"Currently the tool just ignore them, So if they where Level1,level2, a gene or RNA feature will be created accordingly.";
+			_printSurrounded($string,150,"*") ;
+		}
+		if(exists($globalWARNS->{"ontology1"}) ) {
+			if( keys %{$ontology} ){
+				my $string = "Primary tag values (3rd column) not expected => @{$globalWARNS->{ontology1}}\n".
+				"Those values are not compatible with gff3 format and the tool cannot guess to which one they correspond to.\n".
+				"If you want to follow rigourously the gff3 format, please visit this website:\n".
+				"https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md\n".
+				"They provide tools to check the gff3 format.\n".
+				"Even if you have this warning, you should be able to use the gff3 output in most of gff3 tools.";
+				_printSurrounded($string,150,"*") ;
+			}
+			else{
+				my $string = "No feature-ontology was available, we haven't checked that the feature types (3rd column) correspond to the gff3 specifactions.";
+				_printSurrounded($string,150,"*") ;
+			}
+		}
+	}
+}
+
 # @Purpose: load all parameter (about level of the features i.e. gene = level1, mRNA=level2, exon=level3 (and if they are spread or not like cds,utr) stored in json file 
 # @input: 3 =>  integer, bolean
 # @output: 1 => none (because it load information in variable accessible from everywhere in this file)
 # @Remark: none
 sub _load_levels_from_json{
 	
-	my ($verbose, $quiet) = @_ ;
+	my ($verbose) = @_ ;
 
 	try{
 		my $full_path = `perldoc -lm BILS::Handler::GXFhandler`;

@@ -22,14 +22,16 @@ my $opt_comonTag=undef;
 my $opt_verbose=undef;
 my $opt_output;
 my $opt_help = 0;
-my $gffVersion= undef;
+my $opt_version_input= undef;
+my $opt_version_output= 3;
 
 # OPTION MANAGMENT
 if ( !GetOptions( 'g|gff=s'         => \$opt_gfffile,
                   'c|ct=s'          => \$opt_comonTag,
                   'v=i'             => \$opt_verbose,
                   'o|output=s'      => \$opt_output,
-                  'gff_version=i'   => \$gffVersion,
+                  'gff_version_input|gvi=f'   => \$opt_version_input,
+                  'gff_version_output|gvo=f'   => \$opt_version_output,
                   'kingdom|k=s'     => \$opt_kingdom,
                   'h|help!'         => \$opt_help ) )
 {
@@ -51,22 +53,21 @@ if (! defined($opt_gfffile) ){
            -exitval => 1 } );
 }
 
-if($gffVersion and ($gffVersion != 1 and $gffVersion != 2 and $gffVersion != 3)){
-  print "Gff version accepted is 1,2 or 3. $gffVersion is not a correct value.\n";
-  exit;
-}
+#############################
+# check version input value #
+check_version($opt_version_input);
+#check_version($opt_version_output);
 
 ######################
 # Manage output file #
-
 my $gffout;
 if ($opt_output) {
   my($opt_output, $dirs, $suffix) = fileparse($opt_output, (".gff",".gff1",".gff2",".gff3",".gtf",".gtf1",".gtf2",".gtf3",".txt")); #remove extension 
   open(my $fh, '>', $opt_output.".gff3") or die "Could not open file '$opt_output' $!";
-  $gffout= Bio::Tools::GFF->new(-fh => $fh, -gff_version => 3 );
+  $gffout= Bio::Tools::GFF->new(-fh => $fh, -gff_version => $opt_version_output );
   }
 else{
-  $gffout = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 3);
+  $gffout = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => $opt_version_output);
 }
 
                 #####################
@@ -78,7 +79,7 @@ else{
 my ($hash_omniscient, $hash_mRNAGeneLink) = slurp_gff3_file_JD({
                                                                input => $opt_gfffile,
                                                                locus_tag => $opt_comonTag,
-                                                               gff_version => $gffVersion,
+                                                               gff_version => $opt_version_input,
                                                                verbose => $opt_verbose,
                                                                kingdom => $opt_kingdom
                                                                });
@@ -92,8 +93,17 @@ print_omniscient($hash_omniscient, $gffout); #print gene modified
 my $end_run = time();
 my $run_time = $end_run - $start_run;
 print "Job done in $run_time seconds\n";
-__END__
 
+
+sub check_version{
+  my ($version) = @_;
+  if($version and ($version != 1 and $version != 2 and $version != 3)){
+    print "Gff version accepted is 1,2 or 3. $version is not a correct value.\n";
+    exit;
+  }
+}
+
+__END__
 =head1 NAME
 
 gff3_IO.pl -
@@ -102,8 +112,8 @@ The result is written to the specified output file, or to STDOUT.
 
 =head1 SYNOPSIS
 
-    ./gff3_IO.pl -g infile.gff [ -o outfile ]
-    ./gff3_IO.pl --help
+    ./gxf_to_gff3.pl -g infile.gff [ -o outfile ]
+    ./gxf_to_gff3.pl --help
 
 =head1 OPTIONS
 
@@ -131,9 +141,13 @@ Verbose option to see the warning messages when parsing the gff file.
 Output GFF file.  If no output file is specified, the output will be
 written to STDOUT.
 
-=item B<--gff_version>
+=item B<--gvi> or B<--gff_version_input>
 
-If you don't want to use the autodection of the gff/gft version you give as input, you can force the tool to use the parser of the gff version you decide to use: 1,2 or 3.
+If you don't want to use the autodection of the gff/gft version you give as input, you can force the tool to use the parser of the gff version you decide to use: 1,2,2.5 or 3. Remind: 2.5 is suposed to be gtf.
+
+=item B<--gvo> or B<--gff_version_output>
+
+If you don't want to use the autodection of the gff/gft version you give as input, you can force the tool to use the parser of the gff version you decide to use: 1,2,2.5 or 3. Remind: 2.5 is suposed to be gtf.
 
 =item B<-h> or B<--help>
 
