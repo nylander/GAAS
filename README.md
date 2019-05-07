@@ -54,7 +54,7 @@ cd GAAS
            cpanm Graph::Directed
            cpanm LWP::UserAgent
            cpanm Statistics::R
-	   cpanm JSON
+           cpanm JSON
            ```
         
     * A.3) Load the correct profiles (add NBIS libs and tools to the PATH)  
