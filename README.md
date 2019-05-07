@@ -77,7 +77,7 @@ cd GAAS
     * A.3) To get out of the nbis environment and restore your previous environment type  
   
      ```
-     deativate
+     deactivate
      ```
 
   * B) For a permanent use  
