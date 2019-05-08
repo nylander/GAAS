@@ -54,7 +54,7 @@ cd GAAS
            cpanm Graph::Directed
            cpanm LWP::UserAgent
            cpanm Statistics::R
-	   cpanm JSON
+           cpanm JSON
            ```
         
     * A.3) Load the correct profiles (add NBIS libs and tools to the PATH)  
@@ -77,7 +77,7 @@ cd GAAS
     * A.3) To get out of the nbis environment and restore your previous environment type  
   
      ```
-     deativate
+     deactivate
      ```
 
   * B) For a permanent use  
