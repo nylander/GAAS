@@ -265,7 +265,7 @@ print $outstream "$StingToPrint";
 # Plot
 #
 ######
-if($opt_dirRes){
+if($opt_dirRes and $nb_seq > 1){ #If only 1 seq we get error like: density.default(listValues) : need at least 2 points to select a bandwidth automatically
 
         # temporary file name
         my $tempFile1="dump.tmp";
