@@ -1,4 +1,4 @@
-# This file must be used with "source bin/activate" *from bash*
+# This file must be used with "source pathToTheFile" *from bash*
 # you cannot run it directly
 
 deactivate () {
@@ -45,10 +45,10 @@ deactivate () {
 deactivate nondestructive
 
 # Save the current module state
-module save temp
-module load bioinfo-tools BioPerl/1.7.1_Perl5.24.1
+module --force save temp
+module load bioinfo-tools BioPerl/1.6.924_Perl5.18.4
 
-VIRTUAL_ENV="$HOME/GAAS"
+VIRTUAL_ENV="/home/jacques/git/GAAS"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"
