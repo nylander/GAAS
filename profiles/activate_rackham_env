@@ -48,7 +48,7 @@ deactivate nondestructive
 module --force save temp
 module load bioinfo-tools BioPerl/1.6.924_Perl5.18.4
 
-VIRTUAL_ENV="/home/jacques/git/GAAS"
+VIRTUAL_ENV="$HOME/GAAS"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"
