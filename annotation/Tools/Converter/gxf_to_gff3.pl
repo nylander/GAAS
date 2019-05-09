@@ -13,7 +13,6 @@ use Getopt::Long;
 use BILS::Handler::GXFhandler qw(:Ok);
 use BILS::Handler::GFF3handler qw(:Ok);
 use Bio::Tools::GFF;
-use File::Basename;
 
 my $start_run = time();
 my $opt_gfffile;
@@ -22,8 +21,8 @@ my $opt_comonTag=undef;
 my $opt_verbose=undef;
 my $opt_output;
 my $opt_help = 0;
-my $opt_version_input= undef;
-my $opt_version_output= 3;
+my $opt_version_input = undef;
+my $opt_version_output = 3;
 
 # OPTION MANAGMENT
 if ( !GetOptions( 'g|gff=s'         => \$opt_gfffile,
@@ -62,8 +61,7 @@ check_version($opt_version_input);
 # Manage output file #
 my $gffout;
 if ($opt_output) {
-  my($opt_output, $dirs, $suffix) = fileparse($opt_output, (".gff",".gff1",".gff2",".gff3",".gtf",".gtf1",".gtf2",".gtf3",".txt")); #remove extension 
-  open(my $fh, '>', $opt_output.".gff3") or die "Could not open file '$opt_output' $!";
+  open(my $fh, '>', $opt_output) or die "Could not open file '$opt_output' $!";
   $gffout= Bio::Tools::GFF->new(-fh => $fh, -gff_version => $opt_version_output );
   }
 else{
