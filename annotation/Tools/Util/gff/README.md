@@ -54,6 +54,7 @@ You can install them by using your  favorite package manager (cpan, cpanm, etc).
 	e.g: cpanm Graph::Directed
 	e.g: cpanm LWP::UserAgent
 	e.g: cpanm Statistics::R
+	e.g: cpanm JSON
 
 #################################################
 # II) Script name and classificaiton by prefix   #

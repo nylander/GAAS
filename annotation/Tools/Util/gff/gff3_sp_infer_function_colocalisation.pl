@@ -122,7 +122,8 @@ my $bils_suffix_d=qr/_partial_part.*/;
 ############
 # Parse GFF reference #
 print ("Parse file $ref\n");
-my ($refhash_omniscient, $refhash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($ref);
+my ($refhash_omniscient, $refhash_mRNAGeneLink) = slurp_gff3_file_JD({ input => $ref
+                                                              });
 print ("$ref file parsed\n");
 
 ##############
@@ -155,7 +156,8 @@ if(! $_dblr){
 ############
 # Parse GFF target #
 print ("Parse file $tar\n");
-my ($tarhash_omniscient, $tarhash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($tar);
+my ($tarhash_omniscient, $tarhash_mRNAGeneLink) = slurp_gff3_file_JD({ input => $tar
+                                                              });
 print ("$tar file parsed\n");
 
 #count level1 in reference

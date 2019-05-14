@@ -15,10 +15,13 @@ for i in {0..50}_*;do
 			echo -e "\nTest of $i";
 			testperfect="no"
 			
-			#Special case !!
+			#case with comon locus needed and prokaryote!!
 			nb=${i%"_test.gff"}
 			if (( $nb == 28 ));then
-				~/git/NBIS/GAAS/annotation/Tools/Converter/gxf_to_gff3.pl --gff $i -o test.gff3 -c Name  &> /dev/null 
+				~/git/NBIS/GAAS/annotation/Tools/Converter/gxf_to_gff3.pl --gff $i -o test.gff3 -c Name -k p  &> /dev/null 
+			#case with prokaryote mode needed
+			elif (( $nb == 8  ));then
+				~/git/NBIS/GAAS/annotation/Tools/Converter/gxf_to_gff3.pl --gff $i -o test.gff3 -k p  &> /dev/null 
 			#others
 			else
 				~/git/NBIS/GAAS/annotation/Tools/Converter/gxf_to_gff3.pl --gff $i -o test.gff3  &> /dev/null  
@@ -42,7 +45,13 @@ for i in {0..50}_*;do
 			fi
 
 			#echo "check against itself"
-			~/git/NBIS/GAAS/annotation/Tools/Converter/gxf_to_gff3.pl --gff test.gff3 -o test2.gff3  &> /dev/null  
+			#case with prokaryote!!
+			nb=${i%"_test.gff"}
+			if (( $nb == 8 || $nb == 28 ));then
+				~/git/NBIS/GAAS/annotation/Tools/Converter/gxf_to_gff3.pl --gff test.gff3 -o test2.gff3 -k p  &> /dev/null 
+			else
+				~/git/NBIS/GAAS/annotation/Tools/Converter/gxf_to_gff3.pl --gff test.gff3 -o test2.gff3  &> /dev/null  
+			fi
 			resu=$(diff test2.gff3 $fileok)
 			if [[ $resu != "" ]];then
 					echo -e "There is differences between the original current output and the output of this file processed again:\n$resu"

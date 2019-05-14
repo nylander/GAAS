@@ -75,13 +75,15 @@ else{
 ######################
 ### Parse GFF input #
 
-my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($ref);
+my ($hash_omniscient, $hash_mRNAGeneLink) = slurp_gff3_file_JD({ input => $ref
+                                                              });
 print ("$ref GFF3 file parsed\n");
 info_omniscient($hash_omniscient);
 
 #Add the features of the other file in the first omniscient. It takes care of name to not have duplicates
 foreach my $next_file (@opt_files){
-  my ($hash_omniscient2, $hash_mRNAGeneLink2) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($next_file);
+  my ($hash_omniscient2, $hash_mRNAGeneLink2) = slurp_gff3_file_JD({ input => $next_file
+                                                              });
   print ("$next_file GFF3 file parsed\n");
   info_omniscient($hash_omniscient2);
 

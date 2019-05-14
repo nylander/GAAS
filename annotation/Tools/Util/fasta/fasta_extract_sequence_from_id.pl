@@ -118,6 +118,10 @@ if (-f $opt_name){
         my $id = $cols[$col];
         $id =~ s/[^[:print:]]+//g;
         #print $id."\n";
+        if($id =~ m/^>/){
+          print "I remove the chevron (\">\") !\n";
+          $id=substr($id, 1 , length($id));
+        }
         $list_of_ID{$id}++;
         $nbID++;
       }
@@ -146,7 +150,7 @@ foreach my $ID (keys %list_of_ID){
     push @list_seq_result, $seq_obj;
   }
   else{
-    print $ID." not found into the $opt_fastafile fasta file !\n";
+    print "<$ID> not found into the $opt_fastafile fasta file !\n";
   }
 }
 

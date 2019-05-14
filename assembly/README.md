@@ -14,3 +14,8 @@ Custom scripts developed within NBIS for assembly projects.
 ### [Genome assembly workshop wiki](https://github.com/NBISweden/workshop-genome_assembly/wiki)
 Wiki for the de novo Genome assembly workshop (Uppsala). Contains information on sequencing technologies,
 file formats, links to various assembly datasets, and lots of code snippets to run various assembly tools.
+
+### External ressources
+
+  * [long-read-tools DB (git)](https://github.com/shaniAmare/long_read_tools)  
+  * [long-read-tools DB (web)](https://long-read-tools.org/categories.html)

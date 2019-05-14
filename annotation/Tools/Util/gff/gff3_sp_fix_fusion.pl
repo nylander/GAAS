@@ -112,7 +112,8 @@ else{ print "You didn't use the option stranded. We will look for fusion in all 
 
 ######################
 ### Parse GFF input #
-my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($gff);
+my ($hash_omniscient, $hash_mRNAGeneLink) = slurp_gff3_file_JD({ input => $gff
+                                                              });
 print ("GFF3 file parsed\n");
 
 ####################
@@ -390,23 +391,8 @@ sub take_care_utr{
                   my $orf_utr_region;
                   #################################
                   # Get the longest ORF positive ## record ORF = start, end (half-open), length, and frame
-                  my $longest_ORF_prot_obj_p;
-                  my $orf_utr_region_p;
-                  my ($longest_ORF_prot_objM, $orf_utr_regionM) = translate_JD($utr_obj, 
-                                                                              -nostartbyaa => 'L',
-                                                                              -orf => 'longest');
-                  my ($longest_ORF_prot_objL, $orf_utr_regionL) = translate_JD($utr_obj, 
-                                                                              -nostartbyaa => 'M',
-                                                                              -orf => 'longest');
-                  if($longest_ORF_prot_objL->length()+$SIZE_OPT > $longest_ORF_prot_objM ){ # In a randomly generated DNA sequence with an equal percentage of each nucleotide, a stop-codon would be expected once every 21 codons. Deonier et al. 2005
-                    $longest_ORF_prot_obj_p=$longest_ORF_prot_objL;                    # As Leucine L (9/100) occur more often than Metionine M (2.4) JD arbitrary choose to use the L only if we strength the sequence more than 21 AA. Otherwise we use M start codon.
-                    $orf_utr_region_p=$orf_utr_regionL;
-                    $counter_case21++;
-                  }else{
-                    $longest_ORF_prot_obj_p=$longest_ORF_prot_objM;
-                    $orf_utr_region_p=$orf_utr_regionM;
-                  }
-                 
+                  my ($longest_ORF_prot_obj_p, $orf_utr_region_p) = translate_JD($utr_obj, 
+                                                                              -orf => 'longest');                 
                   ########################################
                   # Get the longest ORF opposite strand ## record ORF = start, end (half-open), length, and frame
                   my $length_longest_ORF_prot_obj_n=0;
@@ -414,21 +400,8 @@ sub take_care_utr{
                   my $orf_utr_region_n;
                   
                   if(! $stranded){
-
-                    my ($longest_ORF_prot_objM, $orf_utr_regionM) = translate_JD($opposite_utr_obj, 
-                                                                                -nostartbyaa => 'L',
+                    ($longest_ORF_prot_obj_n, $orf_utr_region_n) = translate_JD($opposite_utr_obj, 
                                                                                 -orf => 'longest');
-                    my ($longest_ORF_prot_objL, $orf_utr_regionL) = translate_JD($opposite_utr_obj, 
-                                                                                -nostartbyaa => 'M',
-                                                                                -orf => 'longest');
-                    if($longest_ORF_prot_objL->length()+$SIZE_OPT > $longest_ORF_prot_objM ){ # In a randomly generated DNA sequence with an equal percentage of each nucleotide, a stop-codon would be expected once every 21 codons. Deonier et al. 2005
-                      $longest_ORF_prot_obj_n=$longest_ORF_prot_objL;                    # As Leucine L (9/100) occur more often than Metionine M (2.4) JD arbitrary choose to use the L only if we strength the sequence more than 21 AA. Otherwise we use M start codon.
-                      $orf_utr_region_n=$orf_utr_regionL;
-                      $counter_case21++;
-                    }else{
-                      $longest_ORF_prot_obj_n=$longest_ORF_prot_objM;
-                      $orf_utr_region_n=$orf_utr_regionM;
-                    }
                     $length_longest_ORF_prot_obj_n = $longest_ORF_prot_obj_n->length();
                   }
 

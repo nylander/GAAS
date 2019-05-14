@@ -117,7 +117,10 @@ if ($outfile) {
 ######################
 ### Parse GFF input #
 # 1 is to put on the nocheck option
-my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($gff, undef, undef, undef, 1);
+my ($hash_omniscient, $hash_mRNAGeneLink) =  slurp_gff3_file_JD({
+                                                               input => $gff,
+                                                               nocheck => 1
+                                                               });
 
 #track stats
 my $nbOriginalGene = nb_feature_level1($hash_omniscient); #total gene at the beginning
@@ -243,7 +246,8 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
           $nb_noCaseL3++;
         }
       
-        my ($hash_omniscient_clean, $hash_mRNAGeneLink_clean) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($hash);
+        my ($hash_omniscient_clean, $hash_mRNAGeneLink_clean) = slurp_gff3_file_JD({ input => $hash
+                                                                                   });
         
         if($verbose){
           print "\nA proper hash:\n";

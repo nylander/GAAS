@@ -72,7 +72,8 @@ my $resume_case=undef;
 
 ######################
 ### Parse GFF input #
-my ($omniscient, $mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($gff);
+my ($omniscient, $mRNAGeneLink) = slurp_gff3_file_JD({ input => $gff
+                                                              });  
 print ("$gff GFF3 file parsed\n");
 info_omniscient($omniscient);
 

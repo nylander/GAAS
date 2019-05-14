@@ -136,7 +136,8 @@ F     |   frameshift forward in the reference sequence
 R     |   frameshift reverse in the reference sequence
 
 Compare to the original CIGAR string there is no more whitespace between the letter code and the length.  
-**Here an example of this type of CIGAR string DNA/DNA:  **
+
+**Here an example of this type of CIGAR string DNA/DNA:**  
 
         Chr3  (reference)  1 CAAGACCTAAACTGGAT-TCCAAT  23
         EST23 (target)     1 CAAGACCT---CTGGATATCCAAT  21
@@ -151,7 +152,7 @@ Compare to the original CIGAR string there is no more whitespace between the let
 
 	>Gap=M8 D3 M6 I1 M6
 
-**Here an example of this type of CIGAR string AA/DNA:  **
+**Here an example of this type of CIGAR string AA/DNA:**  
 
 	For protein to nucleotide matches, the M, I and D operations apply to
 	amino acid residues in the target and nucleotide base pairs in the
@@ -166,7 +167,7 @@ Compare to the original CIGAR string there is no more whitespace between the let
 
 	 ctg123 . nucleotide_to_protein 100 129 . + . ID=match008;Target=p101 1 10;Gap=M3 I1 M2 D1 M4
 
-/!\ They apprarently also mix-up abilities from the **CIGAR** string format and those from the [**VULGAR** string format](vulgar.md). Indeed they added the **F** and **R** operators which are both originaly related to the [VULGAR format](vulgar.md).
+/!\ They apprarently also mix-up abilities from the **CIGAR** string format and those from the [**VULGAR** string format](vulgar.md). Indeed they added the **F** and **R** operators, and the **F** was by the [VULGAR format](vulgar.md).
 
 Here the explanation about the **F** and **R** operators:  
 

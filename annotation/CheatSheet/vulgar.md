@@ -17,5 +17,4 @@ S | Split codon
 F | Frameshift 
 
 The format seems to have been originally develloped for the Exonerate tool.
-Some definition are not really clear and I didn't find any further definition (e.g 5 and 3). 
-The **F** and **R** seem to have been used for the definition of the GFF3 gap attribute that use the [CIGAR](cigar.md) string as reference.
+The **F** seems to have been used for the definition of the GFF3 gap attribute that use the [CIGAR](cigar.md) string as reference.

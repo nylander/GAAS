@@ -68,7 +68,8 @@ else{
 my $error_found=undef;
 ### Parse GFF input #
 print ("Parse file $ref\n");
-my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($ref);
+my ($hash_omniscient, $hash_mRNAGeneLink) = slurp_gff3_file_JD({ input => $ref
+                                                              });
 print ("$ref file parsed\n");
 
 # sort by seq id
@@ -323,14 +324,14 @@ __END__
 
 =head1 NAME
 
-gff_checkOverlapingGeneFeatures.pl - Check a gff3 annotation file to
+gff3_sp_fix_overlaping_genes.pl - Check a gff3 annotation file to
 find cases where differents gene features have CDS that overlap. In this case the gene features will be merged in only one. 
 One gene is choosen as reference, and the mRNA from the other gene will be linked to it. So, it creates isoforms.
 
 =head1 SYNOPSIS
 
-    ./gff_checkOverlapingGeneFeatures.pl -f infile  [-o outfile]
-    ./gff_checkOverlapingGeneFeatures.pl --help
+    ./gff3_sp_fix_overlaping_genes.pl -f infile  [-o outfile]
+    ./gff3_sp_fix_overlaping_genes.pl --help
 
 =head1 OPTIONS
 

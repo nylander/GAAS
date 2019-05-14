@@ -77,7 +77,8 @@ my $killlist = parse_blast($blast);
 
 ### Parse GFF input #
 print ("Parse file $gff\n");
-my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($gff);
+my ($hash_omniscient, $hash_mRNAGeneLink) = slurp_gff3_file_JD({ input => $gff
+                                                              });
 print ("$gff file parsed\n");
 
 # Remove all mRNA specified by the kill-list from their (gene-) parents.

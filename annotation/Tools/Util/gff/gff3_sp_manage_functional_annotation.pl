@@ -2,8 +2,8 @@
 
 #libraries
 use strict;
-use File::Basename;
 use warnings;
+use File::Basename;
 use Data::Dumper;
 use Carp;
 use Time::Piece;
@@ -22,7 +22,7 @@ use BILS::Handler::GXFhandler qw(:Ok);
 
 my $header = qq{
 ########################################################
-# BILS 2018 - Sweden                                   #  
+# BILS 2019 - Sweden                                   #  
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
@@ -200,7 +200,8 @@ if($opt_output){ print_time("$stringPrint");} # When ostreamReport is a file we 
 
 ######################
 ### Parse GFF input #
-my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($opt_reffile);
+my ($hash_omniscient, $hash_mRNAGeneLink) = slurp_gff3_file_JD({ input => $opt_reffile
+                                                              });  
 print_time("Parsing Finished\n");
 ### END Parse GFF input #
 #########################
@@ -514,20 +515,20 @@ if ($opt_InterproFile){
   my $lineB=       "___________________________________________________________________________________________________";
   $stringPrint .= " ".$lineB."\n";
   $stringPrint .= "|          | Nb Total term | Nb mRNA with term  | Nb mRNA updated by term | Nb gene updated by term |\n";
-  $stringPrint .= "|          | in Annie File |   in Annie File    | in our annotation file  | in our annotation file  |\n";
+  $stringPrint .= "|          | in raw File |   in raw File    | in our annotation file  | in our annotation file  |\n";
   $stringPrint .= "|".$lineB."|\n";
 
   foreach my $type (keys %functionData){
     my $total_type = $TotalTerm{$type};
-    my $mRNA_type_Annie = $functionDataAdded{$type};
+    my $mRNA_type_raw = $functionDataAdded{$type};
     my $mRNA_type = keys %{$mRNAAssociatedToTerm{$type}};
     my $gene_type = keys %{$GeneAssociatedToTerm{$type}};
-    $stringPrint .= "|".sizedPrint(" $type",10)."|".sizedPrint($total_type,15)."|".sizedPrint($mRNA_type_Annie,20)."|".sizedPrint($mRNA_type,25)."|".sizedPrint($gene_type,25)."|\n|".$lineB."|\n";
+    $stringPrint .= "|".sizedPrint(" $type",10)."|".sizedPrint($total_type,15)."|".sizedPrint($mRNA_type_raw,20)."|".sizedPrint($mRNA_type,25)."|".sizedPrint($gene_type,25)."|\n|".$lineB."|\n";
   }
 
   #RESUME TOTAL OF FUNCTION ATTACHED
   my $listOfFunction;
-  foreach my $funct (keys %functionData){
+  foreach my $funct (sort keys %functionData){
     $listOfFunction.="$funct,";
   }
   chop $listOfFunction;
@@ -716,7 +717,7 @@ sub addFunctions{
   return $functionAdded;
 }
 
-# method to par annie blast file
+# method to parse blast file
 sub parse_blast {
   my($file_in, $opt_blastEvalue, $hash_mRNAGeneLink) = @_;
 
@@ -1084,6 +1085,10 @@ Input GFF3 file that will be read (and sorted)
 Input blast ( outfmt 6 = tabular )file that will be used to complement the features read from
 the first file (specified with B<--ref>).
 
+=item B<-d> or B<--db>
+
+The fasta file that has been used as DB for the blast. Gene names and products/descriptions will be fished from this file.
+
 =item B<--be> or B<--blast_evalue>
 
  Maximum e-value to keep the annotation from the blast file. By default 1e-6.
@@ -1122,6 +1127,10 @@ This option is used to define the number that will be used to begin the numberin
 
 Output GFF file.  If no output file is specified, the output will be
 written to STDOUT.
+
+=item B<-v>
+
+Verbose (bolean). For debug purpose.
 
 =item B<-h> or B<--help>
 

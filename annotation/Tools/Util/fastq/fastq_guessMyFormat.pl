@@ -83,10 +83,10 @@ my %infoDisplay = ( 'Sanger' => 'Phred+33 - It could be Sanger or Illumina 1.8+.
                     	'Solexa' => 'Solexa+64 - It could be Solexa',
                     	'Illumina 1.3+' => 'Phred+64 - It could be Illumina 1.3+',
                     	'Illumina 1.5+' => 'Phred+64 - It could be Illumina 1.5+',
-			'Illumina 1.8+' => 'Phred+33 - It could be Sanger or Illumina 1.8+. Sorry this is the only case impossible to really differentiate !\nAnyway, you will be happy to learn that one or the other have exactly the same quality score system (Phred+33)'. 
-                            '\nWe know that you really want to know exactly which Quality score it is... So, as the character <I> is present we could assume that is Illumina 1.8+ !',
-			'last' => 'Phred+33 - It could be Sanger or Illumina 1.8+. Sorry this is the only case impossible to really differentiate !\nAnyway, you will be happy to learn that one or the other have exactly the same quality score system (Phred+33)'.
-                            '\nWe know that you really want to know exactly which Quality score it is... but there is ASCII value over 41 we absolutly cannot differentiate them abinitio.');
+			'Illumina 1.8+' => "Phred+33 - It could be Sanger or Illumina 1.8+. Sorry this is the only case impossible to really differentiate !\nAnyway, you will be happy to learn that one or the other have exactly the same quality score system (Phred+33)". 
+                            "\nWe know that you really want to know exactly which Quality score it is... So, as the character <I> is present we could assume that is Illumina 1.8+ !",
+			'last' => "Phred+33 - It could be Sanger or Illumina 1.8+. Sorry this is the only case impossible to really differentiate !\nAnyway, you will be happy to learn that one or the other have exactly the same quality score system (Phred+33)".
+                            "\nWe know that you really want to know exactly which Quality score it is... but there is ASCII value over 41 we absolutly cannot differentiate them abinitio.");
 
 my $inputFile=undef;
 my $opt_help=undef;
@@ -116,8 +116,13 @@ if ((!defined($inputFile)) ){
 }
 
 # open the files
-open FQ, "<", $inputFile or die $!;
-
+my $fh;
+if( $inputFile =~ /\.gz$/ or $inputFile =~ /\.gzip$/){
+	open ($fh, "gunzip -c $inputFile |") or die "gunzip $inputFile $!";
+}
+else{
+	open ($fh, "<", $inputFile) or die $!;
+}
 
 # in non advance mode
 if(!$adv){
@@ -129,12 +134,12 @@ if(!$adv){
 	 
 	 
 	# go thorugh the file
-	while(<FQ>){
+	while(<$fh>){
 
 		# if it is the line before the quality line
 		if($_ =~ /^\+/){
 
-			$l = <FQ>; # get the quality line
+			$l = <$fh>; # get the quality line
 			chomp($l); # remove newline and whitespaces
 			@line = split(//,$l); # divide in chars
 
@@ -179,7 +184,7 @@ if($adv){
 	my $nb_read_checked=0;	
 
 	# go thorugh the file
-	while(<FQ>){
+	while(<$fh>){
 
 		#Display progression
 		if ((30 - (time - $startP)) < 0) {
@@ -193,7 +198,7 @@ if($adv){
 		# if it is the line before the quality line
 		if($_ =~ /^\+/){
 			$nb_read_checked++;
-			$l = <FQ>; # get the quality line
+			$l = <$fh>; # get the quality line
 			chomp($l); # remove newline and whitespaces
 			@line = split(//,$l); # divide in chars
 

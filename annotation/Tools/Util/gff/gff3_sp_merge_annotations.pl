@@ -70,13 +70,15 @@ else{
 ### Parse GFF input #
 
 my $file1 = shift @opt_files;
-my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($file1);
+my ($hash_omniscient, $hash_mRNAGeneLink) = slurp_gff3_file_JD({ input => $file1
+                                                              });  
 print ("$file1 GFF3 file parsed\n");
 info_omniscient($hash_omniscient);
 
 #Add the features of the other file in the first omniscient. It takes care of name to not have duplicates
 foreach my $next_file (@opt_files){
-  my ($hash_omniscient2, $hash_mRNAGeneLink2) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($next_file);
+  my ($hash_omniscient2, $hash_mRNAGeneLink2) = slurp_gff3_file_JD({ input => $next_file
+                                                              });  
   print ("$next_file GFF3 file parsed\n");
   info_omniscient($hash_omniscient2);
   
@@ -88,7 +90,8 @@ foreach my $next_file (@opt_files){
 
 # Now all the feature are in the same omniscient
 # We have to check the omniscient to merge overlaping genes together and remove the identical ones
-my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($hash_omniscient);
+my ($hash_omniscient, $hash_mRNAGeneLink) = slurp_gff3_file_JD({ input => $hash_omniscient
+                                                              });  
 print ("\nfinal result:\n");
 info_omniscient($hash_omniscient);
 

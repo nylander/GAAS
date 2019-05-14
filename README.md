@@ -8,12 +8,22 @@ Contains development done in the GAA (Genome Assembly Annotation) Service.
 ## [__annotation__](annotation)  
 Annotation directory contains development related to annotation side of the service.  
 
+#### Shorcuts:  
+   - [Tools](annotation/Tools/bin/) 
+
+   - [Cheat Sheets](annotation/CheatSheet)
+
+   - [Genome annotation workshop](https://nbisweden.github.io/workshop-genome_annotation/)
+
 ## [__assembly__](assembly)  
 Assembly directory contains development related to assembly side of the service.  
 
+#### Shorcuts:  
+   - [Genome assembly workshop](https://nbisweden.github.io/workshop-genome_assembly/)  
+
 ---------------------------
 
-#### Installation
+## Installation
 
   * Clone and install GAAS
   
@@ -44,6 +54,7 @@ cd GAAS
            cpanm Graph::Directed
            cpanm LWP::UserAgent
            cpanm Statistics::R
+           cpanm JSON
            ```
         
     * A.3) Load the correct profiles (add NBIS libs and tools to the PATH)  
@@ -66,7 +77,7 @@ cd GAAS
     * A.3) To get out of the nbis environment and restore your previous environment type  
   
      ```
-     deativate
+     deactivate
      ```
 
   * B) For a permanent use  

@@ -160,7 +160,7 @@ foreach my $contig (keys %info){
     }
 
     if ($opt_genome){
-        print $ostream "SequenceID\tNumber_of_non_ovelaping_Hit\tNb_mito_gene\tTotal_hit_size\tSize_sequence\t%_Sequence_covered_by_hit\n";
+        print $ostream "SequenceID\tNumber_of_non_ovelaping_Hit\tNb_mito_gene\tTotal_hit_size\tSize_sequence\t%_Sequence_covered_by_hit\tGene_names\n";
         # sort by number of non-overlaping hits
         foreach my $contig (sort { @{$omni{$a}} <=> @{$omni{$b}} } keys %omni){
             
@@ -173,16 +173,27 @@ foreach my $contig (keys %info){
             my $goodxGenome=sprintf("%0.2f",($size{$contig}*100)/$length);
             
             my $nbMitoGene = keys %{$nbMitoGeneByContig{$contig}};
-            print $ostream $contig."\t".@{$omni{$contig}}."\t".$nbMitoGene."\t".$size{$contig}."\t".$length."\t".$goodxGenome."\n";
+            
+            my @geneList=();
+            foreach my $key (sort keys %{$nbMitoGeneByContig{$contig}}){
+             push @geneList, $key   
+            }
+            print $ostream $contig."\t".@{$omni{$contig}}."\t".$nbMitoGene."\t".$size{$contig}."\t".$length."\t".$goodxGenome."\t".join(",", @geneList)."\n";
         }
 
     }
     else{
-        print $ostream "SequenceID\tNumber_of_non_ovelaping_Hit\tNb_mito_gene\tTotal_hit_size\n";
+        print $ostream "SequenceID\tNumber_of_non_ovelaping_Hit\tNb_mito_gene\tTotal_hit_size\tGene_names\n";
         # sort by number of non-overlaping hits
         foreach my $contig (sort { @{$omni{$a}} <=> @{$omni{$b}} } keys %omni){
             my $nbMitoGene = keys %{$nbMitoGeneByContig{$contig}};
-            print $ostream $contig."\t".@{$omni{$contig}}."\t".$nbMitoGene."\t".$size{$contig}."\n";
+            
+            my @geneList=();
+            foreach my $key (sort keys %{$nbMitoGeneByContig{$contig}}){
+             push @geneList, $key
+            }
+            
+            print $ostream $contig."\t".@{$omni{$contig}}."\t".$nbMitoGene."\t".$size{$contig}."\t".join(",", @geneList)."\n";
         }
     }
 
@@ -225,6 +236,10 @@ Input tabulated blast file -outfmt 6
 =item  B<--out>, B<--output> or B<-o>
 
 The output will be the EMBL file with the record "headers" modified
+
+=item  B<--genome> or B<-g>
+
+Optional. Genome in fasta format. Allow to calculate the mapping coverage.
 
 =item B<--help> or B<-h>
 

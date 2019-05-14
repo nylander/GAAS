@@ -52,8 +52,10 @@ if ( ! (defined($gff)) ){
 #### OUT
 my $gffout;
 if ($opt_output) {
-  my($opt_output, $dirs, $suffix) = fileparse($opt_output, (".gff",".gff1",".gff2",".gff3",".gtf",".gtf1",".gtf2",".gtf3",".txt")); #remove extension 
-  open(my $fh, '>', $opt_output.".gff3") or die "Could not open file '$opt_output' $!";
+  my($file, $dirs, $suffix) = fileparse($opt_output, (".gff",".gff1",".gff2",".gff3",".gtf",".gtf1",".gtf2",".gtf3",".txt")); #remove extension 
+  if(! $file){print "No output file name provided, just a path...\n";exit;}
+  my $path = $dirs.$file;
+  open(my $fh, '>', $path.".gff3") or die "Could not open file '$opt_output' $!";
   $gffout= Bio::Tools::GFF->new(-fh => $fh, -gff_version => 3 );
   }
 else{
@@ -69,7 +71,8 @@ else{
 ######################
 ### Parse GFF input #
 print "Reading file $gff\n";
-my ($hash_omniscient, $hash_mRNAGeneLink) = BILS::Handler::GXFhandler->slurp_gff3_file_JD($gff);
+my ($hash_omniscient, $hash_mRNAGeneLink) = slurp_gff3_file_JD({ input => $gff
+                                                              });
 print "Parsing Finished\n";
 ### END Parse GFF input #
 #########################

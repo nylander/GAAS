@@ -303,6 +303,10 @@ The result is written to the specified output file, or to STDOUT.
 
 =over 8
 
+=item B<-t> or <--taxid>
+
+To specify a specific taxid. Allow to focus on a specific part of the tree of life.
+
 =item B<-q>
 
 Quiet to avoid any print on STDOUT

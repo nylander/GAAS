@@ -16,6 +16,8 @@ check:
 	@if perl -MLWP::UserAgent -e 1 2>/dev/null; then printf "\033[0;32myes\033[0m \n"; else printf "\033[0;31mno\033[0m\n"; fi
 	@printf "Perl lib Statistics::R is installed ... " 
 	@if perl -MStatistics::R -e 1 2>/dev/null; then printf "\033[0;32myes\033[0m \n"; else printf "\033[0;31mno\033[0m\n"; fi
+	@printf "Perl lib JSON is installed ... " 
+	@if perl -MJSON -e 1 2>/dev/null; then printf "\033[0;32myes\033[0m \n"; else printf "\033[0;31mno\033[0m\n"; fi
 	@printf "Rscript is installed ... "
 	@if command -v Rscript >/dev/null 2>&1 ; then printf "\033[0;32myes\033[0m : "; Rscript --version; else printf "\033[0;31mno\033[0m\n"; fi
 

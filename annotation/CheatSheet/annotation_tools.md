@@ -47,6 +47,7 @@
 2004 | SNAP |	| Ab initio | | | |			
 2005 | JIGSAW	| |  Combiner | | | 137 | select the prediction whose structure best represents the consensus |
 2005 | GeneMark-ES | Lomsadze, A. Gene identification in novel eukaryotic genomes by self-training algorithm. Nucleic Acids Res. 33, 6494–6506 (2005) ; Ter-Hovhannisyan, V., Lomsadze, A., Chernoff, Y. O. & Borodovsky, M. Gene prediction in novel fungal genomes using an ab initio algorithm with unsupervised training. Genome Res. 18, 1979–1990 (2008). | Ab initio |  | Eucaryote | 243 / 200 | |
+2005 | GenomeThreader	| G. Gremme, V. Brendel, M.E. Sparks, and S. Kurtz. Engineering a software tool for gene structure prediction in higher organisms. Information and Software Technology, 47(15):965-978, 2005 |  Evidence based  | Similarity | All | | The gene structure predictions are calculated using a similarity-based approach where additional cDNA/EST and/or protein sequences are used to predict gene structures via spliced alignments |
 2006 | AUGUSTUS+ | | Hybrid | HMM | | |			
 2006 | N-SCAN	| | Comparative |	| | |	Several genomes |
 2006 | TWINSCAN_EST | | Comparative+Evidence | | | | |
@@ -75,7 +76,8 @@
 2016 | Companion | Steinbiss, S. et al. Companion: a web server for annotation and analysis of parasite genomes. Nucleic Acids Res. 44, W29–W34 (2016) | | | | | Pipeline for automatic eukaryotic parasite annotation |
 2016 | Gmove | Dubarry, M. et al. Gmove a tool for eukaryotic gene predictions using various evidences. F1000Reserach 34, 2011 (2016). | | | | | Eukaryotic Gene Predictions using Various Evidences Dubarry |
 2016 | CAT Comparative Analysis toolkit |  | pipeline | Evidence based, comparative-abinitio | | | takes as input a HAL-format multiple whole genome alignmen | GFF3 + many plots
-2017 | GeMoMa | Keilwagen, J., Hartung, F., Paulini, M., Twardziok, S. O. & Grau, J. Combining RNA-seq data and homology-based gene prediction for plants , animals and fungi. (2017). | | | | | homology-based gene prediction program |				
+2017 | GeMoMa | Keilwagen, J., Hartung, F., Paulini, M., Twardziok, S. O. & Grau, J. Combining RNA-seq data and homology-based gene prediction for plants , animals and fungi. (2017). | | | | | homology-based gene prediction program |	
+2017 | funannotate | doi.org/10.5281/zenodo.2576527 | Pipeline | Evidence Modeler + Augustus + GeneMark-ES/ET + evidence + PASA | built specifically for fungi, but will also work with higher eukaryotes | | homology-based gene prediction program |
 2018 | FunGAP | Min B, Grigoriev IV, Choi IG. FunGAP: Fungal Genome Annotation Pipeline using evidence-based gene model evaluation. Bioinformatics (Oxford, England). 2017;33(18):2936–7. | pipeline | | |  | |
 2018 | BRAKER2 | | | | |  | |	
 ? | GISMO | | | | |  | |	
