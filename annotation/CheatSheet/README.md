@@ -43,8 +43,8 @@ Collection of Cheat Sheets / overview / summaries
 ### [Git](git.md)
 
 ### Overview of annotation tools
- * [List of annotation tools](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/annotation_tools.md)
-
+ * [List of annotation tools (protein coding genes)](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/annotation_tools.md)
+ * [List of annotation tools (Mitochondrion)](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/annotation_tools_mito.md)
 ### [Overview of RNA-seq library types](rnaseq_library_types.md)
 
 ### [Screen](screen.md)
