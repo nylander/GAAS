@@ -15,7 +15,7 @@ Collection of Cheat Sheets / overview / summaries
 ### Perl
  * [Perl code profiler](perl_code_profiler.md)
 
-# Format
+# Formats
 
 ### External tutorial about lot of different formats:
  * [UCONN - University of Connecticut](https://bioinformatics.uconn.edu/resources-and-events/tutorials-2/file-formats-tutorial/)
