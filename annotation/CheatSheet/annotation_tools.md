@@ -1,4 +1,4 @@
-| year	| Gene finder Name | Publication | Type	| Method | Organism | Nb citation (pubmed 2016) | Comments | Output Format |
+| year	| Tool name | Publication | Type	| Method | Organism | Nb citation (pubmed 2016) | Comments | Output Format |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 1991 | GRAIL | Uberbacher and Mural	1991. Mural et al. 1992 | Ab initio (sensors + Neural network) | | | | No longer supported |
 1991 | NetGene | Brunak et al.	| Ab initio | | | | |
@@ -90,7 +90,7 @@
 ? | Xpound | | | | |  | |
 ? | FGENESH++C | | | | | | maps known mRNA/EST sequences from RefSeq and then performs FGENESH++-like gene prediction |
 ? | Eugene'Hom | | | | |  | |
-| year	| Gene finder Name | Publication | Type	| Method | Organism | Nb citation (pubmed 2016) | Comments | Output Format |
+| year	| Tool name | Publication | Type	| Method | Organism | Nb citation (pubmed 2016) | Comments | Output Format |
 
 _____________________
 __Legend:__  
