@@ -69,7 +69,9 @@
 2011 | MAKER2 | Holt, C. & Yandell, M. MAKER2: an annotation pipeline and genome-database management tool for second-generation genome projects. BMC Bioinformatics 12, 491 (2011). | | | | 184 | It uses proteins, transcripts ... Abinitio: Augustus, Fgnesh,Genemark,snap |	
 2011 | GenSAS | Lee T, Peace C, Jung S, Zheng P, Main D, Cho I (2011) GenSAS: an online integrated genome sequence annotation pipeline. In: 4th International conference on biomedical engineering and informatics (BMEI), Shanghai, 2011, pp. 1967–1973. doi: 10.1109/BMEI.2011.6098712 | pipeline | | | An online integrated genome sequence annotation pipeline | |
 2012 | eCRAIG | | | | | 4 | |	
+2013 | Eugene-P | Next-generation Annotation of Prokaryotic Genomes with EuGene-P: Application to Sinorhizobium meliloti 2011. E. Sallet et al. DNA Res. 2013 | | | | Prokaryote | |
 2014 | GeneMark-ET| Lomsadze, A., Burns, P. D. & Borodovsky, M. Integration of mapped RNA-Seq reads into automatic training of eukaryotic gene finding algorithm. 42, 1–8 (2014). | Ab initio | HMM | Eukaryote | 10 | Self training |
+2014 | Prokka | Seemann T., Prokka: rapid prokaryotic genome annotation. Bioinformatics 2014 Jul 15;30(14):2068-9. PMID:24642063 | pipeline | Ab initio + evidence-based for functional annotation | prokaryote | | https://github.com/tseemann/prokka Do structural and functional annotation | .gff, .gbk, .fna, .faa, .ffn, .sqn, .fsa, .tbl, .err, .log, .txt, .tsv
 2015 | Ipred | Zickmann, F. & Renard, B. Y. IPred - integrating ab initio and evidence based gene predictions to improve prediction accuracy. BMC Genomics 16, 134 (2015). | Combiner evidence-based | | | | choose the best possible set of exons and combine them in a gene model. Evidence based chooser. Can also model gene form evidence only. |
 2015 | GASS ( Genome Annotation based on Species Similarity) | GASS: genome structural annotation for Eukaryotes based on species similarity. Wang Y, Chen L, Song N, Lei X. BMC Genomics. 2015 Mar 4; 16():150. | comparative | shortest path model and DP | |  | |
 2016 | BRAKER1 | Lange, S., Hof, K., Lomsadze, A., Borodovsky, M. & Stanke, M. BRAKER1 : Unsupervised RNA-Seq-Based Genome Annotation with GeneMark-ET and AUGUSTUS. 24, 2014 (2014). | Hybrid / Pipeline	| | | 1 | Pipeline: GeneMark-ET + Augustus |
@@ -80,15 +82,14 @@
 2017 | funannotate | doi.org/10.5281/zenodo.2576527 | Pipeline | Evidence Modeler + Augustus + GeneMark-ES/ET + evidence + PASA | built specifically for fungi, but will also work with higher eukaryotes | | homology-based gene prediction program |
 2018 | FunGAP | Min B, Grigoriev IV, Choi IG. FunGAP: Fungal Genome Annotation Pipeline using evidence-based gene model evaluation. Bioinformatics (Oxford, England). 2017;33(18):2936–7. | pipeline | | |  | |
 2018 | BRAKER2 | | | | |  | |	
+2018 | G-OnRamp | | Ab-initio Web-based | Augustus,GlimmerHMM,SNAP | |  | |
 ? | GISMO | | | | |  | |	
 ? | RBFN | | | | |  | |	
 ? | ZUPLS | | | | |  | |
 ? | Geneparser2 | | | | |  | |
 ? | Xpound | | | | |  | |
 ? | FGENESH++C | | | | | | maps known mRNA/EST sequences from RefSeq and then performs FGENESH++-like gene prediction |
-2013 | Eugene-P | Next-generation Annotation of Prokaryotic Genomes with EuGene-P: Application to Sinorhizobium meliloti 2011. E. Sallet et al. DNA Res. 2013 | | | | Prokaryote | |
 ? | Eugene'Hom | | | | |  | |
-2018 | G-OnRamp | | Ab-initio Web-based | Augustus,GlimmerHMM,SNAP | |  | |
 | year	| Gene finder Name | Publication | Type	| Method | Organism | Nb citation (pubmed 2016) | Comments | Output Format |
 
 _____________________
