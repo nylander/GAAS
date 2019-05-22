@@ -893,16 +893,32 @@ sub _create_string{
 
 	my $string=$feature->seq_id().$feature->primary_tag().$feature->start().$feature->end();
 
+	my $ID=undef;
+	if(exists_keys($uniqID,($feature->_tag_value('ID')))){
+		$ID = $uniqID->{$feature->_tag_value('ID')};
+	}
+	else{
+		$ID = $feature->_tag_value('ID')
+	}
+	my $Parent=undef;
+	if(exists_keys($uniqID,($feature->_tag_value('Parent')))){
+		$ID = $uniqID->{$feature->_tag_value('Parent')};
+	}
+	else{
+		$Parent = $feature->_tag_value('Parent')
+	}
+	
 	my $primary_tag = lc($feature->primary_tag);
+
 	if ( exists($LEVEL1->{$primary_tag}) ){
-		$string .= $uniqID->{$feature->_tag_value('ID')}; # compare with original ID
+		$string .= $ID; # compare with original ID
 	}
 	if ( exists($LEVEL2->{$primary_tag}) ){
-		$string .= $uniqID->{$feature->_tag_value('ID')}; # compare with original ID
-		$string .= $uniqID->{$feature->_tag_value('Parent')}; # compare with original Parent
+		$string .= $ID; # compare with original ID
+		$string .= $Parent; # compare with original Parent
 	}
 	if ( exists($LEVEL3->{$primary_tag}) ){
-		$string .= $uniqID->{$feature->_tag_value('Parent')}; # compare with original Parent
+		$string .= $Parent; # compare with original Parent
 	}
 
 	return $string;
@@ -2608,7 +2624,7 @@ sub select_gff_format{
     my ($file) = @_;
 
     #HANDLE format
-    my $format=3;
+    my %format;
     my $problem3=undef;
     my $nbLineChecked=100; #number line to use to check the formnat
     my $cpt=0;
@@ -2621,38 +2637,52 @@ sub select_gff_format{
         	
             $cpt++;
             if($cpt > $nbLineChecked){
-                    _printSurrounded("Doesn't look like a GFF file\nLet's see what the Bioperl parser can do with that...",100,"!");  
                     last;
             }
             if($_ =~ /^.*\t.*\t.*\t.*\t.*\t.*\t.*\t.*\t(.*)/){
                 if(length($1) < 1){next;}
                 
-                my $string = $1;
-                if($string =~ /=/  and $string =~ /;/ ){ last; };
+                my $Ninethcolum = $1;
+                if($Ninethcolum =~ /=/  and $Ninethcolum =~ /;/ ){ $format{3}++;};
 
-                if($string !~ /=/  and $string !~ /;/ ){  
-                        $format=1;
+                if($Ninethcolum !~ /=/  and $Ninethcolum !~ /;/ ){  
+                         $format{1}++;
                         #_printSurrounded("Problem detected wihtin the 9th colum of the gff file\nYou cannot have space between attributes and between tag and values.\nAll your attributes will be gathered within the GROUP tag",100,"!");  
-                        last;
                 }
-                elsif($string !~ /=/  and $string =~ /;/ ){       
-                                $format=2;
-                                last;
+                elsif($Ninethcolum !~ /=/  and $Ninethcolum =~ /;/ ){       
+                                 $format{2}++;
                 }
-                my $c = () = $string =~ /=/g;
-                my $d = () = $string =~ /\ /g;
-                if($c > 1 and $d > 1  and $string !~ /;/ ){
+                my $c = () = $Ninethcolum =~ /=/g;
+                my $d = () = $Ninethcolum =~ /\ /g;
+                if($c > 1 and $d > 1  and $Ninethcolum !~ /;/ ){
                        $problem3=1;
                 }
      	   }
         }
     }
     close($fh);
-    if($problem3){
-        _printSurrounded("Thre is a problem with your GFF format.\nThis format is wrong: tag=value tag=value.\nYou should have: tag=value;tag=value or tag value ; tag value\nThe best parser we can use will keep only the first attribute.",100,"!");  
-    	$format=1;
+
+	if($problem3){
+        _printSurrounded("There is a problem with your GFF format.\nThis format is wrong: tag=value tag=value.\nYou should have: tag=value;tag=value or tag value ; tag value\nThe best parser (gff1) we can use will keep only the first attribute.",100,"!");  
+    	$format{1}++;
     }
-    return $format;
+
+   if (%format){                        
+	    my $number_of_format = scalar keys %format;
+	    if ($number_of_format > 1){
+	    	print ("There is a problem we found several formats in this file:");
+	    	my $var = join ",", keys %format;
+	    	print "$var\n";
+	    	print "Let's see what we can do...\n";
+		}
+	}
+	else{
+		_printSurrounded("Doesn't look like a GFF file\nLet's see what the Bioperl parser can do with that...(using gff3 parser)",100,"!");
+		$format{3}++;  
+	}
+	if($format{3}){return 3;}
+	if($format{2}){return 2;}
+    if($format{3}){return 1;}
 }
 
 # We modify the attributes: group=gene_id "e_gw1.5.2.1" protein_id 335805 exonNumber 1
@@ -2660,6 +2690,7 @@ sub select_gff_format{
 sub _gff1_corrector{
 	my ($feat)=@_;
 
+	#print "_gff1_corrector ".$feat->gff_string."\n";# if ($verbose >=2);
 	if($feat->has_tag('group')){
 		my @attribs = $feat->get_tag_values('group');
 		my $attribs = join ' ', @attribs;
@@ -2692,7 +2723,7 @@ sub _gff1_corrector{
 	        $previousChar = $a;
 	    }
 
-	    if($string != ""){ if($previousChar eq " "){chop $string;} push @parsed, $string;}
+	    if($string ne ""){ if($previousChar eq " "){chop $string;} push @parsed, $string;}
 	    while (@parsed){
 	    	my $value = pop @parsed;
 	    	my $tag = pop @parsed;
@@ -2918,7 +2949,9 @@ sub _handle_globalWARNS{
 		}
 		if(exists($globalWARNS->{"ontology1"}) ) {
 			if( keys %{$ontology} ){
-				my $string = "Primary tag values (3rd column) not expected => @{$globalWARNS->{ontology1}}\n".
+				my %hash   = map { $_, 1 } @{$globalWARNS->{ontology1}};
+				my @unique = keys %hash;
+				my $string = "Primary tag values (3rd column) not expected => @unique\n".
 				"Those values are not compatible with gff3 format and the tool cannot guess to which one they correspond to.\n".
 				"If you want to follow rigourously the gff3 format, please visit this website:\n".
 				"https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md\n".
