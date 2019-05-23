@@ -55,6 +55,7 @@ cd GAAS
            cpanm LWP::UserAgent
            cpanm Statistics::R
            cpanm JSON
+           cpanm Sort::Naturally
            ```
         
     * A.3) Load the correct profiles (add NBIS libs and tools to the PATH)  
