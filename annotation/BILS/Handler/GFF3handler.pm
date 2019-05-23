@@ -7,6 +7,7 @@ use strict;
 use warnings;
 use Data::Dumper;
 use Exporter qw(import);
+use Sort::Naturally;
 use URI::Escape;
 use Bio::Seq;
 
@@ -72,7 +73,7 @@ sub print_omniscient{
 
 	  	foreach my $primary_tag_l1 (sort {$a cmp $b} keys %{$hash_sortBySeq{$seqid}}){
 
-		    foreach my $feature_l1 ( sort {$a->start <=> $b->start} @{$hash_sortBySeq{$seqid}{$primary_tag_l1}}){
+		    foreach my $feature_l1 ( sort { ncmp ($a->start.$a->end.$a->_tag_value('ID'), $b->start.$b->end.$b->_tag_value('ID') ) } @{$hash_sortBySeq{$seqid}{$primary_tag_l1}}){
 			    my $id_tag_key_level1 = lc($feature_l1->_tag_value('ID'));
 				$gffout->write_feature($hash_omniscient->{'level1'}{$primary_tag_l1}{$id_tag_key_level1}); # print feature
 
@@ -82,7 +83,7 @@ sub print_omniscient{
 				foreach my $primary_tag_l2 (sort {$a cmp $b} keys %{$hash_omniscient->{'level2'}}){ # primary_tag_l2 = mrna or mirna or ncrna or trna etc...
 
 					if ( exists_keys( $hash_omniscient, ('level2', $primary_tag_l2, $id_tag_key_level1) ) ){
-						foreach my $feature_level2 ( sort {$a->start <=> $b->start} @{$hash_omniscient->{'level2'}{$primary_tag_l2}{$id_tag_key_level1}}) {
+						foreach my $feature_level2 ( sort { ncmp ($a->start.$a->end.$a->_tag_value('ID'), $b->start.$b->end.$b->_tag_value('ID') ) } @{$hash_omniscient->{'level2'}{$primary_tag_l2}{$id_tag_key_level1}}) {
 							$gffout->write_feature($feature_level2);
 
 							#################

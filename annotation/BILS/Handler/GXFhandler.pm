@@ -7,6 +7,7 @@ use warnings;
 use Data::Dumper;
 use File::Basename;
 use JSON;
+use Sort::Naturally;
 use Try::Tiny;
 use LWP::UserAgent;
 use Bio::OntologyIO::obo;
@@ -999,7 +1000,8 @@ sub _create_ID{
 		$key=$primary_tag;
 	}
 
-	my $uID=$id;
+	my $uID= $id ? $id : $key."-1";
+	
 	while( exists_keys($uniqID, ($uID) )){	 #loop until we found an uniq tag	
 		$miscCount->{$key}++;
 		$uID = $key."-".$miscCount->{$key};
@@ -1066,11 +1068,13 @@ sub _remove_orphan_l1{
  		        }   
  		    }
  		    if($neverfound){
+ 		    	$resume_case++;
+ 		    	print "removing ".$hash_omniscient->{'level1'}{$tag_l1}{$id_l1}->gff_string."\n" if ($verbose >= 3);
   			    delete $hash_omniscient->{'level1'}{$tag_l1}{$id_l1}; # delete level1 // In case of refseq the thin has been cloned and modified, it is why we nevertheless remove it
 		    }
  	 	}
  	}
- 	print "We create $resume_case level1 features that were missing\n" if($verbose >= 1 and $resume_case);
+ 	print "We removed $resume_case level1 features that had no subfeature linked to it.\n" if($verbose >= 1 and $resume_case);
 }
 
 # @Purpose: Check relationship betwwen L3 and L2. If L2 is missing we create it. When creating L2 missing we create as well L1 if missing too.
@@ -1206,9 +1210,9 @@ sub _check_exons{
 	my $resume_case=undef; my $resume_case2=undef; my $resume_case3=undef;
 
 	my %checked;
-	foreach my $tag_l3 (keys %{$hash_omniscient->{'level3'}}){
+	foreach my $tag_l3 ( sort {$a cmp $b} keys %{$hash_omniscient->{'level3'}}){
 		if ($tag_l3 ne "exon"){
- 	  		foreach my $id_l2 (keys %{$hash_omniscient->{'level3'}{$tag_l3}}){
+ 	  		foreach my $id_l2 ( sort { (($a =~ /(\d+)$/)[0] || 0) <=> (($b =~ /(\d+)$/)[0] || 0) } keys %{$hash_omniscient->{'level3'}{$tag_l3}}){
  	  			
  	  			if( ! exists_keys(\%checked,($id_l2)) ){ #l2 already checked
  	  				print "Check: ".$id_l2."\n" if ($verbose >= 3); 
@@ -1221,7 +1225,7 @@ sub _check_exons{
 #					| 			Go through l3 and save info needed		 |
 #				 	+-----------------------------------------------------
 
-	 	  			foreach my $tag_l3 (keys %{$hash_omniscient->{'level3'}}){
+	 	  			foreach my $tag_l3 ( sort {$a cmp $b} keys %{$hash_omniscient->{'level3'}}){
 	 	  				
 	 	  				# LIST NON-EXON LOCATIONS THAT NEED TO BE IN AN EXON LOCATION
 	 	  				if ($tag_l3 ne "exon" and $LEVEL3->{$tag_l3} eq "exon" ){
@@ -1469,9 +1473,9 @@ sub _check_utrs{
 	my $resume_case=undef;my $resume_case2=undef;
 
 	my %checked;
-	foreach my $tag_l3 (keys %{$hash_omniscient->{'level3'}}){
+	foreach my $tag_l3 (sort {$a cmp $b} keys %{$hash_omniscient->{'level3'}}){
 		if ($tag_l3 ne "exon"){
- 	  		foreach my $id_l2 (keys %{$hash_omniscient->{'level3'}{$tag_l3}}){
+ 	  		foreach my $id_l2 (sort { (($a =~ /(\d+)$/)[0] || 0) <=> (($b =~ /(\d+)$/)[0] || 0) }  keys %{$hash_omniscient->{'level3'}{$tag_l3}}){
  	  			
  	  			if( ! exists_keys(\%checked,($id_l2)) ){ #l2 already checked
 
@@ -1922,9 +1926,9 @@ sub _check_sequential{ # Goes through from L3 to l1
 
  	_cleanSequentialIncase($infoSequential, $locusTAGuniq, $verbose); # PART OF LOCUS LOST BEFORE TO MEET IT L2 or L1 ... we catch them and re-link everythong as it should be
 
- 	foreach my $locusNameHIS (keys %{$infoSequential} ){ #comon tag was l1 id when no real comon tag present
+ 	foreach my $locusNameHIS ( sort { ncmp($a,$b) } keys %{$infoSequential} ){ #comon tag was l1 id when no real comon tag present
 
- 		foreach my $bucket (keys %{$infoSequential->{$locusNameHIS} } ){ #bucket = level1 or Id L2
+ 		foreach my $bucket (sort { ncmp($a,$b) } keys %{$infoSequential->{$locusNameHIS} } ){ #bucket = level1 or Id L2
  			print "\nlocusNameHIS $locusNameHIS bucket $bucket\n\n" if ($verbose >= 3);
  			
  			if ($bucket eq 'level1'){next;} #skip case level1 - structure of the hash different
@@ -1953,7 +1957,7 @@ sub _check_sequential{ # Goes through from L3 to l1
 		 				create_or_replace_tag($feature_l3,'Parent', $feature_l3->_tag_value('ID')); # change parentID
 						$feature_l3->remove_tag('ID');
 						# create ID
-						my $id =  _create_ID($miscCount, $uniqID, $uniqIDtoType, 'exon', "exon-1", 'nbis_NEW');
+						my $id =  _create_ID($miscCount, $uniqID, $uniqIDtoType, 'exon', undef, 'nbis_NEW');
 						create_or_replace_tag($feature_l3,'ID', $id); # change ID
 		    			#my $id = _check_uniq_id($omniscient, $miscCount, $uniqID, $uniqIDtoType, $feature_l3);
 		    			push (@{$omniscient->{"level3"}{lc($feature_l3->primary_tag)}{lc($feature_l3->_tag_value('Parent'))} }, $feature_l3);
@@ -2019,7 +2023,7 @@ sub _check_sequential{ # Goes through from L3 to l1
 
 						 			if( ! $parentID ){ #In that case level1 feature doesn't exists in $infoSequential and in $omniscient. I will be created by the method check_gene_link_to_mrna 
 						 				#my	($miscCount, $uniqID, $primary_tag, $id, $prefix)=@_;
-						 				$parentID =  _create_ID($miscCount, $uniqID, $uniqIDtoType, 'gene', "gene-1", 'nbis_NEW');
+						 				$parentID =  _create_ID($miscCount, $uniqID, $uniqIDtoType, 'gene', undef, 'nbis_NEW');
 						 				print "_check_sequential Parent IDtaken created\n" if ($verbose >= 3);
 						 				$infoSequential->{$locusNameHIS}{'level1'}=$parentID;
 						 			}
@@ -2174,7 +2178,7 @@ sub _merge_overlap_features{
 				my $to_check = clone($sortBySeq->{$locusID}{'level1'}{$tag_l1});
 
 				# Go through location from left to right ### !!
-				foreach my $id_l1 ( sort {$sortBySeq->{$locusID}{'level1'}{$tag_l1}{$a}[1] <=> $sortBySeq->{$locusID}{'level1'}{$tag_l1}{$b}[1] } keys %{$sortBySeq->{$locusID}{'level1'}{$tag_l1}} ) {
+				foreach my $id_l1 ( sort { ncmp ($sortBySeq->{$locusID}{'level1'}{$tag_l1}{$a}[1].$sortBySeq->{$locusID}{'level1'}{$tag_l1}{$a}[2].$sortBySeq->{$locusID}{'level1'}{$tag_l1}{$a}[0],  $sortBySeq->{$locusID}{'level1'}{$tag_l1}{$b}[1].$sortBySeq->{$locusID}{'level1'}{$tag_l1}{$b}[2].$sortBySeq->{$locusID}{'level1'}{$tag_l1}{$b}[0] ) } keys %{$sortBySeq->{$locusID}{'level1'}{$tag_l1}} ) {
 
 					if(! exists($alreadyChecked{$id_l1})){
 
