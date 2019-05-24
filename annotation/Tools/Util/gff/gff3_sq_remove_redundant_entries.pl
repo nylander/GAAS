@@ -35,7 +35,7 @@ if ( !GetOptions ('i|file|input|gff=s' => \$inputFile,
 }
 
 # Print Help and exit
-if ($help) {
+if ($opt_help) {
     pod2usage( { -verbose => 2,
                  -exitval => 2,
                  -message => "$header\n" } );
