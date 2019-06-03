@@ -42,6 +42,12 @@ Collection of Cheat Sheets / overview / summaries
 
 ### [Git](git.md)
 
+### MinHash
+ * [sourmash](http://joss.theoj.org/papers/10.21105/joss.00027)
+ * [Kmer-db](https://github.com/refresh-bio/kmer-db)
+ * [Applying MinHash to cluster RNAseq samples](http://ivory.idyll.org/blog/2016-sourmash.html)
+ * [http://ivory.idyll.org/blog/2016-sourmash-sbt.html] (http://ivory.idyll.org/blog/2016-sourmash-sbt.html)
+
 ### Overview of annotation tools
  * [List of annotation tools (protein coding genes)](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/annotation_tools.md)
  * [List of annotation tools (Mitochondrion)](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/annotation_tools_mito.md)
@@ -58,3 +64,14 @@ Collection of Cheat Sheets / overview / summaries
 # External ressources
 
 ### [Bioinformatics one-liners](https://github.com/stephenturner/oneliners)
+
+# Blogs  
+ * [Living in an Ivory Basement](http://ivory.idyll.org/blog/)  
+   From C. Titus Brown
+ * [The Genome Factory](https://thegenomefactory.blogspot.com)  
+   From Torsten Seemann
+ * [avrilomics](http://avrilomics.blogspot.com)
+   From Avril Coghlan
+ * [NBIS](https://nbis.se/blog/)
+ * [OPINIOMICS](http://www.opiniomics.org)
+ * [List from biostars](https://www.biostars.org/p/243961/)
