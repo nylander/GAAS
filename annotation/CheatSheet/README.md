@@ -75,3 +75,11 @@ Collection of Cheat Sheets / overview / summaries
  * [NBIS](https://nbis.se/blog/)
  * [OPINIOMICS](http://www.opiniomics.org)
  * [List from biostars](https://www.biostars.org/p/243961/)
+
+# Statistics  
+ * [seeing-theory](https://seeing-theory.brown.edu)
+ * [Modern Statistics for Modern Biology](https://www.huber.embl.de/msmb/)
+ * [Scientists rise up against statistical significance](https://www.nature.com/articles/d41586-019-00857-9)
+ * [methodologie - fr](https://fr.slideshare.net/bachelet/methodologie-mesurer-testerdeshypotheses)
+ * [bioinfo-fr - fr](https://bioinfo-fr.net/tests-statistiques-suivez-lguide)
+ * [Introduction aux Statistiques - fr](http://www.cons-dev.org/elearning/stat/index.html)
