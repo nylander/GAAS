@@ -70,7 +70,7 @@ Collection of Cheat Sheets / overview / summaries
    From C. Titus Brown
  * [The Genome Factory](https://thegenomefactory.blogspot.com)  
    From Torsten Seemann
- * [avrilomics](http://avrilomics.blogspot.com)
+ * [avrilomics](http://avrilomics.blogspot.com)  
    From Avril Coghlan
  * [NBIS](https://nbis.se/blog/)
  * [OPINIOMICS](http://www.opiniomics.org)
