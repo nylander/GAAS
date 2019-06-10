@@ -9,11 +9,13 @@ Contains development done in the GAA (Genome Assembly Annotation) Service.
 Annotation directory contains development related to annotation side of the service.  
 
 #### Shorcuts:  
-   - [Tools](annotation/Tools/bin/) 
-
    - [Cheat Sheets](annotation/CheatSheet)
 
    - [Genome annotation workshop](https://nbisweden.github.io/workshop-genome_annotation/)
+
+   - [Tools](annotation/Tools/bin/) 
+
+   - [Pipelines](https://github.com/NBISweden/pipelines/tree/master/bpipe)
 
 ## [__assembly__](assembly)  
 Assembly directory contains development related to assembly side of the service.  
