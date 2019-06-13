@@ -1,6 +1,35 @@
 Collection of Cheat Sheets / overview / summaries
 ===========================
 
+# Table of Contents  
+
+* [Programming](#programming)  
+    * [Programming](#bash)
+    * [Perl](#perl)
+    * [Python](#python)
+* [Formats](#formats)
+    * [BAM and SAM](#bam-and-sam)
+    * [CIGAR](#cigar)
+    * [GFF and GTF](#gff-and-gtf)
+    * [MD tag in bam format](#md-tag-in-bam-format)
+    * [Markdown syntax](#markdown-syntax)
+    * [SUGAR](#sugar)
+    * [VULGAR](#vulgar)
+    * [Wiki syntax](#wiki-syntax)
+    * [External ressource about many different formats](#external-ressource-about-many-different-formats)
+ * [Others](#others)
+    * [Git](#git)
+    * [MinHash](#minhash)
+    * [Overview of annotation tools](#overview-of-annotation-tools)
+    * [Overview of RNA-seq library types](#overview-of-rna-seq-library-types)
+    * [Screen](#screen)
+    * [Schedulers: LSF,Torque,SGE,Slurm,etc](#schedulers-lsftorquesgeslurmetc)
+    * [Taxonomic classification](taxonomic-classification)
+ * [External ressources](#external-ressources)
+ * [Blogs](#blogs)
+ * [Statistics](#statistics)
+ * [Data visualisation](#data-visualisation )
+ 
 # Programming
 
 ### BASH
@@ -15,13 +44,16 @@ Collection of Cheat Sheets / overview / summaries
 ### Perl
  * [Perl code profiler](perl_code_profiler.md)
 
+### Python
+ * [Create a package on PyPI](pypi.md)
+
 # Formats
 
 
-### [BAM/SAM](https://samtools.github.io/hts-specs/SAMv1.pdf)
+### [BAM and SAM](https://samtools.github.io/hts-specs/SAMv1.pdf)
 ### [CIGAR](cigar.md)
-### [GFF/GTF](gxf.md)
-### MD tag (bam format)
+### [GFF and GTF](gxf.md)
+### MD tag in bam format
  * [MD Tags in BAM Files](https://github.com/vsbuffalo/devnotes/wiki/The-MD-Tag-in-BAM-Files)
     
  * [The history the MD tag and the CIGAR X operator](http://lh3.github.io/2018/03/27/the-history-the-cigar-x-operator-and-the-md-tag)
@@ -31,7 +63,7 @@ Collection of Cheat Sheets / overview / summaries
 ### [VULGAR](vulgar.md)
 ### Wiki syntax
   * [textile](https://textile-lang.com) - Used by Redmine
-### External ressource about many different formats:
+### External ressource about many different formats
  * [UCONN - University of Connecticut](https://bioinformatics.uconn.edu/resources-and-events/tutorials-2/file-formats-tutorial/)
  
  * [lastz README](http://www.bx.psu.edu/~rsharris/lastz/newer/README.lastz-1.02.40.html#ex_cigar)
@@ -42,7 +74,7 @@ Collection of Cheat Sheets / overview / summaries
 
 ### [Git](git.md)
 
-### MinHash
+### MinHash  
  * [sourmash](http://joss.theoj.org/papers/10.21105/joss.00027)
  * [Kmer-db](https://github.com/refresh-bio/kmer-db)
  * [Applying MinHash to cluster RNAseq samples](http://ivory.idyll.org/blog/2016-sourmash.html)
@@ -57,7 +89,7 @@ Collection of Cheat Sheets / overview / summaries
 
 ### [Screen](screen.md)
 
-### [Schedulers - LSF/Torque/SGE/Slurm...](pictures/scheduler_rosetta.pdf)
+### [Schedulers: LSF,Torque,SGE,Slurm,etc](pictures/scheduler_rosetta.pdf)
 
 ### [Taxonomic classification](taxonomic_classification.md)
 
