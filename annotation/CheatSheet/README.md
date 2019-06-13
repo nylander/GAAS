@@ -59,6 +59,7 @@ Collection of Cheat Sheets / overview / summaries
  * [The history the MD tag and the CIGAR X operator](http://lh3.github.io/2018/03/27/the-history-the-cigar-x-operator-and-the-md-tag)
 ### Markdown syntax
   * [Git Markdown](https://guides.github.com/features/mastering-markdown/)
+  * [Anchors in Git Markdown](anchors-in-markdown.md)
 ### [SUGAR](sugar.md)
 ### [VULGAR](vulgar.md)
 ### Wiki syntax
