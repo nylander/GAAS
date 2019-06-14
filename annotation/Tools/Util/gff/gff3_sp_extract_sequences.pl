@@ -488,7 +488,8 @@ Allow to choose another type of codon table for the translation.
 
 This option called "extremities" allows dealing with multifeature like cds or exon, to extract the full sequence from start extremity to the end extremity, i.e with introns.
 Use of that option with exon will give the same result as extract the mrna sequence.
-Use of that option on cds will give the cdna wihtout the untraslated sequences.
+Use of that option on cds will give the cdna* wihtout the untraslated sequences.
+*Not a real cdna because it is not reversed
 
 =item B<-u>, B<--up>, B<-5>, B<--five> or B<-upstream>
 
@@ -500,7 +501,8 @@ Integer. It will take that number of nucleotide in more at the 3' extremity. Opt
 
 =item B<--cdna>
 
-This extract the cdna sequence (i.e transcribed sequence (devoid of introns, but containing untranslated exons)). It correspond to extract the exons sequences.
+This extract the cdna* sequence (i.e transcribed sequence (devoid of introns, but containing untranslated exons)). It corresponds to extract the exons sequences.
+*Not a real cdna because it is not reversed
 
 =item B<--ofs>
 
