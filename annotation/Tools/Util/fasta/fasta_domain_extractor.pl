@@ -12,6 +12,13 @@ use warnings;
 use Pod::Usage;
 use Getopt::Long;
 use IO::File;
+my $header_nbis = qq{
+########################################################
+# BILS 2018 - Sweden                                   #  
+# jacques.dainat\@nbis.se                               #
+# Please cite NBIS (www.nbis.se) when using this tool. #
+########################################################
+};
 
 my $inputFile;
 my $outputFile;
@@ -21,7 +28,7 @@ my $end;
 my $opt_help = 0;
 
 Getopt::Long::Configure ('bundling');
-if ( !GetOptions (  'i|input_file=s' => \$inputFile,
+if ( !GetOptions (  'i|f|fasta|input_file=s' => \$inputFile,
 					'n|name=s' => \$nameSeq,
 				    'o|output=s' => \$outputFile,
 				    's|start=i' => \$start,
@@ -35,12 +42,13 @@ if ( !GetOptions (  'i|input_file=s' => \$inputFile,
 
 if ($opt_help) {
     pod2usage( { -verbose => 2,
-                 -exitval => 0 } );
+                 -exitval => 0,
+                 -message => "$header_nbis\n" } );
 }
 
 if ((!defined($inputFile)) || (!defined($start)) || (!defined($end)) ){
-	 pod2usage( { -message => 'at least 3 parameters are mandatory: -i -s and -e',
-                 -verbose => 1,
+	 pod2usage( { -message => '$header_nbis\nAt least 3 parameters are mandatory: -i -s and -e',
+                 -verbose => 0,
                  -exitval => 1 } );
 }
 
@@ -147,8 +155,8 @@ Rule of coordinate system
     
 =head1 SYNOPSIS
 
-    domainExtractor_JD.pl -i <input file> -s <start_coordinate> -e <end_coordinate> [-o <output file> -n <sequence name>]
-    domainExtractor_JD.pl --help
+    fasta_domain_extractor.pl -i <input file> -s <start_coordinate> -e <end_coordinate> [-o <output file> -n <sequence name>]
+    fasta_domain_extractor.pl --help
 
 =head1 OPTIONS
 
