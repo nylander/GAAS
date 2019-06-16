@@ -1185,15 +1185,12 @@ sub remove_omniscient_elements_from_level1_id_list {
 }
 
 # /!\XXX Has to be improved, we should loop over the feature list and extract the id_tag_key_level1 before to loop over the hash
-# omniscient is a hash containing a whole gXf file in memory sorted in a specific way (3 levels)
 # Input: list of level2 id
 #        omniscient
 #
 sub remove_omniscient_elements_from_level2_feature_list {
 
 	my ($hash_omniscient, $feature_list) = @_  ;
-
-	my $remove_l1_too=undef;
 
 	#################
 	# == LEVEL 2 == #
