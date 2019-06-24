@@ -1,11 +1,9 @@
 #!/usr/bin/env perl
 
 use Carp;
-use Clone 'clone';
 use strict;
 use File::Basename;
 use Getopt::Long;
-use Statistics::R;
 use Pod::Usage;
 use Data::Dumper;
 use List::MoreUtils qw(uniq);
@@ -79,10 +77,10 @@ my $gffout;
 my $gffout_incomplete;
 if ($outfile) {
   my ($filename,$path,$ext) = fileparse($outfile,qr/\.[^.]*/);
-  my $outputname = $filename.".gff3";
+  my $outputname = $path.$filename.$ext;
   open(my $fh, '>', $outputname) or die "Could not open file '$outputname' $!";
   $gffout= Bio::Tools::GFF->new(-fh => $fh, -gff_version => 3 );
-  $outputname = $filename."_incomplete.gff3";
+  $outputname = $path.$filename."_incomplete".$ext;
   open(my $fh, '>', $outputname) or die "Could not open file '$outputname' $!";
   $gffout_incomplete= Bio::Tools::GFF->new(-fh => $fh, -gff_version => 3 );
 }
