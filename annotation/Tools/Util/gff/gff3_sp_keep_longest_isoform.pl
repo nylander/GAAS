@@ -101,6 +101,7 @@ if($nbLevel1 != $nbLevel2){
 }
 else{
   print "Nothing to do... this file doesn't contain any isoform !\n";
+  print_omniscient($hash_omniscient, $gffout);
 }
 
 # END STATISTICS #
