@@ -1,0 +1,1 @@
+../../Tools/Util/fasta/fasta_domain_extractor.pl
