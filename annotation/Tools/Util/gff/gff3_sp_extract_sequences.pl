@@ -4,7 +4,7 @@ use strict;
 use Pod::Usage;
 use Data::Dumper;
 use Getopt::Long;
-use Bio::SeqIO ;
+use Bio::SeqIO;
 use Bio::DB::Fasta;
 use Bio::Tools::GFF;
 use BILS::Handler::GFF3handler qw(:Ok);
@@ -78,9 +78,7 @@ if ( (! (defined($opt_gfffile)) ) or (! (defined($opt_fastafile)) ) ){
 
 my $ostream;
 if ($opt_output) {
-  $opt_output=~ s/.fasta//g;
-  $opt_output=~ s/.fa//g;
-  open(my $fh, '>', $opt_output.".fa") or die "Could not open file '$opt_output' $!";
+  open(my $fh, '>', $opt_output) or die "Could not open file '$opt_output' $!";
   $ostream= Bio::SeqIO->new(-fh => $fh, -format => 'Fasta' );
 }
 else{
