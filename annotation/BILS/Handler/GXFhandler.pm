@@ -737,7 +737,7 @@ sub manage_one_feature{
 #		+-----------------------------------------------+
 #	+--------------------------------------------------------+ 	
       	else{
-      		warn "gff3 reader warning: primary_tag error @ ".$primary_tag."still not taken in account ! Please modify the code to define on of the three level of this feature.\n";
+      		warn "gff3 reader warning: primary_tag error @ ".$primary_tag." still not taken in account ! Please modify the code to define on of the three level of this feature.\n";
       		warn "GLOBAL@"."parser1@".$primary_tag."@";
       		return $locusTAGvalue, $last_l1_f, $last_l2_f, $last_l3_f, $feature, $lastL1_new;
       	}	
@@ -2168,91 +2168,85 @@ sub _merge_overlap_features{
 	my ($omniscient, $mRNAGeneLink, $verbose) = @_;
 	my $resume_case=undef;
 
-	my $sortBySeq = _sort_by_seq($omniscient);
-	my %alreadyChecked;
+	my $sortBySeq = _gather_and_sort_l1_by_seq_id_and_strand($omniscient);
 
 	foreach my $locusID ( keys %{$sortBySeq}){ # tag_l1 = gene or repeat etc...
-		if ( exists_keys( $sortBySeq, ( $locusID, 'level1') ) ){
-			foreach my $tag_l1 ( keys %{$sortBySeq->{$locusID}{'level1'}} ) { 
+		foreach my $tag_l1 ( keys %{$sortBySeq->{$locusID}} ) { 
 
-				my $to_check = clone($sortBySeq->{$locusID}{'level1'}{$tag_l1});
+			#create list to keep track of l1
+			my %to_check;
+			foreach my $feature_l1 ( @{$sortBySeq->{$locusID}{$tag_l1}} ) {
+				my $id_l1 = lc($feature_l1->_tag_value('ID'));
+				$to_check{$id_l1}++;
+			}
+
+			# Go through location from left to right ### 
+			for (my $i = 0; $i < scalar @{$sortBySeq->{$locusID}{$tag_l1}}; $i++) {
+
+				my $feature_l1 = shift @{$sortBySeq->{$locusID}{$tag_l1}};
+				my $id_l1 = lc($feature_l1->_tag_value('ID'));
+				my @location = ($id_l1, int($feature_l1->start()), int($feature_l1->end())); # This location will be updated on the fly
 
 				# Go through location from left to right ### !!
-				foreach my $id_l1 ( sort { ncmp ($sortBySeq->{$locusID}{'level1'}{$tag_l1}{$a}[1].$sortBySeq->{$locusID}{'level1'}{$tag_l1}{$a}[2].$sortBySeq->{$locusID}{'level1'}{$tag_l1}{$a}[0],  $sortBySeq->{$locusID}{'level1'}{$tag_l1}{$b}[1].$sortBySeq->{$locusID}{'level1'}{$tag_l1}{$b}[2].$sortBySeq->{$locusID}{'level1'}{$tag_l1}{$b}[0] ) } keys %{$sortBySeq->{$locusID}{'level1'}{$tag_l1}} ) {
+				foreach my $l1_feature2 ( @{$sortBySeq->{$locusID}{$tag_l1}} ) {
+					my $id2_l1 = lc($l1_feature2->_tag_value('ID'));
+					my @location_to_check = ($id2_l1, int($l1_feature2->start()), int($l1_feature2->end()));
 
-					if(! exists($alreadyChecked{$id_l1})){
+					#If location_to_check start if over the end of the reference location, we stop
+					if($location_to_check[1] > $location[2]) {last;} 
 
-						#remove itself 
-						delete $to_check->{$id_l1};
-						my $location = $sortBySeq->{$locusID}{'level1'}{$tag_l1}{$id_l1}; # This location will be updated on the fly
+					my ($notneeded, $overlap) = location_overlap_update(\@location, \@location_to_check); # location is updated on the fly, and the newly modified location is the one that will be used at the next loop
+					
+					# Let's check at Gene LEVEL
+					if($overlap){
 
-						# Go through location from left to right ### !!
-						foreach my $id2_l1 ( sort {$to_check->{$a}[1] <=> $to_check->{$b}[1] } keys %{$to_check} ) {
+						#let's check at CDS level
+						if(check_gene_overlap_at_CDSthenEXON($omniscient, $omniscient , $id_l1, $id2_l1)){ #If contains CDS it has to overlap at CDS level to be merged, otherwise any type of feature level3 overlaping is sufficient to decide to merge the level1 together
+							#they overlap in the CDS we should give them the same name
+							$resume_case++;
 
-							my $location_to_check = $to_check->{$id2_l1};
-
-							#If location_to_check start if over the end of the reference location, we stop
-							if($location_to_check->[1] > $sortBySeq->{$locusID}{'level1'}{$tag_l1}{$id_l1}[2]) {last;} 
-
-							my ($location, $overlap) = location_overlap_update($location, $location_to_check); # location is updated on the fly, and the newly modified location is the one that will be used at the next loop
-							
-							# Let's check at Gene LEVEL
-							if($overlap){
-
-								#let's check at CDS level
-								if(check_gene_overlap_at_CDSthenEXON($omniscient, $omniscient , $id_l1, $id2_l1)){ #If contains CDS it has to overlap at CDS level to be merged, otherwise any type of feature level3 overlaping is sufficient to decide to merge the level1 together
-									#they overlap in the CDS we should give them the same name
-									$resume_case++;
-									$alreadyChecked{$id_l1}++;
-
-									print "$id_l1 and  $id2_l1 same locus. We merge them together. Below the corresponding feature groups in their whole.\n" if ($verbose >= 3);
-									print_omniscient_from_level1_id_list($omniscient, [$id_l1,$id2_l1], $fh_error ) if ($verbose >= 3);
-									# remove the level1 of the ovelaping one
-									delete $omniscient->{'level1'}{$tag_l1}{$id2_l1};
-									# remove the level2 to level1 link stored into the mRNAGeneLink hash. The new links will be added just later after the check to see if we keep the level2 feature or not (we remove it when identical)
-									foreach my $l2_type (%{$omniscient->{'level2'}}){
-										if(exists_keys($omniscient,('level2', $l2_type, $id2_l1))){
-											foreach my $feature_l2 (@{$omniscient->{'level2'}{$l2_type}{$id2_l1}}){
-												delete $mRNAGeneLink->{lc($feature_l2->_tag_value('ID'))};
-											}
-										}
-									}
-
-									# Let's change the parent of all the L2 features 
-									foreach my $l2_type (%{$omniscient->{'level2'}} ){
-
-										if(exists_keys($omniscient,('level2', $l2_type, $id2_l1))){
-											###############################
-											# REMOVE THE IDENTICAL ISOFORMS
-
-											# first list uniqs
-											my $list_of_uniqs  = keep_only_uniq_from_list2($omniscient, $omniscient->{'level2'}{$l2_type}{$id_l1}, $omniscient->{'level2'}{$l2_type}{$id2_l1}, $verbose); # remove if identical l2 exists
-													
-
-											#Now manage the rest
-											foreach my $feature_l2 (@{$list_of_uniqs}){
-
-												create_or_replace_tag($feature_l2,'Parent', $sortBySeq->{$locusID}{'level1'}{$tag_l1}{$id_l1}[0]); #change the parent
-												# Add the corrected feature to its new L2 bucket
-												push (@{$omniscient->{'level2'}{$l2_type}{$id_l1}}, $feature_l2);
-												
-												# Attach the new parent into the mRNAGeneLink hash
-												$mRNAGeneLink->{lc($feature_l2->_tag_value('ID'))}=$feature_l2->_tag_value('Parent');
-
-											}
-											# remove the old l2 key
-											delete $omniscient->{'level2'}{$l2_type}{$id2_l1};
-										}
-									}
-									check_level1_positions($omniscient, $omniscient->{'level1'}{$tag_l1}{$id_l1}, 0);
-
-									if($omniscient->{'level1'}{$tag_l1}{$id_l1}->end > $sortBySeq->{$locusID}{'level1'}{$tag_l1}{$id_l1}[2]){
-										$sortBySeq->{$locusID}{'level1'}{$tag_l1}{$id_l1}[2] = $omniscient->{'level1'}{$tag_l1}{$id_l1}->end;
-										print "This one Now !!\n";exit;
+							print "$id_l1 and  $id2_l1 same locus. We merge them together. Below the corresponding feature groups in their whole.\n" if ($verbose >= 3);
+							print_omniscient_from_level1_id_list($omniscient, [$id_l1,$id2_l1], $fh_error ) if ($verbose >= 3);
+							# remove the level1 of the ovelaping one
+							delete $omniscient->{'level1'}{$tag_l1}{$id2_l1};
+							# remove the level2 to level1 link stored into the mRNAGeneLink hash. The new links will be added just later after the check to see if we keep the level2 feature or not (we remove it when identical)
+							foreach my $l2_type (%{$omniscient->{'level2'}}){
+								if(exists_keys($omniscient,('level2', $l2_type, $id2_l1))){
+									foreach my $feature_l2 (@{$omniscient->{'level2'}{$l2_type}{$id2_l1}}){
+										delete $mRNAGeneLink->{lc($feature_l2->_tag_value('ID'))};
 									}
 								}
 							}
+
+							# Let's change the parent of all the L2 features 
+							foreach my $l2_type (%{$omniscient->{'level2'}} ){
+
+								if(exists_keys($omniscient,('level2', $l2_type, $id2_l1))){
+									###############################
+									# REMOVE THE IDENTICAL ISOFORMS
+
+									# first list uniqs
+									my $list_of_uniqs  = keep_only_uniq_from_list2($omniscient, $omniscient->{'level2'}{$l2_type}{$id_l1}, $omniscient->{'level2'}{$l2_type}{$id2_l1}, $verbose); # remove if identical l2 exists
+											
+
+									#Now manage the rest
+									foreach my $feature_l2 (@{$list_of_uniqs}){
+
+										create_or_replace_tag($feature_l2,'Parent', $feature_l1->_tag_value('ID')); #change the parent
+										# Add the corrected feature to its new L2 bucket
+										push (@{$omniscient->{'level2'}{$l2_type}{$id_l1}}, $feature_l2);
+										
+										# Attach the new parent into the mRNAGeneLink hash
+										$mRNAGeneLink->{lc($feature_l2->_tag_value('ID'))}=$feature_l2->_tag_value('Parent');
+
+									}
+									# remove the old l2 key
+									delete $omniscient->{'level2'}{$l2_type}{$id2_l1};
+								}
+							}
+							check_level1_positions($omniscient, $omniscient->{'level1'}{$tag_l1}{$id_l1}, 0);
 						}
+
 					}
 				}
 	 		}
@@ -2339,30 +2333,24 @@ sub _check_identical_isoforms{
 	print "We removed $resume_case cases where gene where identical.\n" if($verbose >= 1 and $resume_case);
 }
 
+# Sort by locusID and strand 
+# LocusID_strand->typeFeature = [feature, feature, feature]
+# return a hash. Key is position,tag and value is list of feature l1. The list is sorted
+sub _gather_and_sort_l1_by_seq_id_and_strand{
+  my ($omniscient) = @_;
 
-#
-# Sort by locusID !!!!
-# L1 => LocusID->level->typeFeature->ID =[ID,start,end]
-# L2 and L3 => LocusID->level->typeFeature->Parent->ID = [ID,start,end]
-#
-#
-sub _sort_by_seq{
-	my ($omniscient) = @_;
-
-	my %hash_sortBySeq;
-  
-  	foreach my $tag_level1 (keys %{$omniscient->{'level1'}}){
-    	foreach my $level1_id (keys %{$omniscient->{'level1'}{$tag_level1}}){
-	    	my $level1_feature = $omniscient->{'level1'}{$tag_level1}{$level1_id};
-	    	my $ID = $level1_feature->_tag_value('ID');
-	    	my $strand="+";
-	    	if($level1_feature->strand != 1){$strand = "-";}
-	    	my $position_l1=$level1_feature->seq_id."".$strand;
-
-	    	$hash_sortBySeq{$position_l1}{"level1"}{$tag_level1}{$level1_id} = [$ID, int($level1_feature->start), int($level1_feature->end)];
+  my %hash_sortBySeq;  
+    foreach my $tag_level1 (keys %{$omniscient->{'level1'}}){
+      	foreach my $level1_id (keys %{$omniscient->{'level1'}{$tag_level1}}){
+        	my $level1_feature = $omniscient->{'level1'}{$tag_level1}{$level1_id};
+        	my $position_l1=$level1_feature->seq_id.$level1_feature->strand;
+        	push (@{$hash_sortBySeq{$position_l1}{$tag_level1}}, $level1_feature);
         }
-	}
-	return \%hash_sortBySeq;
+        foreach my $position_l1 (keys %hash_sortBySeq){
+        	@{$hash_sortBySeq{$position_l1}{$tag_level1}} = sort { ncmp ($a->start.$a->end.$a->_tag_value('ID'), $b->start.$b->end.$b->_tag_value('ID') ) } @{$hash_sortBySeq{$position_l1}{$tag_level1}};
+        }
+    }
+  return \%hash_sortBySeq;
 }
 
 #
