@@ -59,9 +59,9 @@ my $gffout;
 my $reportout;
 if ($outfile) {
   my ($filename,$path,$ext) = fileparse($outfile,qr/\.[^.]*/);
-  $reportout=IO::File->new(">".$filename."_report.txt" ) or croak( sprintf( "Can not open '%s' for writing %s", $filename."_report.txt", $! ));
+  $reportout=IO::File->new(">".$path.$filename."_report.txt" ) or croak( sprintf( "Can not open '%s' for writing %s", $filename."_report.txt", $! ));
 
-  open(my $fh, '>', $filename.".gff3") or die "Could not open file '$filename' $!";
+  open(my $fh, '>', $outfile) or die "Could not open file $outfile $!";
   $gffout= Bio::Tools::GFF->new(-fh => $fh, -gff_version => 3 );
 }
 else{
