@@ -95,7 +95,7 @@ my ($omniscient, $hash_mRNAGeneLink) = slurp_gff3_file_JD({ input => $ref
 print ("$ref file parsed\n");
 
 # sort by seq id
-my $hash_sortBySeq = sort_by_seq($omniscient);
+my $hash_sortBySeq = sort_by_seq_and_strand($omniscient);
 
 #find overlap
 my %checked_l1;
