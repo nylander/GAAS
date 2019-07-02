@@ -1,0 +1,9 @@
+usage: /Users/jacda119/git/NBIS/GAAS/annotation/Tools/bin/gff3_sp_fix_fusion.pl --gff test.gff -f genome.fa -o result
+Results:
+1 genes affected and 1 mRNA.
+
+/!\Remind:
+ L and M are AA are possible start codons.
+Particular case: If we have a triplet as WTG, AYG, RTG, RTR or ATK it will be seen as a possible Methionine codon start (it's a X aa)
+An arbitrary choisce has been done: The longer translate can begin by a L only if it's longer by 21 AA than the longer translate beginning by M. It's happened 0 times here.
+Job done in 1 seconds
