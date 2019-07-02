@@ -252,10 +252,11 @@ my $hash_omniscient_intact=\%hash_omniscient_intactR;
 fill_omniscient_from_other_omniscient_level1_id(\@intact_gene_list,$hash_omniscient,$hash_omniscient_intact);
 delete $hash_omniscient->{$_} for (keys %{$hash_omniscient});
 
-# 2) Sort by seq_id
-my $hash_sortBySeq = gather_and_sort_l1_by_seq_id_and_strand($hash_omniscient_intact);
+# 2) print the intact one
+print_omniscient($hash_omniscient_intact, $gffout); #print intact gene to the file
 
-# 3) review all newly created gene
+# 3) Sort by seq_id - review all newly created gene
+my $hash_sortBySeq = gather_and_sort_l1_by_seq_id_and_strand($hash_omniscient_intact);
 my $overlap=0;
 foreach my $tag_l1 (keys %{$omniscient_modified_gene{'level1'}} ){ # primary_tag_key_level1 = gene or repeat etc...    
     foreach my $id_l1 (keys %{$omniscient_modified_gene{'level1'}{$tag_l1}} ) {
@@ -281,27 +282,16 @@ foreach my $tag_l1 (keys %{$omniscient_modified_gene{'level1'}} ){ # primary_tag
     } 
 }
 
+# 5) Print modified genes
+print_omniscient(\%omniscient_modified_gene, $gffout2); #print gene modified in file 
 
-if ($overlap){print "We found $overlap case gene overlapping at CDS level wihout the same ID, we fixed them.\n";}
+# 6) Print all together
+merge_omniscients_fuse_l1duplicates($hash_omniscient_intact, \%omniscient_modified_gene);
+print_omniscient($hash_omniscient_intact, $gffout3);
+
+if ($overlap and $verbose){print "We found $overlap case gene overlapping at CDS level wihout the same ID, we fixed them.\n";}
 # End manage overlaping name
 #####################################
-
-########
-# Print results
-if ($outfile) {
-  #print all in file1
-  # print_omniscient_from_level1_id_list($hash_omniscient, \@intact_gene_list, $gffout); #print intact gene to the file
-  print_omniscient($hash_omniscient_intact, $gffout); #print intact gene to the file
-  
-  print_omniscient(\%omniscient_modified_gene, $gffout2); #print gene modified in file 
-  
-  print_omniscient($hash_omniscient_intact, $gffout3);
-  print_omniscient(\%omniscient_modified_gene, $gffout3);
-}
-else{
-  #print_omniscient_from_level1_id_list($hash_omniscient, \@intact_gene_list, $gffout); #print gene intact
-  print_omniscient(\%omniscient_modified_gene, $gffout); #print gene modified
-}
 
 #END
 my $string_to_print="usage: $0 @copyARGV\n";
@@ -330,6 +320,49 @@ print "Bye Bye.\n";
                 ####
                  ##          
 
+sub merge_omniscients_fuse_l1duplicates {
+  my ($hash_omniscient1, $hash_omniscient2)=@_;
+
+  # == LEVEL 1 == #
+
+  foreach my $tag_l1 (keys %{$hash_omniscient2->{'level1'}}){
+    foreach my $id_l1_2 (keys %{$hash_omniscient2->{'level1'}{$tag_l1}}){
+
+      if ( ! exists_keys ( $hash_omniscient1, ('level1', $tag_l1, $id_l1_2 ) ) ){
+        my $feature = $hash_omniscient2->{'level1'}{$tag_l1}{lc($id_l1_2)};
+        $hash_omniscient1->{'level1'}{$tag_l1}{$id_l1_2} = $hash_omniscient2->{'level1'}{$tag_l1}{$id_l1_2}; # save feature level1
+      }
+
+      # == LEVEL 2 == #
+
+      foreach my $tag_l2 (keys %{$hash_omniscient2->{'level2'}}){ 
+        if (exists_keys ($hash_omniscient2, ('level2', $tag_l2, $id_l1_2) ) ){       
+          foreach my $feature_l2 ( @{$hash_omniscient2->{'level2'}{$tag_l2}{$id_l1_2}}) {
+
+            my $id_l2 = lc($feature_l2->_tag_value('ID'));
+
+            # == LEVEL 3 == #
+
+            foreach my $tag_l3 (keys %{$hash_omniscient2->{'level3'}}){ 
+
+              if (exists_keys ($hash_omniscient2, ('level3', $tag_l3, $id_l2) ) ){ 
+                $hash_omniscient1->{'level3'}{$tag_l3}{$id_l2} = delete $hash_omniscient2->{'level3'}{$tag_l3}{$id_l2}; # save @l2
+              }
+            }
+          }
+
+          if ( ! exists_keys ( $hash_omniscient1, ('level2', $tag_l2, $id_l1_2 ) ) ){
+            $hash_omniscient1->{'level2'}{$tag_l2}{$id_l1_2} = delete $hash_omniscient2->{'level2'}{$tag_l2}{$id_l1_2}; # save @l2
+          }
+          else{
+            push @{$hash_omniscient1->{'level2'}{$tag_l2}{$id_l1_2}}, @{$hash_omniscient2->{'level2'}{$tag_l2}{$id_l1_2}};
+          }
+        }
+      }
+    }
+  }
+  return $hash_omniscient1;
+}
 
 # @Purpose: The hash of reference will be the Hash target (HashT). The nkept name will come from the hash of reference.
 # When an overlap is found, the ID/parent are fixed and we return 1 as a success !
@@ -419,14 +452,9 @@ sub find_overlap_between_geneFeature_and_sortBySeqId {
           }
 
           foreach my $tag_level1 (keys %{$currentHash->{'level1'}}){ # remove the old feature level1 now
+            my $new_l1_feature = clone($reference_feature);
             delete $currentHash->{'level1'}{$tag_level1}{$gene_id_to_remove}; # delete level1
-          }
-          foreach my $tag_level1 (keys %{$hashT->{'level1'}}){ # catch other feature to not break gff 
-            if ( exists_keys($hashT,('level1', $tag_level1, lc($gene_id_ref)))){
-              if (! exists_keys($currentHash,('level1', $tag_level1, lc($gene_id_ref)))){
-                $currentHash->{'level1'}{$tag_level1}{lc($gene_id_ref)} = clone($hashT->{'level1'}{$tag_level1}{lc($gene_id_ref)});
-              }
-            }
+            $currentHash->{'level1'}{$tag_level1}{lc($gene_id_ref)} = $new_l1_feature;
           }
 
         } #END FEATURE TO HANDLE
