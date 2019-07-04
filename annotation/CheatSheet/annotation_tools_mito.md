@@ -6,7 +6,7 @@ List of tools that can be used for Mitochondrial annotation:
 
 | year	| Tool name | Publication | Type | Method | Organism | Comments | Output Format |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-2004 | DOGMA | Wyman SK, Jansen RK and Boore JL (2004) Automatic annotation of organellar genomes with DOGMA. Bioinformatics 20: 3252-3255 | | animal mitochondrial and plant chloroplast | |
+2004 | DOGMA | Wyman SK, Jansen RK and Boore JL (2004) Automatic annotation of organellar genomes with DOGMA. Bioinformatics 20: 3252-3255 | | | animal mitochondrial and plant chloroplast | |
 2007 | RNAweasel | Lang B.F., M-J. Laforest, and G. Burger (2007) Mitochondrial introns: a critical view. Trends Genet 23:119-25. | abinitio | based on RNA secondary structure profiles | | mitochondrial RNAs only |
 2007 | MFannot | Lang B.F., M-J. Laforest, and G. Burger (2007) Mitochondrial introns: a critical view. Trends Genet 23:119-25. | pipeline | abinitio + similarity | Organelle and Mitochondrion | helpful with organelle genomes that contain lots of introns. Output not easy to deal with. Here the tool we use to convert in gff: mfannot2gff.pl. But introns type II are not in that gff output. | 
 2010 | MITOFY | Alverson AJ, Wei X, Rice DW, Stern DB, Barry K and Palmer JD (2010) Insights into the evolution of mitochondrial genome size from complete sequences of Citrullus lanatus and Cucurbita pepo (Cucurbitaceae). Molecular Biology and Evolution 27: 1436-1448 | | | Plant mitochondrial | |
