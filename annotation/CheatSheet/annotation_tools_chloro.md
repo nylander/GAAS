@@ -5,13 +5,13 @@ List of tools that can be used
 
 | year	| Tool name | Publication | Type	| Method | Organism | Comments | Output Format |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-2004 | DOGMA | Wyman SK, Jansen RK and Boore JL (2004) Automatic annotation of organellar genomes with DOGMA. Bioinformatics 20: 3252-3255 | | plant chloroplast and animal mitochondrial | |
+2004 | DOGMA | Wyman SK, Jansen RK and Boore JL (2004) Automatic annotation of organellar genomes with DOGMA. Bioinformatics 20: 3252-3255 | | | plant chloroplast and animal mitochondrial | |
 2011 | MAKER2 | Holt, C. & Yandell, M. MAKER2: an annotation pipeline and genome-database management tool for second-generation genome projects. BMC Bioinformatics 12, 491 (2011). | | | | It uses proteins, transcripts ... Abinitio: Augustus, Fgnesh,Genemark,snap. Need to modify the code to accept specific codon table for mitochondria. Not the best choice but provide nice protein alignments useful for manual curation |	|
 2012 | CpGAVAS | Liu C, Shi L, Zhu Y, Chen H, Zhang J, Lin X and Guan X (2012) CpGAVAS, an integrated web server for the annotation, visualization, analysis, and GenBank submission of completely sequenced chloroplast genome sequences. BMC Genomics 13: 715 | | | | web based tool |
 2013 | CGAP | Cheng J, Zeng Xu, Ren G and Liu Z (2013) CGAP: a new comprehensive platform for the comparative analysis of chloroplast genomes. BMC Bioinformatics 14:95 | | | | |
 2014 | Prokka | Seemann T., Prokka: rapid prokaryotic genome annotation. Bioinformatics 2014 Jul 15;30(14):2068-9. PMID:24642063 | pipeline | Ab initio + evidence-based for functional annotation | prokaryote | https://github.com/tseemann/prokka Do structural and functional annotation. No intron allowed! | .gff, .gbk, .fna, .faa, .ffn, .sqn, .fsa, .tbl, .err, .log, .txt, .tsv
 2015 | ORG.Annot | Developed by Eric Coissac (unpublished) | Pipeline | | | |
-2017 | Geseq | Tillich M, Lehwark P, Pellizzer T, Ulbricht-Jones ES, Fischer A, Bock R and Greiner S (2017) GeSeq – versatile and accurate annotation of organelle genomes. Nucleic Acids Research 45: W6-W11 | | chloroplast mitochondria | | web based tool |
+2017 | Geseq | Tillich M, Lehwark P, Pellizzer T, Ulbricht-Jones ES, Fischer A, Bock R and Greiner S (2017) GeSeq – versatile and accurate annotation of organelle genomes. Nucleic Acids Research 45: W6-W11 | | | chloroplast mitochondria | web based tool | |
 2019 | CpGAVAS2 | Shi L, Chen H, Jiang M, Wang L, Wu X, Huang L and Liu C (2019) CPGAVAS2, an integrated plastome sequence annotator and analyzer. Nucleic Acids Research, gkz345 | | | |
 | year	| Tool name | Publication | Type	| Method | Organism | Comments | Output Format |
 
