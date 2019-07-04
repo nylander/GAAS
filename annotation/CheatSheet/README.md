@@ -20,7 +20,10 @@ Collection of Cheat Sheets / overview / summaries
  * [Others](#others)
     * [Git](#git)
     * [MinHash](#minhash)
-    * [Overview of annotation tools](#overview-of-annotation-tools)
+    * [Annotation tools](#annotation-tools)
+        * [Genome (protein coding genes)](#genome-protein-coding-genes)
+        * [Mitochondrion](#mitochondrion)
+        * [Chloroplast](#chloroplast)
     * [Overview of RNA-seq library types](#overview-of-rna-seq-library-types)
     * [Screen](#screen)
     * [Schedulers: LSF,Torque,SGE,Slurm,etc](#schedulers-lsftorquesgeslurmetc)
@@ -81,10 +84,10 @@ Collection of Cheat Sheets / overview / summaries
  * [Applying MinHash to cluster RNAseq samples](http://ivory.idyll.org/blog/2016-sourmash.html)
  * [http://ivory.idyll.org/blog/2016-sourmash-sbt.html] (http://ivory.idyll.org/blog/2016-sourmash-sbt.html)
 
-### Overview of annotation tools
- * [List of annotation tools (protein coding genes)](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/annotation_tools.md)
- * [List of annotation tools (Mitochondrion)](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/annotation_tools_mito.md)
- * [List of annotation tools (Chloroplast)](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/annotation_tools_chloro.md)
+### Annotation tools
+ * #### [Genome (Protein coding genes)](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/annotation_tools.md)
+ * #### [Mitochondrion](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/annotation_tools_mito.md)
+ * #### [Chloroplast](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/annotation_tools_chloro.md)
 
 ### [Overview of RNA-seq library types](rnaseq_library_types.md)
 
