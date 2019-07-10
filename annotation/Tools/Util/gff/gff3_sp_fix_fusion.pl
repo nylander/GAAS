@@ -1,10 +1,5 @@
 #!/usr/bin/env perl
 
-## if IUPAC:
-## We consider a stop only if we are sure it is one
-## CDS can contains putative stop codon (but not sure stop one like YAA that can be TAA or CAA).
-## We consider a start even if is not sure like AYG that can be ATG or ACG
-
 use Carp;
 use Clone 'clone';
 use strict;
@@ -12,6 +7,7 @@ use File::Basename;
 use Getopt::Long;
 use Statistics::R;
 use Pod::Usage;
+use Bio::Tools::CodonTable;
 use Data::Dumper;
 use List::MoreUtils qw(uniq);
 use Bio::Tools::GFF;
@@ -91,6 +87,9 @@ open($gffout4, '>', $outfile."-report.txt") or die "Could not open file '$outfil
 }
 else{
   $gffout = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 3);
+  $gffout2 = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 3);
+  $gffout3 = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 3);
+  $gffout4 = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 3);
 }
 
 if(!$threshold){
@@ -253,6 +252,7 @@ fill_omniscient_from_other_omniscient_level1_id(\@intact_gene_list,$hash_omnisci
 delete $hash_omniscient->{$_} for (keys %{$hash_omniscient});
 
 # 2) print the intact one
+print "print intact...\n";
 print_omniscient($hash_omniscient_intact, $gffout); #print intact gene to the file
 
 # 3) Sort by seq_id - review all newly created gene
@@ -283,10 +283,12 @@ foreach my $tag_l1 (keys %{$omniscient_modified_gene{'level1'}} ){ # primary_tag
 }
 
 # 5) Print modified genes
+print "print modified...\n";
 print_omniscient(\%omniscient_modified_gene, $gffout2); #print gene modified in file 
 
 # 6) Print all together
 merge_omniscients_fuse_l1duplicates($hash_omniscient_intact, \%omniscient_modified_gene);
+print "print all together...\n";
 print_omniscient($hash_omniscient_intact, $gffout3);
 
 if ($overlap and $verbose){print "We found $overlap case gene overlapping at CDS level wihout the same ID, we fixed them.\n";}
@@ -297,8 +299,6 @@ if ($overlap and $verbose){print "We found $overlap case gene overlapping at CDS
 my $string_to_print="usage: $0 @copyARGV\n";
 $string_to_print .="Results:\n";
 $string_to_print .="$geneCounter genes affected and $mRNACounter_fixed mRNA.\n";
-$string_to_print .="\n/!\\Remind:\n L and M are AA are possible start codons.\nParticular case: If we have a triplet as WTG, AYG, RTG, RTR or ATK it will be seen as a possible Methionine codon start (it's a X aa)\n".
-"An arbitrary choisce has been done: The longer translate can begin by a L only if it's longer by 21 AA than the longer translate beginning by M. It's happened $counter_case21 times here.\n";
 my $end_run = time();
 my $run_time = $end_run - $start_run;
 $string_to_print .= "Job done in $run_time seconds\n";
@@ -1195,6 +1195,7 @@ sub create_two_exon_lists {
   return \@list_exon_originalPred_sorted, \@list_exon_newPred_sorted;
 }
 
+#Check if feature overlap one position
 sub position_on_feature {
 
   my ($feature,$position)=@_;
@@ -1206,6 +1207,7 @@ sub position_on_feature {
   return $isOnSameExon;
 }
 
+#Check if feature overlap two positions (start and stop)
 sub two_positions_on_feature {
 
   my ($feature,$position1,$position2)=@_;
@@ -1217,15 +1219,16 @@ sub two_positions_on_feature {
   return $areOnSameExon;
 }
 
+# We do not use the official translate function from the PrimarySeqI object/lib because we want to keep track to the ORF positions too. So we have modified it consequently.
 sub translate_JD {
    my ($self,@args) = @_;
      my ($terminator, $unknown, $frame, $codonTableId, $complete,
-     $complete_codons, $throw, $codonTable, $orf, $start_codon, $no_start_by_aa, $offset);
+     $complete_codons, $throw, $codonTable, $orf, $start_codon, $offset);
 
    ## new API with named parameters, post 1.5.1
    if ($args[0] && $args[0] =~ /^-[A-Z]+/i) {
          ($terminator, $unknown, $frame, $codonTableId, $complete,
-         $complete_codons, $throw,$codonTable, $orf, $start_codon, $no_start_by_aa, $offset) =
+         $complete_codons, $throw,$codonTable, $orf, $start_codon, $offset) =
        $self->_rearrange([qw(TERMINATOR
                                                UNKNOWN
                                                FRAME
@@ -1236,7 +1239,6 @@ sub translate_JD {
                                                CODONTABLE
                                                ORF
                                                START
-                                               NOSTARTBYAA
                                                OFFSET)], @args);
    ## old API, 1.5.1 and preceding versions
    } else {
@@ -1286,7 +1288,7 @@ sub translate_JD {
          ## ignore frame if an ORF is supposed to be found
    my $orf_region;
    if ( $orf ) {
-            ($orf_region) = _find_orfs_nucleotide_JD( $self, $seq, $codonTable, $start_codon, $no_start_by_aa, $orf eq 'longest' ? 0 : 'first_only' );
+            ($orf_region) = $self->_find_orfs_nucleotide($seq, $codonTable, $start_codon, $orf eq 'longest' ? 0 : 'first_only' );
             $seq = $self->_orf_sequence( $seq, $orf_region );
    } else {
    ## use frame, error if frame is not 0, 1 or 2
@@ -1343,7 +1345,7 @@ sub translate_JD {
                     # description?
                     '-desc' => $self->desc(),
                     '-alphabet' => 'protein',
-                              '-verbose' => $self->verbose
+                    '-verbose' => $self->verbose
             );
     return $out, $orf_region;
 }
@@ -1372,86 +1374,13 @@ sub concatenate_feature_list{
    return $ExtremStart, $seq, $ExtremEnd;
 }
 
-sub _find_orfs_nucleotide_JD {
-    my ( $self, $sequence, $codon_table, $start_codon, $no_start_by_aa, $first_only ) = @_;
-    $sequence    = uc $sequence;
-    $start_codon = uc $start_codon if $start_codon;
-
-    my $is_start = $start_codon
-        ? sub { shift eq $start_codon }
-        : sub { $codon_table->is_start_codon( shift ) };
-
-    # stores the begin index of the currently-running ORF in each
-    # reading frame
-    my @current_orf_start = (-1,-1,-1);
-
-    #< stores coordinates of longest observed orf (so far) in each
-    #  reading frame
-    my @orfs;
-
-    # go through each base of the sequence, and each reading frame for each base
-    my $seqlen = CORE::length $sequence;
-    for( my $j = 0; $j <= $seqlen-3; $j++ ) {
-        my $frame = $j % 3;
-
-        my $this_codon = substr( $sequence, $j, 3 );
-        my $AA = $codon_table->translate($this_codon);
-
-        # if in an orf and this is either a stop codon or the last in-frame codon in the string
-        if ( $current_orf_start[$frame] >= 0 ) {
-            if ( _is_ter_codon_JD( $this_codon ) ||( my $is_last_codon_in_frame = ($j >= $seqlen-5)) ) {
-                # record ORF start, end (half-open), length, and frame
-                my @this_orf = ( $current_orf_start[$frame], $j+3, undef, $frame );
-                my $this_orf_length = $this_orf[2] = ( $this_orf[1] - $this_orf[0] );
-
-                $self->warn( "Translating partial ORF "
-                                 .$self->_truncate_seq( $self->_orf_sequence( $sequence,\@ this_orf ))
-                                 .' from end of nucleotide sequence'
-                            )
-                    if $first_only && $is_last_codon_in_frame;
-
-                return\@ this_orf if $first_only;
-                push @orfs,\@ this_orf;
-                $current_orf_start[$frame] = -1;
-            }
-        }
-        # if this is a start codon
-        elsif ($is_start->($this_codon)) {
-          if($no_start_by_aa){
-
-            if($AA ne $no_start_by_aa){
-              $current_orf_start[$frame] = $j;
-            }
-          }
-          else{
-            $current_orf_start[$frame] = $j;
-          }
-        }
-    }
-
-    return sort { $b->[2] <=> $a->[2] } @orfs;
-}
-
-# We can be sure it's a stop codon even with IUPAC
-sub _is_ter_codon_JD{
-  my ($codon) = @_;
-  $codon=lc($codon);
-  $codon =~ tr/u/t/;
-  my $is_ter_codon=undef;
-
-  if( ($codon eq 'tga') or ($codon eq 'taa') or ($codon eq 'tag') or ($codon eq 'tar') or ($codon eq 'tra') ){
-    $is_ter_codon="yes";
-  }
-  return $is_ter_codon;
-}
-
 __END__
 
 =head1 NAME
 
 gff3_fixFusion.pl -
 The script take a gff3 file as input. -
-The script looks for other ORF in UTRs (UTR3 and UTR%) of each gene model described in the gff file.
+The script looks for other ORF in UTRs (UTR3 and UTR5) of each gene model described in the gff file.
 Several ouput files will be written if you specify an output. One will contain the gene not modified (intact), 
 one the gene models fixed.
 
