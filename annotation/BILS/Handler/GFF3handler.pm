@@ -662,7 +662,7 @@ sub fill_omniscient_from_other_omniscient_level1_id {
 	}
 }
 
-#append hash1 by hash2 accodingly with overlap parameter. Only non overlaping one will be kept
+#append hash1 with gene and subfeature of hash2 when have CDS longer than the size provided. 
 sub complement_omniscients_by_size {
 	my ($omniscient1, $omniscient2, $size_min, $verbose)=@_;
 
