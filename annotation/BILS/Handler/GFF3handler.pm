@@ -2639,7 +2639,7 @@ sub check_record_positions {
 			  		$ExtremStart = $l2_ExtremStart;
 			  	}
 			  	if ($l2_ExtremEnd > $ExtremEnd  ){
-			  		$ExtremEnd = $l2_ExtremStart;
+			  		$ExtremEnd = $l2_ExtremEnd;
 			  	}
 		    }
 		}
