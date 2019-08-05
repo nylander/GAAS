@@ -122,6 +122,8 @@ Collection of Cheat Sheets / overview / summaries
  
  # Data visualisation  
  
+ * [Orange: Data Mining Fruitful and Fun](https://orange.biolab.si)
+ 
  * Data Visualization Type Catalogs (from Yuri Engelhardt)
     * [Classic](https://datavizcatalogue.com)
     * [Thorough](http://datavizproject.com)
