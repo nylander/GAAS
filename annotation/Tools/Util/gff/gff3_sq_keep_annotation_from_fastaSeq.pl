@@ -3,7 +3,7 @@
 ###################################################
 # Jacques Dainat 01/2016                          #  
 # Bioinformatics Infrastructure for Life Sciences #
-# jacques.dainat@bils.se                          #
+# jacques.dainat@nbis.se                          #
 ###################################################
 
 use Carp;
@@ -20,31 +20,40 @@ use BILS::Handler::GXFhandler qw(:Ok);
 my $start_run = time();
 
 my $opt_gfffile=undef;
+my $verbose=undef;
 my $opt_fastafile=undef;
 my $outfile=undef;
 my $opt_help = 0;
-
+my $header = qq{
+########################################################
+# NBIS 2019 - Sweden                                   #  
+# jacques.dainat\@nbis.se                              #
+# Please cite NBIS (www.nbis.se) when using this tool. #
+########################################################
+};
 
 Getopt::Long::Configure ('bundling');
 if ( !GetOptions ('file|input|gff=s' => \$opt_gfffile,
       'f|fasta=s' => \$opt_fastafile,
       'o|output=s' => \$outfile,
+      'v|verbose!' => \$verbose,
       'h|help!'         => \$opt_help )  )
 {
-    pod2usage( { -message => 'Failed to parse command line',
+    pod2usage( { -message => "$header\nFailed to parse command line",
                  -verbose => 1,
                  -exitval => 1 } );
 }
 
 if ($opt_help) {
     pod2usage( { -verbose => 2,
-                 -exitval => 0 } );
+                 -exitval => 2,
+                 -message => "$header \n" } );
 }
 
 if ((!defined($opt_gfffile)) ){
    pod2usage( { -message => 'at least 2 parameters are mandatory',
-                 -verbose => 1,
-                 -exitval => 1 } );
+                 -verbose => 0,
+                 -exitval => 2 } );
 }
 
 my $ostream     = IO::File->new();
@@ -55,10 +64,8 @@ my $ref_in = Bio::Tools::GFF->new(-file => $opt_gfffile, -gff_version => 3);
 # Manage Output
 my $gffout;
 if ($outfile) {
-  $outfile=~ s/.gff//g;
-  open(my $fh, '>', $outfile.".gff") or die "Could not open file '$outfile' $!";
+  open(my $fh, '>', $outfile) or die "Could not open file '$outfile' $!";
   $gffout= Bio::Tools::GFF->new(-fh => $fh, -gff_version => 3 );
-  
 }
 else{
   $gffout = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 3);
@@ -73,19 +80,27 @@ print ("Genome fasta parsed\n");
 #time to calcul progression
 my $startP=time;
 my $cpt_removed=0;
+my %seqNameSeen;
+my $cpt_kept=0;
 while (my $feature = $ref_in->next_feature() ) {
 
   if($db->seq($feature->seq_id)){
-    #create sequence object
-    $feature->gff_string($gffout) 
+    $gffout->write_feature($feature);
+    # to count number of sequence with annotation
+    if(! exists_keys(\%seqNameSeen, ($feature->seq_id))){ 
+      $seqNameSeen{$feature->seq_id}++;
+    }
+    $cpt_kept++; 
   }
   else{
-    print "SequenceID ".$feature->seq_id." is absent from the fasta file\n";
+    print "SequenceID ".$feature->seq_id." is absent from the fasta file\n" if($verbose);
     $cpt_removed++;
   }
 }
 
-print "We removed $cpt_removed annotation.\n";
+print "We removed $cpt_removed annotations.\n";
+my $nbSeqWithAnnotation = scalar keys %seqNameSeen;
+print "We kept $cpt_kept annotations that are linked to $nbSeqWithAnnotation sequences.\n";
 my $end_run = time();
 my $run_time = $end_run - $start_run;
 print "Job done in $run_time seconds\n";
@@ -98,6 +113,7 @@ __END__
 
 gff3_sq_keep_annotation_from_fastaSeq.pl -
 This script is a kind of annotation filter by sequence name. It goes through the gff annotation features and remove those that are not linked to a sequence from the fasta file provided.
+The match between sequence name in the fasta file and the 1st column of the gff3 file is case sensitive.
 
 =head1 SYNOPSIS
 
@@ -115,6 +131,10 @@ STRING: Input gff file.
 =item B<-f> or B<--fasta>
 
 STRING: fasta file.
+
+=item B<-v> or B<--verbose>
+
+For verbosity
 
 =item B<-o> or B<--output> 
 
