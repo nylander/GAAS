@@ -21,6 +21,13 @@ my @inputFile;
 my $outputFile;
 my $genome;
 my $opt_help = 0;
+my $header = qq{
+########################################################
+# NBIS 2019 - Sweden                                   #  
+# jacques.dainat\@nbis.se                              #
+# Please cite NBIS (www.nbis.se) when using this tool. #
+########################################################
+};
 
 Getopt::Long::Configure ('bundling');
 if ( !GetOptions ('i|file|input|gff=s' => \@inputFile,
@@ -28,20 +35,21 @@ if ( !GetOptions ('i|file|input|gff=s' => \@inputFile,
       'g|genome=s' => \$genome,
       'h|help!'         => \$opt_help )  )
 {
-    pod2usage( { -message => 'Failed to parse command line',
+    pod2usage( { -message => "$header\nFailed to parse command line",
                  -verbose => 1,
                  -exitval => 1 } );
 }
 
 if ($opt_help) {
     pod2usage( { -verbose => 2,
-                 -exitval => 0 } );
+                 -exitval => 2,
+                 -message => "$header \n" } );
 }
 
 if (! @inputFile ){
    pod2usage( { -message => 'at least 1 input file is mandatory',
-                 -verbose => 1,
-                 -exitval => 1 } );
+                 -verbose => 0,
+                 -exitval => 2 } );
 }
 
 # Manage Output
@@ -173,7 +181,7 @@ __END__
 
 =head1 NAME
 
-gffRepeat_analyzer.pl -
+gff3_sq_rfam_analyzer.pl -
 The script allows to generate a tabulated format report of rfam-id annotated from a gff file containing rfam result (type of the 3rd column must be ncRNA or nc_RNA - not case sensitive. And the 9th column must contain the rfam-id attribute). e.g:
 
 ScG6Pog_82  Rfam  ncRNA 737595  737663  20.7  + 0 ID=RF00134_ScG6Pog_82_737595;Name=RF00134_ScG6Pog_82_737595;evalue=0.45;gc-content=0.28;model_end=1;model_start=1;rfam-acc=RF00134;rfam-id=snoZ196
