@@ -25,9 +25,9 @@ my $PREFIX_CPT_MRNA=1;
 
 my $header = qq{
 ########################################################
-# NBIS 2015 - Sweden                                   #  
+# NBIS 2019 - Sweden                                   #  
 # jacques.dainat\@nbis.se                               #
-# Please cite BILS (www.nbis.se) when using this tool. #
+# Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 };
 
@@ -346,7 +346,7 @@ sub merge_omniscients_fuse_l1duplicates {
             foreach my $tag_l3 (keys %{$hash_omniscient2->{'level3'}}){ 
 
               if (exists_keys ($hash_omniscient2, ('level3', $tag_l3, $id_l2) ) ){ 
-                $hash_omniscient1->{'level3'}{$tag_l3}{$id_l2} = delete $hash_omniscient2->{'level3'}{$tag_l3}{$id_l2}; # save @l2
+                $hash_omniscient1->{'level3'}{$tag_l3}{$id_l2} = delete $hash_omniscient2->{'level3'}{$tag_l3}{$id_l2}; # save @l3
               }
             }
           }
