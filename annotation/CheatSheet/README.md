@@ -24,6 +24,7 @@ Collection of Cheat Sheets / overview / summaries
         * [Genome (protein coding genes)](#genome-protein-coding-genes)
         * [Mitochondrion](#mitochondrion)
         * [Chloroplast](#chloroplast)
+        * [Plasmid](#plasmid)
     * [Overview of RNA-seq library types](#overview-of-rna-seq-library-types)
     * [Screen](#screen)
     * [Schedulers: LSF,Torque,SGE,Slurm,etc](#schedulers-lsftorquesgeslurmetc)
