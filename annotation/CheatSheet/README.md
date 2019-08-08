@@ -88,6 +88,7 @@ Collection of Cheat Sheets / overview / summaries
  * #### [Genome (Protein coding genes)](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/annotation_tools.md)
  * #### [Mitochondrion](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/annotation_tools_mito.md)
  * #### [Chloroplast](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/annotation_tools_chloro.md)
+ * #### [Plasmid](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/annotation_tools_plasmid.md)
 
 ### [Overview of RNA-seq library types](rnaseq_library_types.md)
 
