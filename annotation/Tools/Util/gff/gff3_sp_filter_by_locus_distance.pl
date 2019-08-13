@@ -29,11 +29,7 @@ my @copyARGV=@ARGV;
 if ( !GetOptions(
     "help|h" => \$help,
     "gff=s" => \$gff,
-    "fasta|fa|f=s" => \$file_fasta,
-    "table|codon|ct=i" => \$codonTableId,
     "add_flag|af!" => \$add_flag,
-    "skip_start_check|sstartc!" => \$skip_start_check,
-    "skip_stop_check|sstopc!" => \$skip_stop_check,
     "v!" => \$verbose,
     "output|outfile|out|o=s" => \$outfile))
 
@@ -98,15 +94,14 @@ print ("Genome fasta parsed\n");
 ####################
 
 #counters
-my %mrnaCounter={1=>0, 2=>0, 3=>0};
 my $geneCounter=0;
-my %omniscient_incomplete;
-my @incomplete_mRNA;
+my @gene_id_ok;
 
 
-foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
-  foreach my $gene_id (keys %{$hash_omniscient->{'level1'}{$primary_tag_key_level1}}){ 
-    my $gene_feature = $hash_omniscient->{'level1'}{$primary_tag_key_level1}{$gene_id};
+foreach my $ptag_l1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
+  my $nb_id = scalar @{$hash_omniscient->{'level1'}{$ptag_l1}};
+  foreach my $gene_id (keys %{$hash_omniscient->{'level1'}{$ptag_l1}}){ 
+    my $gene_feature = $hash_omniscient->{'level1'}{$ptag_l1}{$gene_id};
     my $strand = $gene_feature->strand();
     print "gene_id = $gene_id\n" if $verbose;
 
@@ -329,7 +324,6 @@ filter by default).
 =item B<--ad> or B<--add_flag>
 
 Instead of filter the result into two output files, write only one and add the flag <incomplete> in the gff.(tag = inclomplete, value = 1, 2, 3.  1=start missing; 2=stop missing; 3=both) 
-
 
 =item B<-o> , B<--output> , B<--out> or B<--outfile>
 

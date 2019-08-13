@@ -95,15 +95,15 @@ if(! $opt_breaks){
 #############################
 ####### Manage output #######
 #############################
-my $outputPDF;
+my $outputPDF_prefix;
 if (defined($opt_output) ) {
   if (-f $opt_output){
       print "Cannot create a directory with the name $opt_output because a file with this name already exists.\n";exit();
   }
- $outputPDF=$opt_output."/intronPlot.pdf";   
+ $outputPDF_prefix=$opt_output."/intronPlot_";   
 }
 else{
-  $outputPDF="intronPlot.pdf";
+  $outputPDF_prefix="intronPlot_";
 }
 
 # Check R is available. If not we try to load it through Module software
@@ -134,7 +134,7 @@ else {
 ###################################
 # Read input gff3 files one by one and save value in hash of list
 
-my @introns;
+my %introns;
 foreach my $file (@opt_files){
 
   print "Reading ".$file,"\n";
@@ -196,7 +196,7 @@ foreach my $file (@opt_files){
 
           if($counterL2_match > 0 and $counterL2_match <= $indexLastL2){
             my $intronSize = $sortedList[$counterL2_match]->start - $sortedList[$counterL2_match-1]->end;
-            push @introns, $intronSize;
+            push @{$introns{$tag_l2}}, $intronSize;
           }
         }
 
@@ -225,7 +225,7 @@ foreach my $file (@opt_files){
               # We go inside this loop only if we have more than 1 feature.
               if($counterL3 > 0 and $counterL3 <= $indexLast){
                 my $intronSize = $sortedList[$counterL3]->start - $sortedList[$counterL3-1]->end;
-                push @introns, $intronSize;
+                push @{$introns{$tag_l3}}, $intronSize;
               }
             }# END FOREACH L3
           }
@@ -236,68 +236,79 @@ foreach my $file (@opt_files){
 }
 
 # PART 2
-###############################
-my $biggest_value=0;
-my $pathIntron="tmp_intron.txt";
-my @sorted_intron = (sort { $a <=> $b } @introns);
-#########################
-# Write value in tmp files
- 
-# Manage Output
-my $ostreamAED   = IO::File->new();
-$ostreamAED->open( $pathIntron, 'w' ) or
-      croak(
-        sprintf( "Can not open '%s' for writing %s", $pathIntron, $! )
-      );
-foreach  my $value (@sorted_intron){
-  print $ostreamAED "$value\n";
-  if($value > $biggest_value){
-    $biggest_value=$value;
+
+foreach  my $tag (keys %introns){
+  ###############################
+  my $biggest_value=0;
+  my $pathIntron="tmp_intron_".$tag.".txt";
+  my @sorted_intron = (sort { $a <=> $b } @{$introns{$tag}});
+  #########################
+  # Write value in tmp files
+   
+  # Manage Output
+  my $ostreamAED   = IO::File->new();
+  $ostreamAED->open( $pathIntron, 'w' ) or
+        croak(
+          sprintf( "Can not open '%s' for writing %s", $pathIntron, $! )
+        );
+  foreach  my $value ( @sorted_intron ){
+    print $ostreamAED "$value\n";
+    if($value > $biggest_value){
+      $biggest_value=$value;
+    }
   }
+  $ostreamAED->close();
+
+
+  # Part 3
+  #########################################
+  #Calcul longest after remove X percent  #
+  my $lastIndex = $#sorted_intron;
+  my $nbValueToRemove = int(($Xpercent*($lastIndex+1))/100);
+  my $resu =  $sorted_intron[$lastIndex-$nbValueToRemove];
+
+  my $stringPrint =  "Introns in feature $tag: Removing $Xpercent percent of the highest values ($nbValueToRemove values) gives you $resu bp as the longest intron in $tag. It's a good choice for MAKER ;-) \n";
+
+  print $ostreamReport $stringPrint;
+  if($opt_output){print $stringPrint;}
+
+
+
+  # Part 4
+  #########
+  # PLOT  #
+  #chose output file name
+  my $outputPDF=$outputPDF_prefix.$tag.".pdf";
+  #Choose a main title:
+  my $title="Intron distribution in $tag";
+  #choose x title
+  my $xlab="size bp";
+
+  ## check using R
+  my $R = Statistics::R->new() or die "Problem with R : $!\n";
+
+  #calculate the breaks
+  my $breaks_ok=int($biggest_value/$opt_breaks);
+
+  #R command
+  $R->run(qq`
+        
+        listValues1=as.matrix(read.table("$pathIntron", sep="\t", he=F))
+        pdf("$outputPDF")
+        hist1<-hist(listValues1,breaks=$breaks_ok,main="$title", xlab="$xlab")
+        plot(hist1\$mids,hist1\$counts)
+        mylims <- par("usr")
+        # Add Title second plot
+        title(main="$title")`
+  );
+
+  # Close the bridge
+  $R->stopR();
 }
-$ostreamAED->close();
-
-# Part 3
-#########################################
-#Calcul longest after remove X percent  #
-my $lastIndex = $#introns;
-my $nbValueToRemove = int(($Xpercent*($lastIndex+1))/100);
-my $resu =  $sorted_intron[$lastIndex-$nbValueToRemove];
-
-my $stringPrint =  "Removing $Xpercent percent of the highest values ($nbValueToRemove values) gives you $resu bp as the longest intron. It's a good choice for MAKER ;-) \n";
-
-print $ostreamReport $stringPrint;
-if($opt_output){print $stringPrint;}
-
-# Part 4
-#########
-# PLOT  #
-#Choose a title:
-my $title="Intron distribution";
-
-## check using R
-my $R = Statistics::R->new() or die "Problem with R : $!\n";
-
-#calculate the breaks
-my $breaks_ok=int($biggest_value/$opt_breaks);
-
-#R command
-$R->run(qq`
-      
-      listValues1=as.matrix(read.table("$pathIntron", sep="\t", he=F))
-      pdf("$outputPDF")
-      hist1<-hist(listValues1,breaks=$breaks_ok)
-      plot(hist1\$mids,hist1\$counts)
-      mylims <- par("usr")`
-);
-
-# Close the bridge
-$R->stopR();
-
 
 
 # remove temporary files
-unlink $pathIntron;
+#unlink $pathIntron;
 
       ######################### 
       ######### END ###########

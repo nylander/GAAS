@@ -61,7 +61,7 @@ if ($outfile) {
   my ($filename,$path,$ext) = fileparse($outfile,qr/\.[^.]*/);
   $reportout=IO::File->new(">".$path.$filename."_report.txt" ) or croak( sprintf( "Can not open '%s' for writing %s", $filename."_report.txt", $! ));
 
-  open(my $fh, '>', $outfile) or die "Could not open file $outfile $!";
+  open(my $fh, '>', $outfile) or die "Could not open file '$filename' $!";
   $gffout= Bio::Tools::GFF->new(-fh => $fh, -gff_version => 3 );
 }
 else{
@@ -95,18 +95,18 @@ my ($omniscient, $hash_mRNAGeneLink) = slurp_gff3_file_JD({ input => $ref
 print ("$ref file parsed\n");
 
 # sort by seq id
-my $hash_sortBySeq = sort_by_seq($omniscient);
+my $hash_sortBySeq = gather_and_sort_l1_location_by_seq_id_and_strand($omniscient);
 
 #find overlap
 my %checked_l1;
 foreach my $seqid (keys %{$hash_sortBySeq}){ # loop over all the feature level1
 
-  if( exists_keys($hash_sortBySeq,($seqid, 'level1') ) ) {
-    foreach my $tag (keys %{$hash_sortBySeq->{$seqid}{'level1'}}){
+  if( exists_keys($hash_sortBySeq,($seqid ) ) ){
+    foreach my $tag (keys %{$hash_sortBySeq->{$seqid}}){
       
-      my @sorted_genefeature_ids = sort {$hash_sortBySeq->{$seqid}{'level1'}{$tag}{$a}[1] <=> $hash_sortBySeq->{$seqid}{'level1'}{$tag}{$b}[1] }  keys %{$hash_sortBySeq->{$seqid}{'level1'}{$tag}};
-      foreach my $gene_feature_id (@sorted_genefeature_ids){
-       
+      foreach my $location ( @{$hash_sortBySeq->{$seqid}{$tag}}){
+        my $gene_feature_id = lc($location->[0]);
+
         if (! exists_keys($omniscient, ('level1',$tag,$gene_feature_id) ) ){ next;} #feature has been removed from previous check
         $checked_l1{$gene_feature_id}{$gene_feature_id}++; # to not check agaisnt himself
         my $gene_feature = $omniscient->{'level1'}{$tag}{$gene_feature_id};
@@ -186,10 +186,13 @@ foreach my $seqid (keys %{$hash_sortBySeq}){ # loop over all the feature level1
         #######################################################
         # START Take care of other gene with duplicated location
         # 
-        foreach my $gene_feature_id2 (@sorted_genefeature_ids){
+        #foreach my $gene_feature_id2 (@sorted_genefeature_ids){
+        foreach my $location2 (@{$hash_sortBySeq->{$seqid}{$tag}}){
+          my $gene_feature_id2 = lc($location2->[0]);
+
           if (! exists_keys(\%checked_l1,($gene_feature_id,$gene_feature_id2 ) ) ){
             #print $gene_feature_id.":".$hash_sortBySeq->{$seqid}{'level1'}{$tag}{$gene_feature_id}[1]." $gene_feature_id2:".$hash_sortBySeq->{$seqid}{'level1'}{$tag}{$gene_feature_id2}[1]."\n";
-            if ( $hash_sortBySeq->{$seqid}{'level1'}{$tag}{$gene_feature_id2}[1] > $hash_sortBySeq->{$seqid}{'level1'}{$tag}{$gene_feature_id}[1] ) { last; } # start of gene2 is over start of gene 1 we could stop to loop... no need to look at following genes in the list            
+            if ( $location2->[1] > $location->[1] ) { last; } # start of gene2 is over start of gene 1 we could stop to loop... no need to look at following genes in the list            
             if (! exists_keys($omniscient, ('level1',$tag,$gene_feature_id2) ) ){ next;} #feature has been removed from previous check
 
             $checked_l1{$gene_feature_id }{$gene_feature_id2}++;

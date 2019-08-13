@@ -104,6 +104,9 @@ open($report, '>', $outfile."-report.txt") or die "Could not open file '$outfile
 }
 else{
   $gffout = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 3);
+  $gffout2 = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 3);
+  $gffout3 = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 3);
+#  $gffout4 = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 3);
 }
 
 my %ListModel;
@@ -305,7 +308,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
                 print "longestl: ".$longest_ORF_prot_obj->seq."\n" if $verbose;
                 # contains stop codon but not at the last position
                 if( (index($original_prot_obj->seq, '*') != -1 ) and (index($original_prot_obj->seq, '*') != length($original_prot_obj->seq)-1) ){
-                  print "contains premature stop codon\n";
+                  print "Original sequence contains premature stop codon.\n";
              ## Pseudogene THRESHOLD ##              
     #              my $threshold_size=(length($original_prot_obj->seq)*$pseudo_threshold)/100; #70% of the original size
     #              if(length($longest_ORF_prot_obj->seq) <  $threshold_size){ # inferior to threshold choosen, we suspect it to be a pseudogene
@@ -314,7 +317,8 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
     #                $mrna_pseudo++;
     #                push(@list_mrna_pseudo, $id_level2);
     #              }
-    #              else{ #remodelate a shorter gene
+    #              else{ 
+                  #remodelate a shorter gene
                     modify_gene_model($hash_omniscient, \%omniscient_modified_gene, $gene_feature, $gene_id_tag_key, $level2_feature, $id_level2, \@exons_features, \@cds_feature_list, $cdsExtremStart, $cdsExtremEnd, $realORFstart, $realORFend, 'model4', $gffout);
                     $ORFmodified="yes";
     #              }
@@ -390,24 +394,21 @@ _check_identical_isoforms(\%omniscient_modified_gene, undef, $verbose);
 
 ########
 # Print results
-if ($outfile) {
-  print_omniscient_from_level1_id_list($hash_omniscient, \@intact_gene_list, $gffout); #print intact gene to the file
-  print_omniscient(\%omniscient_modified_gene, $gffout2); #print gene modified in file 
-  # create a hash containing everything 
-    print "subsample_omniscient_from_level1_id_list\n" if $verbose;
-    my $hash_all = subsample_omniscient_from_level1_id_list($hash_omniscient, \@intact_gene_list);
-    merge_omniscients( $hash_all, \%omniscient_modified_gene);
-    _check_overlap_name_diff($hash_all, undef, $verbose);
-    _check_identical_isoforms($hash_all, undef, $verbose);
-  print_omniscient($hash_all, $gffout3); #print gene modified in file 
-  #print_omniscient(\%omniscient_pseudogene, $gffout4); #print putative pseudogene in file
- 
-}
-else{  
-  print_omniscient(\%omniscient_modified_gene, $gffout); #print gene modified
-  #print_omniscient_from_level1_id_list($hash_omniscient, \@intact_gene_list, $gffout); #print gene intact
-  #print_omniscient(\%omniscient_pseudogene, $gffout); #print putative pseudogene
-}
+print "print intact...\n";
+print_omniscient_from_level1_id_list($hash_omniscient, \@intact_gene_list, $gffout); #print intact gene to the file
+
+print "print modified...\n";
+print_omniscient(\%omniscient_modified_gene, $gffout2); #print gene modified in file 
+
+# create a hash containing everything 
+print "print all with name of overlaping features resolved...\n";
+my $hash_all = subsample_omniscient_from_level1_id_list($hash_omniscient, \@intact_gene_list);
+merge_omniscients( $hash_all, \%omniscient_modified_gene);
+_check_overlap_name_diff($hash_all, undef, $verbose);
+_check_identical_isoforms($hash_all, undef, $verbose);
+print_omniscient($hash_all, $gffout3); #print gene modified in file 
+
+#print_omniscient(\%omniscient_pseudogene, $gffout4); #print putative pseudogene in file
 
 #END
 my $string_to_print="usage: $0 @copyARGV\nCodon table used:".$codonTable."\n";
@@ -429,9 +430,12 @@ if (exists ($ListModel{3})){
 if (exists ($ListModel{4})){
   my $withStop=$ListModel{4}-$special_or_partial_mRNA;
   #my $withStop_butstillgene=$ListModel{4}-($mrna_pseudo_suspected+$mrna_pseudo_removed)-$special_or_partial_mRNA;
-  $string_to_print .="$ListModel{4} model4: The new prediction was shorter than the original:\nAmong them, $special_or_partial_mRNA are partial (begining or finishing by NNNN or XXXX) or begining by L (It is a correct possibility), so we don't touch them.\n".
-  "In other hand, $withStop are shorter due to the presence of stop codon.".#" The threshold to declare them as a pseudogene (comparing to the original size) is $pseudo_threshold percent.\n".
- # "According to this threshold, we change the gene status (prinary_tag) of $gene_pseudo_suspected genes (corresponding to $mrna_pseudo_suspected mRNA) to pseudogene.\n".
+  $string_to_print .="$ListModel{4} model4: The new prediction was shorter than the original:\n".
+  "Among them, $withStop are shorter due to the presence of stop codon. We have remodelated them (to avoid it do not select model4)".
+  "Among them, $special_or_partial_mRNA were partials (begining or finishing by NNNN or XXXX). The prediction is probably shorter because use an earlier start codon.\n".
+  
+ # " The threshold to declare them as a pseudogene (comparing to the original size) is $pseudo_threshold percent.\n".
+ # "According to this threshold, we change the gene status (primary_tag) of $gene_pseudo_suspected genes (corresponding to $mrna_pseudo_suspected mRNA) to pseudogene.\n".
  # "According to this threshold, we suspect $gene_pseudo_suspected genes to be pseudogenes (corresponding to $mrna_pseudo_suspected mRNA). So they habe been reported in a secpific output file.\n".
  # "$withStop_butstillgene mRNA(s) containing stop but over this treshold has been re-modelate.\n".
  " They have been remodeleted.\n";
@@ -1120,19 +1124,6 @@ sub _find_orfs_nucleotide_JD {
     return sort { $b->[2] <=> $a->[2] } @orfs;
 }
 
-# We can be sure it's a stop codon even with IUPAC
-#sub _is_ter_codon_JD{
-#  my ($codon) = @_;
-#  $codon=lc($codon);
-#  $codon =~ tr/u/t/;
-#  my $is_ter_codon=undef;
-
-#  if( ($codon eq 'tga') or ($codon eq 'taa') or ($codon eq 'tag') or ($codon eq 'tar') or ($codon eq 'tra') ){
-#    $is_ter_codon="yes";
-#  }
-#  return $is_ter_codon;
-#}
-
 # L1: LocusID->level->typeFeature->ID->[ID,start,end]
 # LocusID->level->typeFeature->Parent->[ID,start,end]
 # @Purpose: When two feature overlap at level3, and are the same type level 2 they have to be merged under the same level 1 feature.
@@ -1141,90 +1132,83 @@ sub _find_orfs_nucleotide_JD {
 sub _check_overlap_name_diff{
   my ($omniscient, $mRNAGeneLink, $verbose) = @_;
   my $resume_case=undef;
-  $verbose=3;
-  my $sortBySeq = _sort_by_seq($omniscient);
-  my %alreadyChecked;
+
+  my $sortBySeq = gather_and_sort_l1_location_by_seq_id_and_strand($omniscient);
 
   foreach my $locusID ( keys %{$sortBySeq}){ # tag_l1 = gene or repeat etc...
-    if ( exists_keys( $sortBySeq, ( $locusID, 'level1') ) ){
-      foreach my $tag_l1 ( keys %{$sortBySeq->{$locusID}{'level1'}} ) { 
 
-        my $to_check = clone($sortBySeq->{$locusID}{'level1'}{$tag_l1});
+    foreach my $tag_l1 ( keys %{$sortBySeq->{$locusID}} ) { 
+
+      # Go through location from left to right ### !!
+      for (my $i = 0; $i < scalar @{$sortBySeq->{$locusID}{$tag_l1}}; $i++) {
+
+        my $location = shift  @{$sortBySeq->{$locusID}{$tag_l1}};# This location will be updated on the fly
+
+        my $id_l1 = $location->[0];
 
         # Go through location from left to right ### !!
-        foreach my $id_l1 ( sort {$sortBySeq->{$locusID}{'level1'}{$tag_l1}{$a}[1] <=> $sortBySeq->{$locusID}{'level1'}{$tag_l1}{$b}[1] } keys %{$sortBySeq->{$locusID}{'level1'}{$tag_l1}} ) {
+        foreach my $location_to_check (  @{$sortBySeq->{$locusID}{$tag_l1}} ) {
+          my $id2_l1 = $location_to_check->[0];
 
-          if(! exists($alreadyChecked{$id_l1})){
+          #If location_to_check start if over the end of the reference location, we stop
+          if($location_to_check->[1] > $location->[2]) {last;} 
 
-            #remove itself 
-            delete $to_check->{$id_l1};
-            my $location = $sortBySeq->{$locusID}{'level1'}{$tag_l1}{$id_l1}; # This location will be updated on the fly
+          my ($location, $overlap) = location_overlap_update($location, $location_to_check); # location is updated on the fly, and the newly modified location is the one that will be used at the next loop
+          
+          # Let's check at Gene LEVEL
+          if($overlap){
 
-            # Go through location from left to right ### !!
-            foreach my $id2_l1 ( sort {$to_check->{$a}[1] <=> $to_check->{$b}[1] } keys %{$to_check} ) {
+            #let's check at CDS level
+            if(check_gene_overlap_at_CDSthenEXON($omniscient, $omniscient , lc($id_l1), lc($id2_l1) )){ #If contains CDS it has to overlap at CDS level to be merged, otherwise any type of feature level3 overlaping is sufficient to decide to merge the level1 together
+              #they overlap in the CDS we should give them the same name
+              $resume_case++;
 
-              my $location_to_check = $to_check->{$id2_l1};
-
-              #If location_to_check start if over the end of the reference location, we stop
-              if($location_to_check->[1] > $sortBySeq->{$locusID}{'level1'}{$tag_l1}{$id_l1}[2]) {last;} 
-
-              my ($location, $overlap) = location_overlap_update($location, $location_to_check); # location is updated on the fly, and the newly modified location is the one that will be used at the next loop
-              
-              # Let's check at Gene LEVEL
-              if($overlap){
-
-                #let's check at CDS level
-                if(check_gene_overlap_at_CDSthenEXON($omniscient, $omniscient , $id_l1, $id2_l1)){ #If contains CDS it has to overlap at CDS level to be merged, otherwise any type of feature level3 overlaping is sufficient to decide to merge the level1 together
-                  #they overlap in the CDS we should give them the same name
-                  $resume_case++;
-                  $alreadyChecked{$id_l1}++;
-
-                  print "$id_l1 and  $id2_l1 same locus. We merge them together. Below the corresponding feature groups in their whole.\n" if ($verbose >= 3);
-                  print_omniscient_from_level1_id_list($omniscient, [$id_l1,$id2_l1], $fh_error ) if ($verbose >= 3);
-                  # remove the level1 of the ovelaping one
-                  delete $omniscient->{'level1'}{$tag_l1}{$id2_l1};
-                  # remove the level2 to level1 link stored into the mRNAGeneLink hash. The new links will be added just later after the check to see if we keep the level2 feature or not (we remove it when identical)
-                  foreach my $l2_type (%{$omniscient->{'level2'}}){
-                    if(exists_keys($omniscient,('level2', $l2_type, $id2_l1))){
-                      foreach my $feature_l2 (@{$omniscient->{'level2'}{$l2_type}{$id2_l1}}){
-                        delete $mRNAGeneLink->{lc($feature_l2->_tag_value('ID'))};
-                      }
-                    }
-                  }
-
-                  # Let's change the parent of all the L2 features 
-                  foreach my $l2_type (%{$omniscient->{'level2'}} ){
-
-                    if(exists_keys($omniscient,('level2', $l2_type, $id2_l1))){
-                      ###############################
-                      # REMOVE THE IDENTICAL ISOFORMS
-
-                      # first list uniqs
-                      my $list_of_uniqs  = keep_only_uniq_from_list2($omniscient, $omniscient->{'level2'}{$l2_type}{$id_l1}, $omniscient->{'level2'}{$l2_type}{$id2_l1}, $verbose); # remove if identical l2 exists
-                          
-
-                      #Now manage the rest
-                      foreach my $feature_l2 (@{$list_of_uniqs}){
-
-                        create_or_replace_tag($feature_l2,'Parent', $sortBySeq->{$locusID}{'level1'}{$tag_l1}{$id_l1}[0]); #change the parent
-                        # Add the corrected feature to its new L2 bucket
-                        push (@{$omniscient->{'level2'}{$l2_type}{$id_l1}}, $feature_l2);
-                        
-                        # Attach the new parent into the mRNAGeneLink hash
-                        $mRNAGeneLink->{lc($feature_l2->_tag_value('ID'))}=$feature_l2->_tag_value('Parent');
-
-                      }
-                      # remove the old l2 key
-                      delete $omniscient->{'level2'}{$l2_type}{$id2_l1};
-                    }
-                  }
-                  check_level1_positions($omniscient, $omniscient->{'level1'}{$tag_l1}{$id_l1}, 0);
-
-                  if($omniscient->{'level1'}{$tag_l1}{$id_l1}->end > $sortBySeq->{$locusID}{'level1'}{$tag_l1}{$id_l1}[2]){
-                    $sortBySeq->{$locusID}{'level1'}{$tag_l1}{$id_l1}[2] = $omniscient->{'level1'}{$tag_l1}{$id_l1}->end;
-                    print "This one Now !!\n";exit;
+              print "$id_l1 and  $id2_l1 same locus. We merge them together. Below the corresponding feature groups in their whole.\n" if ($verbose >= 3);
+              print "$id_l1 and  $id2_l1 same locus. We merge them together. Below the corresponding feature groups in their whole.\n";
+              print_omniscient_from_level1_id_list($omniscient, [lc($id_l1),lc($id2_l1)], $fh_error ) if ($verbose >= 3);
+              # remove the level1 of the ovelaping one
+              delete $omniscient->{'level1'}{$tag_l1}{lc($id2_l1)};
+              # remove the level2 to level1 link stored into the mRNAGeneLink hash. The new links will be added just later after the check to see if we keep the level2 feature or not (we remove it when identical)
+              foreach my $l2_type (%{$omniscient->{'level2'}}){
+                if(exists_keys($omniscient,('level2', $l2_type, lc($id2_l1) ))){
+                  foreach my $feature_l2 (@{$omniscient->{'level2'}{$l2_type}{lc($id2_l1)}}){
+                    delete $mRNAGeneLink->{lc($feature_l2->_tag_value('ID'))};
                   }
                 }
+              }
+
+              # Let's change the parent of all the L2 features 
+              foreach my $l2_type (%{$omniscient->{'level2'}} ){
+
+                if(exists_keys($omniscient,('level2', $l2_type, lc($id2_l1) ))){
+                  ###############################
+                  # REMOVE THE IDENTICAL ISOFORMS
+
+                  # first list uniqs
+                  my $list_of_uniqs  = keep_only_uniq_from_list2($omniscient, $omniscient->{'level2'}{$l2_type}{lc($id_l1)}, $omniscient->{'level2'}{$l2_type}{lc($id2_l1)}, $verbose); # remove if identical l2 exists
+                      
+
+                  #Now manage the rest
+                  foreach my $feature_l2 (@{$list_of_uniqs}){
+
+                    create_or_replace_tag($feature_l2,'Parent', $id_l1); #change the parent
+                    # Add the corrected feature to its new L2 bucket
+                    push (@{$omniscient->{'level2'}{$l2_type}{lc($id_l1)}}, $feature_l2);
+                    
+                    # Attach the new parent into the mRNAGeneLink hash
+                    $mRNAGeneLink->{lc($feature_l2->_tag_value('ID'))}=$feature_l2->_tag_value('Parent');
+
+                  }
+                  # remove the old l2 key
+                  delete $omniscient->{'level2'}{$l2_type}{lc($id2_l1)};
+                }
+              }
+              check_level1_positions($omniscient, $omniscient->{'level1'}{$tag_l1}{lc($id_l1)}, 0);
+
+              #Update the location on the fly
+              if($omniscient->{'level1'}{$tag_l1}{lc($id_l1)}->end > $sortBySeq->{$locusID}{'level1'}{$tag_l1}{lc($id_l1)}[2]){
+                $sortBySeq->{$locusID}{'level1'}{$tag_l1}{lc($id_l1)}[2] = $omniscient->{'level1'}{$tag_l1}{lc($id_l1)}->end;
+                #print "This one Now !!\n";exit;
               }
             }
           }

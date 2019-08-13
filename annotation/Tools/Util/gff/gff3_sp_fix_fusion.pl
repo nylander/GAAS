@@ -1,10 +1,5 @@
 #!/usr/bin/env perl
 
-## if IUPAC:
-## We consider a stop only if we are sure it is one
-## CDS can contains putative stop codon (but not sure stop one like YAA that can be TAA or CAA).
-## We consider a start even if is not sure like AYG that can be ATG or ACG
-
 use Carp;
 use Clone 'clone';
 use strict;
@@ -12,11 +7,11 @@ use File::Basename;
 use Getopt::Long;
 use Statistics::R;
 use Pod::Usage;
+use Bio::Tools::CodonTable;
 use Data::Dumper;
 use List::MoreUtils qw(uniq);
 use Bio::Tools::GFF;
 use Bio::DB::Fasta;
-#use Bio::Seq;
 use Bio::SeqIO;
 use BILS::Handler::GFF3handler qw(:Ok);
 use BILS::Handler::GXFhandler qw(:Ok);
@@ -30,9 +25,9 @@ my $PREFIX_CPT_MRNA=1;
 
 my $header = qq{
 ########################################################
-# NBIS 2015 - Sweden                                   #  
+# NBIS 2019 - Sweden                                   #  
 # jacques.dainat\@nbis.se                               #
-# Please cite BILS (www.nbis.se) when using this tool. #
+# Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 };
 
@@ -92,6 +87,9 @@ open($gffout4, '>', $outfile."-report.txt") or die "Could not open file '$outfil
 }
 else{
   $gffout = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 3);
+  $gffout2 = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 3);
+  $gffout3 = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 3);
+  $gffout4 = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 3);
 }
 
 if(!$threshold){
@@ -253,10 +251,12 @@ my $hash_omniscient_intact=\%hash_omniscient_intactR;
 fill_omniscient_from_other_omniscient_level1_id(\@intact_gene_list,$hash_omniscient,$hash_omniscient_intact);
 delete $hash_omniscient->{$_} for (keys %{$hash_omniscient});
 
-# 2) Sort by seq_id
-my $hash_sortBySeq = sort_by_seq_id($hash_omniscient_intact);
+# 2) print the intact one
+print "print intact...\n";
+print_omniscient($hash_omniscient_intact, $gffout); #print intact gene to the file
 
-# 3) review all newly created gene
+# 3) Sort by seq_id - review all newly created gene
+my $hash_sortBySeq = gather_and_sort_l1_by_seq_id_and_strand($hash_omniscient_intact);
 my $overlap=0;
 foreach my $tag_l1 (keys %{$omniscient_modified_gene{'level1'}} ){ # primary_tag_key_level1 = gene or repeat etc...    
     foreach my $id_l1 (keys %{$omniscient_modified_gene{'level1'}{$tag_l1}} ) {
@@ -269,7 +269,7 @@ foreach my $tag_l1 (keys %{$omniscient_modified_gene{'level1'}} ){ # primary_tag
 
 # 4) special case where two newly created gene from to different gene are overlapping
 # Be careful If you by testing 2 identical omniscient, the method could remove element haven't yet been loop over. So check the gene exists before to analyse it !
-my $hash_sortBySeq = sort_by_seq_id(\%omniscient_modified_gene);
+my $hash_sortBySeq = gather_and_sort_l1_by_seq_id_and_strand(\%omniscient_modified_gene);
 foreach my $tag_l1 (keys %{$omniscient_modified_gene{'level1'}} ){ # primary_tag_key_level1 = gene or repeat etc...  
     foreach my $id_l1 (keys %{$omniscient_modified_gene{'level1'}{$tag_l1}} ) {
       
@@ -282,37 +282,23 @@ foreach my $tag_l1 (keys %{$omniscient_modified_gene{'level1'}} ){ # primary_tag
     } 
 }
 
+# 5) Print modified genes
+print "print modified...\n";
+print_omniscient(\%omniscient_modified_gene, $gffout2); #print gene modified in file 
 
+# 6) Print all together
+merge_omniscients_fuse_l1duplicates($hash_omniscient_intact, \%omniscient_modified_gene);
+print "print all together...\n";
+print_omniscient($hash_omniscient_intact, $gffout3);
 
-
-
-if ($overlap){print "We found $overlap case gene overlapping at CDS level wihout the same ID, we fixed them.\n";}
+if ($overlap and $verbose){print "We found $overlap case gene overlapping at CDS level wihout the same ID, we fixed them.\n";}
 # End manage overlaping name
 #####################################
-
-########
-# Print results
-if ($outfile) {
-  #print all in file1
-  # print_omniscient_from_level1_id_list($hash_omniscient, \@intact_gene_list, $gffout); #print intact gene to the file
-  print_omniscient($hash_omniscient_intact, $gffout); #print intact gene to the file
-  
-  print_omniscient(\%omniscient_modified_gene, $gffout2); #print gene modified in file 
-  
-  print_omniscient($hash_omniscient_intact, $gffout3);
-  print_omniscient(\%omniscient_modified_gene, $gffout3);
-}
-else{
-  #print_omniscient_from_level1_id_list($hash_omniscient, \@intact_gene_list, $gffout); #print gene intact
-  print_omniscient(\%omniscient_modified_gene, $gffout); #print gene modified
-}
 
 #END
 my $string_to_print="usage: $0 @copyARGV\n";
 $string_to_print .="Results:\n";
 $string_to_print .="$geneCounter genes affected and $mRNACounter_fixed mRNA.\n";
-$string_to_print .="\n/!\\Remind:\n L and M are AA are possible start codons.\nParticular case: If we have a triplet as WTG, AYG, RTG, RTR or ATK it will be seen as a possible Methionine codon start (it's a X aa)\n".
-"An arbitrary choisce has been done: The longer translate can begin by a L only if it's longer by 21 AA than the longer translate beginning by M. It's happened $counter_case21 times here.\n";
 my $end_run = time();
 my $run_time = $end_run - $start_run;
 $string_to_print .= "Job done in $run_time seconds\n";
@@ -334,6 +320,183 @@ print "Bye Bye.\n";
                 ####
                  ##          
 
+sub merge_omniscients_fuse_l1duplicates {
+  my ($hash_omniscient1, $hash_omniscient2)=@_;
+
+  # == LEVEL 1 == #
+
+  foreach my $tag_l1 (keys %{$hash_omniscient2->{'level1'}}){
+    foreach my $id_l1_2 (keys %{$hash_omniscient2->{'level1'}{$tag_l1}}){
+
+      if ( ! exists_keys ( $hash_omniscient1, ('level1', $tag_l1, $id_l1_2 ) ) ){
+        my $feature = $hash_omniscient2->{'level1'}{$tag_l1}{lc($id_l1_2)};
+        $hash_omniscient1->{'level1'}{$tag_l1}{$id_l1_2} = $hash_omniscient2->{'level1'}{$tag_l1}{$id_l1_2}; # save feature level1
+      }
+
+      # == LEVEL 2 == #
+
+      foreach my $tag_l2 (keys %{$hash_omniscient2->{'level2'}}){ 
+        if (exists_keys ($hash_omniscient2, ('level2', $tag_l2, $id_l1_2) ) ){       
+          foreach my $feature_l2 ( @{$hash_omniscient2->{'level2'}{$tag_l2}{$id_l1_2}}) {
+
+            my $id_l2 = lc($feature_l2->_tag_value('ID'));
+
+            # == LEVEL 3 == #
+
+            foreach my $tag_l3 (keys %{$hash_omniscient2->{'level3'}}){ 
+
+              if (exists_keys ($hash_omniscient2, ('level3', $tag_l3, $id_l2) ) ){ 
+                $hash_omniscient1->{'level3'}{$tag_l3}{$id_l2} = delete $hash_omniscient2->{'level3'}{$tag_l3}{$id_l2}; # save @l3
+              }
+            }
+          }
+
+          if ( ! exists_keys ( $hash_omniscient1, ('level2', $tag_l2, $id_l1_2 ) ) ){
+            $hash_omniscient1->{'level2'}{$tag_l2}{$id_l1_2} = delete $hash_omniscient2->{'level2'}{$tag_l2}{$id_l1_2}; # save @l2
+          }
+          else{
+            push @{$hash_omniscient1->{'level2'}{$tag_l2}{$id_l1_2}}, @{$hash_omniscient2->{'level2'}{$tag_l2}{$id_l1_2}};
+          }
+        }
+      }
+    }
+  }
+  return $hash_omniscient1;
+}
+
+# @Purpose: The hash of reference will be the Hash target (HashT). The nkept name will come from the hash of reference.
+# When an overlap is found, the ID/parent are fixed and we return 1 as a success !
+# @input: 4 => object(gene feature), hash(omniscient), hash(omniscient), hash(sortBySeq)
+# @output: 1 => undef || integer(1)
+sub find_overlap_between_geneFeature_and_sortBySeqId {
+  my ($geneFeature, $hash_source, $hashT, $hashT_sortBySeq )=@_;
+
+  my $tag = lc($geneFeature->primary_tag);
+  my $seqid = $geneFeature->seq_id;
+  my $strand = $geneFeature->strand;
+  my $gene_idS = $geneFeature->_tag_value('ID');
+
+  #find overlap
+  my $total_overlap=0;
+  my $nb_feat_overlap=0;
+  my @ListOverlapingGene=();
+    foreach my $gene_featureT ( @{$hashT_sortBySeq->{"$seqid$strand"}{$tag}}){
+
+      my $gene_idT = $gene_featureT->_tag_value('ID');
+
+
+      if($gene_idT eq $gene_idS){ next;} # avoid to compare same feature if we are checking same omniscient
+
+      my ($start1,$end1) = get_most_right_left_cds_positions($hashT,$gene_idT); # look at CDS because we want only ioverlapinng CDS
+      my ($start2,$end2) = get_most_right_left_cds_positions($hash_source,$gene_idS); # look at CDS becaus ewe want only ioverlapinng CDS
+
+      if( ($start2 <= $end1) and ($end2 >= $start1) ){ #feature overlap considering extrem start and extrem stop. It's just to optimise the next step. Avoid to do the next step every time. So at the end, that test (current one) could be removed
+                                                       # Even if true, they do not necessarly overlap on the spreded features
+            #now check at each CDS feature independently
+            if (_two_features_overlap_two_hashes($hash_source,$gene_idS, $hashT, $gene_idT)){
+              #print "These two features overlap without same id ! :\n".$geneFeature->gff_string."\n".$gene_featureT->gff_string."\n";
+              $nb_feat_overlap++;
+
+              push(@ListOverlapingGene, $gene_featureT);
+            }
+        }
+    }
+
+     # Now manage name if some feature overlap
+    if( $nb_feat_overlap > 0){
+      my $reference_feature = shift(@ListOverlapingGene);
+        push(@ListOverlapingGene, $geneFeature);
+        #print "$nb_feat_overlap overlapping feature found ! We will treat them now:\n";
+        #print "We decided to keep that one: ".$reference_feature->gff_string."\n";
+
+        my $gene_id_ref  = $reference_feature->_tag_value('ID');
+
+        #change level2 parent for feature of level2 that have a feature of level1 in $ListToRemove list
+        foreach my $featureToRemove (@ListOverlapingGene){
+
+          my $gene_id_to_remove  = lc($featureToRemove->_tag_value('ID'));
+
+          #######
+          #which hash the feature come from ?
+          my $currentHash=undef;
+          foreach my $tag_l1 (keys %{$hash_source->{'level1'}} ){ # primary_tag_key_level1 = gene or repeat etc...
+          if($hash_source->{'level1'}{$tag_l1}{$gene_id_to_remove} ){
+            $currentHash = $hash_source;
+          }
+        }
+        if(! $currentHash){$currentHash = $hashT;}
+        # ok now hash is choosen
+        ################
+
+          foreach my $tag_level2 (keys %{$currentHash->{'level2'}}){
+
+              if (exists_keys($currentHash, ('level2',$tag_level2,$gene_id_to_remove)) ){ # check if they have cds avoiding autovivification.
+
+              my @list_tmp_features = @{$currentHash->{'level2'}{$tag_level2}{$gene_id_to_remove}}; # As we will remove element of the list we cannot loop over it directly, we have to save the list in a temporary list;
+              foreach my $level2_feature (@list_tmp_features){ #replace Parent of each feature level2 by the new level1 reference
+                # Change parent feature
+                create_or_replace_tag($level2_feature,'Parent',$gene_id_ref);
+
+                #add it in other list
+                push (@{$currentHash->{'level2'}{$tag_level2}{lc($gene_id_ref)}},$level2_feature);
+
+                #remove mRNA from list <= not mandatory
+                my $mrna_id_to_remove = $level2_feature->_tag_value('ID');
+                my @tag_list=('all');
+                my @id_list=($gene_id_to_remove);my @id_list2=($mrna_id_to_remove);
+
+                remove_element_from_omniscient(\@id_list, \@id_list2, $currentHash, 'level2', 'false', \@tag_list);
+
+              }
+            }
+          }
+
+          foreach my $tag_level1 (keys %{$currentHash->{'level1'}}){ # remove the old feature level1 now
+            my $new_l1_feature = clone($reference_feature);
+            delete $currentHash->{'level1'}{$tag_level1}{$gene_id_to_remove}; # delete level1
+            $currentHash->{'level1'}{$tag_level1}{lc($gene_id_ref)} = $new_l1_feature;
+          }
+
+        } #END FEATURE TO HANDLE
+        ###
+        # check end and start of the new feature
+        my $gene_id=lc($reference_feature->_tag_value('ID'));
+        check_gene_positions($hashT, $gene_id);
+        return 1;
+    }
+    else{return undef;}
+}
+
+# @Purpose: Check if two genes have at least one mRNA isoform which overlap at cds level.
+# @input: 4 => hash(omniscient), string(gene identifier), hash(omniscient), string(gene identifier)
+# @output: 1 => undef || string(yes)
+sub _two_features_overlap_two_hashes{
+  my  ($hash1, $gene_id1, $hash2, $gene_id2)=@_;
+  my $resu=undef;
+
+  #check full CDS for each mRNA
+  foreach my $mrna_feature (@{$hash1->{'level2'}{'mrna'}{lc($gene_id1)}}){
+    foreach my $mrna_feature2 (@{$hash2->{'level2'}{'mrna'}{lc($gene_id2)}}){
+
+      my $mrna_id1 = $mrna_feature->_tag_value('ID');
+      my $mrna_id2 = $mrna_feature2->_tag_value('ID');
+
+      #check all cds pieces
+      foreach my $cds_feature1 (@{$hash1->{'level3'}{'cds'}{lc($mrna_id1)}}){
+        foreach my $cds_feature2 (@{$hash2->{'level3'}{'cds'}{lc($mrna_id2)}}){
+
+          if(($cds_feature2->start <= $cds_feature1->end) and ($cds_feature2->end >= $cds_feature1->start )){ # they overlap
+            $resu="yes";last;
+          }
+        }
+        if($resu){last;}
+      }
+      if($resu){last;}
+    }
+    if($resu){last;}
+  }
+  return $resu;
+}
 
 sub take_care_utr{
 
@@ -1032,6 +1195,7 @@ sub create_two_exon_lists {
   return \@list_exon_originalPred_sorted, \@list_exon_newPred_sorted;
 }
 
+#Check if feature overlap one position
 sub position_on_feature {
 
   my ($feature,$position)=@_;
@@ -1043,6 +1207,7 @@ sub position_on_feature {
   return $isOnSameExon;
 }
 
+#Check if feature overlap two positions (start and stop)
 sub two_positions_on_feature {
 
   my ($feature,$position1,$position2)=@_;
@@ -1054,15 +1219,16 @@ sub two_positions_on_feature {
   return $areOnSameExon;
 }
 
+# We do not use the official translate function from the PrimarySeqI object/lib because we want to keep track to the ORF positions too. So we have modified it consequently.
 sub translate_JD {
    my ($self,@args) = @_;
      my ($terminator, $unknown, $frame, $codonTableId, $complete,
-     $complete_codons, $throw, $codonTable, $orf, $start_codon, $no_start_by_aa, $offset);
+     $complete_codons, $throw, $codonTable, $orf, $start_codon, $offset);
 
    ## new API with named parameters, post 1.5.1
    if ($args[0] && $args[0] =~ /^-[A-Z]+/i) {
          ($terminator, $unknown, $frame, $codonTableId, $complete,
-         $complete_codons, $throw,$codonTable, $orf, $start_codon, $no_start_by_aa, $offset) =
+         $complete_codons, $throw,$codonTable, $orf, $start_codon, $offset) =
        $self->_rearrange([qw(TERMINATOR
                                                UNKNOWN
                                                FRAME
@@ -1073,7 +1239,6 @@ sub translate_JD {
                                                CODONTABLE
                                                ORF
                                                START
-                                               NOSTARTBYAA
                                                OFFSET)], @args);
    ## old API, 1.5.1 and preceding versions
    } else {
@@ -1123,7 +1288,7 @@ sub translate_JD {
          ## ignore frame if an ORF is supposed to be found
    my $orf_region;
    if ( $orf ) {
-            ($orf_region) = _find_orfs_nucleotide_JD( $self, $seq, $codonTable, $start_codon, $no_start_by_aa, $orf eq 'longest' ? 0 : 'first_only' );
+            ($orf_region) = $self->_find_orfs_nucleotide($seq, $codonTable, $start_codon, $orf eq 'longest' ? 0 : 'first_only' );
             $seq = $self->_orf_sequence( $seq, $orf_region );
    } else {
    ## use frame, error if frame is not 0, 1 or 2
@@ -1180,7 +1345,7 @@ sub translate_JD {
                     # description?
                     '-desc' => $self->desc(),
                     '-alphabet' => 'protein',
-                              '-verbose' => $self->verbose
+                    '-verbose' => $self->verbose
             );
     return $out, $orf_region;
 }
@@ -1209,86 +1374,13 @@ sub concatenate_feature_list{
    return $ExtremStart, $seq, $ExtremEnd;
 }
 
-sub _find_orfs_nucleotide_JD {
-    my ( $self, $sequence, $codon_table, $start_codon, $no_start_by_aa, $first_only ) = @_;
-    $sequence    = uc $sequence;
-    $start_codon = uc $start_codon if $start_codon;
-
-    my $is_start = $start_codon
-        ? sub { shift eq $start_codon }
-        : sub { $codon_table->is_start_codon( shift ) };
-
-    # stores the begin index of the currently-running ORF in each
-    # reading frame
-    my @current_orf_start = (-1,-1,-1);
-
-    #< stores coordinates of longest observed orf (so far) in each
-    #  reading frame
-    my @orfs;
-
-    # go through each base of the sequence, and each reading frame for each base
-    my $seqlen = CORE::length $sequence;
-    for( my $j = 0; $j <= $seqlen-3; $j++ ) {
-        my $frame = $j % 3;
-
-        my $this_codon = substr( $sequence, $j, 3 );
-        my $AA = $codon_table->translate($this_codon);
-
-        # if in an orf and this is either a stop codon or the last in-frame codon in the string
-        if ( $current_orf_start[$frame] >= 0 ) {
-            if ( _is_ter_codon_JD( $this_codon ) ||( my $is_last_codon_in_frame = ($j >= $seqlen-5)) ) {
-                # record ORF start, end (half-open), length, and frame
-                my @this_orf = ( $current_orf_start[$frame], $j+3, undef, $frame );
-                my $this_orf_length = $this_orf[2] = ( $this_orf[1] - $this_orf[0] );
-
-                $self->warn( "Translating partial ORF "
-                                 .$self->_truncate_seq( $self->_orf_sequence( $sequence,\@ this_orf ))
-                                 .' from end of nucleotide sequence'
-                            )
-                    if $first_only && $is_last_codon_in_frame;
-
-                return\@ this_orf if $first_only;
-                push @orfs,\@ this_orf;
-                $current_orf_start[$frame] = -1;
-            }
-        }
-        # if this is a start codon
-        elsif ($is_start->($this_codon)) {
-          if($no_start_by_aa){
-
-            if($AA ne $no_start_by_aa){
-              $current_orf_start[$frame] = $j;
-            }
-          }
-          else{
-            $current_orf_start[$frame] = $j;
-          }
-        }
-    }
-
-    return sort { $b->[2] <=> $a->[2] } @orfs;
-}
-
-# We can be sure it's a stop codon even with IUPAC
-sub _is_ter_codon_JD{
-  my ($codon) = @_;
-  $codon=lc($codon);
-  $codon =~ tr/u/t/;
-  my $is_ter_codon=undef;
-
-  if( ($codon eq 'tga') or ($codon eq 'taa') or ($codon eq 'tag') or ($codon eq 'tar') or ($codon eq 'tra') ){
-    $is_ter_codon="yes";
-  }
-  return $is_ter_codon;
-}
-
 __END__
 
 =head1 NAME
 
 gff3_fixFusion.pl -
 The script take a gff3 file as input. -
-The script looks for other ORF in UTRs (UTR3 and UTR%) of each gene model described in the gff file.
+The script looks for other ORF in UTRs (UTR3 and UTR5) of each gene model described in the gff file.
 Several ouput files will be written if you specify an output. One will contain the gene not modified (intact), 
 one the gene models fixed.
 
