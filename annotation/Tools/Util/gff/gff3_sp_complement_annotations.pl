@@ -12,9 +12,9 @@ use BILS::Handler::GXFhandler qw(:Ok);
 
 my $header = qq{
 ########################################################
-# BILS 2016 - Sweden                                   #  
-# jacques.dainat\@bils.se                               #
-# Please cite BILS (www.bils.se) when using this tool. #
+# NBIS 2016 - Sweden                                   #  
+# jacques.dainat\@nbis.se                               #
+# Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 };
 
@@ -58,8 +58,7 @@ if (! $ref or ! @opt_files ){
 # Manage output file #
 my $gffout;
 if ($outfile) {
-  $outfile=~ s/.gff//g;
-open(my $fh, '>', $outfile.".gff") or die "Could not open file '$outfile' $!";
+open(my $fh, '>', $outfile) or die "Could not open file '$outfile' $!";
   $gffout= Bio::Tools::GFF->new(-fh => $fh, -gff_version => 3 );
 }
 else{
@@ -103,7 +102,7 @@ foreach my $next_file (@opt_files){
   }
 
   ####### COMPLEMENT #######
-  complement_omniscients_by_size($hash_omniscient, $hash_omniscient2, $size_min);
+  complement_omniscients($hash_omniscient, $hash_omniscient2, $size_min);
   print ("\nComplement done !\n");
 
 
