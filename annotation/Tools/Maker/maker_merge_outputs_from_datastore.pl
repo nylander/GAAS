@@ -25,14 +25,14 @@ my $header = qq{
 ########################################################
 };
 
-my $outprefix = "maker_output_processed";
+my $output = undef;
 my $in = undef;
 my $help= 0;
 
 if ( !GetOptions(
     "help|h" => \$help,
     "i=s" => \$in,
-    "output|out|o=s" => \$outprefix))
+    "output|out|o=s" => \$output))
 
 {
     pod2usage( { -message => 'Failed to parse command line',
@@ -112,8 +112,17 @@ foreach my $makerDir (@inDir){
 	        die "Could not find datastore index ($datastore), exiting...\n";
 	}
 # --------------- check output folder ----------------------
-
-	my $outfolder = $outprefix."_$genomeName";
+	
+	my $outfolder = undef;
+	if ($output){
+		if ($nbDir == 1){
+			$outfolder = $output;
+		}
+		else{
+			$outfolder = $output."_$genomeName";
+		}
+	}
+	else{ $outfolder = "maker_output_processed_$genomeName";}
 	if (-d "$outfolder") {
 		print "The output directory <$outfolder> already exists, let's see if something is missing inside.\n";
 	} 
