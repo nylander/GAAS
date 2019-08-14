@@ -35,8 +35,6 @@ my $opt_BlastFile;
 my $opt_InterproFile;
 my $opt_name=undef;
 my $opt_nameU;
-my $opt_removeUTR;
-my $opt_removemRNAduplicated;
 my $opt_verbose=undef;
 my $opt_help = 0;
 my $opt_blastEvalue=1e-6;
