@@ -22,6 +22,7 @@ my $header = qq{
 my $outfile = undef;
 my $gff = undef;
 my $add_flag=undef;
+my $opt_dist=500;
 my $verbose = undef;
 my $help= 0;
 
@@ -30,6 +31,7 @@ if ( !GetOptions(
     "help|h" => \$help,
     "gff=s" => \$gff,
     "add_flag|af!" => \$add_flag,
+    "d|dist=i" => \$opt_dist,
     "v!" => \$verbose,
     "output|outfile|out|o=s" => \$outfile))
 
@@ -46,9 +48,9 @@ if ($help) {
                  -message => "$header\n" } );
 }
  
-if ( ! (defined($gff)) or !(defined($file_fasta)) ){
+if ( ! defined($gff) ){
     pod2usage( {
-           -message => "$header\nAt least 2 parameter is mandatory:\nInput reference gff file (--gff) and Input fasta file (--fasta)\n\n",
+           -message => "$header\nAt least 1 parameter is mandatory:\nInput reference gff file (--gff)\n\n",
            -verbose => 0,
            -exitval => 1 } );
 }
@@ -56,19 +58,12 @@ if ( ! (defined($gff)) or !(defined($file_fasta)) ){
 ######################
 # Manage output file #
 my $gffout;
-my $gffout_incomplete;
 if ($outfile) {
-  my ($filename,$path,$ext) = fileparse($outfile,qr/\.[^.]*/);
-  my $outputname = $filename.".gff3";
-  open(my $fh, '>', $outputname) or die "Could not open file '$outputname' $!";
+  open(my $fh, '>', $outfile) or die "Could not open file '$outfile' $!";
   $gffout= Bio::Tools::GFF->new(-fh => $fh, -gff_version => 3 );
-  $outputname = $filename."_incomplete.gff3";
-  open(my $fh, '>', $outputname) or die "Could not open file '$outputname' $!";
-  $gffout_incomplete= Bio::Tools::GFF->new(-fh => $fh, -gff_version => 3 );
 }
 else{
   $gffout = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 3);
-  $gffout_incomplete = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 3);
 }
 
                 #####################
@@ -78,163 +73,138 @@ else{
 
 ######################
 ### Parse GFF input #
-my ($hash_omniscient, $hash_mRNAGeneLink) = slurp_gff3_file_JD({ input => $gff
+my ($omniscient, $hash_mRNAGeneLink) = slurp_gff3_file_JD({ input => $gff
                                                               });
 print ("GFF3 file parsed\n");
 
-
-####################
-# index the genome #
-my $nbFastaSeq=0;
-my $db = Bio::DB::Fasta->new($file_fasta);
-my @ids      = $db->get_all_primary_ids;
-my %allIDs; # save ID in lower case to avoid cast problems
-foreach my $id (@ids ){$allIDs{lc($id)}=$id;}
-print ("Genome fasta parsed\n");
-####################
-
 #counters
-my $geneCounter=0;
+my $geneCounter_skip=0;
+my $geneCounter_ok=0;
+my $total=0;
 my @gene_id_ok;
 
+my $sortBySeq = gather_and_sort_l1_location_by_seq_id($omniscient);
 
-foreach my $ptag_l1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
-  my $nb_id = scalar @{$hash_omniscient->{'level1'}{$ptag_l1}};
-  foreach my $gene_id (keys %{$hash_omniscient->{'level1'}{$ptag_l1}}){ 
-    my $gene_feature = $hash_omniscient->{'level1'}{$ptag_l1}{$gene_id};
-    my $strand = $gene_feature->strand();
-    print "gene_id = $gene_id\n" if $verbose;
+foreach my $locusID ( keys %{$sortBySeq}){ # tag_l1 = gene or repeat etc...
 
-    my @level1_list=();
-    my @level2_list=();
-    my @level3_list=();
+  foreach my $tag_l1 ( keys %{$sortBySeq->{$locusID}} ) { 
 
-    my $ncGene=1;
-    foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
-      if ( exists_keys( $hash_omniscient, ('level2', $primary_tag_key_level2, $gene_id) ) ){
+    # Go through location from left to right ### !!
+    while ( @{$sortBySeq->{$locusID}{$tag_l1}} ){
+      $total++;
+
+      #location A
+      my $location = shift  @{$sortBySeq->{$locusID}{$tag_l1}};# This location will be updated on the fly
+      my $id_l1 = $location->[0];
+      #print "id_l1 $id_l1\n";
+
+      my $continue = 1;
+      my $overlap = 0;
+      my $jump = undef;
+      #loop to look at potential set of overlaping genes otherwise go through only once
+      while ( $continue ){
+
+        # Next location 
+        my $location2 = @{$sortBySeq->{$locusID}{$tag_l1}}[0];
+        my $id2_l1 = $location2->[0];
+        my $dist = $location2->[1] - $location->[2] + 1;
+        print "distance $id_l1 - id2_l1 = $dist\n" if ($verbose);
         
-        my $geneInc=undef;
-        foreach my $level2_feature ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$gene_id}}) {
-          my $start_missing=undef;
-          my $stop_missing=undef;
+        ############################
+        #deal with overlap
+        if ( ($location->[1] <= $location2->[2]) and ($location->[2] >= $location2->[1])){
+             
+              if( ! $overlap){
 
-          # get level2 id
-          my $level2_ID = lc($level2_feature->_tag_value('ID'));       
-
-          if ( exists_keys( $hash_omniscient, ('level3', 'cds', $level2_ID) ) ){
-            $ncGene=undef;
-
-            my $seqobj = extract_cds(\@{$hash_omniscient->{'level3'}{'cds'}{$level2_ID}}, $db);
-
-            #------------- check start -------------
-            if (! $skip_start_check){
-              my $start_codon = $seqobj->subseq(1,3);
-              if(! $codonTable->is_start_codon( $start_codon )){
-                print "start= $start_codon  is not a valid start codon\n" if ($verbose);
-                $start_missing="true";
-                if($add_flag){
-                  create_or_replace_tag($level2_feature, 'incomplete', '1');
-                }
-              }
-            }
-            #------------- check stop --------------
-            if (! $skip_stop_check){
-              my $seqlength  = length($seqobj->seq());
-              my $stop_codon = $seqobj->subseq($seqlength - 2, $seqlength) ;
-              
-              if(! $codonTable->is_ter_codon( $stop_codon )){
-                print "stop= $stop_codon is not a valid stop codon\n" if ($verbose);
-                $stop_missing="true";
-                if($add_flag){
-                  if($start_missing){
-                    create_or_replace_tag($level2_feature, 'incomplete', '3');
-                  }
-                  else{
-                    create_or_replace_tag($level2_feature, 'incomplete', '2');
+                foreach my $tag_level1 (keys %{$omniscient->{'level1'}}){
+                  if (exists_keys($omniscient, ('level1', $tag_level1, lc($id_l1) ) ) ){ 
+                    my $level1_feature = $omniscient->{'level1'}{$tag_level1}{lc($id_l1)};
+                    add_info($level1_feature, 'O', $verbose);
                   }
                 }
               }
-            }
-          }
-          else{ #No CDS
-            print "Not a coding rna (no CDS) we skip it";
-          }
-          if($start_missing or $stop_missing){
-            #Keep track counter
-            if ($start_missing and $stop_missing) {
-              $mrnaCounter{'3'}++;
-            }
-            elsif($start_missing){
-              $mrnaCounter{'1'}++;
-            }
-            else{
-              $mrnaCounter{'2'}++;
-            }
-            $geneInc="true";
-            print "$level2_ID\n";
-            if(! $add_flag){
-              push(@incomplete_mRNA, $level2_ID); # will be removed at the end
-              push(@level2_list, $level2_feature); # will be appended to omniscient_incomplete
-              foreach my $primary_tag_l3 (keys %{$hash_omniscient->{'level3'}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
-                if ( exists ($hash_omniscient->{'level3'}{$primary_tag_l3}{$level2_ID} ) ){
-                  push(@level3_list, @{$hash_omniscient->{'level3'}{$primary_tag_l3}{$level2_ID}})
+
+              $overlap=1;
+                       
+              foreach my $tag_level1 (keys %{$omniscient->{'level1'}}){
+                if (exists_keys($omniscient, ('level1', $tag_level1, lc($id2_l1) ) ) ){ 
+                  my $level1_feature = $omniscient->{'level1'}{$tag_level1}{lc($id2_l1)};
+                  add_info($level1_feature, 'O', $verbose);
                 }
               }
-            }     
+
+              if($location2->[2] < $location->[2]){
+                my $tothrow = shift  @{$sortBySeq->{$locusID}{$tag_l1}};# Throw location B. We still need to use location A to check the left extremity of the next locus
+                                                                          #location A  -------------------------                                --------------------------
+                                                                          #location B                ---------
+                $total++;
+                next;  
+              }
+              else{
+                                                                          # We need to use the location B to check the left extremity of the next locus
+                                                                          #location A  -------------------------                                --------------------------
+                                                                          #location B                ------------------------
+                $jump = 1;
+                last;
+              }
+        
+        }
+        #
+        ############################
+        $continue = 0;
+
+
+        print "after overlap check\n";
+        # locus distance is under minimum distance
+        if( $dist < $opt_dist)  {
+          print "$dist < $opt_dist\n";
+                  
+          foreach my $tag_level1 (keys %{$omniscient->{'level1'}}){
+            if (exists_keys($omniscient, ('level1', $tag_level1, lc($id_l1) ) ) ){ 
+              my $level1_feature = $omniscient->{'level1'}{$tag_level1}{lc($id_l1)};            
+              add_info($level1_feature, 'R'.$dist, $verbose);
+            }
+          }
+
+          foreach my $tag_level1 (keys %{$omniscient->{'level1'}}){
+            if (exists_keys($omniscient, ('level1', $tag_level1, lc($id2_l1) ) ) ){ 
+              my $level1_feature = $omniscient->{'level1'}{$tag_level1}{lc($id2_l1)};  
+              add_info($level1_feature, 'L'.$dist, $verbose);
+            }
           }
         }
-        if($geneInc){
-          $geneCounter++;
-          #Save the mRNA and parent and child features
-          if(! $add_flag){
-            @level1_list=($gene_feature);
-            append_omniscient(\%omniscient_incomplete, \@level1_list, \@level2_list, \@level3_list); 
+
+        # distance with next is ok but we have to check what was the result with the previous locus 
+        else{
+         foreach my $tag_level1 (keys %{$omniscient->{'level1'}}){
+            if (exists_keys($omniscient, ('level1', $tag_level1, lc($id_l1) ) ) ){ 
+              my $level1_feature = $omniscient->{'level1'}{$tag_level1}{lc($id_l1)};            
+              if(! $level1_feature->has_tag('low_dist')){
+                $geneCounter_ok ++;
+                push @gene_id_ok, lc($id_l1);
+              }
+            }
           }
         }
       }
     }
-    #after checking all mRNA of a gene
-    if($ncGene){
-      print "This is a non coding gene (no cds to any of its RNAs)";
-    }
   }
 }
 
-
-#END
-my $string_to_print="usage: $0 @copyARGV\n";
-$string_to_print .="Results:\n";
-
-if ($geneCounter) {
-  $string_to_print .="Number of gene affected: $geneCounter\n";
-  $string_to_print .="There are ".$mrnaCounter{3}." mRNAs without start and stop codons.\n";
-  $string_to_print .="There are ".$mrnaCounter{2}." mRNAs without stop codons.\n";
-  $string_to_print .="There are ".$mrnaCounter{1}." mRNAs without start codons.\n";
+if($add_flag){
+  print_omniscient($omniscient, $gffout); #print result
 }
 else{
-  $string_to_print .="No gene with incomplete mRNA!\n";
+  print_omniscient_from_level1_id_list ($omniscient, \@gene_id_ok, $gffout); #print result
 }
+
+#END
+my $string_to_print="usage: $0 @copyARGV\n".
+  "Results:\n".
+  "Total number investigated: $total\n".
+  "Number of skipped loci: $geneCounter_skip\n".
+  "Number of loci with distance to the surrounding loci over $opt_dist: $geneCounter_ok \n";
 print $string_to_print;
-
-if(! $add_flag){
-  #clean for printing
-  if (@incomplete_mRNA){
-    _check_all_level2_positions(\%omniscient_incomplete,0); # review all the feature L2 to adjust their start and stop according to the extrem start and stop from L3 sub features.
-    _check_all_level1_positions(\%omniscient_incomplete,0); 
-    
-    remove_omniscient_elements_from_level2_ID_list($hash_omniscient, \@incomplete_mRNA);
-    _check_all_level2_positions($hash_omniscient,0); # review all the feature L2 to adjust their start and stop according to the extrem start and stop from L3 sub features.
-    _check_all_level1_positions($hash_omniscient,0); # Check the start and end of level1 feature based on all features level2.
-  }
-}
-
-print_omniscient($hash_omniscient, $gffout); #print result
-
-if(@incomplete_mRNA){
-  print "Now print incomplete models:\n";
-  print_omniscient(\%omniscient_incomplete, $gffout_incomplete); #print result
-}
-
 print "Bye Bye.\n";
 #######################################################################################################################
         ####################
@@ -248,60 +218,29 @@ print "Bye Bye.\n";
                 ####
                  ##
 
-sub extract_cds{
-  my($feature_list, $db)=@_;
 
-  my @sortedList = sort {$a->start <=> $b->start} @$feature_list;
-  my $sequence="";
-  foreach my $feature ( @sortedList ){
-    $sequence .= get_sequence($db, $feature->seq_id, $feature->start, $feature->end);
+sub add_info{
+  my ($feature, $value, $verbose)=@_;
+
+  if($feature->has_tag('low_dist')){
+    $feature->add_tag_value('low_dist', $value);
+    print $feature->_tag_value('ID')." add $value\n" if ($verbose);
+  }
+  else{         
+    create_or_replace_tag($feature, 'low_dist', $value);
+    $geneCounter_skip++;
+    print $feature->_tag_value('ID')." create $value\n" if ($verbose);
   }
 
-  #create sequence object
-  my $seq  = Bio::Seq->new( '-format' => 'fasta' , -seq => $sequence);
-  
-  #check if need to be reverse complement
-  if($sortedList[0]->strand eq "-1" or $sortedList[0]->strand eq "-"){
-    $seq=$seq->revcom;
-  }
-  return $seq;
 }
-
-sub  get_sequence{
-  my  ($db, $seq_id, $start, $end) = @_;
-
-  my $sequence="";
-  my $seq_id_correct = undef;
-  if( exists $allIDs{lc($seq_id)}){
-      
-    $seq_id_correct = $allIDs{lc($seq_id)};
-
-    $sequence = $db->subseq($seq_id_correct, $start, $end);
-
-    if($sequence eq ""){
-      warn "Problem ! no sequence extracted for - $seq_id !\n";  exit;
-    }
-    if(length($sequence) != ($end-$start+1)){
-      my $wholeSeq = $db->subseq($seq_id_correct);
-      $wholeSeq = length($wholeSeq);
-      warn "Problem ! The size of the sequence extracted ".length($sequence)." is different than the specified span: ".($end-$start+1).".\nThat often occurs when the fasta file does not correspond to the annotation file. Or the index file comes from another fasta file which had the same name and haven't been removed.\n". 
-           "As last possibility your gff contains location errors (Already encountered for a Maker annotation)\nSupplement information: seq_id=$seq_id ; seq_id_correct=$seq_id_correct ; start=$start ; end=$end ; $seq_id sequence length: $wholeSeq )\n";
-    }
-  }
-  else{
-    warn "Problem ! ID $seq_id not found !\n";
-  }  
-
-  return $sequence;
-}
-
 __END__
 
 =head1 NAME
 
 gff3_sp_filter_by_locus_distance.pl -
 
-The script aims to remove loci that are too close to each other. (They might be only one locus fragmented during the annotation process)
+The script aims to remove or flag loci that are too close to each other. 
+Close loci are important to remove when training abinitio tools in order to train intergenic region properly. Indeed if intergenic region (surrouneded part of a locus) contain part of another locus, the training on intergenic part will be biased. 
 
 =head1 SYNOPSIS
 
@@ -321,9 +260,9 @@ Input GFF3 file that will be read
 The minimum inter-loci distance to allow.  No default (will not apply
 filter by default).
 
-=item B<--ad> or B<--add_flag>
+=item B<--add> or B<--add_flag>
 
-Instead of filter the result into two output files, write only one and add the flag <incomplete> in the gff.(tag = inclomplete, value = 1, 2, 3.  1=start missing; 2=stop missing; 3=both) 
+Instead of filter the result into two output files, write only one and add the flag <low_dist> in the gff.(tag = Lvalue or tag = Rvalue  where L is left and R right and the value is the distance with accordingle the left or right locus) 
 
 =item B<-o> , B<--output> , B<--out> or B<--outfile>
 
