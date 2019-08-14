@@ -52,7 +52,7 @@ if ( ! (defined($gff)) ){
 }
 
 #### IN / OUT
-my $out = IO::File->new();
+my $out;
 if ($opt_output) {
 
   if (-f $opt_output){
@@ -61,10 +61,12 @@ if ($opt_output) {
   if (-d $opt_output){
       print "The output directory choosen already exists. Please geve me another Name.\n";exit();
   }
+  mkdir $opt_output;
 
-  open($out, '>', $opt_output) or die "Could not open file '$opt_output' $!";
+  $out=IO::File->new(">".$opt_output."/report.txt" ) or croak( sprintf( "Can not open '%s' for writing %s", $opt_output."/report.txt", $! ));
   }
 else{
+  $out = IO::File->new();
   $out->fdopen( fileno(STDOUT), 'w' );
 }
 
@@ -197,7 +199,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
               $ontology_terms{$value}++;
               $ontology_term_l2_nb++;
               $l2_have_function=1;
-              $DB_omni_mrna{'Ontology_term'}{$id_mrna}++;
+              push @{$DB_omni_mrna{'Ontology_term'}{$id_mrna}}, $value;
               $DB_omni_gene{'Ontology_term'}{$id_gene}++;
               #print "l2 has tag ontology_term with value:".$value."\n";
             }
@@ -208,7 +210,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
             my @values = $level2_feature->get_tag_values('Dbxref');
             foreach my $tuple (@values){
               my ($type,$value) = split /:/,$tuple;
-              $DB_omni_mrna{$type}{$id_mrna}++;
+              push @{$DB_omni_mrna{$type}{$id_mrna}}, $value;
               $DB_omni_gene{$type}{$id_gene}++;
               $l2_have_function=1;
             }
@@ -223,6 +225,21 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
     }
     if($l1_have_function){
       $nbGeneWithFunction++;
+    }
+  }
+}
+
+#print result per type within dedicated file when output provided
+# create streamOutput
+if($opt_output){
+  foreach my $type (keys %DB_omni_mrna){
+    my $ostreamFunct = IO::File->new(); 
+    $ostreamFunct->open( $opt_output."/$type.txt", 'w' ) or
+        croak(
+            sprintf( "Can not open '%s' for writing %s", $opt_output."/$type.txt", $! )
+        );
+    foreach my $seq_id (keys %{$DB_omni_mrna{$type}}){
+      print $ostreamFunct $seq_id."\t".join( ',', @{$DB_omni_mrna{$type}{$seq_id}} )."\n";
     }
   }
 }
@@ -247,7 +264,7 @@ $stringPrint .= "|".$lineB."|\n";
 foreach my $type (keys %DB_omni_mrna){
     my $total_term_mRNA=0;
     foreach my $id_l2 (keys %{$DB_omni_mrna{$type}} ){
-      $total_term_mRNA+=$DB_omni_mrna{$type}{$id_l2};
+      $total_term_mRNA+=scalar @{$DB_omni_mrna{$type}{$id_l2}};
     }
     my $nbmRNA_with_term = keys %{$DB_omni_mrna{$type}};
     my $nbGenewith_term = keys %{$DB_omni_gene{$type}};
