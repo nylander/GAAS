@@ -98,7 +98,7 @@ foreach my $locusID ( keys %{$sortBySeq}){ # tag_l1 = gene or repeat etc...
       my $sorted_locations = _create_sorted_list_of_locations(\@{$sortBySeq->{$locusID}{$tag_l1}});
 
       # Go through location from left to right ### !!
-      for (my $i = 0; $i < scalar @$sorted_locations; $i++) {
+      while ( @sorted_locations ){
 
         my $location = shift @$sorted_locations;# This location will be updated on the fly
         my $id_l1_left = $location->[0];

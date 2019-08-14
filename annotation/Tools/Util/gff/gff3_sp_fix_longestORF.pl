@@ -1140,7 +1140,7 @@ sub _check_overlap_name_diff{
     foreach my $tag_l1 ( keys %{$sortBySeq->{$locusID}} ) { 
 
       # Go through location from left to right ### !!
-      for (my $i = 0; $i < scalar @{$sortBySeq->{$locusID}{$tag_l1}}; $i++) {
+      while ( @{$sortBySeq->{$locusID}{$tag_l1}} ){
 
         my $location = shift  @{$sortBySeq->{$locusID}{$tag_l1}};# This location will be updated on the fly
 

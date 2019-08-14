@@ -256,7 +256,7 @@ foreach my $locusID ( keys %{$omniscient1_sorted}){ # tag_l1 = protein_match mat
     # Go through location from left to right ### !!
     my @aligns;
     my $selected=undef;
-    for (my $i = 0; $i < scalar @{$omniscient1_sorted->{$locusID}{$tag_l1}}; $i++) {
+    while ( @{$omniscient1_sorted->{$locusID}{$tag_l1}} ){
 
       my $location = shift  @{$omniscient1_sorted->{$locusID}{$tag_l1}};# This location will be updated on the fly
       my $id1_l1 = lc($location->[0]);
@@ -265,7 +265,7 @@ foreach my $locusID ( keys %{$omniscient1_sorted}){ # tag_l1 = protein_match mat
         
         foreach my $tag2_l1 ( keys %{$omniscient2_sorted->{$locusID}} ) { 
              
-          for (my $j = 0; $j < scalar @{$omniscient2_sorted->{$locusID}{$tag2_l1}}; $j++) {
+          while ( @{$omniscient2_sorted->{$locusID}{$tag2_l1}} ){
 
             my $location2 = shift  @{$omniscient2_sorted->{$locusID}{$tag2_l1}};# This location will be updated on the fly
             my $id2_l1 = lc($location2->[0]);

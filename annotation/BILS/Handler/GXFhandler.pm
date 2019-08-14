@@ -2181,7 +2181,7 @@ sub _merge_overlap_features{
 			}
 
 			# Go through location from left to right ### 
-			for (my $i = 0; $i < scalar @{$sortBySeq->{$locusID}{$tag_l1}}; $i++) {
+			while ( @{$sortBySeq->{$locusID}{$tag_l1}} ){
 
 				my $feature_l1 = shift @{$sortBySeq->{$locusID}{$tag_l1}};
 				my $id_l1 = lc($feature_l1->_tag_value('ID'));
