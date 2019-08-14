@@ -308,7 +308,7 @@ foreach  my $tag (keys %introns){
 
 
 # remove temporary files
-#unlink $pathIntron;
+unlink $pathIntron;
 
       ######################### 
       ######### END ###########
