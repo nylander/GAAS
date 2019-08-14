@@ -13,9 +13,9 @@ use Bio::Seq;
 
 our $VERSION     = 1.00;
 our @ISA         = qw(Exporter);
-our @EXPORT_OK   = qw(get_most_right_left_cds_positions l2_has_cds l1_has_l3_type check_record_positions convert_omniscient_to_ensembl_style remove_l2_related_feature l2_identical group_l1IDs_from_omniscient complement_omniscients rename_ID_existing_in_omniscient keep_only_uniq_from_list2 check_gene_overlap_at_CDSthenEXON location_overlap_update location_overlap print_omniscient_as_match nb_feature_level1 check_gene_positions gather_and_sort_l1_location_by_seq_id_and_strand gather_and_sort_l1_by_seq_id gather_and_sort_l1_by_seq_id_and_strand webapollo_compliant extract_cds_sequence group_l1features_from_omniscient create_omniscient_from_idlevel2list get_feature_l2_from_id_l2_l1 remove_omniscient_elements_from_level2_feature_list remove_omniscient_elements_from_level2_ID_list featuresList_identik group_features_from_omniscient featuresList_overlap check_level1_positions check_level2_positions info_omniscient fil_cds_frame exists_keys remove_element_from_omniscient append_omniscient merge_omniscients remove_omniscient_elements_from_level1_id_list fill_omniscient_from_other_omniscient_level1_id print_omniscient_from_level1_id_list subsample_omniscient_from_level1_id_list check_if_feature_overlap remove_tuple_from_omniscient print_ref_list_feature print_omniscient create_or_replace_tag remove_element_from_omniscient_attributeValueBased get_longest_cds_level2);
+our @EXPORT_OK   = qw(get_most_right_left_cds_positions l2_has_cds l1_has_l3_type check_record_positions convert_omniscient_to_ensembl_style remove_l2_related_feature l2_identical group_l1IDs_from_omniscient complement_omniscients rename_ID_existing_in_omniscient keep_only_uniq_from_list2 check_gene_overlap_at_CDSthenEXON location_overlap_update location_overlap print_omniscient_as_match nb_feature_level1 check_gene_positions gather_and_sort_l1_location_by_seq_id gather_and_sort_l1_location_by_seq_id_and_strand gather_and_sort_l1_by_seq_id gather_and_sort_l1_by_seq_id_and_strand webapollo_compliant extract_cds_sequence group_l1features_from_omniscient create_omniscient_from_idlevel2list get_feature_l2_from_id_l2_l1 remove_omniscient_elements_from_level2_feature_list remove_omniscient_elements_from_level2_ID_list featuresList_identik group_features_from_omniscient featuresList_overlap check_level1_positions check_level2_positions info_omniscient fil_cds_frame exists_keys remove_element_from_omniscient append_omniscient merge_omniscients remove_omniscient_elements_from_level1_id_list fill_omniscient_from_other_omniscient_level1_id print_omniscient_from_level1_id_list subsample_omniscient_from_level1_id_list check_if_feature_overlap remove_tuple_from_omniscient print_ref_list_feature print_omniscient create_or_replace_tag remove_element_from_omniscient_attributeValueBased get_longest_cds_level2);
 our %EXPORT_TAGS = ( DEFAULT => [qw()],
-                 Ok    => [qw(get_most_right_left_cds_positions l2_has_cds l1_has_l3_type check_record_positions convert_omniscient_to_ensembl_style remove_l2_related_feature l2_identical group_l1IDs_from_omniscient complement_omniscients rename_ID_existing_in_omniscient keep_only_uniq_from_list2 check_gene_overlap_at_CDSthenEXON location_overlap_update location_overlap print_omniscient_as_match nb_feature_level1 check_gene_positions gather_and_sort_l1_location_by_seq_id_and_strand gather_and_sort_l1_by_seq_id gather_and_sort_l1_by_seq_id_and_strand webapollo_compliant extract_cds_sequence group_l1features_from_omniscient create_omniscient_from_idlevel2list get_feature_l2_from_id_l2_l1 remove_omniscient_elements_from_level2_feature_list remove_omniscient_elements_from_level2_ID_list featuresList_identik group_features_from_omniscient featuresList_overlap check_level1_positions check_level2_positions info_omniscient fil_cds_frame exists_keys remove_element_from_omniscient append_omniscient merge_omniscients remove_omniscient_elements_from_level1_id_list fill_omniscient_from_other_omniscient_level1_id print_omniscient_from_level1_id_list subsample_omniscient_from_level1_id_list check_if_feature_overlap remove_tuple_from_omniscient print_ref_list_feature print_omniscient create_or_replace_tag remove_element_from_omniscient_attributeValueBased get_longest_cds_level2)]);
+                 Ok    => [qw(get_most_right_left_cds_positions l2_has_cds l1_has_l3_type check_record_positions convert_omniscient_to_ensembl_style remove_l2_related_feature l2_identical group_l1IDs_from_omniscient complement_omniscients rename_ID_existing_in_omniscient keep_only_uniq_from_list2 check_gene_overlap_at_CDSthenEXON location_overlap_update location_overlap print_omniscient_as_match nb_feature_level1 check_gene_positions gather_and_sort_l1_location_by_seq_id gather_and_sort_l1_location_by_seq_id_and_strand gather_and_sort_l1_by_seq_id gather_and_sort_l1_by_seq_id_and_strand webapollo_compliant extract_cds_sequence group_l1features_from_omniscient create_omniscient_from_idlevel2list get_feature_l2_from_id_l2_l1 remove_omniscient_elements_from_level2_feature_list remove_omniscient_elements_from_level2_ID_list featuresList_identik group_features_from_omniscient featuresList_overlap check_level1_positions check_level2_positions info_omniscient fil_cds_frame exists_keys remove_element_from_omniscient append_omniscient merge_omniscients remove_omniscient_elements_from_level1_id_list fill_omniscient_from_other_omniscient_level1_id print_omniscient_from_level1_id_list subsample_omniscient_from_level1_id_list check_if_feature_overlap remove_tuple_from_omniscient print_ref_list_feature print_omniscient create_or_replace_tag remove_element_from_omniscient_attributeValueBased get_longest_cds_level2)]);
 =head1 SYNOPSIS
 
 
@@ -2702,6 +2702,29 @@ sub gather_and_sort_l1_location_by_seq_id_and_strand{
 	    	my $strand="+";
 	    	if($level1_feature->strand != 1){$strand = "-";}
 	    	my $position_l1=$level1_feature->seq_id."".$strand;
+	    	push ( @{$hash_sortBySeq{$position_l1}{$tag_level1}}, [$ID, int($level1_feature->start), int($level1_feature->end)] );
+        }
+
+        foreach my $position_l1 (keys %hash_sortBySeq){
+        	@{$hash_sortBySeq{$position_l1}{$tag_level1}} = sort { ncmp ( $a->[1], $b->[1] ) } @{$hash_sortBySeq{$position_l1}{$tag_level1}};
+        }
+	}
+	return \%hash_sortBySeq;
+}
+
+# @Purpose: Create a hash of level1 location (location = [level1ID,start,end]) sorted by feature type and localisation. A localisation is the sequence_id
+# @input: 1 => hash omniscient
+# @output: 1 => hash => LocusID->typeFeature =[ID,start,end]
+sub gather_and_sort_l1_location_by_seq_id{
+	my ($omniscient) = @_;
+
+	my %hash_sortBySeq;
+  
+  	foreach my $tag_level1 (keys %{$omniscient->{'level1'}}){
+    	foreach my $level1_id (keys %{$omniscient->{'level1'}{$tag_level1}}){
+	    	my $level1_feature = $omniscient->{'level1'}{$tag_level1}{$level1_id};
+	    	my $ID = $level1_feature->_tag_value('ID');
+	    	my $position_l1=$level1_feature->seq_id;
 	    	push ( @{$hash_sortBySeq{$position_l1}{$tag_level1}}, [$ID, int($level1_feature->start), int($level1_feature->end)] );
         }
 
