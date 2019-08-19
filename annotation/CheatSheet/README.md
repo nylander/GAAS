@@ -4,7 +4,7 @@ Collection of Cheat Sheets / overview / summaries
 # Table of Contents  
 
 * [Programming](#programming)  
-    * [Programming](#bash)
+    * [Bash](#bash)
     * [Perl](#perl)
     * [Python](#python)
 * [Formats](#formats)
