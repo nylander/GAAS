@@ -14,7 +14,7 @@
 1996 | Procrustes | Gene recognition via spliced sequence alignment. Gelfand MS, Mironov AA, Pevzner PA. Proc Natl Acad Sci U S A. 1996 Aug 20; 93(17):9061-6. | Evidence based | | |  | |
 1997 | Fgenes	| Solovyev | Ab initio | HMM, DP, LDA | Human | | |
 1997 | GeneFinder | | Ab initio | | | | Unpublished work |
-1997 | GenScan	| Burge and Karlin | Ab initio | | | | | |
+1997 | GenScan	| Burge, C. (1997). Identification of genes in human genomic DNA. Ph.D. thesis, Stanford University. ; Burge, C. & Karlin, S. (1997). Prediction of complete gene structures in genomic DNA. Journal of Molecular Biology, 268,78–94| Ab initio | | | | GENSCAN++ is a reimplementation of GENSCAN in C++ | |
 1997 | MZEF	| Identification of protein coding regions in the human genome by quadratic discriminant analysis. Zhang MQ. Proc Natl Acad Sci U S A. 1997 Jan 21; 94(2):565-8. | | | | | | |
 1997 | HMMGene | A. Krogh: In Proc. of Fifth Int. Conf. on Intelligent Systems for Molecular Biology, ed. Gaasterland, T. et al., Menlo Park, CA: AAAI Press, 1997, pp. 179-186. | Ab initio | Hmm | Vertebrate and C. elegans | | No download version. Webserver. | 
 1997 | GeneWise	| | Evidence based | | | | | 		
