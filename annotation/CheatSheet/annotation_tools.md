@@ -14,10 +14,10 @@
 1996 | Procrustes | Gene recognition via spliced sequence alignment. Gelfand MS, Mironov AA, Pevzner PA. Proc Natl Acad Sci U S A. 1996 Aug 20; 93(17):9061-6. | Evidence based | | |  | |
 1997 | Fgenes	| Solovyev | Ab initio | HMM, DP, LDA | Human | | |
 1997 | GeneFinder | | Ab initio | | | | Unpublished work |
-1997 | GenScan	| Burge, C. (1997). Identification of genes in human genomic DNA. Ph.D. thesis, Stanford University. ; Burge, C. & Karlin, S. (1997). Prediction of complete gene structures in genomic DNA. Journal of Molecular Biology, 268,78–94| Ab initio | | | | GENSCAN++ is a reimplementation of GENSCAN in C++ | |
+1997 | GenScan	| Burge, C. (1997). Identification of genes in human genomic DNA. Ph.D. thesis, Stanford University. ; Burge, C. & Karlin, S. (1997). Prediction of complete gene structures in genomic DNA. Journal of Molecular Biology, 268,78–94| Ab initio | | | | GENSCAN++ is a reimplementation of GENSCAN in C++ (~2001) | |
 1997 | MZEF	| Identification of protein coding regions in the human genome by quadratic discriminant analysis. Zhang MQ. Proc Natl Acad Sci U S A. 1997 Jan 21; 94(2):565-8. | | | | | | |
 1997 | HMMGene | A. Krogh: In Proc. of Fifth Int. Conf. on Intelligent Systems for Molecular Biology, ed. Gaasterland, T. et al., Menlo Park, CA: AAAI Press, 1997, pp. 179-186. | Ab initio | Hmm | Vertebrate and C. elegans | | No download version. Webserver. | 
-1997 | GeneWise	| | Evidence based | | | | | 		
+1997 | GeneWise	| unplublished | Evidence based | | | | | 		
 1997 | AAT (Analysis and Annotation Tool) | Huang et al. | Evidence based | | | | Include two paris of programs DPS/NAP and DDS/GAP |
 1997 | HMMgene | Krogh A. Two methods for improving performace of a HMM and their application for gene finding. In: Gaasterland T, Karp P, Karplus K, Ouzounis C, Sander C, Valencia A, editors. The fifth international conference on intelligent Systems for Molecular Biology. CA: Menlo Park: AAAI Press; 1997. pp. 179–186. | | | |  | |
 1998 | SIM4 | A computer program for aligning a cDNA sequence with a genomic DNA sequence. Florea L, Hartzell G, Zhang Z, Rubin GM, Miller W. Genome Res. 1998 Sep; 8(9):967-74. | | | |  | |
@@ -30,8 +30,10 @@
 1999 | Veil (the Viterbi Exon-Intron Locator) | Finding Genes in Human DNA with a Hidden Markov Model. J. Henderson, S.L. Salzberg, and K. Fasman. This describes the VEIL system for finding genes. Journal of Computational Biology 4:2 (1997), 127-141. | HMM | | | Eukaryote | | 
 2000 | Fgenesh+	|  Salamov AA, Solovyev VV Genome Res. 2000 Apr; 10(4):516-22.; Solovyev V.V. (2007) Statistical approaches in Eukaryotic gene prediction. In Handbook of Statistical genetics (eds. Balding D., Cannings C., Bishop M.), Wiley-Interscience; 3d edition, 1616 p. | HMM plus similar protein-based gene prediction | | | | | Fgenesh+ is a variant of Fgenesh that takes into account some information about similar proteins |
 2000 | GenomeScan | Computational inference of homologous gene structures in the human genome. Yeh RF, Lim LP, Burge CB, Genome Res. 2001 May; 11(5):803-16. | Comparative | | | | |	
+2000 | Rosetta | Batzoglou et al., 2000 | Comparative genomics	| | | | Two genomes |
+2000 | CEM | Bafna & Huson, 2000 | Comparative genomics	| | | | Two genomes |
 2001 | Eugene |	| Hybrid | Semi-Markov Conditional Random Fields / IMM, DP | Plant | | Can be seen as a combiner because collect information about splice sites and ATG has to be done outside the program. |
-2001 | Twinscan | | Comparative	| | | | Two genomes |
+2001 | Twinscan | Ian Korf,  Paul Flicek,  Daniel Duan,  Michael R. Brent. Bioinformatics, Volume 17, Issue suppl_1, June 2001, Pages S140–S148, https://doi.org/10.1093/bioinformatics/17.suppl_1.S140 | comparative-genomics-based	| | | | Two genomes. |
 2001 | GeneHacker Plus | | Ab initio | HMM | Prokaryote | 50 | |	
 2001 | GeneMarkS | | Ab initio | HMM | Prokaryote | 742 |	Self training |
 2001 | SGP-1 | SGP-1: prediction and validation of homologous genes based on sequence alignments. Wiehe T, Gebauer-Jung S, Mitchell-Olds T, Guigó R. Genome Res. 2001 Sep; 11(9):1574-83. | | | |  | |
@@ -50,9 +52,9 @@
 2005 | GenomeThreader	| G. Gremme, V. Brendel, M.E. Sparks, and S. Kurtz. Engineering a software tool for gene structure prediction in higher organisms. Information and Software Technology, 47(15):965-978, 2005 |  Evidence based  | Similarity | All | | The gene structure predictions are calculated using a similarity-based approach where additional cDNA/EST and/or protein sequences are used to predict gene structures via spliced alignments |
 2006 | MaGe | Vallenet D, Labarre L, Rouy Z, Barbe V, Bocs S, Cruveiller S, Lajus A, Pascal G, Scarpelli C, Medigue C: MaGe: a microbial genome annotation system supported by synteny results. Nucleic Acids Res. 2006, 34 (1): 53-65. 10.1093/nar/gkj406. | Pipeline | | Bacteria | | AMIGene for protein coding, RBSfinder for ribosome,tRNAscan-SE for tRNA, Rfam for small RNAs and riboswitches,etc. | sort of gff3 (not fully compatible. Define only gene and CDS feature. Gene do not have ID and CDS do not have parent attributes but share locus_tag attribute)		
 2006 | AUGUSTUS+ | | Hybrid | HMM | | |			
-2006 | N-SCAN	| | Comparative |	| | |	Several genomes |
-2006 | TWINSCAN_EST | Gross and Brent. J Comput Biol. 2006 Mar;13(2):379-93.  | Comparative+Evidence | | | | |
-2006 | N_Scan_EST | | Comparative+Evidence | | | | |		
+2006 | N-SCAN (a.k.a. TWINSCAN 3.0) | Annual International Conference on Research in Computational Molecular Biology RECOMB 2005: Research in Computational Molecular Biology pp 374-388. Gross and Brent. J Comput Biol. 2006 Mar;13(2):379-93.  | Ab initio + Comparative | | | | Several genomes | 
+2006 | TWINSCAN_EST | Wei C, Brent MR: Using ESTs to improve the accuracy of de novo gene prediction. BMC Bioinformatics. 2006, 7: 327-10.1186/1471-2105-7-327. | Ab initio + Comparative + Evidence | | | | |	
+2006 | N_Scan_EST | Wei C, Brent MR: Using ESTs to improve the accuracy of de novo gene prediction. BMC Bioinformatics. 2006, 7: 327-10.1186/1471-2105-7-327. | Ab initio + Comparative + Evidence | | | | |		
 2006 | Metagene	| | | | Metagenomic	| 294 | |	
 2006 | FGENESH++ | Solovyev V, Kosarev P, Seledsov I, Vorobyev D. (2006) Automatic annotation of eukaryotic genes, pseudogenes and promoters. Genome Biol. 2006;7 Suppl 1:S10.1-12. | | | | | automated version of FGENESH+ |
 2007 | Conrad | | Ab initio | | | | |				
