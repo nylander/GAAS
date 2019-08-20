@@ -2,7 +2,7 @@
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 1991 | GRAIL | Uberbacher and Mural	1991. Mural et al. 1992 | Ab initio (sensors + Neural network) | | | | No longer supported |
 1991 | NetGene | Brunak et al.	| Ab initio | | | | |
-1992 | GeneID |	Gugio et al. | Ab initio | WAM, HMM, PD, AD | | | |
+1992 | GeneID |	Gugio et al. | Ab initio / Neural Network | WAM, HMM, PD, AD | | | |
 1993 | Genemark | Borodovsky and McIninch | Ab initio | | | | |
 1994 | GRAIL-II | Recognizing exons in genomic sequence using GRAIL II. Xu Y, Mural R, Shah M, Uberbacher E. Genet Eng (N Y). 1994; 16():241-53. | | | | | |
 1994 | EcoParse	| | Ab initio | HMM | Prokaryote | 393 | |
@@ -42,9 +42,8 @@
 2003 | ETOPE | | Comparative | based on the ratio of non-synonymous to synonymous substitution rates between sequences from different genomes	| Eucaryote |	20	| Based on Genscan output |
 2003 | CRASA | A complexity reduction algorithm for analysis and annotation of large genomic sequences. Chuang TJ, Lin WC, Lee HC, Wang CW, Hsiao KL, Wang ZH, Shieh D, Lin SC, Ch'ang LY. Genome Res. 2003 Feb; 13(2):313-22. | | | |  | |
 2004 | Ensembl | | Evidence based	| | |	| Pipeline |
-2004 | GeneZilla/TIGRSCAN | |	Ab initio | | | |	No longer supported |
 2004 | GlimmerHMM	| Majoros, W.H., Pertea, M.,and Salzberg, S.L. TigrScan and GlimmerHMM: two open-source ab initio eukaryotic gene-finders Bioinformatics 2004 2878-2879. | Ab initio	| GHMM | eukaryote | | |		
-2004 | TigrScan | Majoros, W.H., Pertea, M.,and Salzberg, S.L. TigrScan and GlimmerHMM: two open-source ab initio eukaryotic gene-finders Bioinformatics 2004 2878-2879. | Ab initio	| GHMM | eukaryote | | |		
+2004 | GeneZilla (formerly "TIGRscan") | Majoros, W.H., Pertea, M.,and Salzberg, S.L. TigrScan and GlimmerHMM: two open-source ab initio eukaryotic gene-finders Bioinformatics 2004 2878-2879. | Ab initio	| GHMM | eukaryote | | 	No longer supported |		
 2004 | SNAP |	| Ab initio | | | |			
 2005 | JIGSAW	| |  Combiner | | | 137 | select the prediction whose structure best represents the consensus |
 2005 | GeneMark-ES | Lomsadze, A. Gene identification in novel eukaryotic genomes by self-training algorithm. Nucleic Acids Res. 33, 6494–6506 (2005) ; Ter-Hovhannisyan, V., Lomsadze, A., Chernoff, Y. O. & Borodovsky, M. Gene prediction in novel fungal genomes using an ab initio algorithm with unsupervised training. Genome Res. 18, 1979–1990 (2008). | Ab initio |  | Eucaryote | 243 / 200 | |
@@ -52,7 +51,7 @@
 2006 | MaGe | Vallenet D, Labarre L, Rouy Z, Barbe V, Bocs S, Cruveiller S, Lajus A, Pascal G, Scarpelli C, Medigue C: MaGe: a microbial genome annotation system supported by synteny results. Nucleic Acids Res. 2006, 34 (1): 53-65. 10.1093/nar/gkj406. | Pipeline | | Bacteria | | AMIGene for protein coding, RBSfinder for ribosome,tRNAscan-SE for tRNA, Rfam for small RNAs and riboswitches,etc. | sort of gff3 (not fully compatible. Define only gene and CDS feature. Gene do not have ID and CDS do not have parent attributes but share locus_tag attribute)		
 2006 | AUGUSTUS+ | | Hybrid | HMM | | |			
 2006 | N-SCAN	| | Comparative |	| | |	Several genomes |
-2006 | TWINSCAN_EST | | Comparative+Evidence | | | | |
+2006 | TWINSCAN_EST | Gross and Brent. J Comput Biol. 2006 Mar;13(2):379-93.  | Comparative+Evidence | | | | |
 2006 | N_Scan_EST | | Comparative+Evidence | | | | |		
 2006 | Metagene	| | | | Metagenomic	| 294 | |	
 2006 | FGENESH++ | Solovyev V, Kosarev P, Seledsov I, Vorobyev D. (2006) Automatic annotation of eukaryotic genes, pseudogenes and promoters. Genome Biol. 2006;7 Suppl 1:S10.1-12. | | | | | automated version of FGENESH+ |
@@ -63,6 +62,7 @@
 2008 | Maker | Cantarel, B. L. et al. Maker. Genome Res. 18, 188–96 (2008). | Combiner | | | 306	| It uses proteins, transcripts ... Abinitio: Augustus, Fgnesh,Genemark,snap|
 2008 | Evigan | Liu, Q., Mackey, A. J., Roos, D. S. & Pereira, F. C. N. Evigan: A hidden variable model for integrating gene evidence for eukaryotic gene prediction. Bioinformatics 24, 597–605 (2008). | Combiner |	Unsupervised learning method | | 52 | Choose the best possible set of exons and combine them in a gene model. Weight of different sources.|
 2008 | Evidence Modeler | Haas, B. J. et al. Automated eukaryotic gene structure annotation using EVidenceModeler and the Program to Assemble Spliced Alignments. Genome Biol. 9, R7 (2008). | Combiner | | | | choose the best possible set of exons and combine them in a gene model weight of different sources. Evidence based chooser. | 
+2008 | Chemgenome2.0 | Poonam Singhal, B. Jayaram, Surjit B. Dixit and David L. Beveridge. Prokaryotic Gene Finding based on Physicochemical Characteristics of Codons Calculated from Molecular Dynamics Simulations.Biophysical Journal,2008,Volume:94 Issue:11, 4173-4183 ] |	Ab initio |	 | Procaryote | | Prokaryotic Gene Finding Based on Physicochemical Characteristics of Codons Calculated from Molecular Dynamics Simulations | |
 2009 | mGene | Schweikert, G. et al. mGene: accurate SVM-based gene finding with an application to nematode genomes. Genome Res. 19, 2133–43 (2009). | Ab initio | SVM	| | 66 | No longer supported |
 2009 | Orphelia | |	Ab initio |	Neural network | Metagenomic | 78 | | |
 2009 | DAWGPAWS | Estill, J. C. & Bennetzen, J. L. The DAWGPAWS pipeline for the annotation of genes and transposable elements in plant genomes. Plant Methods 5, 1–11 (2009). | | | Eukaryote / Plant  | | pipeline for the annotation of genes and transposable elements in plant genomes | |
