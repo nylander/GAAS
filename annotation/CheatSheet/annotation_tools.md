@@ -14,7 +14,7 @@
 1996 | Procrustes | Gene recognition via spliced sequence alignment. Gelfand MS, Mironov AA, Pevzner PA. Proc Natl Acad Sci U S A. 1996 Aug 20; 93(17):9061-6. | Evidence based | | |  | |
 1997 | Fgenes	| Solovyev | Ab initio | HMM, DP, LDA | Human | | |
 1997 | GeneFinder | | Ab initio | | | | Unpublished work |
-1997 | GenScan	| Burge, C. (1997). Identification of genes in human genomic DNA. Ph.D. thesis, Stanford University. ; Burge, C. & Karlin, S. (1997). Prediction of complete gene structures in genomic DNA. Journal of Molecular Biology, 268,78–94| Ab initio | | | | GENSCAN++ is a reimplementation of GENSCAN in C++ (~2001) | |
+1997 | GenScan	| Burge, C. (1997). Identification of genes in human genomic DNA. Ph.D. thesis, Stanford University. ; Burge, C. & Karlin, S. (1997). Prediction of complete gene structures in genomic DNA. Journal of Molecular Biology, 268,78–94| Ab initio | GHMM | | | GENSCAN++ is a reimplementation of GENSCAN in C++ (~2001) | |
 1997 | MZEF	| Identification of protein coding regions in the human genome by quadratic discriminant analysis. Zhang MQ. Proc Natl Acad Sci U S A. 1997 Jan 21; 94(2):565-8. | | | | | | |
 1997 | HMMGene | A. Krogh: In Proc. of Fifth Int. Conf. on Intelligent Systems for Molecular Biology, ed. Gaasterland, T. et al., Menlo Park, CA: AAAI Press, 1997, pp. 179-186. | Ab initio | Hmm | Vertebrate and C. elegans | | No download version. Webserver. | 
 1997 | GeneWise	| unplublished | Evidence based | | | | | 		
@@ -36,13 +36,13 @@
 2001 | Twinscan | Ian Korf,  Paul Flicek,  Daniel Duan,  Michael R. Brent. Bioinformatics, Volume 17, Issue suppl_1, June 2001, Pages S140–S148, https://doi.org/10.1093/bioinformatics/17.suppl_1.S140 | comparative-genomics-based	| | | | Two genomes. |
 2001 | GeneHacker Plus | | Ab initio | HMM | Prokaryote | 50 | |	
 2001 | GeneMarkS | | Ab initio | HMM | Prokaryote | 742 |	Self training |
-2001 | SGP-1 | SGP-1: prediction and validation of homologous genes based on sequence alignments. Wiehe T, Gebauer-Jung S, Mitchell-Olds T, Guigó R. Genome Res. 2001 Sep; 11(9):1574-83. | | | |  | |
+2001 | SGP-1 (Syntenic Gene Prediction) | SGP-1: prediction and validation of homologous genes based on sequence alignments. Wiehe T, Gebauer-Jung S, Mitchell-Olds T, Guigó R. Genome Res. 2001 Sep; 11(9):1574-83. | Comparative | | vertebrates and plants | | Dual genomes |
 2001 | Spidey | Spidey: a tool for mRNA-to-genomic alignments. Wheelan SJ, Church DM, Ostell JM. Genome Res. 2001 Nov; 11(11):1952-7. | | | |  | |
 2002 | GAZE	| Howe, K. L. et al. GAZE : A Generic Framework for the Integration of Gene-Prediction Data by Dynamic Programming. 1418–1427 (2002). doi:10.1101/gr.149502 | Comparative / combiner | | | | |		
-2003 | SLAM	| M. Alexandersson, S. Cawley, and L. Pachter. 2003. SLAM: Cross-species gene finding and alignment with a generalized pair hidden Markov model. Genome Res., 13:496-502. | Comparative |	GHMM | Eukaryote | 187 | |
+2003 | SLAM	| M. Alexandersson, S. Cawley, and L. Pachter. 2003. SLAM: Cross-species gene finding and alignment with a generalized pair hidden Markov model. Genome Res., 13:496-502. | Comparative |	GHMM | Eukaryote | 187 | Dual genome |
 2003 | SGP2 | G. Parra, P. Agarwal, J.F. Abril, T. Wiehe, J.W. Fickett, and R. Guigo. 2003. Comparative gene prediction in human and mouse. Genome Res., 13:108-117 | Ab initio | | Eukaryote |	|  |
 2003 | EasyGene | | Ab initio |	HMM, H | Prokaryote |	153	| |
-2003 | ETOPE | | Comparative | based on the ratio of non-synonymous to synonymous substitution rates between sequences from different genomes	| Eucaryote |	20	| Based on Genscan output |
+2003 | ETOPE | Anton Nekrutenko,  Wen-Yu Chung,  Wen-Hsiung Li. Nucleic Acids Research, Volume 31, Issue 13, 1 July 2003, Pages 3564–3567, https://doi.org/10.1093/nar/gkg597 | Comparative / evolutionary | based on the ratio of non-synonymous to synonymous substitution rates between sequences from different genomes	| Eucaryote |	20	| Based on Genscan output. It doesn't predict exons but rather validate exon predicted by other tools. |
 2003 | CRASA | A complexity reduction algorithm for analysis and annotation of large genomic sequences. Chuang TJ, Lin WC, Lee HC, Wang CW, Hsiao KL, Wang ZH, Shieh D, Lin SC, Ch'ang LY. Genome Res. 2003 Feb; 13(2):313-22. | | | |  | |
 2004 | Ensembl | | Evidence based	| | |	| Pipeline |
 2004 | GlimmerHMM	| Majoros, W.H., Pertea, M.,and Salzberg, S.L. TigrScan and GlimmerHMM: two open-source ab initio eukaryotic gene-finders Bioinformatics 2004 2878-2879. | Ab initio	| GHMM | eukaryote | | |		
