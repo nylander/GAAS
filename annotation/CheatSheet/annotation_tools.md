@@ -10,7 +10,7 @@
 1995 | Fgeneh (Find gene in human)	| Solovyev VV, Salamov AA, Lawrence CB (1995) Identification of human gene structure using linear discriminant functions and dynamic programming. Proceedings/International Conference on Intelligent Systems for Molecular Biology; ISMB International Conference on Intelligent Systems for Molecular Biology 3: 367–375 | Ab initio | HMM, DP, LDA | Human | | Finds single exon only |
 1995 | Geneparser | Snyder EE, Stormo GD J Mol Biol. 1995 Apr 21; 248(1):1-18. | Ab initio | | |  | |
 1996 | GeneHacker	| Yada.T , Hirosawa.M DNA Res., 3, 335-361 (1996). Syst. Mol. Biol. pp.252-260 (1996). Syst. Mol. Biol. pp.354-357 (1997).. | ab initio | Markov model | Procaryote | | |			
-1996 | Genie	| Kulp et al. | Hybrid | | | | |			
+1996 | Genie	| Kulp, D.; Haussler, D.; Reese, M. G.; and Eeckman, F. H. 1996. A generalized hidden Markov model for the recognition of human genes in DNA. In D.J. States et al., ed., Proc. Conf. on Intelligent Systems in Molecular Biology, 134–142. Menlo Park, CA: AAAI Press. | Hybrid | GHMM + neural networks | | | |			
 1996 | Procrustes | Gene recognition via spliced sequence alignment. Gelfand MS, Mironov AA, Pevzner PA. Proc Natl Acad Sci U S A. 1996 Aug 20; 93(17):9061-6. | Evidence based | | |  | |
 1997 | Fgenes	| Solovyev | Ab initio | HMM, DP, LDA | Human | | |
 1997 | GeneFinder | | Ab initio | | | | Unpublished work |
