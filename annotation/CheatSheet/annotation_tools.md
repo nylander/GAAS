@@ -38,6 +38,7 @@
 2001 | GeneMarkS | | Ab initio | HMM | Prokaryote | 742 |	Self training |
 2001 | SGP-1 (Syntenic Gene Prediction) | SGP-1: prediction and validation of homologous genes based on sequence alignments. Wiehe T, Gebauer-Jung S, Mitchell-Olds T, Guigó R. Genome Res. 2001 Sep; 11(9):1574-83. | Comparative | | vertebrates and plants | | Dual genomes. Uses pairwise genomic alignments to find syntenic loci; evaluates a coding and splice model in these loci. |
 2001 | Spidey | Spidey: a tool for mRNA-to-genomic alignments. Wheelan SJ, Church DM, Ostell JM. Genome Res. 2001 Nov; 11(11):1952-7. | | | |  | |
+2002 | DOUBLESCAN | Meyer IMM, Durbin R. 2002. Comparative ab initio prediction of gene structures using pair HMMs. Bioinformatics 18:1309–18 | comparative | PHMM (pair HMM) | |  | Uses a pair HMM to simultaneously predict gene structures and conservation in two aligned sequences |
 2002 | AGenDA (Alignment-based Gene-Detection Algorithm) | Oliver Rinner and Burkhard Morgenstern. AGenDA: Gene Prediction by Com- parative Sequence Analysis. Silica Biology, 2:4673-4680, 2002. | comparative | | Eukaryote |  | Based on pair-wise alignments created by CHAOS and DIALIGN |
 2002 | GAZE	| Howe, K. L. et al. GAZE : A Generic Framework for the Integration of Gene-Prediction Data by Dynamic Programming. 1418–1427 (2002). doi:10.1101/gr.149502 | Comparative / combiner | | | | |		
 2003 | EvoGene	| Pedersen JS, Hein J. 2003. Gene finding with a hidden Markov model of genome structure and evolution. Bioinformatics 19:219–27 | Comparative / evolutionary |	 Evolutionary Hidden Markov Model (EHMM) |  |  | Phylogenetic HMM that performs ab initio prediction of genes across a multiple-sequence alignment (more than two genomes), making use of phylogenetic information |
@@ -56,14 +57,15 @@
 2005 | GeneMark-ES | Lomsadze, A. Gene identification in novel eukaryotic genomes by self-training algorithm. Nucleic Acids Res. 33, 6494–6506 (2005) ; Ter-Hovhannisyan, V., Lomsadze, A., Chernoff, Y. O. & Borodovsky, M. Gene prediction in novel fungal genomes using an ab initio algorithm with unsupervised training. Genome Res. 18, 1979–1990 (2008). | Ab initio |  | Eucaryote | 243 / 200 | |
 2005 | GenomeThreader	| G. Gremme, V. Brendel, M.E. Sparks, and S. Kurtz. Engineering a software tool for gene structure prediction in higher organisms. Information and Software Technology, 47(15):965-978, 2005 |  Evidence based  | Similarity | All | | The gene structure predictions are calculated using a similarity-based approach where additional cDNA/EST and/or protein sequences are used to predict gene structures via spliced alignments |
 2006 | MaGe | Vallenet D, Labarre L, Rouy Z, Barbe V, Bocs S, Cruveiller S, Lajus A, Pascal G, Scarpelli C, Medigue C: MaGe: a microbial genome annotation system supported by synteny results. Nucleic Acids Res. 2006, 34 (1): 53-65. 10.1093/nar/gkj406. | Pipeline | | Bacteria | | AMIGene for protein coding, RBSfinder for ribosome,tRNAscan-SE for tRNA, Rfam for small RNAs and riboswitches,etc. | sort of gff3 (not fully compatible. Define only gene and CDS feature. Gene do not have ID and CDS do not have parent attributes but share locus_tag attribute)		
-2006 | AUGUSTUS+ | | Hybrid | HMM | | |			
-2006 | N-SCAN (a.k.a. TWINSCAN 3.0) | Annual International Conference on Research in Computational Molecular Biology RECOMB 2005: Research in Computational Molecular Biology pp 374-388. Gross and Brent. J Comput Biol. 2006 Mar;13(2):379-93.  | Ab initio + Comparative | | | | Can use more than 2 genomes | 
-2006 | TWINSCAN_EST | Wei C, Brent MR: Using ESTs to improve the accuracy of de novo gene prediction. BMC Bioinformatics. 2006, 7: 327-10.1186/1471-2105-7-327. | Ab initio + Comparative + Evidence | | | | |	
+2006 | DOGFISH (for ‘detection of genomic features in sequence homologies’) | Carter D, Durbin R. 2006. Vertebrate gene finding from multiple-species alignments using a two-level strategy. Genome Biol. 7(Suppl. 1):S6.1–12 | Comparative | HMM | vertebrate |  | Two-step program that combines a classifier that scores potential splice sites using a multiple-sequence alignment and an ab initio gene predictor that makes use of the scores from the classifier to predict gene structures. More than two genomes possible. |		
+2006 | AUGUSTUS+ | | Hybrid | HMM | | |	|	
+2006 | N-SCAN (a.k.a. TWINSCAN 3.0) | Annual International Conference on Research in Computational Molecular Biology RECOMB 2005: Research in Computational Molecular Biology pp 374-388 ; Gross SS, Brent MR. 2006. Using multiple alignments to improve gene prediction. J. Comput. Biol. 13:379–93.  | Comparative | | | | Can use more than 2 genomes (Extends the TWINSCAN model to N genomes) | 
+2006 | TWINSCAN_EST | Wei C, Brent MR: Using ESTs to improve the accuracy of de novo gene prediction. BMC Bioinformatics. 2006, 7: 327-10.1186/1471-2105-7-327. | Ab initio + Comparative + Evidence | | | | Two genome |	
 2006 | N_Scan_EST | Wei C, Brent MR: Using ESTs to improve the accuracy of de novo gene prediction. BMC Bioinformatics. 2006, 7: 327-10.1186/1471-2105-7-327. | Ab initio + Comparative + Evidence | | | | |		
 2006 | Metagene	| | | | Metagenomic	| 294 | |	
 2006 | FGENESH++ | Solovyev V, Kosarev P, Seledsov I, Vorobyev D. (2006) Automatic annotation of eukaryotic genes, pseudogenes and promoters. Genome Biol. 2006;7 Suppl 1:S10.1-12. | | | | | automated version of FGENESH+ |
 2007 | Conrad | DeCaprio, D. et al. Conrad: gene prediction using conditional random fields. Genome Res. 17, 1389–1398 (2007). |  comparative | semi-Markov conditional random fields (SMCRFs) | | | first comparative gene predictor based on SMCRFs. Can use more than 2 genomes |
-2007 | Contrast | Gross SS, Do CB, Sirota M, Batzoglou S. 2007. CONTRAST: a discriminative, phylogeny-free approach to multiple informant de novo gene prediction. Genome Biol. 8:R269. | Comparative | CRF | | 90 | Can also incorporate information from EST alignment. Can use more than 2 genomes |
+2007 | Contrast | Gross SS, Do CB, Sirota M, Batzoglou S. 2007. CONTRAST: a discriminative, phylogeny-free approach to multiple informant de novo gene prediction. Genome Biol. 8:R269. | Comparative | CRF | | 90 | Can also incorporate information from EST alignment. Can use more than 2 genomes. Uses a combination of SVM and CRF predictors, providing a big boost over traditional HMMs |
 2007 | Genomix	| | | | |	1 | |
 2008 | SCGPred | SCGPred: a score-based method for gene structure prediction by combining multiple sources of evidence. Li X, Ren Q, Weng Y, Cai H, Zhu Y, Zhang Y Genomics Proteomics Bioinformatics. 2008 Dec; 6(3-4):175-85. | Combiner | | Eukaryote | | automated eukaryotic gene structure annonator that computes weighted consensus gene structure based on multiple sources of available evidence |	
 2008 | Maker | Cantarel, B. L. et al. Maker. Genome Res. 18, 188–96 (2008). | Combiner | | | 306	| It uses proteins, transcripts ... Abinitio: Augustus, Fgnesh,Genemark,snap|
@@ -106,26 +108,32 @@ __Legend:__
 Hybrid = ab initio and evidence based;  
 Comparative = genome sequence comparison  
   
-  
-CHMM: class HMM  
+CRF: conditional random field; HMM
+SVM: support vector machine.
+CHMM: class Markov model  
 DP: dynamic programming  
-GHMM: generalized HMM  
-HMM: hidden MM  
-IMM: Interpolated MM   
+HMM: hidden Markov model
+PHMM: pair HMM
+GHMM: generalized HMM 
+GPHMM: generalized pair HMM
+EHMM: evolutionary HMM
+phyloHMM: phylogenetic HMM ()
+IMM: Interpolated Markov model   
 MDD: maximal dependence decomposition  
 ML: maximum likelihood   
 MM: Markov Model  
 NN: Neural Networks   
 WAM: weight array matrix  
 LDA: Linear Discriminant Analysis  
-(baczkowski review)  
+
 
 _____________________
 __Interesting publications__  
 
 [Rogic, S., Mackworth, A. K., & Ouellette, F. B. (2001). Evaluation of gene-finding programs on mammalian sequences. Genome research, 11(5), 817-32.](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC311133/#B39)  
 [Goodswen, S. J., Kennedy, P. J., & Ellis, J. T. (2012). Evaluating high-throughput ab initio gene finders to discover proteins encoded in eukaryotic pathogen genomes missed by laboratory techniques. PloS one, 7(11), e50609.](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3511556/)  
-[Chowdhury, B., Garai, A., & Garai, G. (2017). An optimized approach for annotation of large eukaryotic genomic sequences using genetic algorithm. BMC bioinformatics, 18(1), 460. doi:10.1186/s12859-017-1874-7](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5655831/)  
+[Chowdhury, B., Garai, A., & Garai, G. (2017). An optimized approach for annotation of large eukaryotic genomic sequences using genetic algorithm. BMC bioinformatics, 18(1), 460. doi:10.1186/s12859-017-1874-7](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5655831/)
+(baczkowski review)  
 
 
 __Interesting books__  
