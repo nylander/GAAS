@@ -1,4 +1,4 @@
-List of Genome Annotation tools
+List of genome annotation tools
 ===========================
 
 | year	| Tool name | Publication | Type	| Method | Organism | Nb citation (pubmed 2016) | Comments | Output Format |
