@@ -57,6 +57,7 @@
 2005 | ExonHunter | Bronislava Drejova. Evidence Combination in Hidden Markov Models for Gene Prediction. PhD thesis, the University of Waterloo, 2005. Broii.a Brejova, Daniel G. Brown, Ming Li, and Tomas Vinaf. ExonHunter: a comprehensive approach to gene finding. Bioinformatics, 21 Suppl. 1:i57- i65, 2005.	| Ab initio: Comparative + evidence driven | GHMM | | | use genomic sequences, expressed sequence tags and protein databases of related species |
 2005 | JIGSAW	| Jonathan E. Allen and Steven L. Salzberg. JIGSAW: Integration of Multiple Sources of Evidence for Gene Prediction. Bioinformatics, 21:3596- 3603, 2005. |  Combiner |  GHMM-like algorithm | | 137 | select the prediction whose structure best represents the consensus |
 2005 | GeneMark-ES | Lomsadze, A. Gene identification in novel eukaryotic genomes by self-training algorithm. Nucleic Acids Res. 33, 6494–6506 (2005) ; Ter-Hovhannisyan, V., Lomsadze, A., Chernoff, Y. O. & Borodovsky, M. Gene prediction in novel fungal genomes using an ab initio algorithm with unsupervised training. Genome Res. 18, 1979–1990 (2008). | Ab initio |  | Eucaryote | 243 / 200 | |
+2005 | BGF (Beijing Gene Finder) | Li, H. et al. Test data sets and evaluation of gene prediction programs on the rice genome. J Comp Sci Tech 20, 446–453 (2005). | Ab initio | semi HMM | Plant (Eukaryote in general?) | | |
 2005 | TWAIN | Majoros WH, Pertea M, Salzberg SL. Efficient implementation of a generalized pair hidden Markov model for comparative gene finding. Bioinformatics. 2005;21(9):1782–1788.  | comparative | GPHMM | |  | Dual genome |
 2005 | GenomeThreader	| G. Gremme, V. Brendel, M.E. Sparks, and S. Kurtz. Engineering a software tool for gene structure prediction in higher organisms. Information and Software Technology, 47(15):965-978, 2005 |  Evidence based  | Similarity | All | | The gene structure predictions are calculated using a similarity-based approach where additional cDNA/EST and/or protein sequences are used to predict gene structures via spliced alignments |
 2006 | MaGe | Vallenet D, Labarre L, Rouy Z, Barbe V, Bocs S, Cruveiller S, Lajus A, Pascal G, Scarpelli C, Medigue C: MaGe: a microbial genome annotation system supported by synteny results. Nucleic Acids Res. 2006, 34 (1): 53-65. 10.1093/nar/gkj406. | Pipeline | | Bacteria | | AMIGene for protein coding, RBSfinder for ribosome,tRNAscan-SE for tRNA, Rfam for small RNAs and riboswitches,etc. | sort of gff3 (not fully compatible. Define only gene and CDS feature. Gene do not have ID and CDS do not have parent attributes but share locus_tag attribute)		
@@ -114,23 +115,23 @@ Comparative = genome sequence comparison
   
 
 
-CHMM: class Markov model
-CRF: conditional random field; HMM
-DBN: Dynamic Bayes network
+CHMM: class Markov model  
+CRF: conditional random field; HMM  
+DBN: Dynamic Bayes network  
 DP: dynamic programming  
-EHMM: evolutionary HMM
-GHMM: generalized HMM 
-GPHMM: generalized pair HMM
-HMM: hidden Markov model
-IMM: Interpolated Markov model
-LDA: Linear Discriminant Analysis
+EHMM: evolutionary HMM  
+GHMM: generalized HMM  
+GPHMM: generalized pair HMM  
+HMM: hidden Markov model  
+IMM: Interpolated Markov model  
+LDA: Linear Discriminant Analysis  
 MDD: maximal dependence decomposition  
-ML: maximum likelihood   
-MM: Markov Model  
-NN: Neural Networks
-PHMM: pair HMM
-phyloHMM: phylogenetic HMM
-SVM: support vector machine
+ML: maximum likelihood    
+MM: Markov Model   
+NN: Neural Networks  
+PHMM: pair HMM  
+phyloHMM: phylogenetic HMM  
+SVM: support vector machine  
 WAM: weight array matrix  
   
 
