@@ -17,7 +17,7 @@
 1997 | GenScan	| Burge, C. (1997). Identification of genes in human genomic DNA. Ph.D. thesis, Stanford University. ; Burge, C. & Karlin, S. (1997). Prediction of complete gene structures in genomic DNA. Journal of Molecular Biology, 268,78–94| Ab initio | GHMM | | | GENSCAN++ is a reimplementation of GENSCAN in C++ (~2001) | |
 1997 | MZEF	| Identification of protein coding regions in the human genome by quadratic discriminant analysis. Zhang MQ. Proc Natl Acad Sci U S A. 1997 Jan 21; 94(2):565-8. | | | | | | |
 1997 | HMMGene | A. Krogh: In Proc. of Fifth Int. Conf. on Intelligent Systems for Molecular Biology, ed. Gaasterland, T. et al., Menlo Park, CA: AAAI Press, 1997, pp. 179-186. | Ab initio | Hmm | Vertebrate and C. elegans | | No download version. Webserver. | 
-1997 | GeneWise	| unplublished | Evidence based | | | | | 		
+1997 | GeneWise	| unplublished. Birney, E. and Durbin, R. 1997. Wise2. http://www.sanger.ac.uk/Software/Wise2. | Evidence based | | | | | 		
 1997 | AAT (Analysis and Annotation Tool) | Huang et al. | Evidence based | | | | Include two paris of programs DPS/NAP and DDS/GAP |
 1997 | HMMgene | Krogh A. Two methods for improving performace of a HMM and their application for gene finding. In: Gaasterland T, Karp P, Karplus K, Ouzounis C, Sander C, Valencia A, editors. The fifth international conference on intelligent Systems for Molecular Biology. CA: Menlo Park: AAAI Press; 1997. pp. 179–186. | | | |  | |
 1998 | SIM4 | A computer program for aligning a cDNA sequence with a genomic DNA sequence. Florea L, Hartzell G, Zhang Z, Rubin GM, Miller W. Genome Res. 1998 Sep; 8(9):967-74. | | | |  | |
