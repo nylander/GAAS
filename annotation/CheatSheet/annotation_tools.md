@@ -55,7 +55,7 @@
 2004 | SNAP |	Korf, I. Gene finding in novel genomes. BMC Bioinformatics 5, 59 (2004) | Ab initio | GHMM | | | |
 2004 | ExoniPhy |	Siepel A, Haussler D. 2004. Computational identification of evolutionarily conserved exons. In Proceedings of the Eighth Annual International Conference on Research in Computational Molecular Biology, ed.Gusfield D, Bourne P, Istrail S, Pevzner P, Waterman M, pp. 177–86. New York: Assoc. Comput. Mach. | Comparative / evolutionary | phylo-HMM | | | Phylogenetic HMM that performs ab initio predictions across a multiple-sequence alignment |
 2005 | ExonHunter | Bronislava Drejova. Evidence Combination in Hidden Markov Models for Gene Prediction. PhD thesis, the University of Waterloo, 2005. Broii.a Brejova, Daniel G. Brown, Ming Li, and Tomas Vinaf. ExonHunter: a comprehensive approach to gene finding. Bioinformatics, 21 Suppl. 1:i57- i65, 2005.	| Ab initio: Comparative + evidence driven | GHMM | | | use genomic sequences, expressed sequence tags and protein databases of related species |
-2005 | JIGSAW	| Jonathan E. Allen and Steven L. Salzberg. JIGSAW: Integration of Multiple Sources of Evidence for Gene Prediction. Bioinformatics, 21:3596- 3603, 2005. |  Combiner | | | 137 | select the prediction whose structure best represents the consensus |
+2005 | JIGSAW	| Jonathan E. Allen and Steven L. Salzberg. JIGSAW: Integration of Multiple Sources of Evidence for Gene Prediction. Bioinformatics, 21:3596- 3603, 2005. |  Combiner |  GHMM-like algorithm | | 137 | select the prediction whose structure best represents the consensus |
 2005 | GeneMark-ES | Lomsadze, A. Gene identification in novel eukaryotic genomes by self-training algorithm. Nucleic Acids Res. 33, 6494–6506 (2005) ; Ter-Hovhannisyan, V., Lomsadze, A., Chernoff, Y. O. & Borodovsky, M. Gene prediction in novel fungal genomes using an ab initio algorithm with unsupervised training. Genome Res. 18, 1979–1990 (2008). | Ab initio |  | Eucaryote | 243 / 200 | |
 2005 | TWAIN | Majoros WH, Pertea M, Salzberg SL. Efficient implementation of a generalized pair hidden Markov model for comparative gene finding. Bioinformatics. 2005;21(9):1782–1788.  | comparative | GPHMM | |  | Dual genome |
 2005 | GenomeThreader	| G. Gremme, V. Brendel, M.E. Sparks, and S. Kurtz. Engineering a software tool for gene structure prediction in higher organisms. Information and Software Technology, 47(15):965-978, 2005 |  Evidence based  | Similarity | All | | The gene structure predictions are calculated using a similarity-based approach where additional cDNA/EST and/or protein sequences are used to predict gene structures via spliced alignments |
@@ -70,9 +70,10 @@
 2007 | Conrad | DeCaprio, D. et al. Conrad: gene prediction using conditional random fields. Genome Res. 17, 1389–1398 (2007). |  comparative | semi-Markov conditional random fields (SMCRFs) | | | first comparative gene predictor based on SMCRFs. Can use more than 2 genomes |
 2007 | Contrast | Gross SS, Do CB, Sirota M, Batzoglou S. 2007. CONTRAST: a discriminative, phylogeny-free approach to multiple informant de novo gene prediction. Genome Biol. 8:R269. | Comparative | CRF | | 90 | Can also incorporate information from EST alignment. Can use more than 2 genomes. Uses a combination of SVM and CRF predictors, providing a big boost over traditional HMMs |
 2007 | Genomix	| | | | |	1 | |
+2007 | GLEAN	| Elsik, C.G. et al. Creating a honey bee consensus gene set. Genome Biol. 8, R13 (2007). | combiner | HMM | Eukaryote | | use an unsupervised learning method |
 2008 | SCGPred | SCGPred: a score-based method for gene structure prediction by combining multiple sources of evidence. Li X, Ren Q, Weng Y, Cai H, Zhu Y, Zhang Y Genomics Proteomics Bioinformatics. 2008 Dec; 6(3-4):175-85. | Combiner | | Eukaryote | | automated eukaryotic gene structure annonator that computes weighted consensus gene structure based on multiple sources of available evidence |	
 2008 | Maker | Cantarel, B. L. et al. Maker. Genome Res. 18, 188–96 (2008). | Combiner | | | 306	| It uses proteins, transcripts ... Abinitio: Augustus, Fgnesh,Genemark,snap|
-2008 | Evigan | Liu, Q., Mackey, A. J., Roos, D. S. & Pereira, F. C. N. Evigan: A hidden variable model for integrating gene evidence for eukaryotic gene prediction. Bioinformatics 24, 597–605 (2008). | Combiner |	Unsupervised learning method | | 52 | Choose the best possible set of exons and combine them in a gene model. Weight of different sources.|
+2008 | Evigan | Liu, Q., Mackey, A. J., Roos, D. S. & Pereira, F. C. N. Evigan: A hidden variable model for integrating gene evidence for eukaryotic gene prediction. Bioinformatics 24, 597–605 (2008). | Combiner |	Dynamic Bayes networks (DBNs) | Eukaryote | 52 | Choose the best possible set of exons and combine them in a gene model. Weight of different sources. Unsupervised learning method |
 2008 | Evidence Modeler | Haas, B. J. et al. Automated eukaryotic gene structure annotation using EVidenceModeler and the Program to Assemble Spliced Alignments. Genome Biol. 9, R7 (2008). | Combiner | | | | choose the best possible set of exons and combine them in a gene model weight of different sources. Evidence based chooser. | 
 2008 | Chemgenome2.0 | Poonam Singhal, B. Jayaram, Surjit B. Dixit and David L. Beveridge. Prokaryotic Gene Finding based on Physicochemical Characteristics of Codons Calculated from Molecular Dynamics Simulations.Biophysical Journal,2008,Volume:94 Issue:11, 4173-4183 ] |	Ab initio |	 | Procaryote | | Prokaryotic Gene Finding Based on Physicochemical Characteristics of Codons Calculated from Molecular Dynamics Simulations | |
 2009 | mGene | Schweikert, G. et al. mGene: accurate SVM-based gene finding with an application to nematode genomes. Genome Res. 19, 2133–43 (2009). | Ab initio | SVM	| | 66 | No longer supported |
@@ -111,23 +112,27 @@ __Legend:__
 Hybrid = ab initio and evidence based = HMM-based gene prediction tool using extrinsic evidence
 Comparative = genome sequence comparison  
   
+
+
+CHMM: class Markov model
 CRF: conditional random field; HMM
-SVM: support vector machine.
-CHMM: class Markov model  
+DBN: Dynamic Bayes network
 DP: dynamic programming  
-HMM: hidden Markov model
-PHMM: pair HMM
+EHMM: evolutionary HMM
 GHMM: generalized HMM 
 GPHMM: generalized pair HMM
-EHMM: evolutionary HMM
-phyloHMM: phylogenetic HMM ()
-IMM: Interpolated Markov model   
+HMM: hidden Markov model
+IMM: Interpolated Markov model
+LDA: Linear Discriminant Analysis
 MDD: maximal dependence decomposition  
 ML: maximum likelihood   
 MM: Markov Model  
-NN: Neural Networks   
+NN: Neural Networks
+PHMM: pair HMM
+phyloHMM: phylogenetic HMM
+SVM: support vector machine
 WAM: weight array matrix  
-LDA: Linear Discriminant Analysis  
+  
 
 
 _____________________
