@@ -89,6 +89,7 @@
 2011 | GenSAS | Lee T, Peace C, Jung S, Zheng P, Main D, Cho I (2011) GenSAS: an online integrated genome sequence annotation pipeline. In: 4th International conference on biomedical engineering and informatics (BMEI), Shanghai, 2011, pp. 1967–1973. doi: 10.1109/BMEI.2011.6098712 | pipeline | | | An online integrated genome sequence annotation pipeline | |
 2012 | eCRAIG | | | | | 4 | |	
 2013 | Eugene-P | Next-generation Annotation of Prokaryotic Genomes with EuGene-P: Application to Sinorhizobium meliloti 2011. E. Sallet et al. DNA Res. 2013 | | | | Prokaryote | |
+2014 | OMIGA (Optimized Maker-Based Insect Genome Annotation) | Liu J. Xiao H. Huang S. Li F. OMIGA: Optimized Maker-Based Insect Genome Annotation Mol. Genet. Genomics  2014 289 567 573 | pipeline (MAKER) | Augustus,Snap,GeneMark| Insect | | |
 2014 | GeneMark-ET| Lomsadze, A., Burns, P. D. & Borodovsky, M. Integration of mapped RNA-Seq reads into automatic training of eukaryotic gene finding algorithm. 42, 1–8 (2014). | Ab initio | HMM | Eukaryote | 10 | Self training |
 2014 | Prokka | Seemann T., Prokka: rapid prokaryotic genome annotation. Bioinformatics 2014 Jul 15;30(14):2068-9. PMID:24642063 | pipeline | Ab initio + evidence-based for functional annotation | prokaryote | | https://github.com/tseemann/prokka Do structural and functional annotation | .gff, .gbk, .fna, .faa, .ffn, .sqn, .fsa, .tbl, .err, .log, .txt, .tsv
 2015 | Ipred | Zickmann, F. & Renard, B. Y. IPred - integrating ab initio and evidence based gene predictions to improve prediction accuracy. BMC Genomics 16, 134 (2015). | Combiner evidence-based | | | | choose the best possible set of exons and combine them in a gene model. Evidence based chooser. Can also model gene form evidence only. |
@@ -102,6 +103,7 @@
 2018 | FunGAP | Min B, Grigoriev IV, Choi IG. FunGAP: Fungal Genome Annotation Pipeline using evidence-based gene model evaluation. Bioinformatics (Oxford, England). 2017;33(18):2936–7. | pipeline | | |  | |
 2018 | BRAKER2 | | | | |  | |	
 2018 | G-OnRamp | | Ab-initio Web-based | Augustus,GlimmerHMM,SNAP | |  | |
+2019 | GAAP | Jinhwa Kong, Sun Huh, Jung-Im Won, Jeehee Yoon, Baeksop Kim, and Kiyong Kim. GAAP: A Genome Assembly + Annotation Pipeline. BioMed Research International, Volume 2019, Article ID 4767354, 12 pages | pipeline| Augustus,EVM,MAKER,PASA | |  | Genome Assembly + Annotation Pipeline |
 ? | GISMO | | | | |  | |	
 ? | RBFN | | | | |  | |	
 ? | ZUPLS | | | | |  | |
