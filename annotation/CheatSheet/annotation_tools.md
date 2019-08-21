@@ -8,7 +8,7 @@
 1994 | EcoParse	| | Ab initio | HMM | Prokaryote | 393 | |
 1994 | GeneLang | Dong and Searls | Ab initio | Linguistic method HMM, PD, WAM | Eukaryote | | | |
 1995 | Fgeneh (Find gene in human)	| Solovyev VV, Salamov AA, Lawrence CB (1995) Identification of human gene structure using linear discriminant functions and dynamic programming. Proceedings/International Conference on Intelligent Systems for Molecular Biology; ISMB International Conference on Intelligent Systems for Molecular Biology 3: 367–375 | Ab initio | HMM, DP, LDA | Human | | Finds single exon only |
-1995 | Geneparser | Snyder EE, Stormo GD J Mol Biol. 1995 Apr 21; 248(1):1-18. | Ab initio | | |  | |
+1995 | Geneparser | Snyder EE, Stormo GD J Mol Biol. 1995 Apr 21; 248(1):1-18. | Ab initio | DP com-bined with a neural network program | |  | |
 1996 | GeneHacker	| Yada.T , Hirosawa.M DNA Res., 3, 335-361 (1996). Syst. Mol. Biol. pp.252-260 (1996). Syst. Mol. Biol. pp.354-357 (1997).. | ab initio | Markov model | Procaryote | | |			
 1996 | Genie	| Kulp, D.; Haussler, D.; Reese, M. G.; and Eeckman, F. H. 1996. A generalized hidden Markov model for the recognition of human genes in DNA. In D.J. States et al., ed., Proc. Conf. on Intelligent Systems in Molecular Biology, 134–142. Menlo Park, CA: AAAI Press. | Hybrid | GHMM + neural networks | | | |			
 1996 | Procrustes | Gene recognition via spliced sequence alignment. Gelfand MS, Mironov AA, Pevzner PA. Proc Natl Acad Sci U S A. 1996 Aug 20; 93(17):9061-6. | Evidence based | | |  | |
@@ -21,11 +21,11 @@
 1997 | AAT (Analysis and Annotation Tool) | Huang et al. | Evidence based | | | | Include two paris of programs DPS/NAP and DDS/GAP |
 1998 | SIM4 | A computer program for aligning a cDNA sequence with a genomic DNA sequence. Florea L, Hartzell G, Zhang Z, Rubin GM, Miller W. Genome Res. 1998 Sep; 8(9):967-74. | | | |  | |
 1998 | GAIA	| GAIA: framework annotation of genomic sequence. Bailey LC Jr, Fischer S, Schug J, Crabtree J, Gibson M, Overton GC. Genome Res. 1998 Mar; 8(3):234-50. | homology-based | | | | | 		
-1998 | MORGAN (Multi-frame Optimal Rule-based Gene ANalyzer) | Salzberg S, Delcher AL, Fasman KH, Henderson J. J Comput Biol. 1998 Winter; 5(4):667-80. | | | | | Hybrid tool combining decision trees with dynamic programming and signal sensor algorithm |	
+1998 | MORGAN (Multi-frame Optimal Rule-based Gene ANalyzer) | Salzberg S, Delcher AL, Fasman KH, Henderson J. J Comput Biol. 1998 Winter; 5(4):667-80. | Abinitio | DP algorithm in combination with a decision tree program | | | Hybrid tool combining decision trees with dynamic programming and signal sensor algorithm |	
 1998 | GeneMark.hmm | Lukashin, A. V & Borodovsky, M. GeneMark.hmm: new solutions for gene finding. Nucleic Acids Res. 26, 1107–1115 (1998). | Ab initio | HMM | Prokaryote | 1334 | Self training |
 1999 | Fgenesh | Solovyev and Salamov | HMM | | | programs that have organism-specific parameters for human, Drosophila, plants, yeast, and nematode | | |
 1999 | Glimmer | Delcher et al. | | | Prokartyote | | |
-1999 | GlimmerM | Salzberg,S.L., Pertea,M., Delcher,A.L., Gardner,M.J. and Tettelin,H. (1999) Interpolated Markov models for eukaryotic gene finding. Genomics, 59, 24–31. | | | Small eukaryote | | developed to find genes in the malaria parasite Plasmodium falciparum. |
+1999 | GlimmerM | Salzberg,S.L., Pertea,M., Delcher,A.L., Gardner,M.J. and Tettelin,H. (1999) Interpolated Markov models for eukaryotic gene finding. Genomics, 59, 24–31. | Abinito | IMM | Small eukaryote | | developed to find genes in the malaria parasite Plasmodium falciparum. |
 1999 | Veil (the Viterbi Exon-Intron Locator) | Finding Genes in Human DNA with a Hidden Markov Model. J. Henderson, S.L. Salzberg, and K. Fasman. This describes the VEIL system for finding genes. Journal of Computational Biology 4:2 (1997), 127-141. | HMM | | | Eukaryote | | 
 2000 | Fgenesh+	|  Salamov AA, Solovyev VV Genome Res. 2000 Apr; 10(4):516-22.; Solovyev V.V. (2007) Statistical approaches in Eukaryotic gene prediction. In Handbook of Statistical genetics (eds. Balding D., Cannings C., Bishop M.), Wiley-Interscience; 3d edition, 1616 p. | HMM plus similar protein-based gene prediction | | | | | Fgenesh+ is a variant of Fgenesh that takes into account some information about similar proteins |
 2000 | Rosetta | Batzoglou et al., 2000 | Comparative genomics	| | | | Two genomes. Uses pairwise genomic alignments to find regions of homology; incorporates a splice junction and exon length model. |
