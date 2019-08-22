@@ -172,11 +172,12 @@ __Interesting publications__
 [Rogic, S., Mackworth, A. K., & Ouellette, F. B. (2001). Evaluation of gene-finding programs on mammalian sequences. Genome research, 11(5), 817-32.](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC311133/#B39)  
 [Goodswen, S. J., Kennedy, P. J., & Ellis, J. T. (2012). Evaluating high-throughput ab initio gene finders to discover proteins encoded in eukaryotic pathogen genomes missed by laboratory techniques. PloS one, 7(11), e50609.](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3511556/)  
 [Chowdhury, B., Garai, A., & Garai, G. (2017). An optimized approach for annotation of large eukaryotic genomic sequences using genetic algorithm. BMC bioinformatics, 18(1), 460. doi:10.1186/s12859-017-1874-7](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5655831/)  
+Alice Carolyn McHardy Andreas Kloetgen. Finding Genes in Genome Sequence. Bioinformatics pp 271-291  
 (baczkowski review)  
 
 
 __Interesting books__  
-Principles of Gene Manipulation and Genomics. De Sandy B. Primrose, Richard Twyman
+Principles of Gene Manipulation and Genomics. De Sandy B. Primrose, Richard Twyman  
 
 
 
