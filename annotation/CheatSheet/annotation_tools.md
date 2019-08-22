@@ -63,6 +63,7 @@ List of genome annotation tools
 2003 | CRASA | A complexity reduction algorithm for analysis and annotation of large genomic sequences. Chuang TJ, Lin WC, Lee HC, Wang CW, Hsiao KL, Wang ZH, Shieh D, Lin SC, Ch'ang LY. Genome Res. 2003 Feb; 13(2):313-22. | | | |  | |
 2003 | YACOP | Tech M, Merkl R (2003) YACOP: enhanced gene prediction obtained by a combination of existing methods. In Silico Biol 3:441–451 | combiner: abinitio + evidence	| Utilizes Glimmer, Critica and Orpheus | Prokaryote / Archaea | | |
 2003 | ZCurve | Guo FB, Ou HY, Zhang CT (2003) ZCURVE: a new system for recognizing protein-coding genes in bacterial and archaeal genomes. Nucleic Acids Res 31:1780–1789 | abinitio	| correlation of dinucleotides | Prokaryote / Archaea |	| Uses the “Z-transform” of DNA as the information source for classification |
+2003 | Eugene'Hom | Foissac S, Bardou P, Moisan A, Cros M, Schiex T. EuGene'Hom: a generic similarity-based gene finder using multiple homologous sequences. Nucleic Acids Res 2003; 31: 3742-3745. | Evidence-based | | Eukaryote | | |
 2004 | GeneWise | GeneWise and Genomewise. Birney E, Clamp M, Durbin R. Genome Res. 2004 May; 14(5):988-95. | Hybrid | | |	| HMM-based gene prediction tool using extrinsic evidence |
 2004 | Ensembl | | Pipeline Evidence based	| | |	| Pipeline |
 2004 | RescueNet | Mahony S, McInerney JO, Smith TJ, Golden A (2004) Gene prediction using the Self-Organizing Map: automatic generation of multiple gene models. BMC Bioinformatics 5:23 | Ab initio, evidence | | |	Prokaryote, Archaea| Unsupervised discovery of multiple gene classes using a self-organizing map. No exact start/stop prediction |
@@ -119,6 +120,7 @@ List of genome annotation tools
 2013 | GIIRA (Gene Identification Incorporating RNA-Seq data and Ambiguous reads) | Zickmann F, Lindner MS, Renard BY (2013) GIIRA–RNA-Seq driven gene finding incorporating ambiguous reads. Bioinformatics 30:606–613 | abinitio evidence driven  | maximum-flow approach | Eukaryote, Prokaryote |  |  Based on the observed mapping coverage, GIIRA identifies candidate genes that are refined in further validating steps. |	
 2013 | Eugene-P | Next-generation Annotation of Prokaryotic Genomes with EuGene-P: Application to Sinorhizobium meliloti 2011. E. Sallet et al. DNA Res. 2013 | | | | Prokaryote | |
 2013 | MetaGUN | Liu Y, Guo J, Hu G, Zhu H (2013) Gene prediction in metagenomic fragments based on the SVM algorithm. BMC Bioinformatics 14:S12 | abinitio | SVM-based. Phylogenetic binning and assignment of protein sequences to each bin | Metagenome |  | |
+2014 | ZUPLS | Song, K., Tong, T., and Wu, F. (2014). Predicting essential genes in prokaryotic genomes using a linear method: ZUPLS. Integr. Biol. 6, 460–469. doi: 10.1039/c3ib40241j |  | Z-curve | Prokaryote |  | |
 2014 | OMIGA (Optimized Maker-Based Insect Genome Annotation) | Liu J. Xiao H. Huang S. Li F. OMIGA: Optimized Maker-Based Insect Genome Annotation Mol. Genet. Genomics  2014 289 567 573 | pipeline (MAKER) | Augustus,Snap,GeneMark| Insect | | |
 2014 | GeneMark-ET| Lomsadze, A., Burns, P. D. & Borodovsky, M. Integration of mapped RNA-Seq reads into automatic training of eukaryotic gene finding algorithm. 42, 1–8 (2014). | Ab initio | HMM | Eukaryote | 10 | Self training |
 2014 | Prokka | Seemann T., Prokka: rapid prokaryotic genome annotation. Bioinformatics 2014 Jul 15;30(14):2068-9. PMID:24642063 | pipeline | Ab initio + evidence-based for functional annotation | prokaryote | | https://github.com/tseemann/prokka Do structural and functional annotation | .gff, .gbk, .fna, .faa, .ffn, .sqn, .fsa, .tbl, .err, .log, .txt, .tsv
@@ -136,8 +138,6 @@ List of genome annotation tools
 2018 | BRAKER2 | | | | |  | |	
 2018 | G-OnRamp | | Ab-initio Web-based | Augustus,GlimmerHMM,SNAP | |  | |
 2019 | GAAP | Jinhwa Kong, Sun Huh, Jung-Im Won, Jeehee Yoon, Baeksop Kim, and Kiyong Kim. GAAP: A Genome Assembly + Annotation Pipeline. BioMed Research International, Volume 2019, Article ID 4767354, 12 pages | pipeline| Augustus,EVM,MAKER,PASA | |  | Genome Assembly + Annotation Pipeline |
-? | ZUPLS | | | | |  | |
-? | Eugene'Hom | | | | |  | |
 | year	| Tool name | Publication | Type	| Method | Organism | Nb citation (pubmed 2016) | Comments | Output Format |
 
 _____________________
