@@ -7,7 +7,7 @@ List of genome annotation tools
 1991 | NetGene | Brunak et al.	| Ab initio | | | | |
 1992 | GeneID |	Gugio et al. | Ab initio / Neural Network | WAM, HMM, PD, AD | | | |
 1993 | Genemark | Borodovsky and McIninch | Ab initio | | | | |
-1994 | GRAIL-II | Recognizing exons in genomic sequence using GRAIL II. Xu Y, Mural R, Shah M, Uberbacher E. Genet Eng (N Y). 1994; 16():241-53. | | | | | |
+1994 | GRAIL-II | Recognizing exons in genomic sequence using GRAIL II. Xu Y, Mural R, Shah M, Uberbacher E. Genet Eng (N Y). 1994; 16():241-53. | Ab initio | | | | |
 1994 | EcoParse	| | Ab initio | HMM | Prokaryote | 393 | |
 1994 | GeneLang | Dong and Searls | Ab initio | Linguistic method HMM, PD, WAM | Eukaryote | | | |
 1995 | Fgeneh (Find gene in human)	| Solovyev VV, Salamov AA, Lawrence CB (1995) Identification of human gene structure using linear discriminant functions and dynamic programming. Proceedings/International Conference on Intelligent Systems for Molecular Biology; ISMB International Conference on Intelligent Systems for Molecular Biology 3: 367–375 | Ab initio | HMM, DP, LDA | Human | | Finds single exon only |
@@ -60,6 +60,8 @@ List of genome annotation tools
 2003 | ZCurve | Guo FB, Ou HY, Zhang CT (2003) ZCURVE: a new system for recognizing protein-coding genes in bacterial and archaeal genomes. Nucleic Acids Res 31:1780–1789 | abinitio	| correlation of dinucleotides | Prokaryote / Archaea |	| Uses the “Z-transform” of DNA as the information source for classification |
 2004 | GeneWise | GeneWise and Genomewise. Birney E, Clamp M, Durbin R. Genome Res. 2004 May; 14(5):988-95. | Hybrid | | |	| HMM-based gene prediction tool using extrinsic evidence |
 2004 | Ensembl | | Pipeline Evidence based	| | |	| Pipeline |
+2004 | RescueNet | Mahony S, McInerney JO, Smith TJ, Golden A (2004) Gene prediction using the Self-Organizing Map: automatic generation of multiple gene models. BMC Bioinformatics 5:23
+ | Ab initio, evidence | | |	| Unsupervised discovery of multiple gene classes using a self-organizing map. No exact start/stop prediction |
 2004 | Reganor | McHardy AC, Goesmann A, Puhler A, Meyer F (2004) Development of joint application strategies for two microbial gene finders. Bioinformatics 20:1622–1631 | combiner: abintito + evidence | Uses Glimmer and Critica | Prokaryote / Archaea | | |
 2004 | Combiner | Allen, J.E., et al. 2004. Computational gene prediction using multiple sources of evidence. Genome Res.  14142–148 | combiner	| Linear Combiner that uses a voting function; statistical scoring method that uses decision trees | |	|Three different algorithms for combining evidence in the Combiner were implemented|
 2004 | GlimmerHMM	| Majoros, W.H., Pertea, M.,and Salzberg, S.L. TigrScan and GlimmerHMM: two open-source ab initio eukaryotic gene-finders Bioinformatics 2004 2878-2879. | Ab initio	| GHMM | eukaryote | | |		
