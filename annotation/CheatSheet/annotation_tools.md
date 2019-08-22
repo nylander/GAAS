@@ -141,9 +141,10 @@ List of genome annotation tools
 2017 | GeMoMa | Keilwagen, J., Hartung, F., Paulini, M., Twardziok, S. O. & Grau, J. Combining RNA-seq data and homology-based gene prediction for plants , animals and fungi. (2017). | | | | | homology-based gene prediction program |	
 2017 | funannotate | doi.org/10.5281/zenodo.2576527 | Pipeline | Evidence Modeler + Augustus + GeneMark-ES/ET + evidence + PASA | built specifically for fungi, but will also work with higher eukaryotes | | homology-based gene prediction program |
 2018 | FunGAP | Min B, Grigoriev IV, Choi IG. FunGAP: Fungal Genome Annotation Pipeline using evidence-based gene model evaluation. Bioinformatics (Oxford, England). 2017;33(18):2936–7. | pipeline | | |  | |
-2018 | BRAKER2 | | | | |  | |	
+2018 | BRAKER2 | | | Hybrid | eukaryote |  | |	
 2018 | G-OnRamp | | Ab-initio Web-based | Augustus,GlimmerHMM,SNAP | |  | |
 2019 | GAAP | Jinhwa Kong, Sun Huh, Jung-Im Won, Jeehee Yoon, Baeksop Kim, and Kiyong Kim. GAAP: A Genome Assembly + Annotation Pipeline. BioMed Research International, Volume 2019, Article ID 4767354, 12 pages | pipeline| Augustus,EVM,MAKER,PASA | |  | Genome Assembly + Annotation Pipeline |
+2019 | VAPiD | Ryan C. Shean, Negar Makhsous, Graham D. Stoddard, Michelle J. Lin & Alexander L. Greninger. VAPiD: a lightweight cross-platform viral annotation pipeline and identification tool to facilitate virus genome submissions to NCBI GenBank. BMC Bioinformaticsvolume 20, Article number: 48 (2019) | | | Virus |  | |	
 | year	| Tool name | Publication | Type	| Method | Organism | Nb citation (pubmed 2016) | Comments | Output Format |
 
 _____________________
