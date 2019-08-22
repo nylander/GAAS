@@ -92,6 +92,7 @@ List of genome annotation tools
 2008 | RAST	| Aziz RK,  Bartels D,  Best AA,  DeJongh M,  Disz T,  Edwards RA,  Formsma K,  Gerdes S,  Glass EM,  Kubal M, et al. The RAST Server: rapid annotations using subsystems technology, BMC Genomics , 2008, vol. 9 pg. 75  | pipeline | | bacterial and archaeal | | Online service that identifies protein-encoding, rRNA and tRNA genes, assigns functions to the genes, predicts which subsystems are represented in the genome, uses this information to reconstruct the metabolic network and makes the output easily downloadable for the user. |
 2008 | Maker | Cantarel, B. L. et al. Maker. Genome Res. 18, 188–96 (2008). | Combiner | | | 306	| It uses proteins, transcripts ... Abinitio: Augustus, Fgnesh,Genemark,snap|
 2008 | Evigan | Liu, Q., Mackey, A. J., Roos, D. S. & Pereira, F. C. N. Evigan: A hidden variable model for integrating gene evidence for eukaryotic gene prediction. Bioinformatics 24, 597–605 (2008). | Combiner |	Dynamic Bayes networks (DBNs) | Eukaryote | 52 | Choose the best possible set of exons and combine them in a gene model. Weight of different sources. Unsupervised learning method |
+2008 |  | Y. Zhou, Y. Liang, C. Hu, L. Wang, X. Shi, An artificial neural network method for combining gene prediction based on equitable weights, NeuroComputing 71 (2007) 538–543 | combiner | RBFN | | | |	
 2008 | Evidence Modeler (EVM) | Haas, B. J. et al. Automated eukaryotic gene structure annotation using EVidenceModeler and the Program to Assemble Spliced Alignments. Genome Biol. 9, R7 (2008). | Combiner | | | | choose the best possible set of exons and combine them in a gene model weight of different sources. Evidence based chooser. | 
 2008 | Chemgenome2.0 | Poonam Singhal, B. Jayaram, Surjit B. Dixit and David L. Beveridge. Prokaryotic Gene Finding based on Physicochemical Characteristics of Codons Calculated from Molecular Dynamics Simulations.Biophysical Journal,2008,Volume:94 Issue:11, 4173-4183 ] |	Ab initio |	 | Procaryote | | Prokaryotic Gene Finding Based on Physicochemical Characteristics of Codons Calculated from Molecular Dynamics Simulations | |
 2008 | MetaGeneAnnotator (MGA) | Noguchi H, Taniguchi T, Itoh T (2008) Meta- GeneAnnotator: detecting species-specific patterns of ribosomal binding site for precise gene prediction in anonymous prokaryotic and phage genomes. DNA Res 15:387–396.| abinitio | | Prokaryote | | MGA is a self-training gene prediction tool for all kinds of prokaryotic genes including atypical genes such as horizontally transferred and prophage-encoded genes |
@@ -130,7 +131,7 @@ List of genome annotation tools
 2018 | BRAKER2 | | | | |  | |	
 2018 | G-OnRamp | | Ab-initio Web-based | Augustus,GlimmerHMM,SNAP | |  | |
 2019 | GAAP | Jinhwa Kong, Sun Huh, Jung-Im Won, Jeehee Yoon, Baeksop Kim, and Kiyong Kim. GAAP: A Genome Assembly + Annotation Pipeline. BioMed Research International, Volume 2019, Article ID 4767354, 12 pages | pipeline| Augustus,EVM,MAKER,PASA | |  | Genome Assembly + Annotation Pipeline |
-? | RBFN | | | | |  | |	
+
 ? | ZUPLS | | | | |  | |
 ? | Geneparser2 | | | | |  | |
 ? | Xpound | | | | |  | |
@@ -161,6 +162,7 @@ MM: Markov Model
 NN: Neural Networks  
 PHMM: pair HMM  
 phyloHMM: phylogenetic HMM  
+RBFN: Radial Basis Function Network  
 SVM: support vector machine  
 WAM: weight array matrix  
   
