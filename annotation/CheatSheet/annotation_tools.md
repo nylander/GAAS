@@ -136,11 +136,7 @@ List of genome annotation tools
 2018 | BRAKER2 | | | | |  | |	
 2018 | G-OnRamp | | Ab-initio Web-based | Augustus,GlimmerHMM,SNAP | |  | |
 2019 | GAAP | Jinhwa Kong, Sun Huh, Jung-Im Won, Jeehee Yoon, Baeksop Kim, and Kiyong Kim. GAAP: A Genome Assembly + Annotation Pipeline. BioMed Research International, Volume 2019, Article ID 4767354, 12 pages | pipeline| Augustus,EVM,MAKER,PASA | |  | Genome Assembly + Annotation Pipeline |
-
 ? | ZUPLS | | | | |  | |
-? | Geneparser2 | | | | |  | |
-? | Xpound | | | | |  | |
-? | FGENESH++C | | | | | | maps known mRNA/EST sequences from RefSeq and then performs FGENESH++-like gene prediction |
 ? | Eugene'Hom | | | | |  | |
 | year	| Tool name | Publication | Type	| Method | Organism | Nb citation (pubmed 2016) | Comments | Output Format |
 
