@@ -5,18 +5,22 @@ List of genome annotation tools
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 1991 | GRAIL | Uberbacher and Mural	1991. Mural et al. 1992 | Ab initio (sensors + Neural network) | | | | No longer supported |
 1991 | NetGene | Brunak et al.	| Ab initio | | | | |
-1992 | GeneID |	Gugio et al. | Ab initio / Neural Network | WAM, HMM, PD, AD | | | |
+1992 | GeneID |	Gugio et al. | Ab initio | WAM, HMM, PD, AD, NN | | | |
+1992 | GeneID+ |	Guigo, R., Knudsen, S., Drake, N., and Smith, T. (1992) J. Mol. Biol. 226, 141–157. | Hybrid | WAM, HMM, PD, AD, NN | | | |
+1992 | SORFIND |	Hutchinson, G. B., and Hayden, M. R. (1992) Nucleic Acids Res. 20, 3453–3462. | Abinitio | | | | |
 1993 | Genemark | Borodovsky and McIninch | Ab initio | | | | |
+1993 | Geneparser | Snyder, E.E. and Stormo, G.D. 1993. Identi¯cation of coding regions in genomic DNA sequences: an appli-
+cation of dynamic programming and neural networks. Nucleic Acids Res. 21: 607-613. | Ab initio | DP combined with a neural network program | |  | |
 1994 | GRAIL-II | Recognizing exons in genomic sequence using GRAIL II. Xu Y, Mural R, Shah M, Uberbacher E. Genet Eng (N Y). 1994; 16():241-53. | Ab initio | | | | |
 1994 | EcoParse	| | Ab initio | HMM | Prokaryote | 393 | |
 1994 | GeneLang / GenLang | Dong, S. and Searls, D.B. 1994. Gene structure prediction by linguistic methods. Genomics 23: 540-551. | Ab initio | Linguistic method HMM, PD, WAM | Eukaryote | | | |
-1995 | Fgeneh (Find gene in human)	| Solovyev VV, Salamov AA, Lawrence CB (1995) Identification of human gene structure using linear discriminant functions and dynamic programming. Proceedings/International Conference on Intelligent Systems for Molecular Biology; ISMB International Conference on Intelligent Systems for Molecular Biology 3: 367–375 | Ab initio | HMM, DP, LDA | Human | | Finds single exon only |
-1995 | Geneparser | Snyder EE, Stormo GD J Mol Biol. 1995 Apr 21; 248(1):1-18. | Ab initio | DP com-bined with a neural network program | |  | |
+1995 | Fgeneh (Find gene in human) / GeneFinder	| Solovyev VV, Salamov AA, Lawrence CB (1995) Identification of human gene structure using linear discriminant functions and dynamic programming. Proceedings/International Conference on Intelligent Systems for Molecular Biology; ISMB International Conference on Intelligent Systems for Molecular Biology 3: 367–375 | Ab initio | HMM, DP, LDA | Human | | Finds single exon only |
+1995 | Geneparser2 | Snyder EE, Stormo GD J Mol Biol. 1995 Apr 21; 248(1):1-18. | Ab initio | DP combined with a neural network program | |  | |
+1995 | Geneparser3 | Snyder EE, Stormo GD J Mol Biol. 1995 Apr 21; 248(1):1-18. | hybrid | DP combined with a neural network program | |  | |
 1996 | GeneHacker	| Yada.T , Hirosawa.M DNA Res., 3, 335-361 (1996). Syst. Mol. Biol. pp.252-260 (1996). Syst. Mol. Biol. pp.354-357 (1997).. | ab initio | Markov model | Prokaryote | | |			
 1996 | Genie	| Kulp, D.; Haussler, D.; Reese, M. G.; and Eeckman, F. H. 1996. A generalized hidden Markov model for the recognition of human genes in DNA. In D.J. States et al., ed., Proc. Conf. on Intelligent Systems in Molecular Biology, 134–142. Menlo Park, CA: AAAI Press. | Hybrid | GHMM + neural networks | | | |			
 1996 | Procrustes | Gene recognition via spliced sequence alignment. Gelfand MS, Mironov AA, Pevzner PA. Proc Natl Acad Sci U S A. 1996 Aug 20; 93(17):9061-6. | Evidence based | | |  | |
-1997 | Fgenes	| Solovyev | Ab initio | HMM, DP, LDA | Human | | |
-1997 | GeneFinder | | Ab initio | | | | Unpublished work |
+1997 | Fgenes / GeneFinder	| Solovyev | Ab initio | HMM, DP, LDA | Human | | |
 1997 | GenScan	| Burge, C. (1997). Identification of genes in human genomic DNA. Ph.D. thesis, Stanford University. ; Burge, C. & Karlin, S. (1997). Prediction of complete gene structures in genomic DNA. Journal of Molecular Biology, 268,78–94| Ab initio | GHMM | | | GENSCAN++ is a reimplementation of GENSCAN in C++ (~2001) | |
 1997 | MZEF	| Identification of protein coding regions in the human genome by quadratic discriminant analysis. Zhang MQ. Proc Natl Acad Sci U S A. 1997 Jan 21; 94(2):565-8. | | Quadratic discriminant analysis | | | | |
 1997 | HMMGene | Krogh A. Two methods for improving performace of a HMM and their application for gene finding. In: Gaasterland T, Karp P, Karplus K, Ouzounis C, Sander C, Valencia A, editors. The fifth international conference on intelligent Systems for Molecular Biology. CA: Menlo Park: AAAI Press; 1997. pp. 179–186. | Ab initio | CHMM | Vertebrate and C. elegans | | No download version. Webserver. | 
