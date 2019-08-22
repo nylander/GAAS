@@ -9,8 +9,7 @@ List of genome annotation tools
 1992 | GeneID+ |	Guigo, R., Knudsen, S., Drake, N., and Smith, T. (1992) J. Mol. Biol. 226, 141–157. | Hybrid | WAM, HMM, PD, AD, NN | | | |
 1992 | SORFIND |	Hutchinson, G. B., and Hayden, M. R. (1992) Nucleic Acids Res. 20, 3453–3462. | Abinitio | | | | |
 1993 | Genemark | Borodovsky and McIninch | Ab initio | | | | |
-1993 | Geneparser | Snyder, E.E. and Stormo, G.D. 1993. Identi¯cation of coding regions in genomic DNA sequences: an appli-
-cation of dynamic programming and neural networks. Nucleic Acids Res. 21: 607-613. | Ab initio | DP combined with a neural network program | |  | |
+1993 | Geneparser | Snyder, E.E. and Stormo, G.D. 1993. Identification of coding regions in genomic DNA sequences: an application of dynamic programming and neural networks. Nucleic Acids Res. 21: 607-613. | Ab initio | DP combined with a neural network program | |  | |
 1994 | GRAIL-II | Recognizing exons in genomic sequence using GRAIL II. Xu Y, Mural R, Shah M, Uberbacher E. Genet Eng (N Y). 1994; 16():241-53. | Ab initio | | | | |
 1994 | EcoParse	| | Ab initio | HMM | Prokaryote | 393 | |
 1994 | GeneLang / GenLang | Dong, S. and Searls, D.B. 1994. Gene structure prediction by linguistic methods. Genomics 23: 540-551. | Ab initio | Linguistic method HMM, PD, WAM | Eukaryote | | | |
