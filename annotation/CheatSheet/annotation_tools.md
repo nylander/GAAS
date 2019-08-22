@@ -147,7 +147,7 @@ List of genome annotation tools
 
 _____________________
 __Legend:__  
-Hybrid = ab initio and evidence based = HMM-based gene prediction tool using extrinsic evidence
+Hybrid = ab initio and evidence based = HMM-based gene prediction tool using extrinsic evidence  
 Comparative = genome sequence comparison  
   
 
