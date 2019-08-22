@@ -11,6 +11,7 @@ List of genome annotation tools
 1993 | Genemark | Borodovsky and McIninch | Ab initio | | | | |
 1993 | Geneparser | Snyder, E.E. and Stormo, G.D. 1993. Identification of coding regions in genomic DNA sequences: an application of dynamic programming and neural networks. Nucleic Acids Res. 21: 607-613. | Ab initio | DP combined with a neural network program | |  | |
 1994 | GRAIL-II | Recognizing exons in genomic sequence using GRAIL II. Xu Y, Mural R, Shah M, Uberbacher E. Genet Eng (N Y). 1994; 16():241-53. | Ab initio | | | | |
+1994 | Xpound | Thomas,A. and Skolnick,M.H. (1994) A probabilistic model for detecting coding regions in DNA sequences. IMA J. Math. Appl. Med. Biol., 11, 149–160. | Ab initio | | | | |
 1994 | EcoParse	| | Ab initio | HMM | Prokaryote | 393 | |
 1994 | GeneLang / GenLang | Dong, S. and Searls, D.B. 1994. Gene structure prediction by linguistic methods. Genomics 23: 540-551. | Ab initio | Linguistic method HMM, PD, WAM | Eukaryote | | | |
 1995 | Fgeneh (Find gene in human) / GeneFinder	| Solovyev VV, Salamov AA, Lawrence CB (1995) Identification of human gene structure using linear discriminant functions and dynamic programming. Proceedings/International Conference on Intelligent Systems for Molecular Biology; ISMB International Conference on Intelligent Systems for Molecular Biology 3: 367–375 | Ab initio | HMM, DP, LDA | Human | | Finds single exon only |
