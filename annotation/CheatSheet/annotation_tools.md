@@ -9,7 +9,7 @@ List of genome annotation tools
 1993 | Genemark | Borodovsky and McIninch | Ab initio | | | | |
 1994 | GRAIL-II | Recognizing exons in genomic sequence using GRAIL II. Xu Y, Mural R, Shah M, Uberbacher E. Genet Eng (N Y). 1994; 16():241-53. | Ab initio | | | | |
 1994 | EcoParse	| | Ab initio | HMM | Prokaryote | 393 | |
-1994 | GeneLang | Dong and Searls | Ab initio | Linguistic method HMM, PD, WAM | Eukaryote | | | |
+1994 | GeneLang / GenLang | Dong, S. and Searls, D.B. 1994. Gene structure prediction by linguistic methods. Genomics 23: 540-551. | Ab initio | Linguistic method HMM, PD, WAM | Eukaryote | | | |
 1995 | Fgeneh (Find gene in human)	| Solovyev VV, Salamov AA, Lawrence CB (1995) Identification of human gene structure using linear discriminant functions and dynamic programming. Proceedings/International Conference on Intelligent Systems for Molecular Biology; ISMB International Conference on Intelligent Systems for Molecular Biology 3: 367–375 | Ab initio | HMM, DP, LDA | Human | | Finds single exon only |
 1995 | Geneparser | Snyder EE, Stormo GD J Mol Biol. 1995 Apr 21; 248(1):1-18. | Ab initio | DP com-bined with a neural network program | |  | |
 1996 | GeneHacker	| Yada.T , Hirosawa.M DNA Res., 3, 335-361 (1996). Syst. Mol. Biol. pp.252-260 (1996). Syst. Mol. Biol. pp.354-357 (1997).. | ab initio | Markov model | Prokaryote | | |			
@@ -18,8 +18,8 @@ List of genome annotation tools
 1997 | Fgenes	| Solovyev | Ab initio | HMM, DP, LDA | Human | | |
 1997 | GeneFinder | | Ab initio | | | | Unpublished work |
 1997 | GenScan	| Burge, C. (1997). Identification of genes in human genomic DNA. Ph.D. thesis, Stanford University. ; Burge, C. & Karlin, S. (1997). Prediction of complete gene structures in genomic DNA. Journal of Molecular Biology, 268,78–94| Ab initio | GHMM | | | GENSCAN++ is a reimplementation of GENSCAN in C++ (~2001) | |
-1997 | MZEF	| Identification of protein coding regions in the human genome by quadratic discriminant analysis. Zhang MQ. Proc Natl Acad Sci U S A. 1997 Jan 21; 94(2):565-8. | | | | | | |
-1997 | HMMGene | Krogh A. Two methods for improving performace of a HMM and their application for gene finding. In: Gaasterland T, Karp P, Karplus K, Ouzounis C, Sander C, Valencia A, editors. The fifth international conference on intelligent Systems for Molecular Biology. CA: Menlo Park: AAAI Press; 1997. pp. 179–186. | Ab initio | Hmm | Vertebrate and C. elegans | | No download version. Webserver. | 
+1997 | MZEF	| Identification of protein coding regions in the human genome by quadratic discriminant analysis. Zhang MQ. Proc Natl Acad Sci U S A. 1997 Jan 21; 94(2):565-8. | | Quadratic discriminant analysis | | | | |
+1997 | HMMGene | Krogh A. Two methods for improving performace of a HMM and their application for gene finding. In: Gaasterland T, Karp P, Karplus K, Ouzounis C, Sander C, Valencia A, editors. The fifth international conference on intelligent Systems for Molecular Biology. CA: Menlo Park: AAAI Press; 1997. pp. 179–186. | Ab initio | CHMM | Vertebrate and C. elegans | | No download version. Webserver. | 
 1997 | GeneWise (from Wise2 distribution)	| unplublished. Birney, E. and Durbin, R. 1997. Wise2. http://www.sanger.ac.uk/Software/Wise2. | Evidence based | | | | | 		
 1997 | AAT (Analysis and Annotation Tool) | Huang et al. | Evidence based | | | | Include two paris of programs DPS/NAP and DDS/GAP |
 1998 | Orpheus | Frishman D, Mironov A, Mewes HW, Gelfand M (1998) Combining diverse evidence for gene recognition in completely sequenced bacterial genomes. Nucleic Acids Res 26:2941–2947 | abinintio + evidence | Seed and extend | Prokaryote / Archaea | | |
@@ -146,7 +146,7 @@ Comparative = genome sequence comparison
   
 
 
-CHMM: class Markov model  
+CHMM: class HMM
 CRF: conditional random field; HMM  
 DBN: Dynamic Bayes network  
 DP: dynamic programming  
