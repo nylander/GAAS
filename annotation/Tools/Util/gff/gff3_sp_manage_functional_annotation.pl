@@ -330,10 +330,21 @@ if ($opt_BlastFile || $opt_InterproFile ){#|| $opt_BlastFile || $opt_InterproFil
 
               #add product attribute
               if ($productData ne ""){
-                create_or_replace_tag($feature_level2, 'product', $productData);
+                if($feature_level2->has_tag('pseudo')){
+                    create_or_replace_tag($feature_level2, 'Note', "product:$productData");
+                }
+                else{
+                    create_or_replace_tag($feature_level2, 'product', $productData);
+                }
               }
               else {
-                create_or_replace_tag($feature_level2, 'product', "hypothetical protein");
+                if($feature_level2->has_tag('pseudo')){
+                    create_or_replace_tag($feature_level2, 'Note', "product:hypothetical protein");
+                }
+                else{
+                    create_or_replace_tag($feature_level2, 'product', "hypothetical protein");
+                }
+
               } #Case where the protein is not known
             }
 
@@ -510,18 +521,18 @@ if($opt_output){
 $stringPrint =""; # reinitialise (use at the beginning)
 if ($opt_InterproFile){
   #print INFO
-  my $lineB=       "___________________________________________________________________________________________________";
+  my $lineB=       "_________________________________________________________________________________________________________________________________";
   $stringPrint .= " ".$lineB."\n";
-  $stringPrint .= "|          | Nb Total term | Nb mRNA with term  | Nb mRNA updated by term | Nb gene updated by term |\n";
-  $stringPrint .= "|          | in raw File |   in raw File    | in our annotation file  | in our annotation file  |\n";
+  $stringPrint .= "|                         | Nb Total term           | Nb mRNA with term       | Nb mRNA updated by term | Nb gene updated by term |\n";
+  $stringPrint .= "|                         | in raw File             |   in raw File           | in our annotation file  | in our annotation file  |\n";
   $stringPrint .= "|".$lineB."|\n";
 
-  foreach my $type (keys %functionData){
+  foreach my $type (sort keys %functionData){
     my $total_type = $TotalTerm{$type};
     my $mRNA_type_raw = $functionDataAdded{$type};
     my $mRNA_type = keys %{$mRNAAssociatedToTerm{$type}};
     my $gene_type = keys %{$GeneAssociatedToTerm{$type}};
-    $stringPrint .= "|".sizedPrint(" $type",10)."|".sizedPrint($total_type,15)."|".sizedPrint($mRNA_type_raw,20)."|".sizedPrint($mRNA_type,25)."|".sizedPrint($gene_type,25)."|\n|".$lineB."|\n";
+    $stringPrint .= "|".sizedPrint(" $type",25)."|".sizedPrint($total_type,25)."|".sizedPrint($mRNA_type_raw,25)."|".sizedPrint($mRNA_type,25)."|".sizedPrint($gene_type,25)."|\n|".$lineB."|\n";
   }
 
   #RESUME TOTAL OF FUNCTION ATTACHED
