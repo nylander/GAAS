@@ -148,6 +148,7 @@ List of genome annotation tools
 2018 | G-OnRamp | | Ab-initio Web-based | Augustus,GlimmerHMM,SNAP | |  | |
 2019 | GAAP | Jinhwa Kong, Sun Huh, Jung-Im Won, Jeehee Yoon, Baeksop Kim, and Kiyong Kim. GAAP: A Genome Assembly + Annotation Pipeline. BioMed Research International, Volume 2019, Article ID 4767354, 12 pages | pipeline| Augustus,EVM,MAKER,PASA | |  | Genome Assembly + Annotation Pipeline |
 2019 | VAPiD (Viral Annotation Pipeline and iDentification) | Ryan C. Shean, Negar Makhsous, Graham D. Stoddard, Michelle J. Lin & Alexander L. Greninger. VAPiD: a lightweight cross-platform viral annotation pipeline and identification tool to facilitate virus genome submissions to NCBI GenBank. BMC Bioinformaticsvolume 20, Article number: 48 (2019) | pipeline | | Virus | | |	
+2019 | Vgas (Viral Genome Annotation System) | Kai-Yue Zhang, Yi-Zhou Gao, Meng-Ze Du, Shuo Liu, Chuan Dong, and Feng-Biao Guo. Vgas: A Viral Genome Annotation System. Front Microbiol. 2019; 10: 184. | abinitio + similarity-based | ZCURVE_V + BLASTp | Virus | In their papaer they say: When combining Vgas with GeneMarkS and Prodigal, better prediction results could be obtained than with each of the three individual programs. | |	
 | year	| Tool name | Publication | Type	| Method | Organism | Nb citation (pubmed 2016) | Comments | Output Format |
 
 _____________________
