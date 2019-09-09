@@ -27,7 +27,7 @@ my $header = qq{
 
 
 my $grid_computing_module = "BilsGridRunner";
-my $rfam_cm_file = "/projects/references/databases/rfam/11.0/models_1_1/E_plus.cm"; # Eukaryote ncRNA models plus LUCA ncRNAs and excluding tRNA (to be annotated by tRNAscan). 
+my $rfam_cm_file = "/projects/references/databases/rfam/14.1/Rfam.cm"; #cm models to be annotated by tRNAscan  
 my $gff_formatter = Bio::Tools::GFF->new(-gff_version => 3);
 
 my $outdir = undef;
