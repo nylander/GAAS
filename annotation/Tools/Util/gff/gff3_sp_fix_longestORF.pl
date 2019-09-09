@@ -1044,11 +1044,6 @@ sub concatenate_feature_list{
   my $ExtremEnd=0;
 
   foreach my $feature (@$feature_list) { 
-#        my @values = $feature->get_tag_values('Parent');                 
-#        my $parent = $values[0];
-#        my @values = $feature->get_tag_values('Parent');                 
-#        my $id = $values[0];
-#    print $feature->primary_tag." ".$parent." ".$id."\n";
     my $start=$feature->start();
     my $end=$feature->end();
     my $seqid=$feature->seq_id();   
