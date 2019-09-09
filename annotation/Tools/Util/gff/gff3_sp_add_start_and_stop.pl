@@ -27,7 +27,7 @@ my $stop_id = 1;
 
 my $opt_file=undef;
 my $file_fasta=undef;
-my $codon_table_id=0;
+my $codon_table_id=1;
 my $opt_output=undef;
 my $verbose=undef;
 my $opt_help = 0;
