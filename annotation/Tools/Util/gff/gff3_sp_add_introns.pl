@@ -159,19 +159,16 @@ else{
           }
         
         #Now add introns features
-        print @introns;
         if(@introns){
           my $it = natatime 2, @introns;
           while (my @tuple = $it->()) {
-            print "My tupel\n";
             my $intron_feature = clone($feature_example);
             $intron_feature->primary_tag('intron');
             my $ID='intron_added-'.$intronID;
             $intronID++;
-            create_or_replace_tag($intron_feature,'ID', $intronID); #modify ID to replace by parent value
+            create_or_replace_tag($intron_feature,'ID', $ID); #modify ID to replace by parent value
             $intron_feature->start($tuple[0]);
             $intron_feature->end($tuple[1]);
-            print "aDDED !!\n";
             push (@{$hash_omniscient->{"level3"}{'intron'}{lc($id_l2)}}, $intron_feature);
           }
         }
