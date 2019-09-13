@@ -21,7 +21,8 @@ Annotation directory contains development related to annotation side of the serv
 Assembly directory contains development related to assembly side of the service.  
 
 #### Shorcuts:  
-   - [Genome assembly workshop](https://nbisweden.github.io/workshop-genome_assembly/)  
+   - [Genome assembly workshop](https://nbisweden.github.io/workshop-genome_assembly/)
+   - [The Genome Assembly Workshop Knowledge Base](https://github.com/NBISweden/workshop-genome_assembly/wiki)
 
 ---------------------------
 
