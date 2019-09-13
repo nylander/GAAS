@@ -143,6 +143,7 @@ List of genome annotation tools
 2016 | PGAP | Tatusova T. et al.  (2016) NCBI prokaryotic genome annotation pipeline. Nucleic Acids Res ., 44, 6614–6624. | pipeline | GenemarkS+ Glimmer + extrinsec data | Prokaryote | | This is the NCBI annotation service incorporated in its submission system, but it is only available for GenBank submitters. | 
 2017 | GeMoMa | Keilwagen, J., Hartung, F., Paulini, M., Twardziok, S. O. & Grau, J. Combining RNA-seq data and homology-based gene prediction for plants , animals and fungi. (2017). | | | | | homology-based gene prediction program |	
 2017 | funannotate | doi.org/10.5281/zenodo.2576527 | Pipeline | Evidence Modeler + Augustus + GeneMark-ES/ET + evidence + PASA | built specifically for fungi, but will also work with higher eukaryotes | | homology-based gene prediction program |
+2017 | GAWN | unpublished | pipeline evidence-based only | GMAP to create gene and cufflinks and TransDecoder to add UTR | eukaryote | | |	
 2018 | FunGAP | Min B, Grigoriev IV, Choi IG. FunGAP: Fungal Genome Annotation Pipeline using evidence-based gene model evaluation. Bioinformatics (Oxford, England). 2017;33(18):2936–7. | pipeline | | |  | |
 2018 | BRAKER2 | | | Hybrid | eukaryote |  | |	
 2018 | G-OnRamp | | Ab-initio Web-based | Augustus,GlimmerHMM,SNAP | |  | |
