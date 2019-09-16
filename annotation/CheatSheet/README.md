@@ -26,6 +26,7 @@ Collection of Cheat Sheets / overview / summaries
         * [Chloroplast](#chloroplast)
         * [Plasmid](#plasmid)
     * [Overview of RNA-seq library types](#overview-of-rna-seq-library-types)
+    * Rackham](#rackham)
     * [Screen](#screen)
     * [Schedulers: LSF,Torque,SGE,Slurm,etc](#schedulers-lsftorquesgeslurmetc)
     * [Taxonomic classification](taxonomic-classification)
@@ -92,6 +93,8 @@ Collection of Cheat Sheets / overview / summaries
  * #### [Plasmid](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/annotation_tools_plasmid.md)
 
 ### [Overview of RNA-seq library types](rnaseq_library_types.md)
+
+### [Rackham](rackham.md)
 
 ### [Screen](screen.md)
 
