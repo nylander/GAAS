@@ -48,4 +48,4 @@ Those scripts are stored in */sw/uppmax/bin/*
 | squeue -u ***user*** | Information about ***user***'s jobs |
 
 
-/!\ Most of the commands use **rackhanm** as default cluster, if you wish to apply the command to another cluster you have to specify is using **-M** ***clustername***.
+/!\ Most of the commands use **rackhnm** as default cluster, if you wish to apply the command to another cluster you have to specify is using **-M** ***clusterName***.
