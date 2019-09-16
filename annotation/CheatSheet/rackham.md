@@ -22,18 +22,23 @@ UPPMAX is Uppsala University's resource of high-performance computers, large-sca
 
 | Command | Comment
 | --- | --- 
-| jobinfo   | Show all running and waiting jobs in the queue
-| jobinfo -u user   | Show jobs for specific user
 | interactive -A project   | Start interactive job
 | sbatch -A projectID -t d-hh:mm:ss -n cores -p partition my_jobscript_file  | Start batch job
 | sbatch -A projectID -t 7-00:00:00 -n 16 -p node my_jobscript_file  | Running for 7 days on 16 cores one node partition
 | scancel jobid   | Cancel a single job
 | scancel -i -u user | Interactively cancel all jobs for user
 
-### Showing user and project info
+### Showing user, job and project info
+
+Those commans are stored in */sw/uppmax/bin/*
 
 | Command | Comment
 | --- | --- 
+| jobinfo   | Show all running and waiting jobs in the queue
+| jobinfo -u user   | Show jobs for specific user
 | uquota | Show current user's disk usage
 | projinfo    | Show used core hours for current user's projects
 | egrep '^b2011999' /etc/slurm/grantfile | View details of a specific project
+| finishedjobinfo    | Telling you about finished jobs on Rackham
+| projmembers    | Telling you about project membership
+| projsummary  **projectID**  | Summarizes some useful information about projects
