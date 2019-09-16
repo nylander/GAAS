@@ -30,7 +30,7 @@ UPPMAX is Uppsala University's resource of high-performance computers, large-sca
 
 ### Showing user, job and project info
 
-Those commans are stored in */sw/uppmax/bin/*
+Those scripts are stored in */sw/uppmax/bin/*
 
 | Command | Comment | Full documentation
 | --- | --- | ---
