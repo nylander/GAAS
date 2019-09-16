@@ -34,15 +34,15 @@ Those commans are stored in */sw/uppmax/bin/*
 
 | Command | Comment | Full documentation
 | --- | --- | ---
-| jobinfo   | Show all running and waiting jobs in the queue | [here](https://www.uppmax.uu.se/support/user-guides/jobstats-user-guide/)
-| jobinfo -u ***user***   | Show jobs for specific user | [here](https://www.uppmax.uu.se/support/user-guides/jobstats-user-guide/)
-| jobinfo -p -A ***projectID***   | generate plots for resource usage for jobs | [here](https://www.uppmax.uu.se/support/user-guides/jobstats-user-guide/)
+| jobinfo   | Show all running and waiting jobs in the queue | [jobinfo](https://www.uppmax.uu.se/support/user-guides/jobstats-user-guide/)
+| jobinfo -u ***user***   | Show jobs for specific user | [jobinfo](https://www.uppmax.uu.se/support/user-guides/jobstats-user-guide/)
+| jobinfo -p -A ***projectID***   | generate plots for resource usage for jobs | [jobinfo](https://www.uppmax.uu.se/support/user-guides/jobstats-user-guide/)
 | uquota | Show current user's disk usage |
 | projinfo    | Show used core hours for current user's projects |
 | egrep '^b2011999' /etc/slurm/grantfile | View details of a specific project |
 | finishedjobinfo    | Telling you about finished jobs on Rackham |
 | projmembers    | Telling you about project membership |
 | projsummary  ***projectID***  | Summarizes some useful information about projects |
-| jobstats  ***jobID***  | Discover jobstats for the specified job |
-| jobstats  -A ***projectID***  | Discover jobstats for the specified project |
+| jobstats  ***jobID***  | Discover jobstats for the specified job | [jobstats](https://github.com/UPPMAX/jobstats)
+| jobstats  -A ***projectID***  | Discover jobstats for the specified project | [jobstats](https://github.com/UPPMAX/jobstats)
 | squeue -u ***user*** | Information about ***user***'s jobs |
