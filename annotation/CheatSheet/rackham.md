@@ -52,4 +52,4 @@ Those scripts are stored in */sw/uppmax/bin/*
    **-M** ***clusterName*** 
   
 **/!\\** Most of the commands have plenty of parameters and have an help. So don't forget to check it using:  
-   ***command --help***.
+   ***command --help***
