@@ -26,7 +26,7 @@ Collection of Cheat Sheets / overview / summaries
         * [Chloroplast](#chloroplast)
         * [Plasmid](#plasmid)
     * [Overview of RNA-seq library types](#overview-of-rna-seq-library-types)
-    * Rackham](#rackham)
+    * [Rackham](#rackham)
     * [Screen](#screen)
     * [Schedulers: LSF,Torque,SGE,Slurm,etc](#schedulers-lsftorquesgeslurmetc)
     * [Taxonomic classification](taxonomic-classification)
