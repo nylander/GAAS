@@ -46,3 +46,6 @@ Those scripts are stored in */sw/uppmax/bin/*
 | jobstats  ***jobID***  | Discover jobstats for the specified job | [jobstats](https://github.com/UPPMAX/jobstats)
 | jobstats  -A ***projectID***  | Discover jobstats for the specified project | [jobstats](https://github.com/UPPMAX/jobstats)
 | squeue -u ***user*** | Information about ***user***'s jobs |
+
+
+/!\ Most of the commands use **rackhanm** as default cluster, if you wish to apply the command to another cluster you have to specify is using **-M** ***clustername***.
