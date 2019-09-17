@@ -189,7 +189,7 @@ __Interesting publications__
 [Chowdhury, B., Garai, A., & Garai, G. (2017). An optimized approach for annotation of large eukaryotic genomic sequences using genetic algorithm. BMC bioinformatics, 18(1), 460. doi:10.1186/s12859-017-1874-7](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5655831/)
 [Joel Armstrong, Ian T. Fiddes, Mark Diekhans and Benedict Paten. Whole-Genome Alignment and Comparative Annotation.Annu Rev Anim Biosci. 2019 Feb 15; 7: 41–64.](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6450745/)  
 Alice Carolyn McHardy Andreas Kloetgen. Finding Genes in Genome Sequence. Bioinformatics pp 271-291  
-(baczkowski review)  
+[Bączkowski, K., Mackiewicz, K., Kowalczuk, M., Banaszak, J. and Cebrat, S., “Od sekwencji do funkcji– poszukiwanie genów i ich adnotacje,” Biotechnologia 3(70), 22–44 (2005)](http://www.pfb.info.pl/files/kwartalnik/3_2005/Baczkowski-Mackiewicz.pdf)  
 
 
 __Interesting books__  
