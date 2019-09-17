@@ -37,10 +37,10 @@ UPPMAX is Uppsala University's resource of high-performance computers, large-sca
 | jobinfo   | Show all running and waiting jobs in the queue | [jobinfo](https://www.uppmax.uu.se/support/user-guides/jobstats-user-guide/)
 | jobinfo -u ***user***   | Show jobs for specific user | [jobinfo](https://www.uppmax.uu.se/support/user-guides/jobstats-user-guide/)
 | jobstats -p -A ***projectID***   | generate plots for resource usage for recent jobs in a project | [jobstats](https://www.uppmax.uu.se/support/user-guides/jobstats-user-guide/)
-| uquota | Show disk usage of projects you are a memeber of|
-| projinfo    | Show used core hours of projects you are a memeber of |
+| uquota | Show disk usage of projects you are a member of|
+| projinfo    | Show used core hours of projects you are a member of |
 | finishedjobinfo    | Telling you about finished jobs on Rackham |
-| projmembers    | List memebers of a project |
+| projmembers    | List members of a project |
 | projsummary  ***projectID***  | Summarizes some useful information about projects |
 | squeue -u ***user*** | Information about ***user***'s jobs |
 
