@@ -59,6 +59,7 @@ cd GAAS
            cpanm Statistics::R
            cpanm JSON
            cpanm Sort::Naturally
+           cpanm Bio::DB::EUtilities
            ```
         
     * A.3) Load the correct profiles (add NBIS libs and tools to the PATH)  
