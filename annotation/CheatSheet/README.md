@@ -44,6 +44,8 @@ Collection of Cheat Sheets / overview / summaries
 
  * [Cheat Sheet Level3](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/Bash_cheat_%20sheet_level3.pdf) 
  
+ * [course](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/Bash_lecture.pdf) 
+ 
  * [others](bash_other.md)
 
 ### Perl
