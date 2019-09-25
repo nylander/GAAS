@@ -114,8 +114,11 @@ Collection of Cheat Sheets / overview / summaries
    From Torsten Seemann
  * [avrilomics](http://avrilomics.blogspot.com)  
    From Avril Coghlan
+ * [OPINIOMICS](http://www.opiniomics.org)  
+   From Mick Watson
+ * [Omics! Omics!](http://www.omicsomics.blogspot.com)  
+   From Keith Robison
  * [NBIS](https://nbis.se/blog/)
- * [OPINIOMICS](http://www.opiniomics.org)
  * [List from biostars](https://www.biostars.org/p/243961/)
 
 # Statistics  
