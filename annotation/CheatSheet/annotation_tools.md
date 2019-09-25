@@ -143,12 +143,13 @@ List of genome annotation tools
 2016 | PGAP | Tatusova T. et al.  (2016) NCBI prokaryotic genome annotation pipeline. Nucleic Acids Res ., 44, 6614–6624. | pipeline | GenemarkS+ Glimmer + extrinsec data | Prokaryote | | This is the NCBI annotation service incorporated in its submission system, but it is only available for GenBank submitters. | 
 2017 | GeMoMa | Keilwagen, J., Hartung, F., Paulini, M., Twardziok, S. O. & Grau, J. Combining RNA-seq data and homology-based gene prediction for plants , animals and fungi. (2017). | | | | | homology-based gene prediction program |	
 2017 | funannotate | doi.org/10.5281/zenodo.2576527 | Pipeline | Evidence Modeler + Augustus + GeneMark-ES/ET + evidence + PASA | built specifically for fungi, but will also work with higher eukaryotes | | homology-based gene prediction program |
+2017 | GAWN | unpublished - https://github.com/enormandeau/gawn | pipeline evidence-based only | GMAP to create gene and cufflinks and TransDecoder to add UTR | eukaryote | | |	
 2018 | FunGAP | Min B, Grigoriev IV, Choi IG. FunGAP: Fungal Genome Annotation Pipeline using evidence-based gene model evaluation. Bioinformatics (Oxford, England). 2017;33(18):2936–7. | pipeline | | |  | |
 2018 | BRAKER2 | | | Hybrid | eukaryote |  | |	
 2018 | G-OnRamp | | Ab-initio Web-based | Augustus,GlimmerHMM,SNAP | |  | |
 2019 | GAAP | Jinhwa Kong, Sun Huh, Jung-Im Won, Jeehee Yoon, Baeksop Kim, and Kiyong Kim. GAAP: A Genome Assembly + Annotation Pipeline. BioMed Research International, Volume 2019, Article ID 4767354, 12 pages | pipeline| Augustus,EVM,MAKER,PASA | |  | Genome Assembly + Annotation Pipeline |
 2019 | VAPiD (Viral Annotation Pipeline and iDentification) | Ryan C. Shean, Negar Makhsous, Graham D. Stoddard, Michelle J. Lin & Alexander L. Greninger. VAPiD: a lightweight cross-platform viral annotation pipeline and identification tool to facilitate virus genome submissions to NCBI GenBank. BMC Bioinformaticsvolume 20, Article number: 48 (2019) | pipeline | | Virus | | |	
-2019 | Vgas (Viral Genome Annotation System) | Kai-Yue Zhang, Yi-Zhou Gao, Meng-Ze Du, Shuo Liu, Chuan Dong, and Feng-Biao Guo. Vgas: A Viral Genome Annotation System. Front Microbiol. 2019; 10: 184. | abinitio + similarity-based | ZCURVE_V + BLASTp | Virus | In their papaer they say: When combining Vgas with GeneMarkS and Prodigal, better prediction results could be obtained than with each of the three individual programs. | |	
+2019 | Vgas (Viral Genome Annotation System) | Kai-Yue Zhang, Yi-Zhou Gao, Meng-Ze Du, Shuo Liu, Chuan Dong, and Feng-Biao Guo. Vgas: A Viral Genome Annotation System. Front Microbiol. 2019; 10: 184. | abinitio + similarity-based | ZCURVE_V + BLASTp | Virus | | In their paper they say: When combining Vgas with GeneMarkS and Prodigal, better prediction results could be obtained than with each of the three individual programs. | |	
 | year	| Tool name | Publication | Type	| Method | Organism | Nb citation (pubmed 2016) | Comments | Output Format |
 
 _____________________
@@ -188,7 +189,7 @@ __Interesting publications__
 [Chowdhury, B., Garai, A., & Garai, G. (2017). An optimized approach for annotation of large eukaryotic genomic sequences using genetic algorithm. BMC bioinformatics, 18(1), 460. doi:10.1186/s12859-017-1874-7](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5655831/)
 [Joel Armstrong, Ian T. Fiddes, Mark Diekhans and Benedict Paten. Whole-Genome Alignment and Comparative Annotation.Annu Rev Anim Biosci. 2019 Feb 15; 7: 41–64.](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6450745/)  
 Alice Carolyn McHardy Andreas Kloetgen. Finding Genes in Genome Sequence. Bioinformatics pp 271-291  
-(baczkowski review)  
+[Bączkowski, K., Mackiewicz, K., Kowalczuk, M., Banaszak, J. and Cebrat, S., “Od sekwencji do funkcji– poszukiwanie genów i ich adnotacje,” Biotechnologia 3(70), 22–44 (2005)](http://www.pfb.info.pl/files/kwartalnik/3_2005/Baczkowski-Mackiewicz.pdf)  
 
 
 __Interesting books__  

@@ -26,6 +26,7 @@ Collection of Cheat Sheets / overview / summaries
         * [Chloroplast](#chloroplast)
         * [Plasmid](#plasmid)
     * [Overview of RNA-seq library types](#overview-of-rna-seq-library-types)
+    * [Rackham](#rackham)
     * [Screen](#screen)
     * [Schedulers: LSF,Torque,SGE,Slurm,etc](#schedulers-lsftorquesgeslurmetc)
     * [Taxonomic classification](taxonomic-classification)
@@ -93,6 +94,8 @@ Collection of Cheat Sheets / overview / summaries
 
 ### [Overview of RNA-seq library types](rnaseq_library_types.md)
 
+### [Rackham](rackham.md)
+
 ### [Screen](screen.md)
 
 ### [Schedulers: LSF,Torque,SGE,Slurm,etc](pictures/scheduler_rosetta.pdf)
@@ -111,8 +114,11 @@ Collection of Cheat Sheets / overview / summaries
    From Torsten Seemann
  * [avrilomics](http://avrilomics.blogspot.com)  
    From Avril Coghlan
+ * [OPINIOMICS](http://www.opiniomics.org)  
+   From Mick Watson
+ * [Omics! Omics!](http://www.omicsomics.blogspot.com)  
+   From Keith Robison
  * [NBIS](https://nbis.se/blog/)
- * [OPINIOMICS](http://www.opiniomics.org)
  * [List from biostars](https://www.biostars.org/p/243961/)
 
 # Statistics  
