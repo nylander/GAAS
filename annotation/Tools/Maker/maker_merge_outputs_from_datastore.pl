@@ -1,11 +1,12 @@
 #!/usr/bin/env perl
 
 use strict;
-use File::Copy;
 use warnings;
+use File::Copy;
 use Scalar::Util qw(openhandle);
 use Time::Piece;
 use Time::Seconds;
+use Try::Tiny;
 use Cwd;
 use Pod::Usage;
 use URI::Escape;
@@ -139,13 +140,26 @@ foreach my $makerDir (@inDir){
 		print "Now collecting gff and fasta files...\n";
 		collect_recursive(\%file_hds, $datastore, $outfolder, $genomeName);
 
-		#Close all file_handler opened
+		#Close all file_handler opened that are not gff (gff files created by awk)
 		foreach my $key (keys %file_hds){
 			close $file_hds{$key};
 		}
+		#add ##gff-version 3 header to all gff files
+		opendir(DIR, $outfolder);
+		my @gff_files = grep(/\.gff$/,readdir(DIR));
+		closedir(DIR);
+
+		foreach my $gff_file (@gff_files) {
+		    if($^O =~ "linux"){
+		   		system "sed -i '1s/^/##gff-version 3\\\n/' $outfolder/$gff_file";
+		    }
+			else{
+		   		system "sed -i '' '1s/^/##gff-version 3\\\n/' $outfolder/$gff_file"; # Mac syntax
+			}
+		}
 	}
 
-
+exit;
 	#-------------------------------------------------Save maker option files-------------------------------------------------
 	print "Now save a copy of the Maker option files ...\n";
 	if (-f "$outfolder/maker_opts.ctl") {
@@ -264,7 +278,7 @@ sub collect_recursive {
     	################
  		#deal with gff #
     	if($suffix eq ".gff"){
-    		system "cat $full_path >> $out/$maker_mix_prefix.gff";
+    		system "awk -F '	' 'NF==9 {print \$0 >> \"$out/$maker_mix_prefix.gff\"}' $full_path";
 			system "awk '{if(\$2 ~ /[a-zA-Z]+/) if(\$2==\"maker\") { print \$0 >> \"$out/$maker_annotation_prefix.gff\" } else { gsub(/:/, \"_\" ,\$2); print \$0 >> \"$out/\"\$2\".gff\" } }' $full_path";
     	}
     	
