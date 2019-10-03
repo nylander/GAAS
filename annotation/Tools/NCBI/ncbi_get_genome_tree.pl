@@ -308,7 +308,7 @@ sub key_exits{
 =head1 NAME
 
 ncbi_get_genome_tree.pl -
-The script allow to create a tree that covers only whole genome from the genome NCBI database.
+The script creates a tree that covers only whole genomes from the genome NCBI database.
 The result is written to the specified output file, or to STDOUT.
 
 =head1 SYNOPSIS
