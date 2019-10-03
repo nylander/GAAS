@@ -1,6 +1,8 @@
 #!/usr/bin/env perl
 
 use strict;
+use warnings;
+
 use Getopt::Long;
 use Bio::DB::EUtilities;
 use Bio::SeqIO;
@@ -10,6 +12,10 @@ use Time::Seconds;
 use Pod::Usage;
 use XML::LibXML;
 use Data::Dumper;
+use LWP::Simple;
+use LWP::UserAgent;
+use HTTP::Request::Common;
+use Try::Tiny;
 
 use Bio::DB::Taxonomy;
 use Bio::TreeIO;
@@ -18,9 +24,9 @@ use Bio::Tree::TreeFunctionsI;
 
 my $header = qq{
 ########################################################
-# BILS 2015 - Sweden                                   #  
+# NBIS 2015 - Sweden                                   #
 # Marc Hoeppner / Jacques Dainat                        #
-# Please cite BILS (www.bils.se) when using this tool. #
+# Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 };
 
@@ -28,13 +34,15 @@ my $outfile = undef;
 my $quiet = undef;
 my $message="";
 my $taxid=undef;
+my $verbose=undef;
 my $list;
 my $help;
 
 if ( !GetOptions(
-    "help|h" => \$help,
-	"t|taxid=i" => \$taxid,
-	"q" => \$quiet,
+    "help|h"    => \$help,
+  	"t|taxid=i" => \$taxid,
+  	"q"         => \$quiet,
+    "v"         => \$verbose,
 #	"outdir=s" => \$outdir,
     "o|output|outfile=s" => \$outfile))
 {
@@ -76,7 +84,7 @@ my %SUBGROUP = ('Animals' => {1 => 'All', 2 => 'Amphibians', 3 => 'Birds', 4 => 
 		'Fungi' => {1 => 'All', 2 => 'Ascomycetes', 3 => 'Basidiomycetes', 4 => 'Other Fungi'},
 		'Other' => {1 => 'All'},
 		'Plants' => {1 => 'All', 2 => 'Green Algae', 3 => 'Land Plants', 4 => 'Other Plants'},
-		'Protists' => {1 => 'All', 2 => 'Apicomplexans', 3 => 'Kinetoplasts', 4 => 'Other Protists'});	
+		'Protists' => {1 => 'All', 2 => 'Apicomplexans', 3 => 'Kinetoplasts', 4 => 'Other Protists'});
 
 
 ###############
@@ -128,7 +136,7 @@ else{
 
 	#case all in kingdom
 	if($resu_group == "1"){
-		$query=$KINGDOM{$resu_kingdom}."[Organism]"; 
+		$query=$KINGDOM{$resu_kingdom}."[Organism]";
 	}
 	else{ # we continue
 		### GROUP LEVEL ###
@@ -141,37 +149,37 @@ else{
 		$resu_subgroup = key_exits($resu_subgroup, %{$SUBGROUP{$GROUP{$KINGDOM{$resu_kingdom}}{$resu_group} } });
 
 		if($resu_subgroup == "1"){
-			$query=$KINGDOM{$resu_kingdom}."[Organism] AND ".$GROUP{$KINGDOM{$resu_kingdom}}{$resu_group}."[Organism]"; 
+			$query=$KINGDOM{$resu_kingdom}."[Organism] AND ".$GROUP{$KINGDOM{$resu_kingdom}}{$resu_group}."[Organism]";
 		}
 		else{ # we continue
 			### SUBGROUP LEVEL ###
-			$query=$KINGDOM{$resu_kingdom}."[Organism] AND ".$GROUP{$KINGDOM{$resu_kingdom}}{$resu_group}."[Organism] AND ".$SUBGROUP{$GROUP{$KINGDOM{$resu_kingdom}}{$resu_group}}{$resu_subgroup}."[Organism]"; 
+			$query=$KINGDOM{$resu_kingdom}."[Organism] AND ".$GROUP{$KINGDOM{$resu_kingdom}}{$resu_group}."[Organism] AND ".$SUBGROUP{$GROUP{$KINGDOM{$resu_kingdom}}{$resu_group}}{$resu_subgroup}."[Organism]";
 		}
 	}
 }
-	
+
 ############################################
 # fecth the genome database using esearch
 # It will give us a list of IDs
-msg("### Now fetching ids into the genome database using esearch with the query: $query\n");
-my $factory = Bio::DB::EUtilities->new(-eutil      => 'esearch',
-		                               -email      => 'me@foo.com',
-		                               -db         => 'genome',
-									   -retmax 	   => [100000],
-									   -term  => $query);
+msg("### Now fetching ids into the genome database using esearch with the query: $query");
+my $esearch = Bio::DB::EUtilities->new(-eutil      => 'esearch',
+    		                               -email      => 'me@nbis.se',
+    		                               -db         => 'genome',
+                  									   -retmax 	   => [100000],
+                  									   -term  => $query);
 my $count = 0;
-$count = $factory->get_count;
+$count = $esearch->get_count;
 
-msg("Found " . $count . " hits for " . $query . " in database '" . 'genome db' . "'\n"); 
-		
+msg("Found " . $count . " hits for " . $query . " in database '" . 'genome db' . "'\n");
+
 if ($count == 0){ # Skip if nothing was found
-	print "Nothing found"; exit ;
+	msg("Nothing found"); exit ;
 }
 
-# Go trough the XML response to extract the ids 
+# Go trough the XML response to extract the ids
 my $xml_data;
 my @id_Genomes;
-$factory->get_Response(-cb => sub { ($xml_data) = @_; } );
+$esearch->get_Response(-cb => sub { ($xml_data) = @_; } );
 
 my $xmldoc = XML::LibXML->load_xml(string => $xml_data);
 
@@ -187,36 +195,45 @@ foreach my $node (@nodes){
 # It will give us a list of IDs
 msg("### Now translating ids into taxids using elink:");
 my @taxid_Genomes;
-my $xml_id;
 foreach my $id (@id_Genomes){
+  sleep 0.5; #sleep one second. After december 2018 any site (IP address) posting more than 3 requests per second to the E-utilities without an API key will receive an error message. By including an API key, a site can post up to 10 requests per second by default... see https://www.ncbi.nlm.nih.gov/books/NBK25497/
+  print "search for id = $id\n" if $verbose;
+	my $elink = Bio::DB::EUtilities->new(-eutil      => 'elink',
+      		                             -email      => 'me@nbis.se',
+      		                             -dbfrom	   => 'genome',
+      		                             -db         => 'taxonomy',
+                    									 -retmax 	   => [100],
+                    									 -id         => $id);
 
-	my $factory = Bio::DB::EUtilities->new(-eutil      => 'elink',
-		                               -email      => 'me@foo.com',
-		                               -dbfrom	   => 'genome',
-		                               -db         => 'taxonomy',
-									   -retmax 	   => [100],
-									   -id  => $id);
+  my $xml_id = $elink->get_Response()->content();
 
-	$factory->get_Response(-cb => sub { ($xml_id) = @_; } );
-	my $xmldoc = XML::LibXML->load_xml(string => $xml_id);
+  try{
+    my $xmldoc = XML::LibXML->load_xml(string => $xml_id);
+    my @nodes = $xmldoc->getElementsByLocalName('Link');
+    my $taxid = undef;
 
-	my @nodes = $xmldoc->getElementsByLocalName('Link');
-	my $taxid = undef;
-	foreach my $node (@nodes){
-		my @childnodes = $node->childNodes();
-		foreach my $childnode (@childnodes){
-			my $name = $childnode->nodeName;
-			if($name eq "Id"){
-				my $taxid = $childnode->textContent;
-				msg("id $id has been mapped to taxid $taxid");
-				push @taxid_Genomes, $taxid;
-				last;
-			}
-		}
-		last if($taxid);
-	}
+    	foreach my $node (@nodes){
+    		my @childnodes = $node->childNodes();
+
+        foreach my $childnode (@childnodes){
+    			my $name = $childnode->nodeName;
+
+          if($name eq "Id"){
+    				$taxid = $childnode->textContent;
+    				msg("id $id has been mapped to taxid $taxid");
+    				push @taxid_Genomes, $taxid;
+    				last;
+    			}
+    		}
+    		last if($taxid);
+    	}
+    }
+    catch{
+      warn "caught error: $_" if $verbose;
+      msg("No taxid found for id $id");
+    }
 }
- 
+
 ###############
 # CREATING TREE
 msg("### Now translating taxids into scientific_name using entrez:");
@@ -226,10 +243,10 @@ my $speciesTreeReady;
 foreach my $taxid (@taxid_Genomes){
     my $taxon = $db->get_taxon(-taxonid => "$taxid");
     my $spName=$taxon->scientific_name;
-    msg("$taxid = $spName\n");
+    msg("taxid $taxid = $spName");
     push(@species_names, $spName);
 }
-msg("### Now creating tree\n");
+msg("### Now creating tree");
 $speciesTreeReady = $db->get_tree(@species_names);
 $speciesTreeReady->contract_linear_paths();
 msg( "This is the tree of species that have whole genome sequenced:" );
@@ -257,7 +274,7 @@ if($log_tree){
               ########
                ######
                 ####
-                 ##   
+                 ##
 
 sub msg {
   my $t = localtime;
@@ -273,7 +290,7 @@ sub runcmd {
 
 sub key_exits{
 	my ($resu_kingdom, %HASH)=@_;
-	
+
 	while ($resu_kingdom){
 		foreach my $key (keys %HASH){
 			if($resu_kingdom == $key){
@@ -307,9 +324,13 @@ The result is written to the specified output file, or to STDOUT.
 
 To specify a specific taxid. Allow to focus on a specific part of the tree of life.
 
+=item B<-v>
+
+For debugging purpose.
+
 =item B<-q>
 
-Quiet to avoid any print on STDOUT
+Quiet to avoid printing the progress on STDOUT
 
 =item B<-o>, B<--output> or B<--outfile>
 
