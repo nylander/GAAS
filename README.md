@@ -65,7 +65,7 @@ cd GAAS
          
          * With conda
             ```
-            conda env create -f environment.yml
+            conda env create -f conda_env.yml
             ```
             
    * A.3) Load the correct profiles (add NBIS libs and tools to the PATH)  
@@ -117,7 +117,7 @@ cd GAAS
         
         * With conda
         ```
-        conda env create -f environment.yml
+        conda env create -f conda_env.yml
         ```
 
 
