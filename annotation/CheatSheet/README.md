@@ -30,25 +30,24 @@ Collection of Cheat Sheets / overview / summaries
     * [Screen](#screen)
     * [Schedulers: LSF,Torque,SGE,Slurm,etc](#schedulers-lsftorquesgeslurmetc)
     * [Taxonomic classification](taxonomic-classification)
- * [External ressources](#external-ressources)
  * [Blogs](#blogs)
  * [Statistics](#statistics)
  * [Data visualisation](#data-visualisation )
  
 # Programming
 
-### BASH
- * [Cheat Sheet Level1](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/Bash_cheat_%20sheet_level1.pdf)
+### BASH  
+ * Cheat Sheets:  
+    * [Cheat Sheet Level1](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/Bash_cheat_%20sheet_level1.pdf)
+    * [Cheat Sheet Level2](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/Bash_cheat_%20sheet_level2.pdf) 
+    * [Cheat Sheet Level3](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/Bash_cheat_%20sheet_level3.pdf)   
+ * [course](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/Bash_lecture.pdf)  
+ * [others](bash_other.md)  
+ * one-liners:  
+    * [Stephen is Turner](https://github.com/stephenturner/oneliners)
+    * [Bonnie I-Man Ng](https://github.com/onceupon/Bash-Oneliner)
 
- * [Cheat Sheet Level2](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/Bash_cheat_%20sheet_level2.pdf) 
-
- * [Cheat Sheet Level3](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/Bash_cheat_%20sheet_level3.pdf) 
- 
- * [course](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/Bash_lecture.pdf) 
- 
- * [others](bash_other.md)
-
-### Perl
+### Perl  
  * [Perl code profiler](perl_code_profiler.md)
 
 ### Python
@@ -103,10 +102,6 @@ Collection of Cheat Sheets / overview / summaries
 ### [Schedulers: LSF,Torque,SGE,Slurm,etc](pictures/scheduler_rosetta.pdf)
 
 ### [Taxonomic classification](taxonomic_classification.md)
-
-# External ressources
-
-### [Bioinformatics one-liners](https://github.com/stephenturner/oneliners)
 
 # Blogs
  * [Bioinformatics I/O](http://bioinformatics.cvr.ac.uk/blog/)  
