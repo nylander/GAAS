@@ -2,17 +2,18 @@
 
 use strict;
 use warnings;
+use Data::Dumper;
+use Carp;
 use Getopt::Long;
 use Pod::Usage;
 use Scalar::Util qw(openhandle);
 use Time::Piece;
 use Time::Seconds;
 use FindBin;
-use lib ("$FindBin::Bin/PerlLib", "$FindBin::Bin/PerlLibAdaptors");
+use BILS::Grid::Bsub;
 use File::Basename;
 use Bio::SeqIO;
 use Cwd;
-use Carp;
 use Bio::SeqFeature::Generic;
 use Bio::Tools::GFF;
 no strict qw(subs refs);
@@ -27,7 +28,7 @@ my $header = qq{
 
 
 my $grid_computing_module = "BilsGridRunner";
-my $rfam_cm_file = "/projects/references/databases/rfam/14.1/Rfam.cm"; #cm models to be annotated by tRNAscan  
+my $rfam_cm_file = "/projects/references/databases/rfam/14.1/Rfam.cm"; #cm models to be annotated by tRNAscan
 my $gff_formatter = Bio::Tools::GFF->new(-gff_version => 3);
 
 my $outdir = undef;
@@ -76,7 +77,7 @@ if (! -e $fasta){
 my @tools = ("cmsearch" );	# List of tools to check for!
 foreach my $exe (@tools) { check_bin($exe) == 1 or die "Missing executable $exe in PATH"; }
 
-# .. Create output directory 
+# .. Create output directory
 
 if (-d $outdir ) {
 	die "Output directory $outdir exists. Please remove and try again";
@@ -91,17 +92,6 @@ my $logfile = "$outdir/rfam_search.log";
 msg("Writing log to: $logfile");
 open LOG, '>', $logfile or err("Can't open logfile");
 
-# .. load grid module (courtesy of Brian Haas)
-my $grid_computing_method;
-if(! $nogrid){
-
-	my $perl_lib_repo = "$FindBin::Bin/../PerlLibAdaptors";
-	msg("-importing module: $grid_computing_module\n");
-	require "$grid_computing_module.pm" or die "Error, could not import perl module at run-time: $grid_computing_module";
-
-	$grid_computing_method = $grid_computing_module . "::run_on_grid" or die "Failed to initialize GRID module\n";
-}
-
 # .. Read genome fasta file.
 my $inseq = Bio::SeqIO->new(-file   => "<$fasta", -format => 'fasta');
 
@@ -113,7 +103,7 @@ my $seq;
 my $seq_counter = 0;
 
 while( $seq = $inseq->next_seq() ) {
-	$seq_counter += 1;		
+	$seq_counter += 1;
 	my $outfile = $outdir . "/seq_" . $seq_counter . ".fasta" ; # We could also use the display_id, but this can cause trouble with special characters
 	my $seq_out = Bio::SeqIO->new(-file => ">$outfile" , -format => 'fasta');
 	$seq_out->write_seq($seq);
@@ -126,9 +116,10 @@ msg("submitting chunks\n");
 
 if( ! $nogrid){
 	# Submit job chunks to grid
-	msg("Sending $seq_counter jobs to LSF grid\n");
+	msg("Sending $seq_counter jobs to the grid\n");
 	chomp(@cmds); # Remove empty indices
-	&$grid_computing_method(@cmds);
+  my $grid_runner = Bsub->new( cmds_list => \@cmds);
+	$grid_runner->run();
 }
 else{
  	foreach my $command (@cmds){
@@ -152,21 +143,21 @@ else{
 
 msg("Merging output and writing GFF file");
 
-my @files = <$outdir/*.rfam>; 
+my @files = <$outdir/*.rfam>;
 
 foreach my $file (@files) {
 
 	open (my $IN, '<', $file) or die "FATAL: Can't open file: $file for reading.\n$!\n";
 
 	while (<$IN>) {
-		chomp; 
-		my $line = $_; 
+		chomp;
+		my $line = $_;
 		next if ($line =~ /^#.*$/); # Skipping comment lines
-		
+
 		my $annotation = parse_line($line);
 		push(@annotations,$annotation);
-		
-	}		
+
+	}
 }
 
 my $outfile = "rfam.gff";
@@ -186,7 +177,7 @@ sub parse_line {
 	my $line = shift ;
 
 	my ($tn,$tacc,$qn,$qacc,$mdl,$mdlf,$mdlt,$seqf,$seqt,$strand,$trunc,$pass,$gc,$bias,$score,$evalue,$inc,$desc) = split(/\s+/,$line);
-	
+
 	my %tags = ( 'rfam-id' => $qn,
 			 'rfam-acc' => ($qacc || 'unknown'),
 			 'model_start' => $mdlf,
@@ -197,7 +188,7 @@ sub parse_line {
 	    );
 
 		my($from,$to) = sort($seqf,$seqt); # cmsearch reports coordinates in orientation of annotation, not chromosome. Need to sort from low to high for gff
-		
+
 	    if( $evalue =~ /[0-9]/ ) {
 		$tags{'evalue'} = $evalue;
 	    }
@@ -212,7 +203,7 @@ sub parse_line {
 						   -score => $score,
 						   -tag => \%tags,
 		);
-	
+
 		return $f;
 }
 
@@ -265,19 +256,19 @@ Infernal ("INFERence of RNA ALignment") is for searching DNA sequence databases 
 
 =item B<--fasta> or B<-f>
 
-The name of the genome file to read. 
+The name of the genome file to read.
 
-=item B<--cm> 
+=item B<--cm>
 
 File containing the covariance models (cm) used by rfam
 
-=item B<--nogrid> 
+=item B<--nogrid>
 
 Do not use the script in grid version.
 
 =item B<--outdir> or B<-o>
 
-The name of the output directory. 
+The name of the output directory.
 
 =item B<-h> or B<--help>
 
