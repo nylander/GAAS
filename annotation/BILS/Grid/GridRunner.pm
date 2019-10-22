@@ -25,11 +25,11 @@ has cmds_dir => ('is' => 'rw', isa => 'Int', default => 4);
 has retvals_dir => ('is' => 'rw', isa => 'Int', default => 4);
 has monitor_dir => ('is' => 'rw', isa => 'Int', default => 4);
 has retvalues => ('is' => 'rw', isa => 'Int', default => 0); #later set to array ref with retvalues for each command.
-has nodes_in_progress => ('is' => 'rw', isa => 'Hash' );
+has nodes_in_progress => ('is' => 'rw', isa => 'HashRef' );
 has job_id_to_cmd_indices => ('is' => 'rw', isa => 'Hash' ); # job_id => [1,2,3,4,...]  so we know which cmds correspond to each grid job identifier.
 has job_id_to_submission_time => ('is' => 'rw', isa => 'Hash' );
 has mount_test => ('is' => 'rw');
-has verbose => ('is' => 'rw', isa => 'Bool', default => 1);
+has verbose => ('is' => 'rw', isa => 'Bool', default => 0);
 
 
 
@@ -102,8 +102,6 @@ sub _get_num_nodes_used {
     my $self = shift;
     my $num_nodes_used = scalar (keys %{$self->{nodes_in_progress}});
 
-    print "Num nodes currently in use: $num_nodes_used\n" if $self->verbose;
-
     return ($num_nodes_used);
 }
 
@@ -120,7 +118,7 @@ sub _get_exit_values {
 
 		my $retval_file = $self->_get_ret_filename($i);
 
-        #print "file: $retval_file\n";
+        print "file: $retval_file\n";
         if (-s $retval_file) {
             open (my $fh, $retval_file) or die $!;
             my $retval_string = <$fh>;
@@ -167,7 +165,8 @@ sub _wait_for_completions {
     while (! $seen_finished) {
 
         ## check to see if there are any jobs remaining:
-        if ($self->_get_num_nodes_used() == 0) {
+        my $num_nodes_used = $self->_get_num_nodes_used();
+        if ($num_nodes_used == 0) {
             ## no jobs in the queue
             print "no nodes in use; exiting wait.\n" if $self->verbose;
             return (0);
@@ -199,10 +198,8 @@ sub _wait_for_completions {
                         ## reset submission time to delay next polling time
                         $self->{job_id_to_submission_time}->{$job_id} = time();
                     }
-
                 }
             }
-
         }
         if ($seen_finished) {
             foreach my $monitor_file (@done) {
@@ -216,7 +213,7 @@ sub _wait_for_completions {
         }
         else {
             ## wait a while and check again
-            print "waiting for jobs to finish.\n" if $self->verbose;
+            print "waiting for jobs to finish. \n" if $self->verbose;
             sleep($self->waitime);
         }
     }
@@ -334,24 +331,78 @@ sub _job_running_or_pending_on_grid {
 
 sub run {
     my $self = shift;
-
-    # check if no command to run no need to go further
+print "$self->{log_dir}";exit;
+    #----------- check if no command to run no need to go further #-----------
     if ($self->num_cmds == 0){
       print "No command to submit to the grid. Quiting now.\n\n";
-      return(); # all good.
+      return();
     }
 
-    $self->run_jobs();
+    $self->_write_pid_file();
 
-    my $total_cmds = $self->num_cmds;
-    print "total_cmds $total_cmds";exit;
-    if (my @failed_cmds = $self->get_failed_cmds()) {
+    my $max_nodes = $self->{max_nodes};
+    my $num_cmds = $self->{num_cmds};
+    my $num_cmds_launched = 0;
+    my $num_nodes_used = 0;
 
+    #----------- Until all job are submitted -----------
+    while ($num_cmds_launched < $num_cmds) {
+        $num_cmds_launched = $self->_submit_job($num_cmds_launched);
+        print STDERR "\r  CMDS: $num_cmds_launched / $num_cmds  [$num_nodes_used/$max_nodes nodes in use]   ";
+        $num_nodes_used = $self->_get_num_nodes_used();
+        if ($num_nodes_used >= $max_nodes) {
+            my $num_nodes_finished = $self->_wait_for_completions();
+            $num_nodes_used -= $num_nodes_finished;
+        }
+    }
+    print STDERR "\n* All cmds submitted to grid. Now waiting for them to finish.\n";
+
+    #----------- Until all job are finished -----------
+    while (my $num_nodes_finished = $self->_wait_for_completions()) {
+        $num_nodes_used -= $num_nodes_finished;
+        print STDERR "\r  CMDS: $num_cmds_launched / $num_cmds  [$num_nodes_used/$max_nodes nodes in use]   ";
+    }
+    print STDERR "\n* All nodes completed. Now auditing job completion status values\n";
+
+    # ----------- Check the jobs --------------
+    $self->_get_exit_values();
+
+    my $retvals_aref = $self->{retvalues};
+    my $num_successes = 0;
+    my $num_failures = 0;
+    my $num_unknown = 0;
+
+    my $counter=0;
+    foreach my $retval (@$retvals_aref) {
+      $counter++;
+        if ($retval =~ /\d+/) {
+            if ($retval == 0) {
+                $num_successes++;
+            }
+            else {
+                $num_failures++;
+            }
+        }
+        else {
+          print "retval= $retval\n";
+            $num_unknown++;
+        }
+    }
+    print "counter= $counter\n";
+    $self->_write_result_summary($num_successes, $num_failures, $num_unknown);
+
+    if ($num_successes == $num_cmds) {
+        $self->clean_logs();
+        print "All $num_cmds completed successfully.\n\n";
+    }
+    else {
+        print "Failures encountered:\n"
+            . "num_success: $num_successes\tnum_fail: $num_failures\tnum_unknown: $num_unknown\n";
+
+        my @failed_cmds = $self->get_failed_cmds();
         my $num_failed_cmds = scalar (@failed_cmds);
-        my $msg = "Sorry, $num_failed_cmds of $total_cmds failed = " . ($num_failed_cmds
-                                                                        / $total_cmds * 100) . " % failure.\n";
+        my $msg = "$num_failed_cmds of $num_cmds failed = " . ($num_failed_cmds / $num_cmds * 100) . " % failure.\n";
 
-        print $msg;
         print STDERR $msg;
 
         my @failed_cmd_lines;
@@ -367,86 +418,9 @@ sub run {
         print "View file \'failed_cmds.$$\' for list of commands that failed.\n\n";
         return (@failed_cmd_lines); # at least one job failed.
     }
-    else {
-        $self->clean_logs();
-        print "All $total_cmds completed successfully.\n\n";
-        return(); # all good.
-    }
-
-
-}
-
-####
-sub run_jobs {
-    my $self = shift;
-
-    $self->_write_pid_file();
-
-
-    my $max_nodes = $self->{max_nodes};
-    my $num_cmds = $self->{num_cmds};
-
-
-    my $num_cmds_launched = 0;
-    my $num_nodes_used = 0;
-
-
-    while ($num_cmds_launched < $num_cmds) {
-        $num_cmds_launched = $self->_submit_job($num_cmds_launched);
-        print STDERR "\r  CMDS: $num_cmds_launched / $num_cmds  [$num_nodes_used/$max_nodes nodes in use]   ";
-        $num_nodes_used = $self->_get_num_nodes_used();
-        if ($num_nodes_used >= $max_nodes) {
-            my $num_nodes_finished = $self->_wait_for_completions();
-            $num_nodes_used -= $num_nodes_finished;
-        }
-    }
-
-    print STDERR "\n* All cmds submitted to grid. Now waiting for them to finish.\n";
-    ## wait for rest to finish
-    while (my $num_nodes_finished = $self->_wait_for_completions()) {
-        $num_nodes_used -= $num_nodes_finished;
-        print STDERR "\r  CMDS: $num_cmds_launched / $num_cmds  [$num_nodes_used/$max_nodes nodes in use]   ";
-    };
-
-    print STDERR "\n* All nodes completed. Now auditing job completion status values\n";
-
-
-    $self->_get_exit_values();
-
-    my $retvals_aref = $self->{retvalues};
-
-    my $num_successes = 0;
-    my $num_failures = 0;
-    my $num_unknown = 0;
-
-    foreach my $retval (@$retvals_aref) {
-        if ($retval =~ /\d+/) {
-            if ($retval == 0) {
-                $num_successes++;
-            } else {
-                $num_failures++;
-            }
-        } else {
-            $num_unknown++;
-        }
-    }
-
-
-    $self->_write_result_summary($num_successes, $num_failures, $num_unknown);
-
-    if ($num_successes == $num_cmds) {
-        print "All commands completed successfully.\n";
-    } else {
-        print "Failures encountered:\n"
-            . "num_success: $num_successes\tnum_fail: $num_failures\tnum_unknown: $num_unknown\n";
-    }
-
-
-
 
     print "Finished.\n\n";
 }
-
 
 package main;
 use strict;

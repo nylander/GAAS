@@ -3,7 +3,7 @@ package Bsub;
 use strict;
 use warnings;
 use File::Basename;
-use IPC::Cmd qw[can_run run];
+#use IPC::Cmd qw[can_run run];
 use Carp;
 use Moose;
 use BILS::Grid::GridRunner;
@@ -14,9 +14,9 @@ has scheduler => ('is' => 'rw', isa => 'Str', default => 'LSF');
 
 # The BUILD method is called after an object is created.
 # Here it is used to set all different folders used to store logging
-sub BUILD {
-  can_run('bsub') or croak 'bsub command does not exist. Cannot run jobs!';
-}
+#sub BUILD {
+#  can_run('bsub') or croak 'bsub command does not exist. Cannot run jobs!';
+#}
 
 
 ####
@@ -39,7 +39,6 @@ sub _submit_job {
     my $shell_script = "$cmds_dir/J$$.S${num_cmds_launched}.sh";
     open (my $fh, ">$shell_script") or die $!;
     print $fh "#!/bin/sh\n\n";
-
     $self->_write_minimal_environment($fh);
 
     my $num_cmds_written = 0;
@@ -87,15 +86,15 @@ sub _submit_job {
     my $cmd = undef;
     if($self->{queue}){
       my $queue = $self->{queue};
-      my $cmd = "bsub -q $queue -e $shell_script.stderr -o $shell_script.stdout ";
+      $cmd = "bsub -q $queue -e $shell_script.stderr -o $shell_script.stdout ";
     }
     else{
-      my $cmd = "bsub -e $shell_script.stderr -o $shell_script.stdout ";
+      $cmd = "bsub -e $shell_script.stderr -o $shell_script.stdout ";
     }
   	if (my $memory = $self->{memory}) {
   		$cmd .= " -R \"rusage[mem=$memory]\" ";
   	}
-	#if (my $mount_test = $self->{mount_test}) {
+#   if (my $mount_test = $self->{mount_test}) {
 #		$cmd .= " -E \"/broad/tools/NoArch/pkgs/local/checkmount $mount_test && [ -e $mount_test ]\" ";
 #	}
     if (my $group = $self->{group}) {
