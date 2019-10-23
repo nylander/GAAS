@@ -25,7 +25,6 @@ sub _submit_job {
     my $num_cmds_launched = shift;
 
     my $num_cmds = $self->{num_cmds};
-    my $cmds_per_node = $self->{cmds_per_node};
     my $cmds_list_aref = $self->{cmds_list};
 
     my $log_dir = $self->{log_dir};
@@ -36,39 +35,33 @@ sub _submit_job {
     my $orig_num_cmds_launched = $num_cmds_launched;
 
 
+    # ---------------- create the job (write into a shell script) ---------------
     my $shell_script = "$cmds_dir/J$$.S${num_cmds_launched}.sh";
     open (my $fh, ">$shell_script") or die $!;
     print $fh "#!/bin/sh\n\n";
     $self->_write_minimal_environment($fh);
-
-    my $num_cmds_written = 0;
 
     my $monitor_started = "$monitor_dir/$num_cmds_launched.started";
     my $monitor_finished = "$monitor_dir/$num_cmds_launched.finished";
 
     my @cmd_indices_prepped;
 
-    while ($num_cmds_launched < $num_cmds && $num_cmds_written < $cmds_per_node) {
-        my $next_cmd_index = $num_cmds_launched; #always one less than the current index
-        my $cmd_string = $cmds_list_aref->[ $next_cmd_index ];
+    my $next_cmd_index = $num_cmds_launched; #always one less than the current index
+    my $cmd_string = $cmds_list_aref->[ $next_cmd_index ];
 
-        push (@cmd_indices_prepped, $next_cmd_index);
+    push (@cmd_indices_prepped, $next_cmd_index);
 
-    		my $retval_bin = int($next_cmd_index / $self->retval_bin_size());
+		my $retval_bin = int($next_cmd_index / $self->retval_bin_size());
 
-    		my $retval_subdir = "$retvals_dir/$retval_bin";
-    		unless (-d $retval_subdir) {
-    			mkdir $retval_subdir or die "Error, cannot mkdir $retval_subdir";
-    		}
+		my $retval_subdir = "$retvals_dir/$retval_bin";
+		unless (-d $retval_subdir) {
+			mkdir $retval_subdir or die "Error, cannot mkdir $retval_subdir";
+		}
 
-        print $fh "## Command index $next_cmd_index\n"
-            . "touch $monitor_started\n"
-            . "$cmd_string\n"
-            . 'echo $? >> ' . "$retval_subdir/entry_$next_cmd_index.ret\n\n";
-
-        $num_cmds_launched++;
-        $num_cmds_written++;
-    }
+    print $fh "## Command index $next_cmd_index\n"
+        . "touch $monitor_started\n"
+        . "$cmd_string\n"
+        . 'echo $? >> ' . "$retval_subdir/entry_$next_cmd_index.ret\n\n";
 
     print $fh "\n"
         . "rm -f $monitor_started\n"
@@ -80,9 +73,8 @@ sub _submit_job {
     close $fh;
     chmod (0775, $shell_script);
 
-    print "Submitting: $shell_script to bsub\n" if $self->verbose;
 
-
+    # ---------------- create the bsub command ---------------
     my $cmd = undef;
     if($self->{queue}){
       my $queue = $self->{queue};
@@ -94,18 +86,19 @@ sub _submit_job {
   	if (my $memory = $self->{memory}) {
   		$cmd .= " -R \"rusage[mem=$memory]\" ";
   	}
-#   if (my $mount_test = $self->{mount_test}) {
-#		$cmd .= " -E \"/broad/tools/NoArch/pkgs/local/checkmount $mount_test && [ -e $mount_test ]\" ";
-#	}
     if (my $group = $self->{group}) {
         $cmd .= " -G $group ";
     }
+	  $cmd .= " $shell_script 2>&1 ";
 
-	   $cmd .= " $shell_script 2>&1 ";
 
+    # ---------------- run the bsub job ---------------
+    print "Submitting: $shell_script to bsub\n" if $self->verbose;
     my $job_id_text = `$cmd`;
-    # print STDERR "\n$job_id_text\n";
+    $num_cmds_launched++;
 
+
+    # ---------------- check status ---------------
     my $ret = $?;
     if ($ret) {
         print STDERR "BSUB failed to accept job: $cmd\n (ret $ret)\n";
@@ -125,12 +118,10 @@ sub _submit_job {
         if ($job_id_text =~ /Job \<(\d+)\>/) {
             my $job_id = $1;
             print $logdir_jobsfh "$job_id\t$shell_script\n";
-            my $monitor_href = $self->{nodes_in_progress};
-            $monitor_href->{$monitor_finished} = $job_id;
 
+            $self->{nodes_in_progress}->{$monitor_finished} = $job_id;
             $self->{job_id_to_cmd_indices}->{$job_id} = \@cmd_indices_prepped;
             $self->{job_id_to_submission_time}->{$job_id} = time();
-
         }
         else {
 
@@ -145,6 +136,39 @@ sub _submit_job {
 
 }
 
+####
+sub _job_running_or_pending_on_grid {
+    my $self = shift;
+    my ($job_id) = @_;
+
+    if (time() - $self->{job_id_to_submission_time}->{$job_id} < $self->resort_to_polling_time) {
+        return("TOO_SOON");
+    }
+
+
+    # print STDERR "Polling grid to check status of job: $job_id\n";
+
+    my $response = `bjobs $job_id`;
+    #print STDERR "Response:\n$response\n";
+
+    foreach my $line (split(/\n/, $response)) {
+        my @x = split(/\s+/, $line);
+
+        if ($x[0] eq $job_id) {
+            my $state = $x[2];
+            if ($state eq "DONE" || $state eq "EXIT") {
+                return(0);
+            }
+            else {
+                $self->{job_id_to_submission_time}->{$job_id} = time();
+                return($state);
+            }
+        }
+    }
+
+    print STDERR "-no record of job_id $job_id, setting as state unknown\n";
+    return undef; # no status info
+}
 
 #no Moose;
 #__PACKAGE__->meta->make_immutable;

@@ -14,8 +14,7 @@ has waitime => ('is' => 'rw', isa => 'Int', default => 15 );
 has retval_bin_size => ('is' => 'rw', isa => 'Int', default => 1000 );
 has resort_to_polling_time => ('is' => 'rw', isa => 'Int', default => 15*60 );# 15 minutes
 has job_id_to_prevtime => ('is' => 'rw', isa => 'HashRef');
-has max_nodes => ('is' => 'rw', isa => 'Int', default => 500 );
-has cmds_per_node => ('is' => 'rw', isa => 'Int', default => 10 );#
+has max_job_at_a_time => ('is' => 'rw', isa => 'Int', default => 500 );
 has queue => ('is' => 'rw', isa => 'Str');
 has memory => ('is' => 'rw', isa => 'Int', default => 4);
 has cmds_list => ('is' => 'rw', isa => 'ArrayRef', required => 1);
@@ -38,19 +37,9 @@ has verbose => ('is' => 'rw', isa => 'Bool', default => 0);
 sub BUILD {
     my $self = shift;
 
-    # must specify
-    # log_dir: area to store return values #optional
-    # cmd_list_aref: ordered list of commands to process
-    # max_nodes : default 100
-    # cmds_per_node: 10
-
 # -------- set up num_cmds -----------
 
     $self->{num_cmds} = scalar @{$self->cmds_list};
-
-# -------- set up cmds_per_node -----------
-
-    $self->{cmds_per_node} = (int($self->{num_cmds} / $self->{max_nodes}) + 1);
 
 # --------------------------------------------
 # -------- Set up log environment ------------
@@ -120,7 +109,6 @@ sub _get_exit_values {
 
 		my $retval_file = $self->_get_ret_filename($i);
 
-        print "file: $retval_file\n";
         if (-s $retval_file) {
             open (my $fh, $retval_file) or die $!;
             my $retval_string = <$fh>;
@@ -160,19 +148,10 @@ sub _wait_for_completions {
     print "sub _wait_for_completions()\n" if $self->verbose;
 
     my $nodes_in_progress_href = $self->{nodes_in_progress};
-
     my $seen_finished = 0;
-
     my @done;
-    while (! $seen_finished) {
 
-        ## check to see if there are any jobs remaining:
-        my $num_nodes_used = $self->_get_num_nodes_used();
-        if ($num_nodes_used == 0) {
-            ## no jobs in the queue
-            print "no nodes in use; exiting wait.\n" if $self->verbose;
-            return (0);
-        }
+    while (! $seen_finished) {
 
         ## check for finished jobs
         foreach my $monitor_file (keys %$nodes_in_progress_href) {
@@ -180,33 +159,10 @@ sub _wait_for_completions {
                 push (@done, $monitor_file);
                 $seen_finished = 1;
             }
-            else {
-                ## try polling the grid directly based on the job id
-                my $job_id = $nodes_in_progress_href->{$monitor_file};
-
-                my $time_launched = $self->{job_id_to_submission_time}->{$job_id};
-                my $current_time = time();
-
-                ## see if an hour has passed
-                if ($current_time - $time_launched >= $self->resort_to_polling_time) {
-                    ## poll the system directly:
-                    if (! $self->_job_running_or_pending_on_grid($job_id)) {
-
-                        push (@done, $monitor_file);
-                        $seen_finished = 1;
-
-                    }
-                    else {
-                        ## reset submission time to delay next polling time
-                        $self->{job_id_to_submission_time}->{$job_id} = time();
-                    }
-                }
-            }
         }
         if ($seen_finished) {
             foreach my $monitor_file (@done) {
                 my $job_id = $nodes_in_progress_href->{$monitor_file};
-                print "job[$job_id]: $monitor_file is finished.\n" if $self->verbose;
                 delete $nodes_in_progress_href->{$monitor_file}; #remove from queue
                 delete $self->{job_id_to_cmd_indices}->{$job_id};
                 delete $self->{job_id_to_submission_time}->{$job_id};
@@ -215,8 +171,7 @@ sub _wait_for_completions {
         }
         else {
             ## wait a while and check again
-            print "waiting for jobs to finish. \n" if $self->verbose;
-            sleep($self->waitime);
+            sleep(1);
         }
     }
 }
@@ -243,7 +198,7 @@ sub _write_result_summary {
     $self->{num_unknown} = $num_unknown;
 
     my $log_dir = $self->{log_dir};
-    open (my $fh, ">$log_dir/bsub.finished.$status") or die $!;
+    open (my $fh, ">$log_dir/job.finished.$status") or die $!;
     print $fh "num_successes: $num_successes\n"
         . "num_failures: $num_failures\n"
         . "num_unknown: $num_unknown\n";
@@ -294,41 +249,6 @@ sub _get_ret_filename {
 }
 
 
-####
-sub _job_running_or_pending_on_grid {
-    my $self = shift;
-    my ($job_id) = @_;
-
-    if (time() - $self->{job_id_to_submission_time}->{$job_id} < $self->resort_to_polling_time) {
-        return("TOO_SOON");
-    }
-
-
-    # print STDERR "Polling grid to check status of job: $job_id\n";
-
-    my $response = `bjobs $job_id`;
-    #print STDERR "Response:\n$response\n";
-
-    foreach my $line (split(/\n/, $response)) {
-        my @x = split(/\s+/, $line);
-
-        if ($x[0] eq $job_id) {
-            my $state = $x[2];
-            if ($state eq "DONE" || $state eq "EXIT") {
-                return(0);
-            }
-            else {
-                $self->{job_id_to_submission_time}->{$job_id} = time();
-                return($state);
-            }
-        }
-    }
-
-    print STDERR "-no record of job_id $job_id, setting as state unknown\n";
-    return undef; # no status info
-}
-
-
 sub run {
     my $self = shift;
 
@@ -340,29 +260,40 @@ sub run {
 
     $self->_write_pid_file();
 
-    my $max_nodes = $self->{max_nodes};
+    my $max_job_at_a_time = $self->{max_job_at_a_time};
     my $num_cmds = $self->{num_cmds};
     my $num_cmds_launched = 0;
-    my $num_nodes_used = 0;
+    my $num_running_job = 0;
 
-    #----------- Until all job are submitted -----------
+
+    #----------- Submit all jobs -----------
+    if($num_cmds > $max_job_at_a_time){
+        print STDERR "$max_job_at_a_time max job send to the scheduler at a time. I Will wait that somes jobs are finished before running the nexts.";
+    }
+
     while ($num_cmds_launched < $num_cmds) {
         $num_cmds_launched = $self->_submit_job($num_cmds_launched);
-        print STDERR "\r  CMDS: $num_cmds_launched / $num_cmds  [$num_nodes_used/$max_nodes nodes in use]   ";
-        $num_nodes_used = $self->_get_num_nodes_used();
-        if ($num_nodes_used >= $max_nodes) {
-            my $num_nodes_finished = $self->_wait_for_completions();
-            $num_nodes_used -= $num_nodes_finished;
+        print STDERR "\r  CMDS: $num_cmds_launched / $num_cmds submitted";
+        $num_running_job = $self->_get_num_nodes_used();
+        if ($num_running_job >= $max_job_at_a_time) {
+            my $num_jobs_finished = $self->_wait_for_completions();
+            $num_running_job -= $num_jobs_finished;
         }
     }
     print STDERR "\n* All cmds submitted to grid. Now waiting for them to finish.\n";
+    print STDERR "\r  CMDS: $num_cmds_launched / $num_cmds remaining to complete";
 
-    #----------- Until all job are finished -----------
-    while (my $num_nodes_finished = $self->_wait_for_completions()) {
-        $num_nodes_used -= $num_nodes_finished;
-        print STDERR "\r  CMDS: $num_cmds_launched / $num_cmds  [$num_nodes_used/$max_nodes nodes in use]   ";
+
+    #----------- Wait all job are finished -----------
+    while (my $num_jobs_finished = $self->_wait_for_completions()) {
+        $num_running_job -= $num_jobs_finished;
+        print STDERR "\r  CMDS: $num_running_job / $num_cmds remaining to complete";
+        if ($num_running_job == 0){
+           last;
+        }
     }
     print STDERR "\n* All nodes completed. Now auditing job completion status values\n";
+
 
     # ----------- Check the jobs --------------
     $self->_get_exit_values();
@@ -372,9 +303,8 @@ sub run {
     my $num_failures = 0;
     my $num_unknown = 0;
 
-    my $counter=0;
     foreach my $retval (@$retvals_aref) {
-      $counter++;
+
         if ($retval =~ /\d+/) {
             if ($retval == 0) {
                 $num_successes++;
@@ -388,7 +318,7 @@ sub run {
             $num_unknown++;
         }
     }
-    print "counter= $counter\n";
+
     $self->_write_result_summary($num_successes, $num_failures, $num_unknown);
 
     if ($num_successes == $num_cmds) {
