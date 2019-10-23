@@ -11,6 +11,7 @@ use Time::Piece;
 use Time::Seconds;
 use FindBin;
 use BILS::Grid::Bsub;
+use BILS::Grid::Sbatch;
 use File::Basename;
 use Bio::SeqIO;
 use Cwd;
@@ -26,8 +27,6 @@ my $header = qq{
 ########################################################
 };
 
-
-my $grid_computing_module = "BilsGridRunner";
 my $rfam_cm_file = "/projects/references/databases/rfam/14.1/Rfam.cm"; #cm models to be annotated by tRNAscan
 my $gff_formatter = Bio::Tools::GFF->new(-gff_version => 3);
 
@@ -37,13 +36,13 @@ my @cmds = ();				# Stores the commands to send to farm
 my $quiet;
 my @annotations = ();		# Stores Rfama annotations as hashes
 my $help;
-my $nogrid=undef;
+my $grid="Slurm";
 
 if ( !GetOptions(
     "help" => \$help,
     "fasta|f=s" => \$fasta,
     "cm=s"  => \$rfam_cm_file,
-    "nogrid!"  => \$nogrid,
+    "grid=s"  => \$grid,
     "outdir|o=s" => \$outdir))
 
 {
@@ -65,6 +64,13 @@ if ( ! (defined($fasta) and defined($outdir) ) ){
            -verbose => 0,
            -exitval => 2 } );
 }
+
+my @grid_choice=('slurm','lsf','none');
+$grid=lc($grid);
+if (! grep( /^$grid/, @grid_choice ) ) {
+  print "$grid is not a value accepted for grid parameter.";exit;
+}
+$grid= undef if lc($grid) eq 'none';
 
 if (! -e $rfam_cm_file){
 	print "The cm file ".$rfam_cm_file." does not exist. Please define it using the cm option.\n";exit;
@@ -114,12 +120,18 @@ while( $seq = $inseq->next_seq() ) {
 
 msg("submitting chunks\n");
 
-if( ! $nogrid){
-	# Submit job chunks to grid
-	msg("Sending $seq_counter jobs to the grid\n");
-	chomp(@cmds); # Remove empty indices
-  my $grid_runner = Bsub->new( cmds_list => \@cmds);
-	$grid_runner->run();
+if( $grid){
+  msg("Sending $seq_counter jobs to the grid\n");
+  chomp(@cmds); # Remove empty indices
+  # Submit job chunks to grid
+  my $grid_runner;
+  if ( $grid eq 'lsf'){
+    $grid_runner = Bsub->new( cmds_list => \@cmds);
+  }
+  elsif( $grid eq 'slurm'){
+    $grid_runner = Sbatch->new( cmds_list => \@cmds);
+  }
+  $grid_runner->run();
 }
 else{
  	foreach my $command (@cmds){
@@ -262,9 +274,9 @@ The name of the genome file to read.
 
 File containing the covariance models (cm) used by rfam
 
-=item B<--nogrid>
+=item B<--grid>
 
-Do not use the script in grid version.
+Define which grid to use, Slurm, Lsf or None. Default = Slurm.
 
 =item B<--outdir> or B<-o>
 
