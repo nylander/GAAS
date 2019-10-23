@@ -19,8 +19,8 @@ has cmds_per_node => ('is' => 'rw', isa => 'Int', default => 10 );#
 has queue => ('is' => 'rw', isa => 'Str');
 has memory => ('is' => 'rw', isa => 'Int', default => 4);
 has cmds_list => ('is' => 'rw', isa => 'ArrayRef', required => 1);
-has log_dir => ('is' => 'rw', default => cwd );
 has num_cmds => ('is' => 'rw', isa => 'Int');
+has log_dir => ('is' => 'rw', isa => 'Str');
 has cmds_dir => ('is' => 'rw', isa => 'Int', default => 4);
 has retvals_dir => ('is' => 'rw', isa => 'Int', default => 4);
 has monitor_dir => ('is' => 'rw', isa => 'Int', default => 4);
@@ -57,12 +57,13 @@ sub BUILD {
 # --------------------------------------------
 
     # -------- create a log directory ------------
-    $log_dir = $self->log_dir;
+    my $log_dir;
     unless ($self->log_dir) {
+
         # create logging area
-        $self->log_dir = "/local/scratch/bsubtmp";
-        unless (-d $self->log_dir) {
-            mkdir ($self->log_dir);
+        $log_dir = cwd;
+        unless (-d $log_dir) {
+            mkdir ($log_dir);
         }
     }
 
@@ -92,6 +93,7 @@ sub BUILD {
         mkdir $dir or die "Error, cannot mkdir $dir";
     }
 
+    $self->{log_dir} = $log_dir,
     $self->{cmds_dir} = $cmds_dir,
     $self->{retvals_dir} = $retvals_dir,
     $self->{monitor_dir} =  $monitor_dir,
@@ -278,7 +280,6 @@ _EOFENV_
 }
 
 
-
 ####
 sub _get_ret_filename {
     my $self = shift;
@@ -291,7 +292,6 @@ sub _get_ret_filename {
 
     return($retval_file);
 }
-
 
 
 ####
@@ -326,12 +326,12 @@ sub _job_running_or_pending_on_grid {
 
     print STDERR "-no record of job_id $job_id, setting as state unknown\n";
     return undef; # no status info
-
 }
+
 
 sub run {
     my $self = shift;
-print "$self->{log_dir}";exit;
+
     #----------- check if no command to run no need to go further #-----------
     if ($self->num_cmds == 0){
       print "No command to submit to the grid. Quiting now.\n\n";
