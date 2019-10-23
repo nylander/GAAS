@@ -3,7 +3,6 @@ package Bsub;
 use strict;
 use warnings;
 use File::Basename;
-#use IPC::Cmd qw[can_run run];
 use Carp;
 use Moose;
 use BILS::Grid::GridRunner;
@@ -13,11 +12,12 @@ extends 'GridRunner';
 has scheduler => ('is' => 'rw', isa => 'Str', default => 'LSF');
 
 # The BUILD method is called after an object is created.
-# Here it is used to set all different folders used to store logging
-#sub BUILD {
-#  can_run('bsub') or croak 'bsub command does not exist. Cannot run jobs!';
-#}
-
+sub BUILD {
+  my $answer = system("bjobs");
+  if ($? == -1) {
+      print "LSF does not seem to be installed!\n";  exit;
+  }
+}
 
 ####
 sub _submit_job {
@@ -86,14 +86,11 @@ sub _submit_job {
   	if (my $memory = $self->{memory}) {
   		$cmd .= " -R \"rusage[mem=$memory]\" ";
   	}
-    if (my $group = $self->{group}) {
-        $cmd .= " -G $group ";
-    }
 	  $cmd .= " $shell_script 2>&1 ";
 
 
     # ---------------- run the bsub job ---------------
-    print "Submitting: $shell_script to bsub\n" if $self->verbose;
+    print "Submitting: $shell_script with bsub\n" if $self->verbose;
     my $job_id_text = `$cmd`;
     $num_cmds_launched++;
 
