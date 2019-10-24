@@ -13,8 +13,8 @@ has scheduler => ('is' => 'rw', isa => 'Str', default => 'LSF');
 
 # The BUILD method is called after an object is created.
 sub BUILD {
-  my $answer = system("bjobs");
-  if ($? == -1) {
+  my $answer = system("bjobs 1>/dev/null 2>&1");
+  if ($? != 0) {
       print "LSF does not seem to be installed!\n";  exit;
   }
 }
@@ -83,10 +83,10 @@ sub _submit_job {
     else{
       $cmd = "bsub -e $shell_script.stderr -o $shell_script.stdout ";
     }
-  	if (my $memory = $self->{memory}) {
-  		$cmd .= " -R \"rusage[mem=$memory]\" ";
-  	}
-	  $cmd .= " $shell_script 2>&1 ";
+    if (my $memory = $self->{memory}) {
+      $cmd .= " -R \"rusage[mem=$memory]\" ";
+    }
+      $cmd .= " $shell_script 2>&1 ";
 
 
     # ---------------- run the bsub job ---------------

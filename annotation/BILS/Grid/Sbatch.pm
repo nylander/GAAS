@@ -14,9 +14,9 @@ has scheduler => ('is' => 'rw', isa => 'Str', default => 'Slurm');
 
 # The BUILD method is called after an object is created.
 sub BUILD {
-    my $answer = system("squeue");
-    if ($? == -1) {
-        print "Slurm does not seem to be installed!\n";  exit;
+     my $answer = system("squeue 1>/dev/null 2>&1");
+     if ($? != 0) {
+         print "Slurm does not seem to be installed!\n";  exit;
     }
 }
 
@@ -83,19 +83,17 @@ sub _submit_job {
       $cmd = "sbatch -p $queue -e $shell_script.stderr -o $shell_script.stdout ";
     }
     else{
-      $cmd = "sbatch -e $shell_script.stderr -o $shell_script.stdout ";
+	$cmd = "sbatch -e $shell_script.stderr -o $shell_script.stdout ";
     }
-  	if (my $memory = $self->{memory}) {
-  		$cmd .= " --licences=\"[mem=$memory]\" ";
-  	}
-	  $cmd .= " $shell_script 2>&1 ";
-
+    if (my $memory = $self->{memory}) {
+  	$cmd .= " --mem=".$memory."gb ";
+    }
+    $cmd .= " $shell_script 2>&1 ";
 
     # ---------------- run the bsub job ---------------
     print "Submitting: $shell_script with sbatch\n" if $self->verbose;
     my $job_id_text = `$cmd`;
     $num_cmds_launched++;
-
 
     # ---------------- check status ---------------
     my $ret = $?;
@@ -108,14 +106,14 @@ sub _submit_job {
         return ($orig_num_cmds_launched);
 
     }
-
     else {
 
         $shell_script = basename($shell_script);
         open (my $logdir_jobsfh, ">>$log_dir/job_ids.txt") or die "Error, cannot open file $log_dir/job_ids.txt";
         ## get the job ID and log it:
-        if ($job_id_text =~ /Job \<(\d+)\>/) {
+        if ($job_id_text =~ /Submitted batch job (\d+)/) {
             my $job_id = $1;
+
             print $logdir_jobsfh "$job_id\t$shell_script\n";
 
             $self->{nodes_in_progress}->{$monitor_finished} = $job_id;
