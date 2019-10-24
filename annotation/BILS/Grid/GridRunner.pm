@@ -16,7 +16,7 @@ has resort_to_polling_time => ('is' => 'rw', isa => 'Int', default => 15*60 );# 
 has job_id_to_prevtime => ('is' => 'rw', isa => 'HashRef');
 has max_job_at_a_time => ('is' => 'rw', isa => 'Int', default => 500 );
 has queue => ('is' => 'rw', isa => 'Str');
-has memory => ('is' => 'rw', isa => 'Int', default => 4);
+has memory => ('is' => 'rw', isa => 'Int');
 has cmds_list => ('is' => 'rw', isa => 'ArrayRef', required => 1);
 has num_cmds => ('is' => 'rw', isa => 'Int');
 has log_dir => ('is' => 'rw', isa => 'Str');
