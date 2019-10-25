@@ -30,7 +30,7 @@ my $width = 60; # line length printed
 
 my $header = qq{
 ########################################################
-# BILS 2016 - Sweden                                   #  
+# BILS 2016 - Sweden                                   #
 # jacques.dainat\@bils.se                               #
 # Please cite BILS (www.bils.se) when using this tool. #
 ########################################################
@@ -66,7 +66,7 @@ if ($opt_help) {
                  -exitval => 2,
                  -message => "$header \n" } );
 }
- 
+
 if ( (! (defined($opt_gfffile)) ) or (! (defined($opt_fastafile)) ) ){
     pod2usage( {
            -message => "\nAt least 2 parametes are mandatory:\nInput reference gff file (-g);  Input reference fasta file (-f)\n\n".
@@ -109,7 +109,7 @@ if($opt_OFS){
 ### Parse GFF input #
 print "Reading file $opt_gfffile\n";
 my ($hash_omniscient, $hash_mRNAGeneLink) = slurp_gff3_file_JD({ input => $opt_gfffile
-                                                              });  
+                                                              });
 print "Parsing Finished\n";
 ### END Parse GFF input #
 #########################
@@ -166,7 +166,7 @@ foreach my $seqname (keys %{$hash_l1_grouped}) {
     # == LEVEL 2 == #
     #################
     foreach my $ptag_l2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
-         
+
       if ( exists ($hash_omniscient->{'level2'}{$ptag_l2}{lc($id_l1)} ) ){
         foreach my $feature_l2 ( @{$hash_omniscient->{'level2'}{$ptag_l2}{lc($id_l1)}}) {
 
@@ -196,7 +196,7 @@ foreach my $seqname (keys %{$hash_l1_grouped}) {
             }
             $seqObj->id($id_seq);
             $seqObj->description($description);
-            
+
             print_seqObj($ostream, $seqObj, $opt_AA, $codonTable);
           }
 
@@ -205,7 +205,7 @@ foreach my $seqname (keys %{$hash_l1_grouped}) {
           #################
           foreach my $ptag_l3 (keys %{$hash_omniscient->{'level3'}}){
             if ( exists ($hash_omniscient->{'level3'}{$ptag_l3}{lc($id_l2)} ) ){
-              
+
               if( $opt_type eq $ptag_l3 ){
                 my ($seqObj, $info) = extract_sequence(\@{$hash_omniscient->{'level3'}{$ptag_l3}{lc($id_l2)}}, $db, $opt_extermityOnly, $opt_upstreamRegion, $opt_downRegion);
                 if($info){
@@ -213,7 +213,7 @@ foreach my $seqname (keys %{$hash_l1_grouped}) {
                 }
                 $seqObj->id($id_seq);
                 $seqObj->description($description);
-                #print 
+                #print
                 print_seqObj($ostream, $seqObj, $opt_AA, $codonTable);
               }
             }
@@ -254,7 +254,7 @@ print "Job done in $run_time seconds\n";
               ########
                ######
                 ####
-                 ##          
+                 ##
 
 sub clean_string{
   my ($string) = @_;
@@ -298,7 +298,7 @@ sub extract_sequence{
       #negative strand
       if($sortedList[0]->strand eq "-1" or $sortedList[0]->strand eq "-"){
         $end=$end+$opt_upstreamRegion;
-        
+
         #get info
         if($end > $db->length($sortedList[0]->seq_id) ){
           $info.=clean_tag("5'extra=").($db->length($sortedList[0]->seq_id)-$end-$opt_upstreamRegion)."nt" ;
@@ -306,7 +306,7 @@ sub extract_sequence{
         else{$info.=clean_tag("5'extra=").$opt_upstreamRegion."nt";}
       }
       else{
-        $start=$start-$opt_upstreamRegion;        
+        $start=$start-$opt_upstreamRegion;
 
         if($start < 0){
           $info.=clean_tag("5'extra=").($start+$opt_upstreamRegion)."nt";
@@ -320,7 +320,7 @@ sub extract_sequence{
     if($opt_downRegion){
       if( $info ne ""){$info.=$OFS;}
 
-      if($sortedList[0]->strand eq "-1" or $sortedList[0]->strand eq "-"){   
+      if($sortedList[0]->strand eq "-1" or $sortedList[0]->strand eq "-"){
         $start=$start-$opt_downRegion;
 
         #get info
@@ -340,7 +340,7 @@ sub extract_sequence{
       }
     }
     $sequence = get_sequence($db, $sortedList[0]->seq_id, $start, $end)
-    
+
   }
   else{
     foreach my $feature ( @sortedList ){
@@ -350,7 +350,7 @@ sub extract_sequence{
 
   #create sequence object
   my $seq  = Bio::Seq->new( '-format' => 'fasta' , -seq => $sequence);
-  
+
   #check if need to be reverse complement
   if($sortedList[0]->strand eq "-1" or $sortedList[0]->strand eq "-"){
     $seq=$seq->revcom;
@@ -365,7 +365,7 @@ sub  get_sequence{
   my $sequence="";
   my $seq_id_correct = undef;
   if( exists $allIDs{lc($seq_id)}){
-      
+
     $seq_id_correct = $allIDs{lc($seq_id)};
 
     $sequence = $db->subseq($seq_id_correct, $start, $end);
@@ -376,13 +376,13 @@ sub  get_sequence{
     if(length($sequence) != ($end-$start+1)){
       my $wholeSeq = $db->subseq($seq_id_correct);
       $wholeSeq = length($wholeSeq);
-      warn "Problem ! The size of the sequence extracted ".length($sequence)." is different than the specified span: ".($end-$start+1).".\nThat often occurs when the fasta file does not correspond to the annotation file. Or the index file comes from another fasta file which had the same name and haven't been removed.\n". 
+      warn "Problem ! The size of the sequence extracted ".length($sequence)." is different than the specified span: ".($end-$start+1).".\nThat often occurs when the fasta file does not correspond to the annotation file. Or the index file comes from another fasta file which had the same name and haven't been removed.\n".
            "As last possibility your gff contains location errors (Already encountered for a Maker annotation)\nSupplement information: seq_id=$seq_id ; seq_id_correct=$seq_id_correct ; start=$start ; end=$end ; $seq_id sequence length: $wholeSeq )\n";
     }
   }
   else{
     warn "Problem ! ID $seq_id not found !\n";
-  }  
+  }
 
   return $sequence;
 }
@@ -391,14 +391,14 @@ sub print_seqObj{
   my($ostream, $seqObj, $opt_AA, $codonTable) = @_;
 
   $nbFastaSeq++;
-  
+
   if($opt_AA){ #translate if asked
       my $transObj = $seqObj->translate(-CODONTABLE_ID => $codonTable);
-      
+
       if($opt_cleanFinalStop and $opt_cleanInternalStop){ #this case is needed to be able to remove two final stop codon in a raw when the bothotpion are activated.
         my $lastChar = substr $transObj->seq(),-1,1;
         my $cleanedSeq=$transObj->seq();
-        if ($lastChar eq "*"){ # if last char is a stop we remove it        
+        if ($lastChar eq "*"){ # if last char is a stop we remove it
           chop $cleanedSeq;
         }
         $cleanedSeq =~ tr/*/X/; #X = Any / unknown Amino Acid
@@ -408,7 +408,7 @@ sub print_seqObj{
       elsif($opt_cleanFinalStop){
 		    my $lastChar = substr $transObj->seq(),-1,1;
 
-        if ($lastChar eq "*"){ # if last char is a stop we remove it  
+        if ($lastChar eq "*"){ # if last char is a stop we remove it
 		      my $cleanedSeq=$transObj->seq();
 		      chop $cleanedSeq;
 		      $transObj->seq($cleanedSeq);
@@ -417,7 +417,7 @@ sub print_seqObj{
 
       elsif($opt_cleanInternalStop){
         my $lastChar = substr $transObj->seq(),-1,1;
-        
+
         my $seqMinus1=$transObj->seq();
         chop $seqMinus1;
         $seqMinus1 =~ tr/*/X/; #X = Any / unknown Amino Acid
@@ -425,10 +425,10 @@ sub print_seqObj{
         $transObj->seq($cleanedSeq);
       }
 
-      $ostream->write_seq($transObj);  
+      $ostream->write_seq($transObj);
    }
   else{
-    $ostream->write_seq($seqObj);                
+    $ostream->write_seq($seqObj);
   }
   #print Dumper($seqObj);exit;
 }
@@ -447,9 +447,9 @@ The Header are formated like that:
     ^    <----------------------------v------------------------------------>
     ID                           description (Where the OFS can be modified)
 
-/!\The ID will be the gene_ID extracting gene. 
+/!\The ID will be the gene_ID extracting gene.
 Name is optional and will be written only if the Name attribute exists in th gff.
-type will be the feature type extracted. 
+type will be the feature type extracted.
 5'extra or 3'extra is otpional, according to the use of the upstream and downstream options.
 
 =head1 SYNOPSIS
@@ -465,11 +465,11 @@ type will be the feature type extracted.
 
 Input GFF3 file that will be read (and sorted)
 
-=item B<-f> or B<--fasta> 
+=item B<-f> or B<--fasta>
 
 Input fasta file.
 
-=item B<-t> 
+=item B<-t>
 
 Define the feature you want to extract the sequnece from. By deafault it's 'cds'. Most common choice are: gene,mrna,exon,cds,trna,three_prime_utr,five_prime_utr.
 When you chose exon (or cds,utr,etc.), all the exon related to a same L2 feature are attached together before to extract the exon. (It doesnt provide one sequence by exon !!)
@@ -516,7 +516,7 @@ The Clean Final Stop option allows removing the translation of the final stop co
 
 =item B<-o> or B<--output>
 
-Output GFF file.  If no output file is specified, the output will be
+Output fasta file.  If no output file is specified, the output will be
 written to STDOUT.
 
 =item B<-h> or B<--help>
