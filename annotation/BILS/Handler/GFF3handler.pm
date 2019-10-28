@@ -13,9 +13,9 @@ use Bio::Seq;
 
 our $VERSION     = 1.00;
 our @ISA         = qw(Exporter);
-our @EXPORT_OK   = qw(get_most_right_left_cds_positions l2_has_cds l1_has_l3_type check_record_positions convert_omniscient_to_ensembl_style remove_l2_related_feature l2_identical group_l1IDs_from_omniscient complement_omniscients rename_ID_existing_in_omniscient keep_only_uniq_from_list2 check_gene_overlap_at_CDSthenEXON location_overlap_update location_overlap print_omniscient_as_match nb_feature_level1 check_gene_positions gather_and_sort_l1_location_by_seq_id gather_and_sort_l1_location_by_seq_id_and_strand gather_and_sort_l1_by_seq_id gather_and_sort_l1_by_seq_id_and_strand webapollo_compliant extract_cds_sequence group_l1features_from_omniscient create_omniscient_from_idlevel2list get_feature_l2_from_id_l2_l1 remove_omniscient_elements_from_level2_feature_list remove_omniscient_elements_from_level2_ID_list featuresList_identik group_features_from_omniscient featuresList_overlap check_level1_positions check_level2_positions info_omniscient fil_cds_frame exists_keys remove_element_from_omniscient append_omniscient merge_omniscients remove_omniscient_elements_from_level1_id_list fill_omniscient_from_other_omniscient_level1_id print_omniscient_from_level1_id_list subsample_omniscient_from_level1_id_list check_if_feature_overlap remove_tuple_from_omniscient print_ref_list_feature print_omniscient create_or_replace_tag remove_element_from_omniscient_attributeValueBased get_longest_cds_level2);
+our @EXPORT_OK   = qw(is_single_exon_gene get_most_right_left_cds_positions l2_has_cds l1_has_l3_type check_record_positions convert_omniscient_to_ensembl_style remove_l2_related_feature l2_identical group_l1IDs_from_omniscient complement_omniscients rename_ID_existing_in_omniscient keep_only_uniq_from_list2 check_gene_overlap_at_CDSthenEXON location_overlap_update location_overlap print_omniscient_as_match nb_feature_level1 check_gene_positions gather_and_sort_l1_location_by_seq_id gather_and_sort_l1_location_by_seq_id_and_strand gather_and_sort_l1_by_seq_id gather_and_sort_l1_by_seq_id_and_strand webapollo_compliant extract_cds_sequence group_l1features_from_omniscient create_omniscient_from_idlevel2list get_feature_l2_from_id_l2_l1 remove_omniscient_elements_from_level2_feature_list remove_omniscient_elements_from_level2_ID_list featuresList_identik group_features_from_omniscient featuresList_overlap check_level1_positions check_level2_positions info_omniscient fil_cds_frame exists_keys remove_element_from_omniscient append_omniscient merge_omniscients remove_omniscient_elements_from_level1_id_list fill_omniscient_from_other_omniscient_level1_id print_omniscient_from_level1_id_list subsample_omniscient_from_level1_id_list check_if_feature_overlap remove_tuple_from_omniscient print_ref_list_feature print_omniscient create_or_replace_tag remove_element_from_omniscient_attributeValueBased get_longest_cds_level2);
 our %EXPORT_TAGS = ( DEFAULT => [qw()],
-                 Ok    => [qw(get_most_right_left_cds_positions l2_has_cds l1_has_l3_type check_record_positions convert_omniscient_to_ensembl_style remove_l2_related_feature l2_identical group_l1IDs_from_omniscient complement_omniscients rename_ID_existing_in_omniscient keep_only_uniq_from_list2 check_gene_overlap_at_CDSthenEXON location_overlap_update location_overlap print_omniscient_as_match nb_feature_level1 check_gene_positions gather_and_sort_l1_location_by_seq_id gather_and_sort_l1_location_by_seq_id_and_strand gather_and_sort_l1_by_seq_id gather_and_sort_l1_by_seq_id_and_strand webapollo_compliant extract_cds_sequence group_l1features_from_omniscient create_omniscient_from_idlevel2list get_feature_l2_from_id_l2_l1 remove_omniscient_elements_from_level2_feature_list remove_omniscient_elements_from_level2_ID_list featuresList_identik group_features_from_omniscient featuresList_overlap check_level1_positions check_level2_positions info_omniscient fil_cds_frame exists_keys remove_element_from_omniscient append_omniscient merge_omniscients remove_omniscient_elements_from_level1_id_list fill_omniscient_from_other_omniscient_level1_id print_omniscient_from_level1_id_list subsample_omniscient_from_level1_id_list check_if_feature_overlap remove_tuple_from_omniscient print_ref_list_feature print_omniscient create_or_replace_tag remove_element_from_omniscient_attributeValueBased get_longest_cds_level2)]);
+                 Ok    => [qw(is_single_exon_gene get_most_right_left_cds_positions l2_has_cds l1_has_l3_type check_record_positions convert_omniscient_to_ensembl_style remove_l2_related_feature l2_identical group_l1IDs_from_omniscient complement_omniscients rename_ID_existing_in_omniscient keep_only_uniq_from_list2 check_gene_overlap_at_CDSthenEXON location_overlap_update location_overlap print_omniscient_as_match nb_feature_level1 check_gene_positions gather_and_sort_l1_location_by_seq_id gather_and_sort_l1_location_by_seq_id_and_strand gather_and_sort_l1_by_seq_id gather_and_sort_l1_by_seq_id_and_strand webapollo_compliant extract_cds_sequence group_l1features_from_omniscient create_omniscient_from_idlevel2list get_feature_l2_from_id_l2_l1 remove_omniscient_elements_from_level2_feature_list remove_omniscient_elements_from_level2_ID_list featuresList_identik group_features_from_omniscient featuresList_overlap check_level1_positions check_level2_positions info_omniscient fil_cds_frame exists_keys remove_element_from_omniscient append_omniscient merge_omniscients remove_omniscient_elements_from_level1_id_list fill_omniscient_from_other_omniscient_level1_id print_omniscient_from_level1_id_list subsample_omniscient_from_level1_id_list check_if_feature_overlap remove_tuple_from_omniscient print_ref_list_feature print_omniscient create_or_replace_tag remove_element_from_omniscient_attributeValueBased get_longest_cds_level2)]);
 =head1 SYNOPSIS
 
 
@@ -2748,7 +2748,7 @@ sub get_most_right_left_cds_positions {
 	    $gene_id = lc($l1_feature->_tag_value('ID'));
     }
     else{
-		$gene_id=$l1_feature;
+		$gene_id=lc($l1_feature);
     }
 
     foreach my $tag_l1 (keys %{$omniscient->{'level1'}}){ 
@@ -2760,11 +2760,12 @@ sub get_most_right_left_cds_positions {
 					foreach my $feature_l2 ( @{$omniscient->{'level2'}{$tag_l2}{$gene_id}}) {						
 						# == LEVEL 3 == #
 						my $l2_id = lc($feature_l2->_tag_value('ID') );
-						if (exists_keys ($omniscient, ('level3', 'cds', $l2_id ) ) ){ 	
+						if (exists_keys ($omniscient, ('level3', 'cds', $l2_id ) ) ){
+	
 							my @sorted_cds = sort {$a->start <=> $b->start} @{$omniscient->{'level3'}{'cds'}{$l2_id}};
     						my $local_cds_start  = $omniscient->{'level3'}{'cds'}{lc($l2_id)}[0]->start; #first element of the array
 							my $local_cds_end = $omniscient->{'level3'}{'cds'}{$l2_id}[$#{$omniscient->{'level3'}{'cds'}{$l2_id}}]->end; #last element of the array  
-						
+
 							if ( ! $cds_start){
 								$cds_start = $local_cds_start;
 							}
@@ -2783,7 +2784,7 @@ sub get_most_right_left_cds_positions {
 			}
 		}
 	}
-	return 0;
+	return $cds_start, $cds_end;
 }
 
 #				   +------------------------------------------------------+
@@ -2888,13 +2889,20 @@ sub check_record_ids {
 # @input: 2 => hash(omniscient hash), [l1 feature /or/ l1 id]
 # @output: bolean
 sub l1_has_l3_type {
-	my ($omniscient, $l1_feature, $type) = @_;
+	my ($omniscient, $l1_feature, $type, $part_match) = @_;
+	
+	my $full_match=1;
+	if($part_match){
+		$full_match=undef;
+	}
+	
+
 	my $gene_id=undef;
 	if (ref($l1_feature) =~ "::"){
 	    $gene_id = lc($l1_feature->_tag_value('ID'));
     }
     else{
-		$gene_id=$l1_feature;
+		$gene_id=lc($l1_feature);
     }
 
     foreach my $tag_l1 (keys %{$omniscient->{'level1'}}){ 
@@ -2902,11 +2910,25 @@ sub l1_has_l3_type {
 
 			# == LEVEL 2 == #
 			foreach my $tag_l2 (keys %{$omniscient->{'level2'}}){
+
 				if (exists_keys ($omniscient, ('level2', $tag_l2, $gene_id) ) ){ 
 					foreach my $feature_l2 ( @{$omniscient->{'level2'}{$tag_l2}{$gene_id}}) {						
+
 						# == LEVEL 3 == #
-						if (exists_keys ($omniscient, ('level3', $type, lc($feature_l2->_tag_value('ID') ) ) ) ){ 								
-							return 1
+						if($full_match){
+							if (exists_keys ($omniscient, ('level3', $type, lc($feature_l2->_tag_value('ID') ) ) ) ){ 								
+								return 1
+							}
+						}
+						else{
+							my $level2_ID = lc($feature_l2->_tag_value('ID'));
+							foreach my $ptag_l3 (keys %{$omniscient->{'level3'}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
+								if (lc($ptag_l3) =~ lc($type)){
+									if( exists_keys($omniscient, ('level3', $ptag_l3, $level2_ID)) ){
+										return 1;
+									}
+								}
+							}
 						}
 					}
 				}
@@ -2987,5 +3009,50 @@ return $result
 #				   || 			MANIPULATION from id 					 ||
 #				   |+----------------------------------------------------+|
 #				   +------------------------------------------------------+
+
+#				   +------------------------------------------------------+
+#				   |+----------------------------------------------------+|
+#				   || 			Info from id/feature 					 ||
+#				   |+----------------------------------------------------+|
+#				   +------------------------------------------------------+
+
+# @Purpose: check if it is a single exon gene
+# @input: 2 => hash(omniscient hash), [l1 feature /or/ l1 id]
+# @output: bolean
+sub is_single_exon_gene {
+	my ($omniscient, $l1_feature) = @_;
+
+	my $gene_id = undef;
+	if (ref($l1_feature) =~ "::"){
+	    $gene_id = lc($l1_feature->_tag_value('ID'));
+    }
+    else{
+		$gene_id=lc($l1_feature);
+    }
+
+    foreach my $tag_l1 (keys %{$omniscient->{'level1'}}){ 
+		if (exists_keys ($omniscient, ('level1', $tag_l1, $gene_id) ) ){
+
+			# == LEVEL 2 == #
+			foreach my $tag_l2 (keys %{$omniscient->{'level2'}}){
+				if (exists_keys ($omniscient, ('level2', $tag_l2, $gene_id) ) ){ 
+					foreach my $feature_l2 ( @{$omniscient->{'level2'}{$tag_l2}{$gene_id}}) {						
+						# == LEVEL 3 == #
+						my $l2_id = lc($feature_l2->_tag_value('ID') );
+						if (exists_keys ($omniscient, ('level3', 'exon', $l2_id ) ) ){
+  							if (scalar @{$omniscient->{'level3'}{'exon'}{$l2_id}} == 1){
+  								return 1;
+  							}
+  							else{return 0;}
+						}
+						else{
+							warn "WARNING No exon available to check if it is a single exon gene\n";
+						}
+					}
+				}
+			}
+		}
+	}
+}
 
 1;

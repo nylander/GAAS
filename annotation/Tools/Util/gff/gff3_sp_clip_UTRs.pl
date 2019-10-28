@@ -14,19 +14,21 @@ use BILS::Handler::GXFhandler qw(:Ok);
 
 my $header = qq{
 ########################################################
-# BILS 2018 - Sweden                                   #  
-# jacques.dainat\@bils.se                               #
-# Please cite BILS (www.bils.se) when using this tool. #
+# NBIS 2019 - Sweden                                   #  
+# jacques.dainat\@nbis.se                               #
+# Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 };
 
 my $outfile = undef;
 my $gff = undef;
+my $verbose = undef;
 my $help= 0;
 
 if ( !GetOptions(
     "help|h" => \$help,
     "gff|g=s" => \$gff,
+    "verbose|v!" => \$verbose,
     "output|outfile|out|o=s" => \$outfile))
 
 {
@@ -67,7 +69,6 @@ else{
 #                     >>>>>>>>>>>>>>>>>>>>>>>>>       #######################       <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
-my $verbose=1;
 my $resume_case=undef;
 
 ######################
@@ -89,36 +90,40 @@ foreach my $level ( ('level1', 'level2') ){
 
 ########
 # Sort the genes to loop over them from the left to right.
-my $sortBySeq = gather_and_sort_l1_by_seq_id_and_strand($omniscient);
-my %alreadyChecked;
+my $sortBySeq = gather_and_sort_l1_location_by_seq_id($omniscient);
+
 
 foreach my $locusID ( keys %{$sortBySeq}){ # tag_l1 = gene or repeat etc...
-  if ( exists_keys( $sortBySeq, ( $locusID ) ) ){
-    foreach my $tag_l1 ( keys %{$sortBySeq->{$locusID}} ) { 
-      my $sorted_locations = _create_sorted_list_of_locations(\@{$sortBySeq->{$locusID}{$tag_l1}});
+ 
+  foreach my $tag_l1 ( keys %{$sortBySeq->{$locusID}} ) { 
 
-      # Go through location from left to right ### !!
-      while ( @sorted_locations ){
+    # Go through location from left to right ### !!
+    while ( @{$sortBySeq->{$locusID}{$tag_l1}} ){
 
-        my $location = shift @$sorted_locations;# This location will be updated on the fly
-        my $id_l1_left = $location->[0];
-        if( l1_has_l3_type($omniscient, $id_l1_left, 'cds')){
+      my $location = shift  @{$sortBySeq->{$locusID}{$tag_l1}};
+      my $id_l1_left = $location->[0];
 
-          # Go through location from left to right ### !!
-          foreach my $locationB ( @{$sorted_locations} ) {
-            my $id_l1_right = $locationB->[0];
-            if( l1_has_l3_type($omniscient, $id_l1_right, 'cds')){
+      my $overlap=1;
+      while($overlap){
 
-              #If location_to_check start if over the end of the M1erence location, we stop
-              if($locationB->[1] > $location->[2]) {last;} 
+        # Go through location from left to right ### !!
+        my $continue = 0;
+        while ( defined($continue) ){
 
-              # Let's check if neighbor gene overlap at Gene LEVEL !
-              if (($location->[1] <= $locationB->[2]) and ($location->[2] >= $locationB->[1])){
-                ### OVERLAP ###
-                #let's check at UTR level
-                _check_gene_overlap_at_UTR($omniscient , $id_l1_left, $id_l1_right, $verbose); #If contains UTR
-              }
-            }
+          # Next location 
+          my $location2 = @{$sortBySeq->{$locusID}{$tag_l1}}[$continue];
+          my $id_l1_right = $location2->[0];
+          
+          #if overlap
+          if ( ($location->[1] <= $location2->[2]) and ($location->[2] >= $location2->[1])){
+            print "$id_l1_left and $id_l1_right overlaps\n" if($verbose);
+            _check_gene_overlap_at_UTR($omniscient , $location, $location2, $verbose); #If contains UTR  
+
+            $continue++;
+          }
+          else{
+            $overlap=undef;
+            last;
           }
         }
       }
@@ -143,92 +148,100 @@ print_omniscient($omniscient, $gffout);
                 ####
                  ##
 
-sub _create_sorted_list_of_locations{
-  my  ($list)=@_;
-  my @result;
-  foreach my $feature (@{$list}){
-    push(@result, [$feature->_tag_value('ID'), $feature->start, $feature->end ])
-  }
-
-  @result = sort { $a->[1] <=> $b->[1] }  @result;
-  return \@result;
-}
-
-
 sub _check_gene_overlap_at_UTR{
-  my  ($hash_omniscient, $gene_id, $gene_id2, $verbose)=@_;
+  my  ($hash_omniscient, $location, $location2, $verbose)=@_;
 
-  my $verbose=1;
-  
-  #collect extrem cds positions.
-  my ($gene1_cds_start, $gene1_cds_end) = get_most_right_left_cds_positions($omniscient, $gene_id);
-  my ($gene2_cds_start, $gene2_cds_end) = get_most_right_left_cds_positions($omniscient, $gene_id2);
+  my $gene_id = $location->[0];
+  my $gene_id2 = $location2->[0];
 
-  my $utr_mrna1 = undef;
-  my $utr_mrna2 = undef;
-  print "lets go: $gene_id, $gene_id2 \n";
+  #One has to have UTR
+  if( l1_has_l3_type($omniscient, $gene_id, 'utr', 1) or l1_has_l3_type($omniscient, $gene_id2, 'utr', 1) ){
+    print "At least one of them has UTR\n" if($verbose);
 
+    if( l1_has_l3_type($omniscient, $gene_id, 'cds') and  l1_has_l3_type($omniscient, $gene_id2, 'cds') ){
+      #collect extrem cds positions.
+      my ($gene1_cds_start, $gene1_cds_end) = get_most_right_left_cds_positions($omniscient, $gene_id);
+      my ($gene2_cds_start, $gene2_cds_end) = get_most_right_left_cds_positions($omniscient, $gene_id2);
+      #print "gene1_cds_start $gene1_cds_start gene1_cds_end $gene1_cds_end gene2_cds_start $gene2_cds_start gene2_cds_end $gene2_cds_end\n";
 
-  foreach my $l2_type (keys %{$hash_omniscient->{'level2'}} ){
-    if(exists_keys($hash_omniscient,('level2', $l2_type, $gene_id))){
-      foreach my $mrna_feature (@{$hash_omniscient->{'level2'}{$l2_type}{$gene_id}}){       
-        my $righ_utrs = undef;
-        my $sorted_cds = get_cds_from_l2($hash_omniscient, $mrna_feature);
-        if ($sorted_cds){ #this l2 has a cds
-          $righ_utrs = _get_right_utrs($hash_omniscient, $mrna_feature, $gene1_cds_end);
-        }
-
-
-        foreach my $l2_type_B (keys %{$hash_omniscient->{'level2'}} ){
-          if(exists_keys($hash_omniscient,('level2', $l2_type_B, $gene_id2))){
-            foreach my $mrna_feature_B (@{$hash_omniscient->{'level2'}{$l2_type}{$gene_id2}}){       
-              my $sorted_cds_B = get_cds_from_l2($hash_omniscient, $mrna_feature_B);
-              if ($sorted_cds_B){ #this l2 has a cds
-                if($sorted_cds_B[0]->start <=  $sorted_cds[$#sorted_cds]->end and $sorted_cds_B[$#sorted_cds_B]->end  >= $sorted_cds[0]->start){
-                  print "Both CDS overlap, we will not touch their UTRs\n";
-                }
-                my $left_utrs = _get_left_utrs($hash_omniscient, $mrna_feature_B, $gene2_cds_start);
-                if($righ_utrs and $left_utrs){
-                  #-----HERE BOTH HAVE UTR-----
-                  my $length_utr_M1 =  $righ_utrs->[$#righ_utrs]->end - $righ_utrs->[0]->start +1;
-                  my $length_utr_M2 =  $left_utrs->[$#left_utrs]->end  - $left_utrs->[0]->start + 1;
-                  my $separting_point = undef;
-                  if($length_utr_M1 > $length_utr_M2){
-                    $separting_point = $M2_utr_left_start;
-                  }
-                  #print "($length_utr_M1 > $dist_between_M1_and_M2 and $length_utr_M2 > $dist_between_M1_and_M2)\n" if $verbose;
-                  # If $dist_between_M1_and_M2 = 1 we cannot share one nucleotide between two utr. Both should have it
-                  if($length_utr_M1 > $dist_between_M1_and_M2 and $length_utr_M2 > $dist_between_M1_and_M2 and $dist_between_M1_and_M2 > 1) {
-                    $separting_point =  $M1_cds_end  + int($dist_between_M1_and_M2 / 2) + 1;
-                    #print "separting_point  $separting_point $M2_cds_start - $M1_cds_end - 1 =  $dist_between_M1_and_M2 ".int($dist_between_M1_and_M2 / 2)."\n" if $verbose;
-                  }
-                  _shrink_utr_right($separting_point)
-                  _shrink_utr_left($separting_point)
-                }
-                elsif($righ_utrs){
-                  #-----HERE left gene has UTR to his right to check
-                  my $separting_point = $sorted_cds_B->[0]->start;
-                  _shrink_utr_right($separting_point)
-                }
-                elsif($left_utrs){
-                  #-----HERE right gene has UTR to his left to check
-                  my $separting_point = $sorted_cds->[$#$sorted_cds]->end;
-                  _shrink_utr_left($separting_point)
-                }
-                else{
-                  print "None of the two features have CDS" if ($verbose);
-                }
-              }
-            }
-          }
-        }
+      if ( ($gene1_cds_start <= $gene2_cds_end) and ($gene1_cds_end >= $gene2_cds_start)){
+        print "overlap within the CDS we don't touch them...\n" if($verbose);
+      }
+      else{
+        #if single exon gene is modified it can be on different strand otherwise we don't touch the UTR
+        #if( and is_single_exon_gene() or is_single_exon_gene())
+        #print "let's go with $gene_id $gene_id2\n";
       }
     }
+    else{
+      print "At least one of them do not have CDS we don't touch them2...\n" if($verbose);
+    }
+      # my $utr_mrna1 = undef;
+      # my $utr_mrna2 = undef;
+      # print "lets go: $gene_id, $gene_id2 \n";
+
+
+      # foreach my $l2_type (keys %{$hash_omniscient->{'level2'}} ){
+      #   if(exists_keys($hash_omniscient,('level2', $l2_type, $gene_id))){
+      #     foreach my $mrna_feature (@{$hash_omniscient->{'level2'}{$l2_type}{$gene_id}}){       
+      #       my $righ_utrs = undef;
+      #       my $sorted_cds = get_cds_from_l2($hash_omniscient, $mrna_feature);
+      #       if ($sorted_cds){ #this l2 has a cds
+      #         $righ_utrs = _get_right_utrs($hash_omniscient, $mrna_feature, $gene1_cds_end);
+      #       }
+
+
+      #       foreach my $l2_type_B (keys %{$hash_omniscient->{'level2'}} ){
+      #         if(exists_keys($hash_omniscient,('level2', $l2_type_B, $gene_id2))){
+      #           foreach my $mrna_feature_B (@{$hash_omniscient->{'level2'}{$l2_type}{$gene_id2}}){       
+      #             my $sorted_cds_B = get_cds_from_l2($hash_omniscient, $mrna_feature_B);
+      #             if ($sorted_cds_B){ #this l2 has a cds
+      #               if($sorted_cds_B[0]->start <=  $sorted_cds[$#sorted_cds]->end and $sorted_cds_B[$#sorted_cds_B]->end  >= $sorted_cds[0]->start){
+      #                 print "Both CDS overlap, we will not touch their UTRs\n";
+      #               }
+      #               my $left_utrs = _get_left_utrs($hash_omniscient, $mrna_feature_B, $gene2_cds_start);
+      #               if($righ_utrs and $left_utrs){
+      #                 #-----HERE BOTH HAVE UTR-----
+      #                 my $length_utr_M1 =  $righ_utrs->[$#righ_utrs]->end - $righ_utrs->[0]->start +1;
+      #                 my $length_utr_M2 =  $left_utrs->[$#left_utrs]->end  - $left_utrs->[0]->start + 1;
+      #                 my $separting_point = undef;
+      #                 if($length_utr_M1 > $length_utr_M2){
+      #                   $separting_point = $M2_utr_left_start;
+      #                 }
+      #                 #print "($length_utr_M1 > $dist_between_M1_and_M2 and $length_utr_M2 > $dist_between_M1_and_M2)\n" if $verbose;
+      #                 # If $dist_between_M1_and_M2 = 1 we cannot share one nucleotide between two utr. Both should have it
+      #                 if($length_utr_M1 > $dist_between_M1_and_M2 and $length_utr_M2 > $dist_between_M1_and_M2 and $dist_between_M1_and_M2 > 1) {
+      #                   $separting_point =  $M1_cds_end  + int($dist_between_M1_and_M2 / 2) + 1;
+      #                   #print "separting_point  $separting_point $M2_cds_start - $M1_cds_end - 1 =  $dist_between_M1_and_M2 ".int($dist_between_M1_and_M2 / 2)."\n" if $verbose;
+      #                 }
+      #                 #_shrink_utr_right($separting_point)
+      #                 #_shrink_utr_left($separting_point)
+      #               }
+      #               elsif($righ_utrs){
+      #                 #-----HERE left gene has UTR to his right to check
+      #                 my $separting_point = $sorted_cds_B->[0]->start;
+      #                 #_shrink_utr_right($separting_point)
+      #               }
+      #               elsif($left_utrs){
+      #                 #-----HERE right gene has UTR to his left to check
+      #                 my $separting_point = $sorted_cds->[$#$sorted_cds]->end;
+      #                 #_shrink_utr_left($separting_point)
+      #               }
+      #               else{
+      #                 print "None of the two features have CDS" if ($verbose);
+      #               }
+      #             }
+      #           }
+      #         }
+      #       }
+      #     }
+      #   }
+
   }
 }
 
 
-
+__END__
 
 ############################################################
 #check if UTR right of model left is overlaping, and fix it.
