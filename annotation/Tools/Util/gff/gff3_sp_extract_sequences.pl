@@ -26,6 +26,7 @@ my $opt_OFS=undef;
 my $opt_type = 'cds';
 my $opt_cleanFinalStop=undef;
 my $opt_cleanInternalStop=undef;
+my $quiet = undef;
 my $width = 60; # line length printed
 
 my $header = qq{
@@ -51,6 +52,7 @@ if ( !GetOptions( 'g|gff=s' => \$opt_gfffile,
                   'up|5|five|upstream=i'      => \$opt_upstreamRegion,
                   'do|3|three|down|downstream=i'      => \$opt_downRegion,
                   'o|output=s'      => \$opt_output,
+                  'q|quiet!'      => \$quiet,
                   'h|help!'         => \$opt_help ) )
 {
     pod2usage( { -message => "$header\nFailed to parse command line",
@@ -138,7 +140,7 @@ foreach my $seqname (keys %{$hash_l1_grouped}) {
       $name = $feature_l1->_tag_value('gene');
     }
 
-    if($opt_type eq lc($feature_l1->primary_tag()) ){
+    if( $opt_type eq lc($feature_l1->primary_tag()) or $opt_type eq "l1" or $opt_type eq "level1" ){
 
       #Handle Header
       my $id_seq = clean_string($id_l1);
@@ -188,7 +190,7 @@ foreach my $seqname (keys %{$hash_l1_grouped}) {
 
           $description.=$OFS.clean_tag("seq_id=").clean_string($seqname).$OFS.clean_tag("type=").clean_string($opt_type);
 
-          if($opt_type eq $ptag_l2){
+          if( $opt_type eq $ptag_l2 or $opt_type eq "l2" or $opt_type eq "level2" ){
             my @ListSeq=($feature_l2);
             my ($seqObj, $info) = extract_sequence(\@ListSeq, $db, $opt_extermityOnly, $opt_upstreamRegion, $opt_downRegion);
             if($info){
@@ -206,7 +208,7 @@ foreach my $seqname (keys %{$hash_l1_grouped}) {
           foreach my $ptag_l3 (keys %{$hash_omniscient->{'level3'}}){
             if ( exists ($hash_omniscient->{'level3'}{$ptag_l3}{lc($id_l2)} ) ){
 
-              if( $opt_type eq $ptag_l3 ){
+              if( $opt_type eq $ptag_l3 or $opt_type eq "l3" or $opt_type eq "level3" ){
                 my ($seqObj, $info) = extract_sequence(\@{$hash_omniscient->{'level3'}{$ptag_l3}{lc($id_l2)}}, $db, $opt_extermityOnly, $opt_upstreamRegion, $opt_downRegion);
                 if($info){
                   $description.=$OFS.$info;
@@ -264,7 +266,7 @@ sub clean_string{
 
       if($string =~ m/\Q$OFS/){
         print "The header has been modified !! Indeed, the string <$string> contains the Output Field Separator (OFS) <$OFS>, so we replace it by <$replaceBy>.".
-        " If you want to keep the string/header intact, please chose another OFS using the option --ofs\n";
+        " If you want to keep the string/header intact, please chose another OFS using the option --ofs\n" if ! $quiet;
         eval "\$string =~ tr/\Q$OFS\E/\Q$replaceBy\E/";
       }
   return $string
