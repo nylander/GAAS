@@ -3,7 +3,6 @@
 package BILS::Handler::Genbankhandler ;
 
 use strict;
-use Data::Dumper;
 use Clone 'clone';
 
 use Exporter qw(import);
@@ -20,9 +19,9 @@ our %EXPORT_TAGS = ( DEFAULT => [qw()],
 =head1 DESCRIPTION
 
 	A library about genbank format
-	Inherits from 
+	Inherits from
 
-=cut	
+=cut
 
 ##################
 #
@@ -32,7 +31,7 @@ our %EXPORT_TAGS = ( DEFAULT => [qw()],
 
 
 use constant GENBANK_DIVISION => {
-    PRI => 'primate sequences', ROD => 'rodent sequences', MAM => 'other mammalian sequences', VRT => 'other vertebrate sequences', INV => 'invertebrate sequences', PLN => 'plant, fungal, and algal sequences', 
+    PRI => 'primate sequences', ROD => 'rodent sequences', MAM => 'other mammalian sequences', VRT => 'other vertebrate sequences', INV => 'invertebrate sequences', PLN => 'plant, fungal, and algal sequences',
     BCT => 'bacterial sequences', VRL => 'viral sequences', PHG => 'bacteriophage sequences', SYN => 'synthetic sequences', UNA => 'unannotated sequences', EST => 'EST sequences (expressed sequence tags)',
     PAT => 'patent sequences', STS => 'STS sequences (sequence tagged sites)', GSS => 'GSS sequences (genome survey sequences)', HTG => 'HTG sequences (high-throughput genomic sequences)',
     HTC => 'unfinished high-throughput cDNA sequencing', ENV => 'environmental sampling sequences',
@@ -42,10 +41,10 @@ use constant GENBANK_DIVISION => {
 
 # Save in omniscient hash (sorted in a specific way (3 levels)) a whole gff3 file
 sub slurp_genbank_file_JD {
-	
+
 	my ($self, $file) = @_  ;
-	
-	my $gtfio = Bio::Tools::GFF->new(-file => $file, -gff_version => 3);	
+
+	my $gtfio = Bio::Tools::GFF->new(-file => $file, -gff_version => 3);
 
 	my %mRNAGeneLink;
 	my %omniscient;
@@ -71,7 +70,7 @@ sub create_omniscient_from_feature_list {
 }
 
 sub manage_one_feature{
-	
+
 	my ($feature, $omniscient, $mRNAGeneLink)=@_;
 
 		my $seq_id = $feature->seq_id;					#col1
@@ -94,7 +93,7 @@ sub manage_one_feature{
 	    	my @values = $feature->get_tag_values('ID');
 	    	if($#values == -1){print "error !! No ID attribute found for the feature $feature->gff_string()\n";}
 			$id = lc(shift @values) ;
-    
+
 	        $omniscient->{"level1"}{$primary_tag}{$id}=$feature;
 	        next();
 	    }
@@ -135,7 +134,7 @@ sub manage_one_feature{
 
       	else{
       		print "gff reader : $primary_tag still not taken in account ! Please modify the code to define on of the three level of this feature.\n";
-      	}	
+      	}
 
 }
 
