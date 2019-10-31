@@ -29,37 +29,37 @@ our %EXPORT_TAGS = ( DEFAULT => [qw()],
     Full format means, we expand exon with several parent, we add ID everywhere (even if level3 ID is not mandatory), and Parent everywhere.
 
 =head1 VERSION
-  
+
     Perl librairy last edited May-2019.
 
 =head1 CONTACT
     jacques.dainat@nbis.se (Jacques Dainat)
 
-=cut	
+=cut
 
-#===== TO  DO ===== 
+#===== TO  DO =====
 # When creating a parent check its type from the value in the constant hash
 
 ##########################
-#     DEFINE CONSTANT    # 
+#     DEFINE CONSTANT    #
 use constant PREFIXL2 => "nbis_noL2id";
 
 #####################################
-#     DEFINE file scope variable    # 
+#     DEFINE file scope variable    #
 my $createL3forL2orphan = 1;
 my $fh_error = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 3);
 my $LEVEL1; # level1 are features without parent
 my $LEVEL2; # level2 are features with parent and potentially a child (no child as example for match)
-my $LEVEL3; # level3 features have parents, but no child. ( cds => "exon" mean that cds is included into an exon)	
+my $LEVEL3; # level3 features have parents, but no child. ( cds => "exon" mean that cds is included into an exon)
 my $SPREADFEATURE; # feature that can be split over different locations
 
 # Comon_tag is used in old gff format and in gtf (with gene_id) to group features together. Priority to comonTag compare to sequential read
 # COMONTAG is accessible from the whole file. if a tag has been specified by a user, it is added to this list when slurp_gff3_file_JD is called
-my @COMONTAG = ('locus_tag','gene_id'); 
+my @COMONTAG = ('locus_tag','gene_id');
 
 # ====== PURPOSE =======:
 # Save in omniscient hash (sorted in a specific way (3 levels)) a whole gff3 file
-# Parser phylosophy: Parse by Parent/child ELSE 
+# Parser phylosophy: Parse by Parent/child ELSE
 #						Parse by comon_tag  ELSE
 #							Parse by sequential (mean group features in a bucket, and the bucket change at each level2 feature, and bucket are join in a comon tag at each new L1 feature)
 #							So if only level3 feature (i.e rast or some prokka files, sequential will not work. A comon_tag must be provided)
@@ -74,21 +74,21 @@ my @COMONTAG = ('locus_tag','gene_id');
 sub slurp_gff3_file_JD {
 
 	my $start_run = time();
-	my $previous_time = undef;	
+	my $previous_time = undef;
 
 #	+-----------------------------------------+
 #	|			HANDLE ARGUMENTS			  |
-#	+-----------------------------------------+	
+#	+-----------------------------------------+
 	my ($args) = @_  ;
 
 	# Check we receive a hash as ref
 	if(ref($args) ne 'HASH'){ print "Hash Arguments expected for slurp_gff3_file_JD. Please check the call.\n";exit;	}
 
-	# Declare all variables and fill them 
+	# Declare all variables and fill them
 	my ($file, $gff_version, $locus_tag, $verbose, $nocheck, $quiet, $kingdom);
 	if( defined($args->{input})) {$file = $args->{input};} 		 else{ print "Input data --input is mandatory when using slurp_gff3_file_JD!"; exit;}
 	if( ! defined($args->{gff_version})) {$gff_version = undef;} else{ $gff_version = $args->{gff_version}; }
-	if( ! defined($args->{locus_tag})) {$locus_tag = undef;}     else{ push @COMONTAG, $args->{locus_tag}; } #add a new comon tag to the list if provided.}			
+	if( ! defined($args->{locus_tag})) {$locus_tag = undef;}     else{ push @COMONTAG, $args->{locus_tag}; } #add a new comon tag to the list if provided.}
 	if( ! defined($args->{verbose}) ) {$verbose = 0;}    		 else{ $verbose = $args->{verbose}; }
 	if( ! defined($args->{nocheck})) {$nocheck = undef;} 		 else{ $nocheck = $args->{nocheck}; }
 	if( ! defined($args->{quiet})) {$quiet = undef;}     		 else{ $quiet = $args->{quiet}; $verbose=0; }
@@ -96,7 +96,7 @@ sub slurp_gff3_file_JD {
 	if( defined($args->{kingdom}) and (($args->{kingdom} =~ 'prok') or ($args->{kingdom} eq 'p') ) ){
 		$kingdom="proka";
 		print "prokaryote mode\n";
-	} 
+	}
 	else {
 		if( defined($args->{kingdom}) and ($args->{kingdom} !~ 'euk') ){
 			print "WARNING we don't understand the kingdom defined, has to be <prokaryote> or <eukaryote>! <$args->{kingdom}> is not a correct value! We will use <eukaryote> by default.\n";
@@ -107,7 +107,7 @@ sub slurp_gff3_file_JD {
 
 #	+-----------------------------------------+
 #	|			HANDLE json level			  |
-#	+-----------------------------------------+	
+#	+-----------------------------------------+
 	_load_levels_from_json($verbose);
 
 #	+-----------------------------------------+
@@ -136,7 +136,7 @@ sub slurp_gff3_file_JD {
   	local $SIG{__WARN__} = sub {
     my $message = shift;
     my @thematic=split /@/,$message ;
-    
+
     if($thematic[0] eq "GLOBAL"){ #extract global warning
     	push @{$globalWARNS{$thematic[1]}}, $thematic[2];
     }
@@ -182,10 +182,10 @@ sub slurp_gff3_file_JD {
 
 		foreach my $level (keys %{$file}){
 			if ( ref($file->{$level}) eq 'HASH'){ #level1,level2,#level3
-				foreach my $tag (keys %{$file->{$level}}){ 
-					foreach my $id (keys %{$file->{$level}{$tag}}){ 
+				foreach my $tag (keys %{$file->{$level}}){
+					foreach my $id (keys %{$file->{$level}{$tag}}){
 						if ( ref($file->{$level}{$tag}{$id}) eq 'ARRAY'){ #level2,#level3
-							foreach my $feature ( @{$file->{$level}{$tag}{$id} }){ 
+							foreach my $feature ( @{$file->{$level}{$tag}{$id} }){
 								($locusTAGvalue, $last_l1_f, $last_l2_f, $last_l3_f, $last_f, $lastL1_new) = manage_one_feature($ontology, $feature, \%omniscient, \%mRNAGeneLink, \%duplicate, \%miscCount, \%uniqID, \%uniqIDtoType, \%locusTAG, \%infoSequential, $locusTAGvalue, $last_l1_f, $last_l2_f, $last_l3_f, $last_f, $lastL1_new, $verbose);
 							}
 						}
@@ -213,7 +213,7 @@ sub slurp_gff3_file_JD {
 
 		print "=>GFF version parser used: $format\n";
 		my $gffio = Bio::Tools::GFF->new(-file => $file, -gff_version => $format);
-		
+
 		#read every lines
 		while( my $feature = $gffio->next_feature()) {
 			if($format eq "1"){_gff1_corrector($feature);} # case where gff1 has been used to parse.... we have to do some attribute manipulations
@@ -229,7 +229,7 @@ sub slurp_gff3_file_JD {
   		my $nbW = $WARNS{$thematic};
   		if($nbW > $nbWarnLimit){
   			print "$nbW warning messages: $thematic\n";
-  		}	
+  		}
   	}
   	_handle_globalWARNS(\%globalWARNS, $ontology);
   	delete $globalWARNS{$_} for (keys %globalWARNS); # re-initialize the hash
@@ -293,7 +293,7 @@ sub slurp_gff3_file_JD {
 		# Check gene positions compared to its l2 features
 		_check_all_level1_positions(\%omniscient, $verbose);
 		if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
-		
+
 
 		#check loci names (when overlap should be the same if type is the same)
 		if ($kingdom eq "euka"){
@@ -313,7 +313,7 @@ sub slurp_gff3_file_JD {
   		my $nbW = $WARNS{$thematic};
   		if($nbW > $nbWarnLimit){
   			print "$nbW warning messages: $thematic\n";
-  		}	
+  		}
   	}
   	_handle_globalWARNS(\%globalWARNS, $ontology);
 
@@ -359,7 +359,7 @@ sub slurp_gff3_file_JD {
 # 		example: 2
 # ====== OUTPUT======= : Omniscient Hash
 sub manage_one_feature{
-	
+
 	my ($ontology, $feature, $omniscient, $mRNAGeneLink, $duplicate, $miscCount, $uniqID, $uniqIDtoType, $locusTAG_uniq, $infoSequential, $last_locusTAGvalue, $last_l1_f, $last_l2_f, $last_l3_f, $last_f, $lastL1_new, $verbose)=@_;
 
 		my $seq_id = $feature->seq_id;					#col1
@@ -398,7 +398,7 @@ sub manage_one_feature{
 	    	#####################
 	    	# Ckeck duplication #
     		if(! _it_is_duplication($duplicate, $omniscient, $uniqID, $feature)){
-    			
+
 	    		################
 	    		# Save feature #
 	    		$last_l1_f = $feature;
@@ -465,13 +465,13 @@ sub manage_one_feature{
 				######################
 				# NEED THE LEVEL1 ID #
 				my $l1_ID="";
-				# If I don't have a last_l1_f I create one. The Id can be used as comonTag. 
-				# The feature can also be used later if comon_tag was existing, but mising for one of the feature. 
-				# If we have comon tag, we check we are changing from the previous one before to create a new level1 feature. 
+				# If I don't have a last_l1_f I create one. The Id can be used as comonTag.
+				# The feature can also be used later if comon_tag was existing, but mising for one of the feature.
+				# If we have comon tag, we check we are changing from the previous one before to create a new level1 feature.
 				# It's to deal with potential level2 (like mRNA isoforms).
 				if(! $last_l1_f or ($locusTAGvalue and ($locusTAGvalue ne $last_locusTAGvalue) ) ){
 					print "create L1 feature\n" if ($verbose >=3);
-					$l1_ID = _create_ID($miscCount, $uniqID, $uniqIDtoType, $primary_tag, $id, "nbis_noL1id");					
+					$l1_ID = _create_ID($miscCount, $uniqID, $uniqIDtoType, $primary_tag, $id, "nbis_noL1id");
 					$last_l1_f = clone($feature);
 					create_or_replace_tag($last_l1_f,'ID',$l1_ID); #modify Parent To keep only one
 					$last_l1_f->primary_tag('gene');
@@ -481,7 +481,7 @@ sub manage_one_feature{
 					# Stricly sequential at level2 feature. We create a new L1 at every L2 met except if two L2 are in a row
 					if ( ($lastL1_new and not exists($LEVEL2->{$last_f->primary_tag}) ) and (!$locusTAGvalue or ($locusTAGvalue ne $last_locusTAGvalue) ) ){ # if previous L1 newly created and last feature is not f2 (if several f2 in a row we attach them to the same newly created l1 feature)
 						print "create L1 feature stritcly\n" if ($verbose >=3);
-						$l1_ID = _create_ID($miscCount, $uniqID, $uniqIDtoType, $primary_tag, $id, "nbis_noL1id");					
+						$l1_ID = _create_ID($miscCount, $uniqID, $uniqIDtoType, $primary_tag, $id, "nbis_noL1id");
 						$last_l1_f = clone($feature);
 						create_or_replace_tag($last_l1_f,'ID',$l1_ID); #modify Parent To keep only one
 						$last_l1_f->primary_tag('gene');
@@ -489,7 +489,7 @@ sub manage_one_feature{
 						$lastL1_new = 1;
 					}
 					else{
-						print "take last L1 feature\n" if ($verbose >=3); 
+						print "take last L1 feature\n" if ($verbose >=3);
 						$l1_ID=$last_l1_f->_tag_value('ID');
 						$lastL1_new = undef;
 					}
@@ -501,18 +501,18 @@ sub manage_one_feature{
 				if($locusTAGvalue){ #Previous Level up feature had a comon tag
 					print "Push-L2-Sequential-1 $locusTAGvalue || ".lc($id)." || level2 == ".$feature->gff_string."\n" if ($verbose >=2);
 		    		$infoSequential->{$locusTAGvalue}{lc($id)}{'level2'} = $feature ;
-		
+
 			    	return $locusTAGvalue, $last_l1_f, $feature, $last_l3_f, $feature, $lastL1_new;								#### STOP HERE AND RETURN
 				}
-				else{					
-					
+				else{
+
 					print "Push-L2-omniscient-2: level2 || ".$primary_tag." || ".lc($l1_ID)." == ".$feature->gff_string."\n" if ($verbose >=2);
 					push (@{$omniscient->{"level2"}{$primary_tag}{lc($l1_ID)}}, $feature);
-					
+
 					# keep track of link between level2->leve1 #
-	  				if (! exists ($mRNAGeneLink->{lc($id)})){ 
+	  				if (! exists ($mRNAGeneLink->{lc($id)})){
 						$mRNAGeneLink->{lc($id)}=$l1_ID;
-		 			}	
+		 			}
 
 					return lc($l1_ID) , $last_l1_f, $feature, $last_l3_f, $feature, $lastL1_new;								#### STOP HERE AND RETURN
 				}
@@ -524,10 +524,10 @@ sub manage_one_feature{
 
 				############################################
 				# keep track of link between level2->leve1 #
-	  			if (! exists ($mRNAGeneLink->{lc($id)})){ 
+	  			if (! exists ($mRNAGeneLink->{lc($id)})){
 					$mRNAGeneLink->{lc($id)}=$parent;
 		 		}
-		 		
+
 		 		####################
 		 		# SAVE THE FEATURE #
 		 		print "Push-L2-omniscient-3 level2 || $primary_tag || $parent == feature\n" if ($verbose >=2);
@@ -542,11 +542,11 @@ sub manage_one_feature{
 #		+-----------------------------------------------+
 #	+--------------------------------------------------------+
       	elsif ( get_level($feature) eq 'level3' ){
-      		
+
       		##########
 			# get ID #
 	    	$id = _check_uniq_id($omniscient, $miscCount, $uniqID, $uniqIDtoType, $feature);
-	    	
+
 	    	##############
 			# get Parent #
 			my @parentList;
@@ -563,15 +563,15 @@ sub manage_one_feature{
 			}
 			else{ # In that case we create a uniq parentID to create a proper omniscient structure. But the feature itself stay intact without parentID.
 				warn "WARNING gff3 reader level3: No Parent attribute found @ for the feature: ".$feature->gff_string()."\n";
-				
+
 				#################
-				# COMON TAG PART1 
+				# COMON TAG PART1
 				$locusTAGvalue =_get_comon_tag_value( $feature, $locusTAG_uniq, 'level3');
 
 				######################
 				# NEED THE LEVEL2 ID #
 				my $l2_id="";
-				
+
 				#To keep track of locus tag that has been spread over the file, and a piece is found later
 				my $skip_last_l2=undef;
 				if($last_l2_f and $locusTAGvalue){
@@ -582,16 +582,16 @@ sub manage_one_feature{
 					}
 				}
 
-				# Just to avoid to have parent undef in case there is no parent feature define for the last_l2_f 
+				# Just to avoid to have parent undef in case there is no parent feature define for the last_l2_f
 				my $parent_of_last_l2 = "@@@@";
 				if($last_l2_f and $last_l2_f->has_tag('Parent')){ $parent_of_last_l2 = lc($last_l2_f->_tag_value('Parent')); }
 
 
-				# case where No level2 feature defined yet - I will need a bucketL2 
-				# OR comon tag changed (= level1/level2 different) so we have to create a new level2 tag - but only if the last_comon tag is different as the parent of the last_l2_f (In that case we can use the last L2 feature. It was missing the comon tag in it). 
+				# case where No level2 feature defined yet - I will need a bucketL2
+				# OR comon tag changed (= level1/level2 different) so we have to create a new level2 tag - but only if the last_comon tag is different as the parent of the last_l2_f (In that case we can use the last L2 feature. It was missing the comon tag in it).
 				if(! $last_l2_f or ($locusTAGvalue and ($locusTAGvalue ne $last_locusTAGvalue) and $last_locusTAGvalue ne $parent_of_last_l2 or $skip_last_l2)  ){
 					print "Create L2 feature $locusTAGvalue ne $last_locusTAGvalue !\n" if ($verbose >=3);
-					
+
 					#######################
 					# Change referenrtiel => based on the last L2 link to this locus
 					#######################
@@ -607,7 +607,7 @@ sub manage_one_feature{
 					}
 					else{
 
-						$l2_id = _create_ID($miscCount, $uniqID, $uniqIDtoType, $primary_tag, $id, PREFIXL2);					
+						$l2_id = _create_ID($miscCount, $uniqID, $uniqIDtoType, $primary_tag, $id, PREFIXL2);
 						$last_l2_f = clone($feature);
 						create_or_replace_tag($last_l2_f,'ID',$l2_id); #modify Parent To keep only one
 						$last_l2_f->primary_tag('RNA');
@@ -621,27 +621,27 @@ sub manage_one_feature{
 
 				#############
  	       		# COMON TAG  Part2
-				if($locusTAGvalue){ #Previous Level up feature had a comon tag					
+				if($locusTAGvalue){ #Previous Level up feature had a comon tag
 					print "Push-L3-sequential-1 $locusTAGvalue || ".lc($l2_id)." || level3 == ".$feature->gff_string."\n" if ($verbose >=2);
 					### TAKE LAST L2 of the locus tag iF exist !
 		    		push( @{$infoSequential->{$locusTAGvalue}{lc($l2_id)}{'level3'}}, $feature );
 			    	return $locusTAGvalue, $last_l1_f, $last_l2_f, $feature, $feature, $lastL1_new;								#### STOP HERE AND RETURN
 				}
-				else{# No comon tag found 
+				else{# No comon tag found
 					######################
 					# NEED THE LEVEL1 ID #
 					if(!$last_l1_f and $last_l3_f){ #particular case : Two l3 that follow each other, but first one has locus_tag but not the second
 						print "Push-L3-sequential-2 $last_locusTAGvalue || ".lc($l2_id)." || level3 == ".$feature->gff_string."\n" if ($verbose >=2);
 						push( @{$infoSequential->{$last_locusTAGvalue}{lc($l2_id)}{'level3'}}, $feature );
-						return $last_locusTAGvalue, $last_l1_f, $last_l2_f, $feature, $feature, $lastL1_new;			
+						return $last_locusTAGvalue, $last_l1_f, $last_l2_f, $feature, $feature, $lastL1_new;
 					}
 					else{
-						my $l1_id="";			
+						my $l1_id="";
 						if($last_l1_f){ # case where previous level1 exists
 							$l1_id=$last_l1_f->_tag_value('ID');
 						}
 						else{ # case where No level1 feature defined yet - I will need a bucketL1
-							$l1_id = _create_ID($miscCount, $uniqID, $uniqIDtoType, $primary_tag, $id, "nbis_noL1id");					
+							$l1_id = _create_ID($miscCount, $uniqID, $uniqIDtoType, $primary_tag, $id, "nbis_noL1id");
 							$last_l1_f = clone($feature);
 							create_or_replace_tag($last_l1_f,'ID',$l1_id); #modify Parent To keep only one
 							$last_l1_f->primary_tag('gene');
@@ -654,7 +654,7 @@ sub manage_one_feature{
 					}
 				}
 			}
-			
+
 			####################
 			# HANDLE PARENT(S) # #Save feature and check duplicates	(treat also cases where there is multiple parent. => In that case we expand to create a uniq feature for each)
 			my $cptParent=0; # to check if it is a multiple parent case
@@ -664,12 +664,12 @@ sub manage_one_feature{
 
 				#Level3 key doesn't exist
 				if(! exists_keys($omniscient,('level3',$primary_tag,lc($parent)))){
-					
+
 					# It is a multiple parent case
 					if($allParent > 1){
-						
+
 						# Not the first parent, we have to clone the feature !!
-						if($cptParent > 1){ 
+						if($cptParent > 1){
 
 							my $feature_clone=clone($feature);
 							create_or_replace_tag($feature_clone,'Parent',$parent); #modify Parent To keep only one
@@ -678,7 +678,7 @@ sub manage_one_feature{
 							print "Push-L3-omniscient-4 level3 || $primary_tag || ".lc($parent)." == feature_clone\n" if ($verbose >=2);
 							push (@{$omniscient->{"level3"}{$primary_tag}{lc($parent)}}, $feature_clone);
 						}
-						
+
 						# It is the first parent. Do not clone the feature
 						else{
 							create_or_replace_tag($feature,'Parent',$parent); #modify Parent To keep only one
@@ -694,10 +694,10 @@ sub manage_one_feature{
 
 				#Level3 key exists
 				else{
-					
+
 					# It is a multiple parent case # Not the first parent, we have to clone the feature !!
 					if($cptParent > 1){ #several parent, and we are not looking the first one
-						
+
 						my $feature_clone=clone($feature);
 						create_or_replace_tag($feature_clone,'Parent',$parent); #modify Parent To keep only one
 						_check_uniq_id($omniscient, $miscCount, $uniqID, $uniqIDtoType, $feature_clone); #Will change the ID if needed
@@ -706,12 +706,12 @@ sub manage_one_feature{
 							print "Push-L3-omniscient-8 level3 || $primary_tag || ".lc($parent)." == feature_clone\n" if ($verbose >=2);
 							push (@{$omniscient->{"level3"}{$primary_tag}{lc($parent)}}, $feature_clone);
 						}
-								
+
 					}
 					elsif($allParent > 1){ # It is a multiple parent case #several parent, but we are looking the first one
 
 						# It is the first parent. Do not clone the feature
-						create_or_replace_tag($feature,'Parent',$parent); #modify Parent To keep only one	
+						create_or_replace_tag($feature,'Parent',$parent); #modify Parent To keep only one
 						if( ! _it_is_duplication($duplicate, $omniscient, $uniqID, $feature) ){
 							print "Push-L3-omniscient-9 level3 || $primary_tag || ".lc($parent)." == feature\n" if ($verbose >=2);
 							push (@{$omniscient->{"level3"}{$primary_tag}{lc($parent)}}, $feature);
@@ -734,12 +734,12 @@ sub manage_one_feature{
 #		+-----------------------------------------------+
 #		|	MANAGE THE REST => feature UNKNOWN   		| # FEATURE NIT DEFINE IN ANY OF THE 3 LEVELS
 #		+-----------------------------------------------+
-#	+--------------------------------------------------------+ 	
+#	+--------------------------------------------------------+
       	else{
       		warn "gff3 reader warning: primary_tag error @ ".$primary_tag."still not taken in account ! Please modify the code to define on of the three level of this feature.\n";
       		warn "GLOBAL@"."parser1@".$primary_tag."@";
       		return $locusTAGvalue, $last_l1_f, $last_l2_f, $last_l3_f, $feature, $lastL1_new;
-      	}	
+      	}
 
     print "Congratulation ! Read this line is not normal !! Please contact the developer !!!\n";exit;
 }
@@ -757,7 +757,7 @@ sub _get_comon_tag_value{
    		#check if we have the tag
 		if($feature->has_tag($tag)){
 		    $locusName=lc($feature->_tag_value($tag)); #get the value
-		    
+
 		    if(exists_keys ($locusTAG_uniq, ('level1',$locusName) ) ){
 		    	$locusName = $locusTAG_uniq->{'level1'}{$locusName};
 		    	last;
@@ -818,7 +818,7 @@ sub _it_is_duplication{
 				if (exists_keys($omniscient,($level, $primary_tag, $one_parent_uID))){
 					push @{$potentialList}, @{$omniscient->{$level}{$primary_tag}{$one_parent_uID}};
 				}
-			}	
+			}
 		}
 		if(! $potentialList){ #potential list empty
 		    return $is_dupli; #return is not a dupli
@@ -859,7 +859,7 @@ sub _it_is_duplication{
 sub get_level{
 	my ($feature)=@_;
 
-	my $source_tag = lc($feature->source_tag);	
+	my $source_tag = lc($feature->source_tag);
 	my $primary_tag = lc($feature->primary_tag);
 
 	my $level=undef;
@@ -907,7 +907,7 @@ sub _create_string{
 	else{
 		$Parent = $feature->_tag_value('Parent')
 	}
-	
+
 	my $primary_tag = lc($feature->primary_tag);
 
 	if ( exists($LEVEL1->{$primary_tag}) ){
@@ -928,7 +928,7 @@ sub _create_string{
 # If we have to create new ID for SPREADFEATURES they will not have a shared ID.
 sub _check_uniq_id{
 	my	($omniscient, $miscCount, $uniqID, $uniqIDtoType, $feature)=@_;
-	
+
 	my $uID=undef;
 	my $primary_tag = lc($feature->primary_tag);
 
@@ -952,7 +952,7 @@ sub _check_uniq_id{
 	# CHECK THE ID TO SEE IF IT's uniq, otherwise we have to create a new uniq ID
 	if($id){
 		# In case of non-spreadfeature (avoid CDS and UTR that can share identical IDs)
-		if(! exists_keys($SPREADFEATURE,($primary_tag) ) ){ 
+		if(! exists_keys($SPREADFEATURE,($primary_tag) ) ){
 			$uID = _create_ID($miscCount, $uniqID, $uniqIDtoType, $primary_tag, $id, 'nbis_NEW'); #method will push the uID
 			if(	$id ne $uID ){ #push the new ID if there is one
 				create_or_replace_tag($feature, 'ID', $uID);
@@ -961,13 +961,13 @@ sub _check_uniq_id{
 		# In case of spreadfeature ( CDS and UTR that can share identical IDs)
 		else{
 			# First time we see this ID => No problem;
-	 		if(! exists($uniqID->{$id})){	
+	 		if(! exists($uniqID->{$id})){
 			 	#push the uID
 			 	$uID = $id;
 			 	$uniqID->{$uID}=$id;
 			 	$uniqIDtoType->{$id}=$primary_tag;
 			}
-		# NOT the first time we have this ID	
+		# NOT the first time we have this ID
 			# check if it's the same type (To not mix a same ID between UTR and CDS);
 			elsif( $uniqIDtoType->{$id} eq $primary_tag ){ # Same type, so we can keep this ID, let's continue
 			 	$uID = $id;
@@ -980,7 +980,7 @@ sub _check_uniq_id{
 					}
 				}
 				if(! $uID){ #ID already taken by another feature type, and we do not have ID already existing of this feature type within omniscient, let's create a new ID
-					$uID = _create_ID($miscCount, $uniqID, $uniqIDtoType, $primary_tag, $id, 'nbis_NEW'); #method will push the uID 	
+					$uID = _create_ID($miscCount, $uniqID, $uniqIDtoType, $primary_tag, $id, 'nbis_NEW'); #method will push the uID
 				}
 				if(	$id ne $uID ){ #push the new ID if there is one
 				 		create_or_replace_tag($feature, 'ID', $uID);
@@ -1005,7 +1005,7 @@ sub _check_uniq_id{
 # create the ID and add it to the feature.
 sub _create_ID{
 	my	($miscCount, $uniqID, $uniqIDtoType, $primary_tag, $id, $prefix)=@_;
-	
+
 	my $key;
 
 	if($prefix){
@@ -1016,12 +1016,12 @@ sub _create_ID{
 	}
 
 	my $uID=$id;
-	while( exists_keys($uniqID, ($uID) )){	 #loop until we found an uniq tag	
+	while( exists_keys($uniqID, ($uID) )){	 #loop until we found an uniq tag
 		$miscCount->{$key}++;
 		$uID = $key."-".$miscCount->{$key};
 	}
 
-	#push the new ID	
+	#push the new ID
 	$uniqID->{$uID}=$id;
 	$uniqIDtoType->{$uID}=$primary_tag;
 
@@ -1051,7 +1051,7 @@ sub _check_l1_linked_to_l2{
 				create_or_replace_tag($gene_feature,'ID', $new_ID); #modify ID to replace by parent value
 				$gene_feature->remove_tag('Parent'); # remove parent ID because, none.
 				check_level1_positions($hash_omniscient, $gene_feature);	# check start stop if isoforms exists
-				
+
 				#Deal case where we reconstruct other thing than a gene
 				my $primary_tag_l1=undef;
 				if(lc($gene_feature->primary_tag) =~ /match/){ $primary_tag_l1="match"; }
@@ -1074,12 +1074,12 @@ sub _remove_orphan_l1{
 	my $resume_case=undef;
 
  	foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){
- 	  	foreach my $id_l1 (keys %{$hash_omniscient->{'level1'}{$tag_l1}}){	     	
+ 	  	foreach my $id_l1 (keys %{$hash_omniscient->{'level1'}{$tag_l1}}){
  		    my $neverfound="yes";
  		    foreach my $tag_l2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
  		        if ( exists_keys ( $hash_omniscient,('level2',$tag_l2,$id_l1) ) ){
  		          $neverfound=undef;last
- 		        }   
+ 		        }
  		    }
  		    if($neverfound){
   			    delete $hash_omniscient->{'level1'}{$tag_l1}{$id_l1}; # delete level1 // In case of refseq the thin has been cloned and modified, it is why we nevertheless remove it
@@ -1115,7 +1115,7 @@ sub _check_l2_linked_to_l3{
 					}
 					else{
 						# Check if one as a common tag value == to L1 common tag value (then when creating l2 in check3 add parent for L2 of the L1 Id)
-						foreach my $id_l1 (keys %{$hash_omniscient->{'level1'}{$tag_l1}}){	 
+						foreach my $id_l1 (keys %{$hash_omniscient->{'level1'}{$tag_l1}}){
 							my $l1_feature = $hash_omniscient->{"level1"}{$tag_l1}{$id_l1};
 							foreach my $tag (@COMONTAG){
 							  	#check if we have the tag
@@ -1123,7 +1123,7 @@ sub _check_l2_linked_to_l3{
 					   				my $l1_ct_value=lc($l1_feature->_tag_value($tag)); #get the value
 				   					foreach my $l3_feature (@{$hash_omniscient->{'level3'}{$tag_l3}{$id_l2}}){
 				   						if($l3_feature->has_tag($tag) and  lc($l3_feature->_tag_value($tag)) eq  $l1_ct_value){
-				   							$has_l1_feature = $l1_feature; 
+				   							$has_l1_feature = $l1_feature;
 				   							$id_l2_to_replace = $l3_feature->_tag_value('ID');
 				   							# case where it's linked by comon_tag attribute
 				   							last;
@@ -1140,7 +1140,7 @@ sub _check_l2_linked_to_l3{
 
 						my $l1_ID = $has_l1_feature->_tag_value('ID');
 						my $l2_feature = clone($has_l1_feature);#create a copy of the first mRNA feature;
-	 		          	
+
 	 		          	if (exists_keys($hash_omniscient,("level3",'cds', $id_l2) )  ){
 	 	               		$l2_feature->primary_tag('mRNA');
 	 	               	}
@@ -1161,11 +1161,11 @@ sub _check_l2_linked_to_l3{
 
 	 				  	#fill the $mRNAGeneLink hash
 	 				  	$mRNAGeneLink->{ $id_l2 } = $l1_ID; # Always need to keep track about l2->l1, else the method _check_l2_linked_to_l3 will recreate a l1 thinking this relationship is not fill
-	 				  	print "L3 was directly linked to L1. Corrected by creating the intermediate L2 feature from L1 feature\n" if($verbose >= 2);  			
+	 				  	print "L3 was directly linked to L1. Corrected by creating the intermediate L2 feature from L1 feature\n" if($verbose >= 2);
 			   			last
 			   		}
 				}
- 	 		
+
 				if (! exists($mRNAGeneLink->{ $id_l2 }) ) { # it was not previous case (L3 linked directly to L1)
 
 	 	  		    #start fill L2
@@ -1185,7 +1185,7 @@ sub _check_l2_linked_to_l3{
 				   #fill L1
 					my $l1_feature=clone($hash_omniscient->{'level3'}{$tag_l3}{$id_l2}[0]);#create a copy of the first mRNA feature;
 					$l1_feature->remove_tag('Parent'); # remove parent ID because, none.
-					
+
 					#Deal case where we reconstruct other thing than a gene
 					my $primary_tag_l1=undef;
 					if(lc($l1_feature->primary_tag) =~ /match/){ $primary_tag_l1="match"; }
@@ -1194,7 +1194,7 @@ sub _check_l2_linked_to_l3{
 
 					my $new_ID_l1 = _check_uniq_id($hash_omniscient, $miscCount, $uniqID, $uniqIDtoType, $l1_feature);
 					create_or_replace_tag($l1_feature,'ID', $new_ID_l1); #modify ID to replace by parent value
-					
+
 				#finish fill Level2
 					create_or_replace_tag($l2_feature, 'Parent', $new_ID_l1); # remove parent ID because, none.
 					#save new feature L2
@@ -1211,7 +1211,7 @@ sub _check_l2_linked_to_l3{
 	 	  	}
  	  	}
  	}
- 	print "We fixed $resume_case cases where L2 and L1 features were missing\n" if($verbose >= 1 and $resume_case);	 
+ 	print "We fixed $resume_case cases where L2 and L1 features were missing\n" if($verbose >= 1 and $resume_case);
 }
 
 # @Purpose: Check L3 features. If exon are missing we create them. We go through all features of level3 and check them by type, if two should be merged, we do it (CDS 1-50 and 51-100, must be CDS 1-100).
@@ -1225,9 +1225,9 @@ sub _check_exons{
 	foreach my $tag_l3 (keys %{$hash_omniscient->{'level3'}}){
 		if ($tag_l3 ne "exon"){
  	  		foreach my $id_l2 (keys %{$hash_omniscient->{'level3'}{$tag_l3}}){
- 	  			
+
  	  			if( ! exists_keys(\%checked,($id_l2)) ){ #l2 already checked
- 	  				print "Check: ".$id_l2."\n" if ($verbose >= 3); 
+ 	  				print "Check: ".$id_l2."\n" if ($verbose >= 3);
  	  				my $feature_example=undef; # will be used to create the exon features
 	 	  			my $list_location_Exon=undef;
 	 	  			my $list_location_NoExon=undef;
@@ -1238,11 +1238,11 @@ sub _check_exons{
 #				 	+-----------------------------------------------------
 
 	 	  			foreach my $tag_l3 (keys %{$hash_omniscient->{'level3'}}){
-	 	  				
+
 	 	  				# LIST NON-EXON LOCATIONS THAT NEED TO BE IN AN EXON LOCATION
 	 	  				if ($tag_l3 ne "exon" and $LEVEL3->{$tag_l3} eq "exon" ){
 
-				 	  		if( exists_keys($hash_omniscient,('level3',$tag_l3, $id_l2)) ){				 	  		
+				 	  		if( exists_keys($hash_omniscient,('level3',$tag_l3, $id_l2)) ){
 
 				 	  			my $list_location_l3=[];
 				 	  			foreach my $l3_feature (@{$hash_omniscient->{'level3'}{$tag_l3}{$id_l2}}){
@@ -1250,9 +1250,9 @@ sub _check_exons{
 				 	  				if(! $feature_example){
 				 	  					$feature_example=$l3_feature;
 				 	  				}
-				 	  				
+
 				 	  				my $locationRefList=[[[$l3_feature->_tag_value('ID')] ,int($l3_feature->start), int($l3_feature->end)]];
-				 	  				$list_location_l3 = _manage_location($locationRefList, $list_location_l3, 'adjacent', 0); # we check first in overlap mode to check if badly define features exists 				
+				 	  				$list_location_l3 = _manage_location($locationRefList, $list_location_l3, 'adjacent', 0); # we check first in overlap mode to check if badly define features exists
 				 	  			}
 
 				 	  			#Rare case when a feature of the same type is badly defined
@@ -1270,7 +1270,7 @@ sub _check_exons{
 				 	  	# LIST EXON LOCATIONS
 				 	  	elsif($tag_l3 eq "exon"){
 
-							if( exists_keys($hash_omniscient,('level3',$tag_l3, $id_l2)) ){				 	  		
+							if( exists_keys($hash_omniscient,('level3',$tag_l3, $id_l2)) ){
 
 				 	  			foreach my $l3_feature (@{$hash_omniscient->{'level3'}{$tag_l3}{$id_l2}}){
 
@@ -1280,8 +1280,8 @@ sub _check_exons{
 				 	  				my $locationRefList=[[[$l3_feature->_tag_value('ID')] ,int($l3_feature->start), int($l3_feature->end)]];
 				 	  				$list_location_Exon = _manage_location($locationRefList, $list_location_Exon , 'adjacent', 0);
 				 	  			}
-				 	  			
-				 	  			#Rare case when a features are badly defined 
+
+				 	  			#Rare case when a features are badly defined
 				 	  			# This approch works for exon because they have uniq ID
 				 	  			if($#{$list_location_Exon} < $#{$hash_omniscient->{'level3'}{$tag_l3}{$id_l2}}){
 				 	  				warn "Peculiar rare case, we have to remove existing exon which are supernumerary. Parent is $id_l2\n";
@@ -1307,8 +1307,8 @@ sub _check_exons{
 				 	  				print "We remove the supernumerary @id_list2 exon(s)\n" if($verbose >= 2);
 									remove_element_from_omniscient(\@id_list, \@id_list2, $hash_omniscient, 'level3', 'false', \@tag_list);
 				 	  			}
-				 	  		
-				 	  		}				 	  		
+
+				 	  		}
 				 	  	}
 				 	}
 
@@ -1317,13 +1317,13 @@ sub _check_exons{
 				 		$list_location_NoExon = _manage_location([$location], $list_location_NoExon, 'adjacent', 0);
 				 	}
 
-				 	print "list_location_Exon: ".Dumper($list_location_Exon) if ($verbose >= 3); 
-				 	print "list_location_NOEXON: ".Dumper($list_location_NoExon) if ($verbose >= 3);  
+				 	print "list_location_Exon: ".Dumper($list_location_Exon) if ($verbose >= 3);
+				 	print "list_location_NOEXON: ".Dumper($list_location_NoExon) if ($verbose >= 3);
 
 #				 	+--------------------------------------------------------------------------------------------------------+
 #					| 				COMPARE EXONS POSITION TO THOSE DESCRIBED BY NON-EXON FEATURES 						 |
 #				 	+--------------------------------------------------------------------------------------------------------+
-			
+
  	  				#Case where exon feature exists, we have to check them
 	 	  			if( exists_keys($hash_omniscient,('level3','exon', $id_l2)) ){ #When thre are l3 features but no exon among them... we need to recreate them.
 
@@ -1350,21 +1350,21 @@ sub _check_exons{
 			 	  					my $create_exon=1;
 			 	  					my $new_location;
 			 	  					my $overlap;
-			 	  					
+
 			 	  					foreach my $exon_location (sort {$a->[1] <=> $b->[1] } @{$list_location_Exon}){
-			 	  						
+
 			 	  						($new_location, $overlap) = _manage_location_lowLevel_adjacent($location, $exon_location); #there is an overlap if $new_location != $exon_location. If it's the same, we should check $overlap to be sure
 
 			 	  						if($new_location->[1] < $exon_location->[1] or $new_location->[2] > $exon_location->[2] ){ #The exon_location has been modified by location... We have to remodelate the exon (only if fit some conditions) location to take the modification into account
-				 	  						$create_exon=undef; # We must avoid to create exon because there is an overlap. 
+				 	  						$create_exon=undef; # We must avoid to create exon because there is an overlap.
 
 			 	  							my $redefine_left=undef;
 			 	  							my $redefine_right=undef;
 			 	  							#first location => check left
 				 	  						if($location_cpt == 1){
 				 	  							if($new_location->[1] <  $exon_location->[1]){ $redefine_left = $new_location->[1];} # Modify only if it's more left
-				 	  						}	
-				 	  						#=> check left and right 
+				 	  						}
+				 	  						#=> check left and right
 				 	  						if($location_cpt != 1 and $location_cpt != @$location){
 				 	  							if($new_location->[1] <  $exon_location->[1]){ $redefine_left = $new_location->[1];}  # Modify only if it's more left
 				 	  							if($new_location->[2] >  $exon_location->[2]){ $redefine_right = $new_location->[2];} # Modify only if it's more right
@@ -1376,11 +1376,11 @@ sub _check_exons{
 
 				 	  						foreach my $l3_feature (@{$hash_omniscient->{'level3'}{'exon'}{$id_l2} } ){
 				 	  							if($l3_feature->_tag_value('ID') eq $exon_location->[0][0]){
-				 	  								
+
 				 	  								if($redefine_left){
 				 	  									$l3_feature->start($new_location->[1]);
 				 	  								}else{$redefine_left = $exon_location->[1];}
-				 	  								
+
 				 	  								if($redefine_right){
 				 	  									$l3_feature->end($new_location->[2]);
 				 	  								}else{$redefine_right = $exon_location->[2];}
@@ -1404,7 +1404,7 @@ sub _check_exons{
 		 				else{print "No other feature to check the exon locations (e.g CDS, UTR, etc...). We can trust them then.\n" if ($verbose >= 3);}
 	 	  			}
 	 	  			else{ $createIT{'exon'}=$list_location_NoExon;} # no exon exists, we have to create all of them
- 
+
 					# NOW CREATE EXON IF NECESSARY
 					if(keys %createIT){
 						foreach my $tag (keys %createIT){
@@ -1434,23 +1434,23 @@ sub _check_exons{
 	 	  						 	if( exists_keys ($hash_omniscient, ('level3', 'exon', $id_l2))) { # If no exon it could be a case whre no L3 feature need an exon like non_canonical_three_prime_splice_site (they are out of exon). So the list of exon does not exist.
 		 	  						 	my $myLeftExtremity=$l2_feature->start();
 		 	  						 	my $myRightExtremity=$l2_feature->end();
-				 	  		
+
 					 	  			 	my @list_exon = sort {$a->start <=> $b->start} @{$hash_omniscient->{'level3'}{'exon'}{$id_l2}};
 
 					 	  			 	if( int($list_exon[0]->start) >  int($myLeftExtremity) ){
 					 	  			 		print "_check_exons We modified the exon LEFT extremity from $id_l2! ".$list_exon[0]->start." <to> ".$myLeftExtremity."\n" if($verbose >= 1);;
 					 	  			 		$list_exon[0]->start($myLeftExtremity);
 					 	  			 	}
-					 	  			 	if($list_exon[0]->start <  $myLeftExtremity){  #modify L2 
+					 	  			 	if($list_exon[0]->start <  $myLeftExtremity){  #modify L2
 					 	  			 		$l2_feature->start($list_exon[0]->start);
 					 	  			 		print "_check_exons We modified the L2 LEFT extremity !\n" if($verbose >= 1);
 					 	  			 	}
 
 					 	  			 	if($list_exon[$#list_exon]->end <  $myRightExtremity){
 					 	  			 		print "_check_exons We modified the exon RIGHT extremity from $id_l2!".$list_exon[$#list_exon]->end." to ".$myRightExtremity."\n" if($verbose >= 1);
-					 	  			 		$list_exon[$#list_exon]->end($myRightExtremity);  			 		
+					 	  			 		$list_exon[$#list_exon]->end($myRightExtremity);
 					 	  			 	}
-					 	  			 	elsif($list_exon[$#list_exon]->end >  $myRightExtremity){ #modify L2 
+					 	  			 	elsif($list_exon[$#list_exon]->end >  $myRightExtremity){ #modify L2
 					 	  			 		$l2_feature->end($list_exon[$#list_exon]->end);
 					 	  			 		print "_check_exons We modified the L2 RIGHT extremity !\n" if($verbose >= 1);
 					 	  			 	}
@@ -1488,23 +1488,23 @@ sub _check_utrs{
 	foreach my $tag_l3 (keys %{$hash_omniscient->{'level3'}}){
 		if ($tag_l3 ne "exon"){
  	  		foreach my $id_l2 (keys %{$hash_omniscient->{'level3'}{$tag_l3}}){
- 	  			
+
  	  			if( ! exists_keys(\%checked,($id_l2)) ){ #l2 already checked
 
  	  				my $feature_example=undef; # will be used to create the exon features
 	 	  			my $list_location_Exon=undef;
 	 	  			my $list_location_CDS=undef;
 	 	  			my $list_location_UTR=undef;
-	 	  			
+
 #				 	+-----------------------------------------------------
 #					| 			Go through l3 and save info needed		 |
 #				 	+-----------------------------------------------------
 
 	 	  			foreach my $tag_l3 (keys %{$hash_omniscient->{'level3'}}){
-	 	  				
+
 				 	  	# LIST CDS LOCATIONS
 	 	  				if ($tag_l3 eq "cds"){
-				 	  		if( exists_keys($hash_omniscient,('level3',$tag_l3, $id_l2)) ){				 	  		
+				 	  		if( exists_keys($hash_omniscient,('level3',$tag_l3, $id_l2)) ){
 
 				 	  			foreach my $l3_feature (@{$hash_omniscient->{'level3'}{$tag_l3}{$id_l2}}){
 
@@ -1516,7 +1516,7 @@ sub _check_utrs{
 
 				 	  	# LIST UTR LOCATIONS
 	 	  				if ($tag_l3 =~ "utr"){
-				 	  		if( exists_keys($hash_omniscient,('level3',$tag_l3, $id_l2)) ){				 	  		
+				 	  		if( exists_keys($hash_omniscient,('level3',$tag_l3, $id_l2)) ){
 
 				 	  			foreach my $l3_feature (@{$hash_omniscient->{'level3'}{$tag_l3}{$id_l2}}){
 
@@ -1528,7 +1528,7 @@ sub _check_utrs{
 
 				 	  	# LIST EXON LOCATIONS
 				 	  	elsif($tag_l3 eq "exon"){
-							if( exists_keys($hash_omniscient,('level3',$tag_l3, $id_l2)) ){				 	  		
+							if( exists_keys($hash_omniscient,('level3',$tag_l3, $id_l2)) ){
 
 				 	  			foreach my $l3_feature (@{$hash_omniscient->{'level3'}{$tag_l3}{$id_l2}}){
 
@@ -1538,7 +1538,7 @@ sub _check_utrs{
 				 	  				#print "exonFeature= ".$l3_feature->gff_string."\n";
 				 	  				push @{$list_location_Exon}, [ [$l3_feature->_tag_value('ID')], int($l3_feature->start), int($l3_feature->end)] ;
 				 	  			}
-				 	  		}				 	  		
+				 	  		}
 				 	  	}
 				 	}
 
@@ -1551,7 +1551,7 @@ sub _check_utrs{
 						# Create list of UTR expected:
 						my $list_location_UTR_expected=undef;
 						my $expected_utr=1;
-						
+
 						foreach my $exon_location (sort {$a->[1] <=> $b->[1] } @{$list_location_Exon}){
 
 			 	  			my $new_location;
@@ -1565,14 +1565,14 @@ sub _check_utrs{
 								($new_location, $overlap) = _manage_location_lowLevel_inversed($location_cds, $exon_location, $verbose);
 
 								if($overlap eq "perfect"){ $never_overlap=undef; $expected_utr=undef;last;}
-								
+
 								if($new_location->[1] != $exon_location->[1] and $new_location->[2] != $exon_location->[2] ){ #two UTR expected        =========================  exon
 									print "creation utr push1\n" if($verbose >= 3);
 									push @{$list_location_UTR_expected}, [undef, $exon_location->[1], $location_cds->[1]-1];				#								=======			CDS
 									push @{$list_location_UTR_expected}, [undef, $location_cds->[2]+1, $exon_location->[2]];
 									$never_overlap=undef;
 									last;
-								}	
+								}
 								elsif($new_location->[1] != $exon_location->[1] or $new_location->[2] != $exon_location->[2] ){ #two UTR expected  {
 									print "creation utr push2\n".Dumper($new_location)."\n" if($verbose >= 3);
 									push @{$list_location_UTR_expected}, $new_location;
@@ -1586,20 +1586,20 @@ sub _check_utrs{
 						}
 
 						print "list_location_UTR_expected: ".Dumper($list_location_UTR_expected) if ($verbose >= 3);
-						print "list_location_UTR: ".Dumper($list_location_UTR) if ($verbose >= 3);  
- 	  				
+						print "list_location_UTR: ".Dumper($list_location_UTR) if ($verbose >= 3);
+
 		 	  			# Compare UTR Present and UTR expected
 	 	  				my $list_utr_to_create=undef;
 
 	 	  				if($list_location_UTR){ #List UTR not empty
 							if($list_location_UTR_expected){ #List UTR not empty
 				 	  			foreach my $UTRexp_location (sort {$a->[1] <=> $b->[1] } @{$list_location_UTR_expected} ){
-				 	  					
+
 			 	  					my $create_utr=1;
 			 	  					my $new_location;
 			 	  					my $overlap;
 			 	  					foreach my $UTR_location (sort {$a->[1] <=> $b->[1] } @{$list_location_UTR}){
-			 	  						
+
 			 	  						($new_location, $overlap) = _manage_location_lowLevel_inversed($UTR_location, $UTRexp_location, $verbose); #just to check that it overlaps
 
 			 	  						if($overlap and ( $UTR_location->[1] != $UTRexp_location->[1] or $UTR_location->[2] != $UTRexp_location->[2] ) ){ #It overlaps and at least one location is different. We have to re-modelate the utr location to take the modification into account
@@ -1635,11 +1635,11 @@ sub _check_utrs{
 			 				else{print "UTR check step. How is it possible ? We have an UTR in the file but none is expected according to the described exons.\nLevel2 studied:".$id_l2."\n";exit;}
 		 				}
 	 					else{
-	 						if($list_location_UTR_expected){ 
+	 						if($list_location_UTR_expected){
 	 							$list_utr_to_create=$list_location_UTR_expected;# no UTR exists, we have to create all of them
-	 						} 
+	 						}
  						}
- 						print "list_utr_to_create: ".Dumper($list_utr_to_create) if ($verbose >= 3); 
+ 						print "list_utr_to_create: ".Dumper($list_utr_to_create) if ($verbose >= 3);
 
 						# NOW CREATE UTR IF NECESSARY
 						my @cds_sorted = sort {$a->[1] <=> $b->[1]} @{$list_location_CDS};
@@ -1700,17 +1700,17 @@ sub _check_utrs{
 
 # @Purpose: Will merge a list of "location" (tuple of integer), and another list of location. If two location overlap or are adjacent, only one location will be kept that represent the most extrem values
 # @input: 3 =>  list of 3 values([[S,X,Y][S,Z,W]] or [[[S],X,Y]]),  list of integer tuple, verbose option for debug
-# @output: list of list 
+# @output: list of list
 sub _manage_location{
 	my ($locationRefList, $locationTargetList, $method, $verbose) = @_;
 
 	my @new_location_list; #new location list that will be returned once filled
 
-	_printSurrounded("Enter",25,"+","\n\n") if ($verbose >= 4); 
-	print "Enter Ref: ".Dumper($locationRefList)."\nEnter Target: ".Dumper($locationTargetList) if ($verbose >= 4); 
-	
+	_printSurrounded("Enter",25,"+","\n\n") if ($verbose >= 4);
+	print "Enter Ref: ".Dumper($locationRefList)."\nEnter Target: ".Dumper($locationTargetList) if ($verbose >= 4);
+
 	if ($locationTargetList and @$locationTargetList >= 1){ #check number of location -> List not empty
-		
+
 		my @locations = (@{$locationRefList},@{$locationTargetList});
 		my @locations_sorted = sort {$a->[1] <=> $b->[1]} @locations;
 
@@ -1720,16 +1720,16 @@ sub _manage_location{
 		my $location2 = undef;
 
 		foreach my $i (0 .. $#locations_sorted-1){
-			
-			if($location_modified){ 
+
+			if($location_modified){
 				$location1 = $location_modified;
 				$location_modified = undef;
-			} 
+			}
 			else{
 				$location1 = $locations_sorted[$i];
 			}
 			$location2 = $locations_sorted[$i+1];
-			
+
 			if ($location2->[1] > $location1->[2]+1 and $i+1 != $#locations_sorted){ #locations do not overlap and not before last of the list
 				push @new_location_list, [@$location1];
 			}
@@ -1759,13 +1759,13 @@ sub _manage_location{
 		if($verbose >= 4){print "returnA: ".Dumper($locationRefList)."\n\n\n";}
 		return \@{$locationRefList};
 	}
-	_printSurrounded("Return",25,"-","\n\n") if ($verbose >= 4); 
+	_printSurrounded("Return",25,"-","\n\n") if ($verbose >= 4);
 	if($verbose >= 4){print "returnB: ".Dumper(\@new_location_list)."\n\n\n";}
 	return \@new_location_list;
 }
 
 #	===================== location1
-#		===================== location2    
+#		===================== location2
 #   ========================= <= New location2 returned
 # @Purpose: Modify the location2 if it overlap the location1 by keeping the extrem values. Return the location2 intact if no overlap. /!\ The locations are merged if they are contigu
 # @input: 2 =>  integer tuple [[ID],X,Y],  list of integer tuple
@@ -1777,11 +1777,11 @@ sub _manage_location_lowLevel_adjacent{
 	my $overlap=undef;
 
 	if ( ($location2->[1] <= $location->[2]+1) and ($location2->[2]+1 >= $location->[1]) ){ #it overlaps or are consecutive
-		
+
 		#Manage Id to avoid same IDs
 		my %params = map { $_ => 1 } @{$new_location->[0]};
 		foreach my $id ( @{$location->[0]}){
-			if(! exists($params{$id})){ 
+			if(! exists($params{$id})){
 				push @{$new_location->[0]}, $id ; #append from the end the list of ID
 			}
 		}
@@ -1798,7 +1798,7 @@ sub _manage_location_lowLevel_adjacent{
 }
 
 #	===================== location1
-#		===================== location2    
+#		===================== location2
 #   ========================= <= New location2 returned
 # @Purpose: Modify the location2 if it overlap the location1 by keeping the extrem values. Return the location2 intact if no overlap. /!\ We append the ID list by the end (as push) when there is an overlap
 # @input: 2 =>  integer tuple [[ID],X,Y],  list of integer tuple
@@ -1814,7 +1814,7 @@ sub _manage_location_lowLevel_overlap{
 		#Manage Id to avoid same IDs
 		my %params = map { $_ => 1 } @{$new_location->[0]};
 		foreach my $id ( @{$location->[0]}){
-			if(! exists($params{$id})){ 
+			if(! exists($params{$id})){
 				push  @{$new_location->[0]}, $id ; #append from the end the list of ID
 			}
 		}
@@ -1834,11 +1834,11 @@ sub _manage_location_lowLevel_overlap{
 
 
 #	================= 		  location1 (cds)
-#		===================== location2 (exon)   
+#		===================== location2 (exon)
 #                    ======== <= New location2 returned
 sub _manage_location_lowLevel_inversed{
 	my ($location, $location2, $verbose) = @_;
-	
+
 	print "_manage_location_lowLevel_inversed\n" if($verbose >= 3);
 
 	my $new_location = [@{$location2}];
@@ -1876,7 +1876,7 @@ sub _manage_location_lowLevel_inversed{
 #
 # HIS<=>Hash InfoSequential
 #
-# => Improve something ?????? 
+# => Improve something ??????
 sub _cleanSequentialIncase{
 	my ($infoSequential, $locusTAGuniq, $verbose) = @_;
 	my $resume_case=undef;
@@ -1884,30 +1884,30 @@ sub _cleanSequentialIncase{
 	foreach my $locusNameHIS (keys %{$infoSequential} ){
 
 	 	if(exists_keys($locusTAGuniq,('level1', $locusNameHIS))){
-	 		
+
 	 		my $locusNameUniq = $locusTAGuniq->{'level1'}{$locusNameHIS};
 	 		if($locusNameHIS ne $locusNameUniq ){
 	 			$resume_case++;
-	 			
+
 	 			# The locusNameUniq already exists, we have to fill it with the part of inforamtion missing that is contained in$infoSequential->{$locusNameHIS}
 	 			if(exists_keys ($infoSequential,($locusNameUniq) ) ){
-	 				
+
 	 				foreach my $bucket (keys %{$infoSequential->{$locusNameHIS}} ){
 	 					if ($bucket eq 'level1'){next;}
-	 					
+
 	 					my $prefix= lc(PREFIXL2); #when a l2 start with this prefix it means we created the l2 on the fly (the real l2 if exists, had not been met yet)
 	 					if($bucket =~ /^$prefix/i){
 	 						my $idok=undef;
-	 						foreach my $feature ( @{$locusTAGuniq->{'level2'}{ $locusNameUniq}}){	 							
+	 						foreach my $feature ( @{$locusTAGuniq->{'level2'}{ $locusNameUniq}}){
 	 							if(lc($feature->_tag_value('ID')) !~ /^$prefix/i){
-	 								$idok = lc( $feature->_tag_value('ID') ); # @{$locusTAGuniq->{'level2'}{ $locusNameUniq }}[$cpt] is the first l2 feature that has been realy met 
+	 								$idok = lc( $feature->_tag_value('ID') ); # @{$locusTAGuniq->{'level2'}{ $locusNameUniq }}[$cpt] is the first l2 feature that has been realy met
 	 								last;									  # We make the assumption that the pieces of the locus that were lost before to describe its real l2 is part of the first real l2 met.
-	 																	      # ====================================================================================================================================						
+	 																	      # ====================================================================================================================================
 	 							}
 	 						}
 
 	 				 		if(exists_keys ($infoSequential,($locusNameUniq, $idok) ) ){
-	 				 			
+
 	 				 			foreach my $level (keys %{$infoSequential->{$locusNameHIS}{$bucket}} ){
 	 				 				push @{$infoSequential->{$locusNameUniq}{$idok}{$level}}, @{$infoSequential->{$locusNameHIS}{$bucket}{$level}};
 	 				 			}
@@ -1942,7 +1942,7 @@ sub _check_sequential{ # Goes through from L3 to l1
 
  		foreach my $bucket (keys %{$infoSequential->{$locusNameHIS} } ){ #bucket = level1 or Id L2
  			print "\nlocusNameHIS $locusNameHIS bucket $bucket\n\n" if ($verbose >= 3);
- 			
+
  			if ($bucket eq 'level1'){next;} #skip case level1 - structure of the hash different
 
  			my $must_create_l2=undef;
@@ -1950,7 +1950,7 @@ sub _check_sequential{ # Goes through from L3 to l1
 
 			#Bucket is an uniq ID created during the reading process. So it can be used as uniq ID.
  			if(! exists_keys($infoSequential,($locusNameHIS, $bucket, 'level3') ) ){
- 				
+
  				# Link the l2 to the L1 feature
 				$feature_l2=$infoSequential->{$locusNameHIS}{$bucket}{'level2'};
 				print "level2 in sequential doenst have L3 feature associated in sequential - $locusNameHIS $bucket! ".$feature_l2->gff_string."\n" if ($verbose >= 3);
@@ -2005,7 +2005,7 @@ sub _check_sequential{ # Goes through from L3 to l1
  							print "create level2  !\n" if($verbose >= 2);
 	 						$must_create_l2=1;
 	 						$feature_l2 = clone($infoSequential->{$locusNameHIS}{$bucket}{'level3'}[0]);#create a copy of the first mRNA feature;
-							
+
 							#manage primary tag
 							my $primary_tag_l2='RNA';
 							foreach my $feature_L3 (@{$infoSequential->{$locusNameHIS}{$bucket}{'level3'}} ){
@@ -2017,7 +2017,7 @@ sub _check_sequential{ # Goes through from L3 to l1
 	 						}
 	 						$feature_l2->primary_tag($primary_tag_l2);
 
-	 						#Manage ID 
+	 						#Manage ID
 								create_or_replace_tag($feature_l2,'ID', $bucket); #modify ID to replace by parent value
 								print "level2 ID created: $bucket !\n" if($verbose >= 2);
 							#Manage Parent
@@ -2033,7 +2033,7 @@ sub _check_sequential{ # Goes through from L3 to l1
 											print "_check_sequential Parent IDtaken from omniscient\n" if ($verbose >= 3);
 									}
 
-						 			if( ! $parentID ){ #In that case level1 feature doesn't exists in $infoSequential and in $omniscient. I will be created by the method check_gene_link_to_mrna 
+						 			if( ! $parentID ){ #In that case level1 feature doesn't exists in $infoSequential and in $omniscient. I will be created by the method check_gene_link_to_mrna
 						 				#my	($miscCount, $uniqID, $primary_tag, $id, $prefix)=@_;
 						 				$parentID =  _create_ID($miscCount, $uniqID, $uniqIDtoType, 'gene', "gene-1", 'nbis_NEW');
 						 				print "_check_sequential Parent IDtaken created\n" if ($verbose >= 3);
@@ -2041,7 +2041,7 @@ sub _check_sequential{ # Goes through from L3 to l1
 						 			}
 						 		}
 						 		print "_check_sequential Parent ID created for level2 = $parentID\n" if ($verbose >= 2);
-					 			create_or_replace_tag($feature_l2,'Parent', $parentID ); # change parentID 
+					 			create_or_replace_tag($feature_l2,'Parent', $parentID ); # change parentID
 
 					 		print "push-omniscient: level2 || ".lc($primary_tag_l2)." || ".lc($parentID)." == ".$feature_l2->gff_string."\n" if ($verbose >= 2);
 					 		push (@{$omniscient->{"level2"}{lc($primary_tag_l2)}{lc($parentID)}}, $feature_l2);
@@ -2050,7 +2050,7 @@ sub _check_sequential{ # Goes through from L3 to l1
 					 	}
  					}
 					else{
-						
+
 						#MUST push L2 in omniscient if absent !
 						$feature_l2=$infoSequential->{$locusNameHIS}{$bucket}{'level2'};
 						print "level2 exits in sequential - $locusNameHIS $bucket! ".$feature_l2->gff_string."\n" if ($verbose >= 3);
@@ -2060,8 +2060,8 @@ sub _check_sequential{ # Goes through from L3 to l1
 							push (@{$omniscient->{"level2"}{lc($feature_l2->primary_tag)}{lc($feature_l2->_tag_value('Parent'))} }, $feature_l2);
 							$mRNAGeneLink->{lc($feature_l2->_tag_value('ID'))} = $feature_l2->_tag_value('Parent');
 						}
-					}					
- 					
+					}
+
  					my $primary_tag_L3 =  lc($feature_L3->primary_tag);
  					create_or_replace_tag($feature_L3,'Parent', $feature_l2->_tag_value('ID')); #modify ID to replace by parent value
 
@@ -2102,7 +2102,7 @@ sub _check_all_level1_positions {
 
 	foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
 		foreach my $id_l1 ( keys %{$hash_omniscient->{'level1'}{$tag_l1}} ) { #sort by position
-			
+
 			my $level1_feature = $hash_omniscient->{'level1'}{$tag_l1}{$id_l1};
 
 			$resume_case++ if(check_level1_positions($hash_omniscient, $level1_feature, $verbose));
@@ -2118,15 +2118,15 @@ sub _check_all_level2_positions{
 
 	foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
 		foreach my $id_l1 ( keys %{$hash_omniscient->{'level1'}{$tag_l1}} ) { #sort by position
-			
+
 			foreach my $tag_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
     			if ( exists_keys ($hash_omniscient, ('level2', $tag_level2, $id_l1) ) ){
-					
-					foreach my $mRNA_feature ( @{$hash_omniscient->{'level2'}{$tag_level2}{$id_l1}}){ 
+
+					foreach my $mRNA_feature ( @{$hash_omniscient->{'level2'}{$tag_level2}{$id_l1}}){
 						my $level2_ID = lc($mRNA_feature->_tag_value('ID'));
-						my @feature_list=();	
+						my @feature_list=();
 						foreach my $primary_tag_l3 ( keys %{$hash_omniscient->{'level3'}}){ # primary_tag_l3 = cds or exon or start_codon or utr etc...
-							
+
 							if ( exists_keys( $hash_omniscient, ('level3', $primary_tag_l3, $level2_ID) ) ){
 								push @feature_list, @{$hash_omniscient->{'level3'}{$primary_tag_l3}{$level2_ID}};
 							}
@@ -2175,7 +2175,7 @@ sub check_mrna_positions{
 # LocusID->level->typeFeature->Parent->[ID,start,end]
 # @Purpose: When two feature overlap at level3, and are the same type level 2 they have to be merged under the same level 1 feature.
 # @input: 2 =>  hash,  integer for verbosity
-# @output: 0 
+# @output: 0
 sub _merge_overlap_features{
 	my ($omniscient, $mRNAGeneLink, $verbose) = @_;
 	my $resume_case=undef;
@@ -2185,7 +2185,7 @@ sub _merge_overlap_features{
 
 	foreach my $locusID ( keys %{$sortBySeq}){ # tag_l1 = gene or repeat etc...
 		if ( exists_keys( $sortBySeq, ( $locusID, 'level1') ) ){
-			foreach my $tag_l1 ( keys %{$sortBySeq->{$locusID}{'level1'}} ) { 
+			foreach my $tag_l1 ( keys %{$sortBySeq->{$locusID}{'level1'}} ) {
 
 				my $to_check = clone($sortBySeq->{$locusID}{'level1'}{$tag_l1});
 
@@ -2194,7 +2194,7 @@ sub _merge_overlap_features{
 
 					if(! exists($alreadyChecked{$id_l1})){
 
-						#remove itself 
+						#remove itself
 						delete $to_check->{$id_l1};
 						my $location = $sortBySeq->{$locusID}{'level1'}{$tag_l1}{$id_l1}; # This location will be updated on the fly
 
@@ -2204,10 +2204,10 @@ sub _merge_overlap_features{
 							my $location_to_check = $to_check->{$id2_l1};
 
 							#If location_to_check start if over the end of the reference location, we stop
-							if($location_to_check->[1] > $sortBySeq->{$locusID}{'level1'}{$tag_l1}{$id_l1}[2]) {last;} 
+							if($location_to_check->[1] > $sortBySeq->{$locusID}{'level1'}{$tag_l1}{$id_l1}[2]) {last;}
 
 							my ($location, $overlap) = location_overlap_update($location, $location_to_check); # location is updated on the fly, and the newly modified location is the one that will be used at the next loop
-							
+
 							# Let's check at Gene LEVEL
 							if($overlap){
 
@@ -2230,7 +2230,7 @@ sub _merge_overlap_features{
 										}
 									}
 
-									# Let's change the parent of all the L2 features 
+									# Let's change the parent of all the L2 features
 									foreach my $l2_type (%{$omniscient->{'level2'}} ){
 
 										if(exists_keys($omniscient,('level2', $l2_type, $id2_l1))){
@@ -2239,7 +2239,7 @@ sub _merge_overlap_features{
 
 											# first list uniqs
 											my $list_of_uniqs  = keep_only_uniq_from_list2($omniscient, $omniscient->{'level2'}{$l2_type}{$id_l1}, $omniscient->{'level2'}{$l2_type}{$id2_l1}, $verbose); # remove if identical l2 exists
-													
+
 
 											#Now manage the rest
 											foreach my $feature_l2 (@{$list_of_uniqs}){
@@ -2247,7 +2247,7 @@ sub _merge_overlap_features{
 												create_or_replace_tag($feature_l2,'Parent', $sortBySeq->{$locusID}{'level1'}{$tag_l1}{$id_l1}[0]); #change the parent
 												# Add the corrected feature to its new L2 bucket
 												push (@{$omniscient->{'level2'}{$l2_type}{$id_l1}}, $feature_l2);
-												
+
 												# Attach the new parent into the mRNAGeneLink hash
 												$mRNAGeneLink->{lc($feature_l2->_tag_value('ID'))}=$feature_l2->_tag_value('Parent');
 
@@ -2276,7 +2276,7 @@ sub _merge_overlap_features{
 
 # @Purpose: When too feature l2 isoform are identical, we remove one
 # @input: 2 =>  hash,  integer for verbosity
-# @output: 0 
+# @output: 0
 sub _check_identical_isoforms{
 	my ($omniscient, $mRNAGeneLink, $verbose) = @_;
 	my $resume_case=undef;
@@ -2285,12 +2285,12 @@ sub _check_identical_isoforms{
 	foreach my $l2_type (keys %{$omniscient->{'level2'}}){
 		foreach my $id2_l1 (keys %{$omniscient->{'level2'}{$l2_type}}){
 			# If more than 1 related to level1
-			
+
 			if(exists_keys($omniscient,('level2', $l2_type, $id2_l1)) and scalar @{$omniscient->{'level2'}{$l2_type}{$id2_l1}} > 1){ # more than one l2 feature of that type
 
 				my @L2_list_to_remove;
 				my %checked;
-				foreach my $feature2 (sort {$b->_tag_value('ID') cmp $a->_tag_value('ID')} @{$omniscient->{'level2'}{$l2_type}{$id2_l1}}){			
+				foreach my $feature2 (sort {$b->_tag_value('ID') cmp $a->_tag_value('ID')} @{$omniscient->{'level2'}{$l2_type}{$id2_l1}}){
 					$checked{lc($feature2->_tag_value('ID'))}{lc($feature2->_tag_value('ID'))}++;
 
 					my $keep = 1;
@@ -2306,18 +2306,18 @@ sub _check_identical_isoforms{
 
 								#Check their subfeature are  identicals
 								if(l2_identical($omniscient, $feature1, $feature2, $verbose )){
-									$keep = undef; 
+									$keep = undef;
 									last;
 								}
 							}
 						}
 					}
 					# We dont keep the l2 feature so we have to remove all related features and itself
-					if(! $keep){ 
+					if(! $keep){
 						$resume_case++;
 						print "Lets remove isoform ".$feature2->_tag_value('ID')."\n" if ($verbose >= 2);
 						$checked{lc($feature2->_tag_value('ID'))}{"skipme"}++;# will be removed later do not check anymore this one
-						
+
 						foreach my $tag (keys %{$omniscient->{'level3'}}){
 							if(exists_keys($omniscient, ('level3', $tag, lc($feature2->_tag_value('ID'))))){
 								delete $omniscient->{'level3'}{$tag}{lc($feature2->_tag_value('ID'))};
@@ -2331,7 +2331,7 @@ sub _check_identical_isoforms{
 				}
 
 				#L2 has to be removed from List
-				my @newL2List;	
+				my @newL2List;
 				foreach my $feature ( @{$omniscient->{'level2'}{$l2_type}{$id2_l1}} ){
 					my $keep = 1;
 					foreach my $id_l2 (@L2_list_to_remove){
@@ -2362,7 +2362,7 @@ sub _sort_by_seq{
 	my ($omniscient) = @_;
 
 	my %hash_sortBySeq;
-  
+
   	foreach my $tag_level1 (keys %{$omniscient->{'level1'}}){
     	foreach my $level1_id (keys %{$omniscient->{'level1'}{$tag_level1}}){
 	    	my $level1_feature = $omniscient->{'level1'}{$tag_level1}{$level1_id};
@@ -2386,7 +2386,7 @@ sub modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop{
 	my @utr3_features;
 	my @utr5_features;
 	my $strand = $exon_features->[0]->strand;
-  	my @exon_features_sorted = sort {$a->start <=> $b->start} @{$exon_features}; # be sure that exon list is sorted   
+  	my @exon_features_sorted = sort {$a->start <=> $b->start} @{$exon_features}; # be sure that exon list is sorted
 
   	my $cds_counter=1;
   	my $utr3_counter=1;
@@ -2397,7 +2397,7 @@ sub modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop{
 	    if( ($exon_feature->end >= $ORFend) and ($exon_feature->start <= $ORFstart) ){
 
  			my $cds_feature=clone($exon_feature);#create a copy of the feature 					exon    ====================================
- 			$cds_feature->start($ORFstart); #modify start 											 cds     ============================ 
+ 			$cds_feature->start($ORFstart); #modify start 											 cds     ============================
  			$cds_feature->end($ORFend); #modify end
  			$cds_feature->primary_tag('CDS');
  			#get old name
@@ -2406,8 +2406,8 @@ sub modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop{
  			push(@cds_features, $cds_feature);#save that cds
  			$cds_counter++;
  			if($exon_feature->start < $ORFstart){
- 				my $utr_feature=clone($exon_feature);#create a copy of the feature 
- 				$utr_feature->end($ORFstart-1); #modify start 
+ 				my $utr_feature=clone($exon_feature);#create a copy of the feature
+ 				$utr_feature->end($ORFstart-1); #modify start
  				if ( ($strand == -1) or ($strand eq "-") ) {
  					$utr_feature->primary_tag('three_prime_UTR');
  					create_or_replace_tag($utr_feature,'ID',$ID.'-utr3-'.$utr3_counter); #modify name
@@ -2421,8 +2421,8 @@ sub modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop{
 	 			}
  			}
  			if($exon_feature->end > $ORFend){
- 				my $utr_feature=clone($exon_feature);#create a copy of the feature 
- 				$utr_feature->start($ORFend+1); #modify start 
+ 				my $utr_feature=clone($exon_feature);#create a copy of the feature
+ 				$utr_feature->start($ORFend+1); #modify start
  				if ( ($strand == -1) or ($strand eq "-") ) {
  					$utr_feature->primary_tag('five_prime_UTR');
 	 				create_or_replace_tag($utr_feature,'ID',$ID.'-utr5-'.$utr5_counter); #modify name
@@ -2448,7 +2448,7 @@ sub modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop{
 		}
 		# cds overp partially an exon
 	    elsif( ($exon_feature->end >= $ORFstart) and ($exon_feature->start <= $ORFend) ){ #they overlap
-	      
+
 	      if($exon_feature->start >= $ORFstart){ # cds overlap start of exon                                    exon ===============================
 	      	#Manage CDS
 	      	my $cds_feature=clone($exon_feature);#create a copy of the feature 						cds ===============================
@@ -2460,8 +2460,8 @@ sub modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop{
  			push(@cds_features, $cds_feature);#save that cds
  			$cds_counter++;
  			#manage UTR
- 			my $utr_feature=clone($exon_feature);#create a copy of the feature 
- 			$utr_feature->start($ORFend+1); #modify end 
+ 			my $utr_feature=clone($exon_feature);#create a copy of the feature
+ 			$utr_feature->start($ORFend+1); #modify end
  			$ID = $utr_feature->_tag_value('ID');
 	 		if ( ($strand == -1) or ($strand eq "-") ) {
 	 			$utr_feature->primary_tag('five_prime_UTR');
@@ -2481,15 +2481,15 @@ sub modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop{
 	       	#Manage CDS
 	       	my $cds_feature=clone($exon_feature);#create a copy of the feature
  			$cds_feature->start($ORFstart); #modify start 										exon ===============================
- 			$cds_feature->primary_tag('CDS');	
+ 			$cds_feature->primary_tag('CDS');
  				#get old name 																					cds =====================================
  			my $ID = $cds_feature->_tag_value('ID');
  			create_or_replace_tag($cds_feature,'ID',$ID.'-cds-'.$cds_counter); #modify name
  			push(@cds_features, $cds_feature);#save that cds
  			$cds_counter++;
 	 		 #Manage UTR
- 			my $utr_feature=clone($exon_feature);#create a copy of the feature 
- 			$utr_feature->end($ORFstart-1); #modify start 
+ 			my $utr_feature=clone($exon_feature);#create a copy of the feature
+ 			$utr_feature->end($ORFstart-1); #modify start
  			$ID = $utr_feature->_tag_value('ID');
 	 		if ( ($strand == -1) or ($strand eq "-") ) {
 	 			$utr_feature->primary_tag('three_prime_UTR');
@@ -2520,7 +2520,7 @@ sub modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop{
 	 				push(@utr5_features, $utr_feature);#save that cds
 	 				$utr5_counter++;
 	 			}
-	 			
+
 	 		}
 	 		else{	#UTR3 in + strand
 		    	my $utr_feature=clone($exon_feature);#create a copy of the feature 													exon ===============================
@@ -2536,7 +2536,7 @@ sub modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop{
 	 				create_or_replace_tag($utr_feature,'ID',$ID.'-utr3-'.$utr3_counter); #modify name
 	 				push(@utr3_features, $utr_feature);#save that cds
 	 				$utr3_counter++;
-	 			}	
+	 			}
 	 		}
 	    }
  	}
@@ -2554,7 +2554,7 @@ sub _check_duplicates{
 	my $keyExist = keys %{$duplicate};
     if($keyExist){#print result
     	_printSurrounded("Achthung /\\ Attention /\\ Be carefull => Duplicates removed !\n(Same chr/contig/scaffold, same position, same ID)",75, "#");
-      	
+
       	my $gffout= Bio::Tools::GFF->new( -fh => \*STDOUT );
       	my $info = _print_duplicates($duplicate, $omniscient, $gffout, $verbose);
     	print "$info\n" if($verbose >= 1);
@@ -2600,7 +2600,7 @@ sub _printSurrounded{
   		$result .="$char ";
 
   		my $sizeTerm=length($line);
-	  	if ($sizeTerm > $size ){	    
+	  	if ($sizeTerm > $size ){
 		    $result .= substr($line, 0,($size));#
 	 	 }
 	 	else{
@@ -2608,7 +2608,7 @@ sub _printSurrounded{
 		    my $nbBlancAfter = ($size-$sizeTerm) - $nbBlancBefore;
 		    $result .= " " x $nbBlancBefore;
 		    $result .= $line;
-		    $result .= " " x $nbBlancAfter;	       		   
+		    $result .= " " x $nbBlancAfter;
 	  	}
 	  	$result .= " $char\n";
 	}
@@ -2628,28 +2628,27 @@ sub select_gff_format{
     my $problem3=undef;
     my $nbLineChecked=100; #number line to use to check the formnat
     my $cpt=0;
-    
+
     open(my $fh, '<', $file) or die "cannot open file $file";
     {
         while(<$fh>){
 
         	if($_ =~ /^#/){next;} #if it is a commented line starting by # we skip it.
-        	
+
             $cpt++;
             if($cpt > $nbLineChecked){
                     last;
             }
             if($_ =~ /^.*\t.*\t.*\t.*\t.*\t.*\t.*\t.*\t(.*)/){
                 if(length($1) < 1){next;}
-                
+
                 my $Ninethcolum = $1;
                 if($Ninethcolum =~ /=/  and $Ninethcolum =~ /;/ ){ $format{3}++;};
 
-                if($Ninethcolum !~ /=/  and $Ninethcolum !~ /;/ ){  
+                if($Ninethcolum !~ /=/  and $Ninethcolum !~ /;/ ){
                          $format{1}++;
-                        #_printSurrounded("Problem detected wihtin the 9th colum of the gff file\nYou cannot have space between attributes and between tag and values.\nAll your attributes will be gathered within the GROUP tag",100,"!");  
                 }
-                elsif($Ninethcolum !~ /=/  and $Ninethcolum =~ /;/ ){       
+                elsif($Ninethcolum !~ /=/  and $Ninethcolum =~ /;/ ){
                                  $format{2}++;
                 }
                 my $c = () = $Ninethcolum =~ /=/g;
@@ -2663,11 +2662,11 @@ sub select_gff_format{
     close($fh);
 
 	if($problem3){
-        _printSurrounded("There is a problem with your GFF format.\nThis format is wrong: tag=value tag=value.\nYou should have: tag=value;tag=value or tag value ; tag value\nThe best parser (gff1) we can use will keep only the first attribute.",100,"!");  
+        _printSurrounded("There is a problem with your GFF format.\nThis format is wrong: tag=value tag=value.\nYou should have: tag=value;tag=value or tag value ; tag value\nThe best parser (gff1) we can use will keep only the first attribute.",100,"!");
     	$format{1}++;
     }
 
-   if (%format){                        
+   if (%format){
 	    my $number_of_format = scalar keys %format;
 	    if ($number_of_format > 1){
 	    	print ("There is a problem we found several formats in this file:");
@@ -2678,11 +2677,11 @@ sub select_gff_format{
 	}
 	else{
 		_printSurrounded("Doesn't look like a GFF file\nLet's see what the Bioperl parser can do with that...(using gff3 parser)",100,"!");
-		$format{3}++;  
+		$format{3}++;
 	}
 	if($format{3}){return 3;}
 	if($format{2}){return 2;}
-    if($format{3}){return 1;}
+  if($format{3}){return 1;}
 }
 
 # We modify the attributes: group=gene_id "e_gw1.5.2.1" protein_id 335805 exonNumber 1
@@ -2702,7 +2701,7 @@ sub _gff1_corrector{
 	    # --jasons
 	    my $previousChar=undef;
 	    my $string="";
-	    for my $a ( split //, $attribs ) { 
+	    for my $a ( split //, $attribs ) {
 	    	$string.=$a;
 	        # flag up on entering quoted text, down on leaving it
 	        if( $a eq '"') { $flag = ( $flag == 0 ) ? 1:0 } #active deactive the flag
@@ -2729,9 +2728,9 @@ sub _gff1_corrector{
 	    	my $tag = pop @parsed;
 	    	$feat->add_tag_value($tag, $value);
 	    }
-	    #remove it   
+	    #remove it
 		$feat->remove_tag('group');
-    } 
+    }
 }
 
 # @Purpose: Create a hash containing all the name and identifier of an ontology.
@@ -2750,7 +2749,7 @@ sub create_term_and_id_hash{
     return \%hash_term_id;
 }
 
-#Look for gff3 specific header 
+#Look for gff3 specific header
 #@INPUT: 1 => string (a file)
 #@OUPUT: 1 => hash of the different header and their values
 sub _check_header{
@@ -2758,7 +2757,7 @@ sub _check_header{
 
     #HANDLE format
     my %headerInfo;
-    
+
     #check it is a file
     if(-f $file){
 	    open(my $fh, '<', $file) or die "cannot open file $file";
@@ -2824,24 +2823,24 @@ sub fetcher_JD {
 }
 
 # @Purpose: retrieve the feature_ontology
-# @input: 3 =>  String file, Hash, Int 
+# @input: 3 =>  String file, Hash, Int
 # @output: 1 => Object Ontology
-# @Remark: Do not deal if multiple ontologies (we will use the first one meet) 
+# @Remark: Do not deal if multiple ontologies (we will use the first one meet)
 sub _handle_ontology{
 	my ($gff3headerInfo, $verbose, $quiet) = @_ ;
 
 	my $ontology_obj=undef;
 	my $internalO=1;
-		
+
 		if(exists_keys($gff3headerInfo, ("##feature-ontology"))){
-			
-			print "feature-ontology URI defined within the file: ".$gff3headerInfo->{'##feature-ontology'}."\n" if $verbose;		
+
+			print "feature-ontology URI defined within the file: ".$gff3headerInfo->{'##feature-ontology'}."\n" if $verbose;
 			#retrieve the data from URI and save it in a string
 			my $stringFILE=undef;
 			try{
 				$stringFILE = fetcher_JD($gff3headerInfo->{"##feature-ontology"});
 			}
-			catch{ 
+			catch{
 				print "The URI provided (".$gff3headerInfo->{'##feature-ontology'}.") doesn't work.\n" if $verbose;
 				print "error: $_\n" if ( $verbose >= 1);
 			};
@@ -2849,7 +2848,7 @@ sub _handle_ontology{
 			if($stringFILE){
 				#create a filehandler from a string
 				open( my $fh_uriOnto, '<', \$stringFILE) || die "Cannot read the string: $! :: $?";
-				
+
 				#parse the ontology saved
 		 		my $parser = undef;
 		 		try{
@@ -2863,7 +2862,7 @@ sub _handle_ontology{
 		 			print "error: $_\n" if ( $verbose >= 1);
 		 			$parser = undef;
 		 		};
-		
+
 				if($parser){ #We got ontology at the URI location, no need to use the internal one
 					$internalO=undef;
 					print "feature-ontology parsed correctly\n" if $verbose;
@@ -2872,7 +2871,7 @@ sub _handle_ontology{
 		}
 
 	if($internalO){ #No URI provided for the feature-ontology(file case), or doesn't exist (hash / table case) let's use the interal one
-	
+
 		try{
 			my $full_path = `perldoc -lm BILS::Handler::GXFhandler`;
 			my $index = index($full_path, "BILS/");
@@ -2882,13 +2881,13 @@ sub _handle_ontology{
 
 			opendir (DIR, $correct_path) or die $!;
 			my @list_file;
-	
+
 			# list all the sofa file available
 			while (my $file = readdir(DIR)) {
 				next if($file eq "." or  $file eq "..");
 			 	push(@list_file, $file);
 		    }
-	
+
 		    #get the most recent file
 		    my @sorted_list = sort { $a cmp $b } @list_file;
 		    my $recent_file = pop @sorted_list;
@@ -2930,7 +2929,7 @@ sub _handle_ontology{
 # @input: 3 =>  hash,
 # @output: 1 => none (because it will just display infromation)
 # @Remark: none
-sub _handle_globalWARNS{	
+sub _handle_globalWARNS{
 	my ($globalWARNS, $ontology) = @_;
 
 	if( keys %{$globalWARNS} ){
@@ -2967,12 +2966,12 @@ sub _handle_globalWARNS{
 	}
 }
 
-# @Purpose: load all parameter (about level of the features i.e. gene = level1, mRNA=level2, exon=level3 (and if they are spread or not like cds,utr) stored in json file 
+# @Purpose: load all parameter (about level of the features i.e. gene = level1, mRNA=level2, exon=level3 (and if they are spread or not like cds,utr) stored in json file
 # @input: 3 =>  integer, bolean
 # @output: 1 => none (because it load information in variable accessible from everywhere in this file)
 # @Remark: none
 sub _load_levels_from_json{
-	
+
 	my ($verbose) = @_ ;
 
 	try{
@@ -2983,7 +2982,7 @@ sub _load_levels_from_json{
 
 		# --Deal with feature L1--
 		my $correct_path_level = $path_begin."Feature_levels/features_level1.json";
-		$LEVEL1 = load_json($correct_path_level);		
+		$LEVEL1 = load_json($correct_path_level);
 		# --Deal with feature L2--
 		$correct_path_level = $path_begin."Feature_levels/features_level2.json";
 		$LEVEL2 = load_json($correct_path_level);
@@ -3001,7 +3000,7 @@ sub _load_levels_from_json{
 
 # @Purpose: load json data into variable
 # @input: 3 =>  String path to the json file
-# @output: 1 => hash reference with data 
+# @output: 1 => hash reference with data
 # @Remark: none
 sub load_json{
 
@@ -3014,7 +3013,7 @@ sub load_json{
 		local $/;
 		<$json_fh>
 	};
-	
+
 	my $json = JSON->new;
 	try{
 		$result = $json->decode($json_text);
