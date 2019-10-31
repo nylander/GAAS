@@ -35,7 +35,7 @@ if ( !GetOptions ('i|file|input|gff=s' => \$inputFile,
 }
 
 # Print Help and exit
-if ($help) {
+if ($opt_help) {
     pod2usage( { -verbose => 2,
                  -exitval => 2,
                  -message => "$header\n" } );
@@ -73,12 +73,12 @@ print "$nbLine line to process...\n";
 my $line_cpt=0;
 
 my $count=0;
-my %check; #track the repeat already annotated to not. Allopw to skip already read repeats
+my %check; # keep track of signature seen
 
 while (my $feature = $ref_in->next_feature() ) {
   $line_cpt++;
 
-  my $position=lc($feature->seq_id)."".lc($feature->source_tag)."".lc($feature->primary_tag)."".$feature->start()."".$feature->end(); #uniq position
+  my $position=lc($feature->seq_id)."".lc($feature->primary_tag)."".$feature->start()."".$feature->end(); #uniq position
   
   if(exists ($check{$position} ) ){
     $count++;
@@ -111,7 +111,7 @@ __END__
 =head1 NAME
 
 gff3_remove_redundant_entries.pl -
-remove redundant entries: same seq_id,source_tag,start,stop. 
+remove redundant entries: same seq_id,primary_tag,start,stop. 
 
 =head1 SYNOPSIS
 

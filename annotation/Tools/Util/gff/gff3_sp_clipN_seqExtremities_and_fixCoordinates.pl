@@ -22,7 +22,7 @@ my $width = 60; # line length printed
 
 my $header = qq{
 ########################################################
-# BILS 2017 - Sweden                                   #  
+# NBIS 2017 - Sweden                                   #  
 # jacques.dainat\@nbis.se                              #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################

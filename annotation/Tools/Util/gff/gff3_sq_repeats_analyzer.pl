@@ -1,11 +1,5 @@
 #!/usr/bin/env perl
 
-###################################################
-# Jacques Dainat 01/2015     #
-# Bioinformatics Infrastructure for Life Sciences #
-# jacques.dainat@bils.se                          #
-###################################################
-
 use Carp;
 use strict;
 use warnings;
@@ -14,7 +8,13 @@ use Getopt::Long;
 use IO::File ;
 use Bio::SeqIO;
 use Bio::Tools::GFF;
-
+my $header = qq{
+########################################################
+# BILS 2019 - Sweden                                   #  
+# jacques.dainat\@nbis.se                               #
+# Please cite NBIS (www.nbis.se) when using this tool. #
+########################################################
+};
 my $start_run = time();
 
 my @inputFile;
@@ -35,12 +35,13 @@ if ( !GetOptions ('i|file|input|gff=s' => \@inputFile,
 
 if ($opt_help) {
     pod2usage( { -verbose => 2,
-                 -exitval => 0 } );
+                 -exitval => 2,
+                 -message => "$header\n" } );
 }
 
 if (! @inputFile ){
-   pod2usage( { -message => 'at least 1 input file is mandatory',
-                 -verbose => 1,
+   pod2usage( { -message => "$header\nAt least 1 input file is mandatory",
+                 -verbose => 0,
                  -exitval => 1 } );
 }
 

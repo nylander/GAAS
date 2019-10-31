@@ -23,14 +23,19 @@ my $header = qq{
 
 my %handlers;
 my $gff = undef;
+my $one_tsv = undef;
 my $help= 0;
 my $primaryTag=undef;
 my $attributes=undef;
 my $outfile=undef;
+my $outInOne=undef;
+my $doNotReportEmptyCase=undef;
 
 if ( !GetOptions(
     "help|h" => \$help,
     "gff|f=s" => \$gff,
+    "d!" => \$doNotReportEmptyCase,
+    "m|merge!" => \$one_tsv,
     "p|t|l=s" => \$primaryTag,
     "attributes|a|att=s" => \$attributes,
     "output|outfile|out|o=s" => \$outfile))
@@ -55,6 +60,16 @@ if ( ! (defined($gff)) ){
            -exitval => 2 } );
 }
 
+# If one output file we can create it here
+if($one_tsv){
+  if ($outfile) {
+    open($outInOne, '>', $outfile) or die "Could not open file $outfile $!";
+  }
+  else{
+    $outInOne->fdopen( fileno(STDOUT), 'w' );
+  }
+}
+
 # Manage $primaryTag
 my @ptagList;
 if(! $primaryTag or $primaryTag eq "all"){
@@ -77,12 +92,12 @@ if(! $primaryTag or $primaryTag eq "all"){
 
 # Manage attributes if given
 ### If attributes given, parse them:
-my %attListOk;
+my @attListOk;
 if ($attributes){
   my @attList = split(/,/, $attributes); # split at comma as separated value
   
   foreach my $attribute (@attList){ 
-      $attListOk{$attribute}++;
+      push @attListOk, $attribute;
       print "$attribute attribute will be processed.\n";
 
   }
@@ -107,7 +122,7 @@ foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){
         
     my $feature_l1=$hash_omniscient->{'level1'}{$tag_l1}{$id_l1};
         
-    manage_attributes($feature_l1, 'level1', \@ptagList,\%attListOk);
+    manage_attributes($feature_l1, 'level1', \@ptagList,\@attListOk);
 
     #################
     # == LEVEL 2 == #
@@ -117,7 +132,7 @@ foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){
       if ( exists ($hash_omniscient->{'level2'}{$tag_l2}{$id_l1} ) ){
         foreach my $feature_l2 ( @{$hash_omniscient->{'level2'}{$tag_l2}{$id_l1}}) {
           
-          manage_attributes($feature_l2,'level2',, \@ptagList,\%attListOk);
+          manage_attributes($feature_l2,'level2',, \@ptagList,\@attListOk);
           #################
           # == LEVEL 3 == #
           #################
@@ -126,7 +141,7 @@ foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){
           foreach my $tag_l3 (keys %{$hash_omniscient->{'level3'}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
             if ( exists ($hash_omniscient->{'level3'}{$tag_l3}{$level2_ID} ) ){
               foreach my $feature_l3 ( @{$hash_omniscient->{'level3'}{$tag_l3}{$level2_ID}}) {
-                manage_attributes($feature_l3, 'level3', \@ptagList,\%attListOk);
+                manage_attributes($feature_l3, 'level3', \@ptagList,\@attListOk);
               }
             }
           }
@@ -173,12 +188,12 @@ sub  manage_attributes{
 sub tag_from_list{
   my  ($feature, $attListOk)=@_;
 
-  foreach my $att (sort keys %{$attListOk}){
-    if ($feature->has_tag($att)){
-      
-      # create handler if needed (on the fly)
+  my $tags_string = undef;
+  foreach my $att ( @{$attListOk} ){
+    
+    # create handler if needed (on the fly)
+    if (! $one_tsv){
       if(! exists ( $handlers{$att} ) ) {
-
         my $out = IO::File->new();
         if ($outfile) {
           $outfile=~ s/.gff//g;
@@ -189,13 +204,41 @@ sub tag_from_list{
         }
         $handlers{$att}=$out;
       }
+    }
+        
 
-      my $out = $handlers{$att};
+    if ($feature->has_tag($att)){
+
+      # get values of the attribute
       my @values = $feature->get_tag_values($att);
-      foreach my $value (@values){
-        print $out $value."\n";
+      
+      # print values of one attribute per file
+      if (! $one_tsv){
+        my $out = $handlers{$att};
+        print $out join(",", @values), "\n";
       }
-    } 
+      else{ # put everything in one tsv
+        $tags_string .= join(",", @values)."\t";
+      }
+    }
+    else{
+      if (! $one_tsv){
+        my $out = $handlers{$att};
+        print $out ".\n" if (! $doNotReportEmptyCase);
+      }
+      else{ # put everything in one tsv
+        if (! $doNotReportEmptyCase){
+          $tags_string .= ".\t";
+        }
+        else{
+          $tags_string .= "\t";
+        }
+      }
+    }
+  }
+  if($tags_string){
+    chop $tags_string;
+    print $outInOne  $tags_string."\n";
   }
 }
 
@@ -220,14 +263,15 @@ __END__
 
 =head1 NAME
 
-gff3_extractAttributes.pl -
+gff3_extract_attributes.pl -
 The script take a gff3 file as input. -
-The script allows to remove choosen attributes to choosen features. 
+The script allows to extract choosen attributes of all or specific feature types. 
+The 9th column of a gff/gtf file contains a list of attributes. An attribute (gff3) is like that tag=value
 
 =head1 SYNOPSIS
 
-    ./gff3_extractAttributes.pl -gff file.gff  -att locus_tag,product,name -p level2,cds,exon [ -o outfile ]
-    ./gff3_extractAttributes.pl --help
+    ./gff3_extract_attributes.pl -gff file.gff  -att locus_tag,product,name -p level2,cds,exon [ -o outfile ]
+    ./gff3_extract_attributes.pl --help
 
 =head1 OPTIONS
 
@@ -246,10 +290,17 @@ You can specify directly all the feature of a particular level:
       level3=CDS,exon,UTR,etc
 By default all feature are taking in account. fill the option by the value "all" will have the same behaviour.
 
-=item B<-attributes>, B<--att>, B<-a>
+=item B<--attributes>, B<--att>, B<-a>
 
 Attributes specified, will be extracted from the feature type specified by the option p (primary tag). List of attributes must be coma separated.
 /!\\ You must use "" if name contains spaces.
+
+=item B<--merge> or B<-m>
+
+By default the values of each attribute tag is writen in its dedicated file. To write the values of all tags in only one file use this option.
+
+=item B<-d> 
+By default when an attribute is not found for a feature, a dot (.) is reported. If you don't want anything to be printed in such case use this option.
 
 =item B<-o> , B<--output> , B<--out> or B<--outfile>
 
@@ -263,3 +314,4 @@ Display this helpful text.
 =back
 
 =cut
+

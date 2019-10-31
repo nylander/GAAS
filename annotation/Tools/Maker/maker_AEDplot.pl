@@ -142,35 +142,35 @@ foreach my $fileName (keys %hashOfList){
   }
   $ostreamAED->close();
 
-## check using R
-my $R = Statistics::R->new() or die "Problem with R : $!\n";
+  ## check using R
+  my $R = Statistics::R->new() or die "Problem with R : $!\n";
 
-#R command
-$R->run(qq`
-      
-      listValues1=as.matrix(read.table("$pathAED", sep="\t", he=F))
-      
-      # create a break point list formated correctly in purpose
-      a<-seq(0,0.9999,$opt_breaks)
-      a[length(a)+1]<-0.99999
-      a[length(a)+1]<-1
-      breakingPointList<-c(0,a)
-      
-      hist1<-hist(listValues1, breaks=breakingPointList, plot=F)
-      plot(hist1\$mids,hist1\$counts)
-      #par(new=TRUE)
-      mylims <- par("usr")`
-);
+  #R command
+  $R->run(qq`
+        
+        listValues1=as.matrix(read.table("$pathAED", sep="\t", he=F))
+        
+        # create a break point list formated correctly in purpose
+        a<-seq(0,0.9999,$opt_breaks)
+        a[length(a)+1]<-0.99999
+        a[length(a)+1]<-1
+        breakingPointList<-c(0,a)
+        
+        hist1<-hist(listValues1, breaks=breakingPointList, plot=F)
+        plot(hist1\$mids,hist1\$counts)
+        #par(new=TRUE)
+        mylims <- par("usr")`
+  );
 
-#retrieve R values in Perl
-my $maxY = $R->get('mylims');
+  #retrieve R values in Perl
+  my $maxY = $R->get('mylims');
 
-if($maxY->[$#$maxY] > $highestYaxis){
-  $highestYaxis=$maxY->[$#$maxY];
- }
+  if($maxY->[$#$maxY] > $highestYaxis){
+    $highestYaxis=$maxY->[$#$maxY];
+  }
 
-# Close the bridge
-$R->stopR();
+  # Close the bridge
+  $R->stopR();
 }
 
 #PART 3

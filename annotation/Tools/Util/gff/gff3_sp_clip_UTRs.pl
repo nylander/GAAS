@@ -14,19 +14,21 @@ use BILS::Handler::GXFhandler qw(:Ok);
 
 my $header = qq{
 ########################################################
-# BILS 2018 - Sweden                                   #  
-# jacques.dainat\@bils.se                               #
-# Please cite BILS (www.bils.se) when using this tool. #
+# NBIS 2019 - Sweden                                   #  
+# jacques.dainat\@nbis.se                               #
+# Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 };
 
 my $outfile = undef;
 my $gff = undef;
+my $verbose = undef;
 my $help= 0;
 
 if ( !GetOptions(
     "help|h" => \$help,
     "gff|g=s" => \$gff,
+    "verbose|v!" => \$verbose,
     "output|outfile|out|o=s" => \$outfile))
 
 {
@@ -67,7 +69,6 @@ else{
 #                     >>>>>>>>>>>>>>>>>>>>>>>>>       #######################       <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
-my $verbose=1;
 my $resume_case=undef;
 
 ######################
@@ -89,40 +90,40 @@ foreach my $level ( ('level1', 'level2') ){
 
 ########
 # Sort the genes to loop over them from the left to right.
-my $sortBySeq = _sort_by_seq_no_strand($omniscient);
-my %alreadyChecked;
+my $sortBySeq = gather_and_sort_l1_location_by_seq_id($omniscient);
+
 
 foreach my $locusID ( keys %{$sortBySeq}){ # tag_l1 = gene or repeat etc...
-  if ( exists_keys( $sortBySeq, ( $locusID, 'level1') ) ){
-    foreach my $tag_l1 ( keys %{$sortBySeq->{$locusID}{'level1'}} ) { 
+ 
+  foreach my $tag_l1 ( keys %{$sortBySeq->{$locusID}} ) { 
 
-      my $to_check = clone($sortBySeq->{$locusID}{'level1'}{$tag_l1});
+    # Go through location from left to right ### !!
+    while ( @{$sortBySeq->{$locusID}{$tag_l1}} ){
 
-      # Go through location from left to right ### !!
-      foreach my $id_l1 ( sort {$sortBySeq->{$locusID}{'level1'}{$tag_l1}{$a}[1] <=> $sortBySeq->{$locusID}{'level1'}{$tag_l1}{$b}[1] } keys %{$sortBySeq->{$locusID}{'level1'}{$tag_l1}} ) {
+      my $location = shift  @{$sortBySeq->{$locusID}{$tag_l1}};
+      my $id_l1_left = $location->[0];
 
-        if(! exists($alreadyChecked{$id_l1})){
+      my $overlap=1;
+      while($overlap){
 
-          #remove itself 
-          delete $to_check->{$id_l1};
+        # Go through location from left to right ### !!
+        my $continue = 0;
+        while ( defined($continue) ){
 
-          my $location = $sortBySeq->{$locusID}{'level1'}{$tag_l1}{$id_l1}; # This location will be updated on the fly
+          # Next location 
+          my $location2 = @{$sortBySeq->{$locusID}{$tag_l1}}[$continue];
+          my $id_l1_right = $location2->[0];
+          
+          #if overlap
+          if ( ($location->[1] <= $location2->[2]) and ($location->[2] >= $location2->[1])){
+            print "$id_l1_left and $id_l1_right overlaps\n" if($verbose);
+            _check_gene_overlap_at_UTR($omniscient , $location, $location2, $verbose); #If contains UTR  
 
-          # Go through location from left to right ### !!
-          foreach my $id2_l1 ( sort {$to_check->{$a}[1] <=> $to_check->{$b}[1] } keys %{$to_check} ) {
-
-            my $location_to_check = $to_check->{$id2_l1};
-
-            #If location_to_check start if over the end of the M1erence location, we stop
-            if($location_to_check->[1] > $sortBySeq->{$locusID}{'level1'}{$tag_l1}{$id_l1}[2]) {last;} 
-
-            # Let's check if neighbor gene overlap at Gene LEVEL !
-            if (($location->[1] <= $location_to_check->[2]) and ($location->[2] >= $location_to_check->[1])){
-                ### OVERLAP ###
-                #let's check at UTR level
-               _check_gene_overlap_at_UTR($omniscient , $id_l1, $id2_l1, $verbose); #If contains UTR
-
-            }
+            $continue++;
+          }
+          else{
+            $overlap=undef;
+            last;
           }
         }
       }
@@ -130,7 +131,6 @@ foreach my $locusID ( keys %{$sortBySeq}){ # tag_l1 = gene or repeat etc...
   }
 }
   print "We fixed $resume_case case where feature has been merged within the same locus\n" if($verbose >= 1 and $resume_case);
-
 
 ########
 # Print results
@@ -148,74 +148,100 @@ print_omniscient($omniscient, $gffout);
                 ####
                  ##
 
-# Check the presence of UTR of both sides of each gene
 sub _check_gene_overlap_at_UTR{
-  my  ($hash_omniscient, $gene_id, $gene_id2, $verbose)=@_;
+  my  ($hash_omniscient, $location, $location2, $verbose)=@_;
 
-  my $verbose=1;
-  my $utr_mrna1 = undef;
-  my $utr_mrna2 = undef;
-  print "lets go: $gene_id, $gene_id2 \n";
+  my $gene_id = $location->[0];
+  my $gene_id2 = $location2->[0];
 
-  foreach my $l2_type (keys %{$hash_omniscient->{'level2'}} ){
+  #One has to have UTR
+  if( l1_has_l3_type($omniscient, $gene_id, 'utr', 1) or l1_has_l3_type($omniscient, $gene_id2, 'utr', 1) ){
+    print "At least one of them has UTR\n" if($verbose);
 
-    #check full CDS for each mRNA
-    if(exists_keys($hash_omniscient,('level2', $l2_type, lc($gene_id)))){
-      foreach my $mrna_feature (@{$hash_omniscient->{'level2'}{$l2_type}{lc($gene_id)}}){       
+    if( l1_has_l3_type($omniscient, $gene_id, 'cds') and  l1_has_l3_type($omniscient, $gene_id2, 'cds') ){
+      #collect extrem cds positions.
+      my ($gene1_cds_start, $gene1_cds_end) = get_most_right_left_cds_positions($omniscient, $gene_id);
+      my ($gene2_cds_start, $gene2_cds_end) = get_most_right_left_cds_positions($omniscient, $gene_id2);
+      #print "gene1_cds_start $gene1_cds_start gene1_cds_end $gene1_cds_end gene2_cds_start $gene2_cds_start gene2_cds_end $gene2_cds_end\n";
 
-        if(exists_keys($hash_omniscient,('level2', $l2_type, lc($gene_id2)))){
-            
-          foreach my $mrna_feature2 (@{$hash_omniscient->{'level2'}{$l2_type}{lc($gene_id2)}}){ # from here bothe feature level2 are the same type
-
-            #check utr if utr present
-            foreach my $l3_type (keys %{$hash_omniscient->{'level3'}} ){
-              if ($l3_type =~ 'utr'){
-                  if(exists_keys($hash_omniscient,('level3', $l3_type, lc($mrna_feature->_tag_value('ID'))))){
-                  print "There is UTR in M1\n";
-
-                  my ($M1_cds_start, $M1_cds_end) = _get_cds_location($mrna_feature, $omniscient);
-                  my ($M2_cds_start, $M2_cds_end) = _get_cds_location($mrna_feature2, $omniscient);
-
-                  if($M2_cds_start < $M1_cds_start){ #cds of M2 is left of cds of M1, we have to flip the case
-                    print "flip test1 = true\n";
-                     _control_utr_from_model_right($mrna_feature2, $M2_cds_start, $M2_cds_end, $mrna_feature, $M1_cds_start, $M1_cds_end, $hash_omniscient, $verbose);
-                     last;
-                  }
-                  else{
-                    _control_utr_from_model_left($mrna_feature, $M1_cds_start, $M1_cds_end, $mrna_feature2, $M2_cds_start, $M2_cds_end, $hash_omniscient, $verbose);
-                    last;
-                  }
-                }
-              }
-            }
-
-            foreach my $l3_type (keys %{$hash_omniscient->{'level3'}} ){
-              if ($l3_type =~ 'utr'){
-                if(exists_keys($hash_omniscient,('level3', $l3_type, lc($mrna_feature2->_tag_value('ID'))))){
-                  print "There is UTR in M2\n";
-
-                  my ($M1_cds_start, $M1_cds_end) = _get_cds_location($mrna_feature, $omniscient);
-                  my ($M2_cds_start, $M2_cds_end) = _get_cds_location($mrna_feature2, $omniscient);
-
-                  if($M2_cds_start < $M1_cds_start){ #cds of M2 is left of cds of M1, we have to flip the case
-                    print "flip test2 = true\n";
-                    _control_utr_from_model_left($mrna_feature2, $M2_cds_start, $M2_cds_end, $mrna_feature, $M1_cds_start, $M1_cds_end, $hash_omniscient, $verbose);        
-                     last;
-                  }
-                  else{
-                    _control_utr_from_model_right($mrna_feature, $M1_cds_start, $M1_cds_end, $mrna_feature2, $M2_cds_start, $M2_cds_end, $hash_omniscient, $verbose);
-                    last;
-                  }
-                }
-              }
-            }
-          }
-        }
+      if ( ($gene1_cds_start <= $gene2_cds_end) and ($gene1_cds_end >= $gene2_cds_start)){
+        print "overlap within the CDS we don't touch them...\n" if($verbose);
+      }
+      else{
+        #if single exon gene is modified it can be on different strand otherwise we don't touch the UTR
+        #if( and is_single_exon_gene() or is_single_exon_gene())
+        #print "let's go with $gene_id $gene_id2\n";
       }
     }
+    else{
+      print "At least one of them do not have CDS we don't touch them2...\n" if($verbose);
+    }
+      # my $utr_mrna1 = undef;
+      # my $utr_mrna2 = undef;
+      # print "lets go: $gene_id, $gene_id2 \n";
+
+
+      # foreach my $l2_type (keys %{$hash_omniscient->{'level2'}} ){
+      #   if(exists_keys($hash_omniscient,('level2', $l2_type, $gene_id))){
+      #     foreach my $mrna_feature (@{$hash_omniscient->{'level2'}{$l2_type}{$gene_id}}){       
+      #       my $righ_utrs = undef;
+      #       my $sorted_cds = get_cds_from_l2($hash_omniscient, $mrna_feature);
+      #       if ($sorted_cds){ #this l2 has a cds
+      #         $righ_utrs = _get_right_utrs($hash_omniscient, $mrna_feature, $gene1_cds_end);
+      #       }
+
+
+      #       foreach my $l2_type_B (keys %{$hash_omniscient->{'level2'}} ){
+      #         if(exists_keys($hash_omniscient,('level2', $l2_type_B, $gene_id2))){
+      #           foreach my $mrna_feature_B (@{$hash_omniscient->{'level2'}{$l2_type}{$gene_id2}}){       
+      #             my $sorted_cds_B = get_cds_from_l2($hash_omniscient, $mrna_feature_B);
+      #             if ($sorted_cds_B){ #this l2 has a cds
+      #               if($sorted_cds_B[0]->start <=  $sorted_cds[$#sorted_cds]->end and $sorted_cds_B[$#sorted_cds_B]->end  >= $sorted_cds[0]->start){
+      #                 print "Both CDS overlap, we will not touch their UTRs\n";
+      #               }
+      #               my $left_utrs = _get_left_utrs($hash_omniscient, $mrna_feature_B, $gene2_cds_start);
+      #               if($righ_utrs and $left_utrs){
+      #                 #-----HERE BOTH HAVE UTR-----
+      #                 my $length_utr_M1 =  $righ_utrs->[$#righ_utrs]->end - $righ_utrs->[0]->start +1;
+      #                 my $length_utr_M2 =  $left_utrs->[$#left_utrs]->end  - $left_utrs->[0]->start + 1;
+      #                 my $separting_point = undef;
+      #                 if($length_utr_M1 > $length_utr_M2){
+      #                   $separting_point = $M2_utr_left_start;
+      #                 }
+      #                 #print "($length_utr_M1 > $dist_between_M1_and_M2 and $length_utr_M2 > $dist_between_M1_and_M2)\n" if $verbose;
+      #                 # If $dist_between_M1_and_M2 = 1 we cannot share one nucleotide between two utr. Both should have it
+      #                 if($length_utr_M1 > $dist_between_M1_and_M2 and $length_utr_M2 > $dist_between_M1_and_M2 and $dist_between_M1_and_M2 > 1) {
+      #                   $separting_point =  $M1_cds_end  + int($dist_between_M1_and_M2 / 2) + 1;
+      #                   #print "separting_point  $separting_point $M2_cds_start - $M1_cds_end - 1 =  $dist_between_M1_and_M2 ".int($dist_between_M1_and_M2 / 2)."\n" if $verbose;
+      #                 }
+      #                 #_shrink_utr_right($separting_point)
+      #                 #_shrink_utr_left($separting_point)
+      #               }
+      #               elsif($righ_utrs){
+      #                 #-----HERE left gene has UTR to his right to check
+      #                 my $separting_point = $sorted_cds_B->[0]->start;
+      #                 #_shrink_utr_right($separting_point)
+      #               }
+      #               elsif($left_utrs){
+      #                 #-----HERE right gene has UTR to his left to check
+      #                 my $separting_point = $sorted_cds->[$#$sorted_cds]->end;
+      #                 #_shrink_utr_left($separting_point)
+      #               }
+      #               else{
+      #                 print "None of the two features have CDS" if ($verbose);
+      #               }
+      #             }
+      #           }
+      #         }
+      #       }
+      #     }
+      #   }
+
   }
 }
 
+
+__END__
 
 ############################################################
 #check if UTR right of model left is overlaping, and fix it.
@@ -264,26 +290,33 @@ sub _control_utr_from_model_left{
     }
 
     if($separting_point){
-      print "lets shrink the UTR M1: \n";
+      print "lets shrink the UTR M1 (separting_point=$separting_point): \n";
       foreach my $l3_type (keys %{$omniscient->{'level3'}} ){               
         if ($l3_type =~ 'utr' or $l3_type =~ 'exon'){ #lets shrink it
           if(exists_keys($omniscient,('level3', $l3_type, lc($l2_M1_id)))){
             my @new_list_of_feature3;
             foreach my $feature_l3 ( sort {$a->start <=> $b->start} @{$omniscient->{'level3'}{$l3_type}{lc($l2_M1_id)}} ){
               if($feature_l3->start() >= $separting_point){ #feature is completely in the cds we remove it
-                 print "we throw the feature case1 ".$feature_l3->gff_string."\n"  if $verbose;
+                 print "we throw the feature case1A ".$feature_l3->gff_string."\n"  if $verbose;
               }
               elsif ($feature_l3->start() <= $separting_point and $feature_l3->end() >= $separting_point){
                 print "we modfify the feature case1: ".$feature_l3->gff_string."\n" if $verbose;
                 $feature_l3->end($separting_point-1);
-                 print "after modification ".$feature_l3->gff_string."\n" if $verbose;
+                print "after modification ".$feature_l3->gff_string."\n" if $verbose;
                 push(@new_list_of_feature3,  $feature_l3);
               }
               else{ #feature not concerned we keep it
                 push(@new_list_of_feature3,  $feature_l3);
               }
             }
-            @{$omniscient->{'level3'}{$l3_type}{lc($l2_M1_id)}}=@new_list_of_feature3;
+            if (scalar @new_list_of_feature3 > 0){
+              @{$omniscient->{'level3'}{$l3_type}{lc($l2_M1_id)}}=@new_list_of_feature3;
+            }
+            else{
+              print "delete it\n";
+                          delete $omniscient->{'level3'}{$l3_type}{lc($l2_M1_id)};
+              #clean_from_l3($omniscient, $l3_type, $l2_feature_M1);
+            }
           }
         }
       }
@@ -299,7 +332,7 @@ sub _control_utr_from_model_left{
           my @new_list_of_feature3;
           foreach my $feature_l3 ( sort {$a->start <=> $b->start} @{$omniscient->{'level3'}{$l3_type}{lc($l2_M1_id)}} ){
             if($feature_l3->start() >= $M2_cds_start){ #feature is completely in the cds we remove it
-               print "we throw the feature case1 ".$feature_l3->gff_string."\n"  if $verbose;
+               print "we throw the feature case1B ".$feature_l3->gff_string."\n"  if $verbose;
             }
             elsif ($feature_l3->start() <= $M2_cds_end and $feature_l3->end() >= $M2_cds_start){
               print "we modfify the feature case1: ".$feature_l3->gff_string."\n" if $verbose;
@@ -310,7 +343,13 @@ sub _control_utr_from_model_left{
               push(@new_list_of_feature3,  $feature_l3);
             }
           }
-          @{$omniscient->{'level3'}{$l3_type}{lc($l2_M1_id)}}=@new_list_of_feature3;
+          if (scalar @new_list_of_feature3 > 0){
+            @{$omniscient->{'level3'}{$l3_type}{lc($l2_M1_id)}}=@new_list_of_feature3;
+          }
+          else{
+            print "delete it\n";
+            clean_from_l3($omniscient, $l3_type, $l2_feature_M1);
+          }
         }
       }
     }
@@ -356,7 +395,7 @@ sub _control_utr_from_model_right{
   my $l2_M2_id  = lc($l2_feature_M2->_tag_value('ID')); 
 
   ##############################
-  # Look at utr of the M1erence
+  # Look at utr of the M1
   my ($M1_utr_left_start, $M1_utr_left_end, $M1_utr_right_start, $M1_utr_right_end) = _get_utrs_extremities($l2_M1_id, $M1_cds_end, $omniscient);
 
   ###########################
@@ -406,7 +445,13 @@ sub _control_utr_from_model_right{
                 push(@new_list_of_feature3,  $feature_l3);
               }
             }
-            @{$omniscient->{'level3'}{$l3_type}{lc($l2_M2_id)}}=@new_list_of_feature3;
+            if (scalar @new_list_of_feature3 > 0){
+              @{$omniscient->{'level3'}{$l3_type}{lc($l2_M2_id)}}=@new_list_of_feature3;
+            }
+            else{
+              print "delete it\n";
+              clean_from_l3($omniscient, $l3_type, $l2_feature_M2);
+            }
           }
         }
       }
@@ -421,10 +466,9 @@ sub _control_utr_from_model_right{
         if(exists_keys($omniscient,('level3', $l3_type, lc($l2_M2_id)))){
           my @new_list_of_feature3;
           foreach my $feature_l3 ( sort {$a->start <=> $b->start} @{$omniscient->{'level3'}{$l3_type}{lc($l2_M2_id)}} ){
-            print "kkk\n";
             print "$l3_type ".$feature_l3->start()."<= $M1_cds_end and ".$feature_l3->end()." >= $M1_cds_end \n";
             if($feature_l3->end() <= $M1_cds_end){ 
-               print "we throw the feature case1 ".$feature_l3->gff_string."\n"  if $verbose;
+               print "we throw the feature case1C ".$feature_l3->gff_string."\n"  if $verbose;
             }
             elsif ($feature_l3->start() <= $M1_cds_end and $feature_l3->end() >= $M1_cds_end){
               print "we modfify the feature case1: ".$feature_l3->gff_string."\n" if $verbose;
@@ -435,7 +479,13 @@ sub _control_utr_from_model_right{
               push(@new_list_of_feature3,  $feature_l3);
             }
           }
-          @{$omniscient->{'level3'}{$l3_type}{lc($l2_M2_id)}}=@new_list_of_feature3;
+          if (scalar @new_list_of_feature3 > 0){
+            @{$omniscient->{'level3'}{$l3_type}{lc($l2_M2_id)}}=@new_list_of_feature3;
+          }
+          else{
+            print "delete it\n";
+            clean_from_l3($omniscient, $l3_type, $l2_feature_M2);
+          }
         }
       }
     }
@@ -489,10 +539,10 @@ sub _get_utrs_extremities{
     print "$l3_type\n" if $verbose;
     if ($l3_type =~ 'utr'){
 
-      if(exists_keys($omniscient,('level3', $l3_type, $l2_id))){
+      if(exists_keys($omniscient,('level3', $l3_type, lc($l2_id)))){
         print "exists_keys $l3_type for $l2_id\n" if $verbose;
         sort {$a->start <=> $b->start} @{$omniscient->{'level3'}{$l3_type}{lc($l2_id)}};
-        #print Dumper($omniscient->{'level3'}{$l3_type}{lc($l2_id)});
+
         my $utr_start  = $omniscient->{'level3'}{$l3_type}{lc($l2_id)}[0]->start; #first element of the array 
         my $utr_end = $omniscient->{'level3'}{$l3_type}{lc($l2_id)}[$#{$omniscient->{'level3'}{$l3_type}{lc($l2_id)}}]->end; #last element of the array
         
@@ -511,27 +561,77 @@ sub _get_utrs_extremities{
   return $utr_left_start, $utr_left_end, $utr_right_start, $utr_right_end;
 }
 
-#
-# Sort by locusID !!!!
-# L1 => LocusID->level->typeFeature->ID =[ID,start,end]
-# L2 and L3 => LocusID->level->typeFeature->Parent->ID = [ID,start,end]
-#
-#
-sub _sort_by_seq_no_strand{
-  my ($omniscient) = @_;
+sub clean_from_l3{
+  my ($omniscient, $l3_type, $l2_feature) = @_;
 
-  my %hash_sortBySeq;
-  
-    foreach my $tag_level1 (keys %{$omniscient->{'level1'}}){
-      foreach my $level1_id (keys %{$omniscient->{'level1'}{$tag_level1}}){
-        my $level1_feature = $omniscient->{'level1'}{$tag_level1}{$level1_id};
-        my $ID = $level1_feature->_tag_value('ID');
-        my $position_l1=$level1_feature->seq_id;
+  my $l2_id = lc($l2_feature->_tag_value('ID'));
 
-        $hash_sortBySeq{$position_l1}{"level1"}{$tag_level1}{$level1_id} = [$ID, int($level1_feature->start), int($level1_feature->end)];
-        }
+  #Clean l3
+  delete $omniscient->{'level3'}{$l3_type}{l2_id};
+
+  #clean l2
+  foreach my $l3_type (keys %{$omniscient->{'level3'}} ){   
+    if(exists_keys($omniscient,('level3', $l3_type, $l2_id))){
+      return;
+    }
   }
-  return \%hash_sortBySeq;
+  my $l2_parent = lc($l2_feature->_tag_value('Parent'));
+  foreach my $l2_type (keys %{$omniscient->{'level2'}} ){
+    if(exists_keys($omniscient,('level2', $l2_type, $l2_parent))){
+      print Dumper($omniscient->{'level2'}{$l2_type}{$l2_parent});
+      foreach my $feature (@{$omniscient->{'level2'}{$l2_type}{$l2_parent}}){
+        my $id = lc($feature->_tag_value('ID'));
+        if ($id eq $l2_id){
+          print "removing $l2_id\n";
+          delete $omniscient->{'level2'}{$l2_type}{$l2_parent};
+          #remove l1
+          if ($#{$omniscient->{'level2'}{$l2_type}{$l2_parent}} == 0){
+            foreach my $tag (keys %{$omniscient->{'level1'}}){
+              if(exists_keys($omniscient,('level1', $tag, $l2_parent))){
+                delete $omniscient->{'level1'}{$tag}{$l2_parent};
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+sub _get_right_utrs{
+  my ($hash_omniscient, $l2_feature, $cds_end) = @_;
+
+  my $l2_id = lc($l2_feature->_tag_value('ID'));
+
+  foreach my $tag_l3 (keys %{$omniscient->{'level3'}}){
+    if($tag_l3 =~ "utr"){
+      if (exists_keys ($omniscient, ('level2', $tag_l3, $l2_id) ) ){          
+          my @sorted_utr = sort {$a->start <=> $b->start} @{$omniscient->{'level3'}{$tag_l3}{$l2_id}};
+          if ($sorted_utr[0]->start > $cds_end)
+            return \@sorted_utr;
+        }
+      }
+    }
+  }
+  return undef;
+}
+
+sub _get_left_utrs{
+  my ($hash_omniscient, $l2_feature, $cds_start) = @_;
+
+  my $l2_id = lc($l2_feature->_tag_value('ID'));
+
+  foreach my $tag_l3 (keys %{$omniscient->{'level3'}}){
+    if($tag_l3 =~ "utr"){
+      if (exists_keys ($omniscient, ('level2', $tag_l3, $l2_id) ) ){          
+          my @sorted_utr = sort {$a->start <=> $b->start} @{$omniscient->{'level3'}{$tag_l3}{$l2_id}};
+          if ($sorted_utr[$#sorted_utr]->end < $cds_start)
+            return \@sorted_utr;
+        }
+      }
+    }
+  }
+  return undef;
 }
 
 __END__

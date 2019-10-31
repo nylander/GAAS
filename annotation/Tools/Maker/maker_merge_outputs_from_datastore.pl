@@ -1,11 +1,12 @@
 #!/usr/bin/env perl
 
 use strict;
-use File::Copy;
 use warnings;
+use File::Copy;
 use Scalar::Util qw(openhandle);
 use Time::Piece;
 use Time::Seconds;
+use Try::Tiny;
 use Cwd;
 use Pod::Usage;
 use URI::Escape;
@@ -25,15 +26,14 @@ my $header = qq{
 ########################################################
 };
 
-my %file_hds;
-my $out = undef;
+my $output = undef;
 my $in = undef;
 my $help= 0;
 
 if ( !GetOptions(
     "help|h" => \$help,
     "i=s" => \$in,
-    "output|out|o=s" => \$out))
+    "output|out|o=s" => \$output))
 
 {
     pod2usage( { -message => 'Failed to parse command line',
@@ -79,15 +79,6 @@ else{
 	}
 } 
 
-# STANDARD
-my $default_out_dir_name = "maker_output_processed";
-my $outfile = "genome";
-
-# MANAGE OUT
-if(! $out){
-	$out = $default_out_dir_name;
-}
-
 # MESSAGES
 my $nbDir=$#inDir+1; 
 if ($nbDir == 0){die "There seems to be no maker output directory here, exiting...\n";}            
@@ -95,8 +86,10 @@ print "We found $nbDir maker output directorie(s):\n";
 foreach my $makerDir (@inDir){
 		print "\t+$makerDir\n";
 }	
-if ($nbDir > 1 ){print "Results will be merged together !\n";}
 
+#CONSTANT
+my $maker_annotation_prefix = "maker_annotation";
+my $maker_mix_prefix = "maker_mix";
 
                 #####################
                 #     MAIN          #
@@ -105,90 +98,133 @@ if ($nbDir > 1 ){print "Results will be merged together !\n";}
 #############################
 # Read the genome_datastore #
 #############################
-if (-d "$out") {
-	print "The output directory <$out> already exists, we skip the merge step.\n";
-} 
-else{
-	print "Creating the $out folder\n";
-	mkdir $out;
+foreach my $makerDir (@inDir){
+	print "\nDealing with $makerDir:\n";
+	my %file_hds;
+	my $genomeName = $makerDir;
+	$genomeName =~ s/\.maker\.output.*//;
+	my $maker_dir_path = $dir . "/" . $makerDir."/";
+	my $datastore = $maker_dir_path.$genomeName."_datastore" ;
 
-	foreach my $makerDir (@inDir){
-		my $prefix = $makerDir;
-		$prefix =~ s/\.maker\.output.*//;
-		my $maker_dir_path = $dir . "/" . $makerDir."/";
-		my $datastore = $maker_dir_path.$prefix."_datastore" ;
-
-		if (-d $datastore ) {
-	        	print "Found datastore in $makerDir, merging annotations now...\n";
-		} else {
-		        die "Could not find datastore index ($datastore), exiting...\n";
-		}
-
-		if ( grep -f, glob '$out/*.fasta' ) {
-			print "Output fasta file already exists. We skip the fasta gathering step.\n";
-		}
-		elsif ( grep -f, glob '$out/*.gff' ) {
-			print "Output gff file already exists. We skip the gff gathering step.\n";
+# --------------- check presence datastore ----------------------
+	if (-d $datastore ) {
+        	print "Datastore folder found in $makerDir, merging annotations now...\n";
+	} else {
+	        die "Could not find datastore index ($datastore), exiting...\n";
+	}
+# --------------- check output folder ----------------------
+	
+	my $outfolder = undef;
+	if ($output){
+		if ($nbDir == 1){
+			$outfolder = $output;
 		}
 		else{
-			collect_recursive($datastore);
+			$outfolder = $output."_$genomeName";
+		}
+	}
+	else{ $outfolder = "maker_output_processed_$genomeName";}
+	if (-d "$outfolder") {
+		print "The output directory <$outfolder> already exists, let's see if something is missing inside.\n";
+	} 
+	else{
+		print "Creating the $outfolder folder\n";
+		mkdir $outfolder;
+	}
 
-			#Close all file_handler opened
-			foreach my $key (keys %file_hds){
-				close $file_hds{$key};
+# --------------- GATHERING gff and fasta ----------------------
+	if ( ( grep -f, glob "$outfolder/*.fasta") or ( grep -f, glob "$outfolder/*.gff") ){
+		print "Output fasta/gff file already exists. We skip the gathering step.\n";
+	}
+	else{
+		print "Now collecting gff and fasta files...\n";
+		collect_recursive(\%file_hds, $datastore, $outfolder, $genomeName);
+
+		#Close all file_handler opened that are not gff (gff files created by awk)
+		foreach my $key (keys %file_hds){
+			close $file_hds{$key};
+		}
+		#add ##gff-version 3 header to all gff files
+		opendir(DIR, $outfolder);
+		my @gff_files = grep(/\.gff$/,readdir(DIR));
+		closedir(DIR);
+
+		foreach my $gff_file (@gff_files) {
+		    if($^O =~ "linux"){
+		   		system "sed -i '1s/^/##gff-version 3\\\n/' $outfolder/$gff_file";
+		    }
+			else{
+		   		system "sed -i '' '1s/^/##gff-version 3\\\n/' $outfolder/$gff_file"; # Mac syntax
 			}
 		}
 	}
-}
 
-print "Now save a copy of the Maker option files ...\n";
-if (-f "$out/maker_opts.ctl") {
-	print "A copy of the Maker files already exists in $out/maker_opts.ctl.  We skip it.\n";
-}
-else{
-	if(! $in){
-		copy("maker_opts.ctl","$out/maker_opts.ctl") or print "Copy failed: $! \n";
-		copy("maker_exe.ctl","$out/maker_exe.ctl") or print "Copy failed: $! \n";
-		copy("maker_evm.ctl","$out/maker_evm.ctl") or print "Copy failed: $! \n";
-		copy("maker_bopts.ctl","$out/maker_bopts.ctl") or print "Copy failed: $! \n";
+exit;
+	#-------------------------------------------------Save maker option files-------------------------------------------------
+	print "Now save a copy of the Maker option files ...\n";
+	if (-f "$outfolder/maker_opts.ctl") {
+		print "A copy of the Maker files already exists in $outfolder/maker_opts.ctl.  We skip it.\n";
 	}
 	else{
-		my ($name,$path,$suffix) = fileparse($in);
-		copy("$path/maker_opts.ctl","$out/maker_opts.ctl") or print  "Copy failed: $!";
-		copy("$path/maker_exe.ctl","$out/maker_exe.ctl") or print "Copy failed: $!";
-		copy("$path/maker_evm.ctl","$out/maker_evm.ctl") or print "Copy failed: $!";
-		copy("$path/maker_bopts.ctl","$out/maker_bopts.ctl") or print "Copy failed: $!";
+		if(! $in){
+			copy("maker_opts.ctl","$outfolder/maker_opts.ctl") or print "Copy failed: $! $outfolder/maker_opts.ctl\n";
+			copy("maker_exe.ctl","$outfolder/maker_exe.ctl") or print "Copy failed: $! $outfolder/maker_exe.ctl\n";
+			copy("maker_evm.ctl","$outfolder/maker_evm.ctl") or print "Copy failed: $! $outfolder/maker_evm.ctl\n";
+			copy("maker_bopts.ctl","$outfolder/maker_bopts.ctl") or print "Copy failed: $! $outfolder/maker_bopts.ctl\n";
+		}
+		else{
+			my ($name,$path,$suffix) = fileparse($in);
+			copy("$path/maker_opts.ctl","$outfolder/maker_opts.ctl") or print  "Copy failed: $! $outfolder/maker_opts.ctl\n";
+			copy("$path/maker_exe.ctl","$outfolder/maker_exe.ctl") or print "Copy failed: $! $outfolder/maker_exe.ctl\n";
+			copy("$path/maker_evm.ctl","$outfolder/maker_evm.ctl") or print "Copy failed: $! $outfolder/maker_evm.ctl\n";
+			copy("$path/maker_bopts.ctl","$outfolder/maker_bopts.ctl") or print "Copy failed: $! $outfolder/maker_bopts.ctl\n";
+		}
 	}
+
+
+	############################################
+	# Now manage to split file by kind of data # Split is done on the fly (no data saved in memory)
+	############################################
+	print "Now protecting the maker_annotation.gff annotation by making it readable only...\n";
+	#make the annotation safe
+	my $annotation="$outfolder/maker_annotation.gff";
+	if (-f $annotation) {		
+		system "chmod 444 $annotation";
+	}
+	else{
+		print "ERROR: Do not find the $annotation file !\n";
+	}
+
+
+	#do statistics
+	my $annotation_stat="$outfolder/maker_annotation_stat.txt";
+	if (-f $annotation_stat) {	
+		print "$annotation_stat file already exsits...\n";
+	}
+	else{
+		print "Now performing the statistics of the annotation file $annotation...\n";
+		my $full_path = can_run('gff3_sp_statistics.pl') or print "Cannot launch statistics. gff3_sp_statistics.pl script not available\n";
+		if ($full_path) {	
+		        system "gff3_sp_statistics.pl --gff $annotation -o $annotation_stat > $outfolder/maker_annotation_parsing.log";
+		}
+	}
+	print "All done!\n";
 }
 
-
-############################################
-# Now manage to split file by kind of data # Split is done on the fly (no data saved in memory)
-############################################
-
-#make the annotation safe
-my $annotation="$out/maker.gff";
-if (-f $annotation) {
-	print "Protecting the maker.gff annotation by making it readable only\n";
-	system "chmod 444 $annotation";
-}
-else{
-	print "ERROR: Do not find the $annotation file !\n";
-}
-
-
-#do statistics
-my $full_path = can_run('gff3_sp_statistics.pl') or print "Cannot launch statistics. gff3_sp_statistics.pl script not available\n";
-if ($full_path) {
-        print "Performing the statistics of the maker.gff annotation file\n";
-	my $annotation_stat="$out/maker_stat.txt";
-        system "gff3_sp_statistics.pl --gff $annotation -o $annotation_stat";
-}
-
-print "All done!\n";
+#######################################################################################################################
+        ####################
+         #     methods    #
+          ################
+           ##############
+            ############
+             ##########
+              ########
+               ######
+                ####
+                 ##
 
 sub collect_recursive {
-    my ($full_path) = @_;
+    my ($file_hds, $full_path, $out, $genomeName) = @_;
 	
 	my ($name,$path,$suffix) = fileparse($full_path,qr/\.[^.]*/);
 
@@ -212,17 +248,22 @@ sub collect_recursive {
     			$type = "noncoding";
     		}
     		if($key){
-    			my $source = 'maker';
-	    		$source .= ".$key" if($key ne 'maker');
-	    		
-				my $prot_out_file_name = "$outfile.all.$source.$type.fasta";
+    			my $prot_out_file_name=undef;
+    			if ($key eq 'maker'){ # protein or transcript correspinding to the maker annotation 
+					$prot_out_file_name = "$maker_annotation_prefix.$type.fasta";
+    			}
+    			else{
+    				my $source = "maker.$key";
+    				$prot_out_file_name = "$genomeName.all.$source.$type.fasta";
+    			}
+
 				my $protein_out_fh=undef;
-				if( _exists_keys (\%file_hds,($prot_out_file_name)) ){
-					$protein_out_fh = $file_hds{$prot_out_file_name};
+				if( _exists_keys ($file_hds,($prot_out_file_name)) ){
+					$protein_out_fh = $file_hds->{$prot_out_file_name};
 				}
 				else{
 					open($protein_out_fh, '>', "$out/$prot_out_file_name") or die "Could not open file '$out/$prot_out_file_name' $!";
-					$file_hds{$prot_out_file_name}=$protein_out_fh;
+					$file_hds->{$prot_out_file_name}=$protein_out_fh;
 				}
 				 	
 	    		#print
@@ -237,7 +278,8 @@ sub collect_recursive {
     	################
  		#deal with gff #
     	if($suffix eq ".gff"){
-			system "awk '{if(\$2 ~ /[a-zA-Z]+/) { gsub(/:/, \"_\" ,\$2); print \$0 >> \"$out/\"\$2\".gff\"}}' $full_path";
+    		system "awk -F '	' 'NF==9 {print \$0 >> \"$out/$maker_mix_prefix.gff\"}' $full_path";
+			system "awk '{if(\$2 ~ /[a-zA-Z]+/) if(\$2==\"maker\") { print \$0 >> \"$out/$maker_annotation_prefix.gff\" } else { gsub(/:/, \"_\" ,\$2); print \$0 >> \"$out/\"\$2\".gff\" } }' $full_path";
     	}
     	
     	return;
@@ -249,7 +291,7 @@ sub collect_recursive {
     while (my $sub = readdir $dh) {
         next if $sub eq '.' or $sub eq '..';
  
-        collect_recursive("$full_path/$sub");
+        collect_recursive($file_hds, "$full_path/$sub", $out, $genomeName);
     }
     close $dh;
     return;
@@ -274,15 +316,12 @@ __END__
 
 =head1 NAME
 
-maker_merge_outputs.pl -
-Usage:
-	Must be executed in the folder from which Maker was run and will find the maker output
-	on its own and create a concatenated annotation file. 
+maker_merge_outputs_from datastore.pl - The script will look over the datastore folder and subfolders to gather all outputs.
 
 =head1 SYNOPSIS
 
-    ./maker_merge_outputs.pl 
-    ./maker_merge_outputs.pl --help
+    ./maker_merge_outputs_from.pl 
+    ./maker_merge_outputs_from.pl --help
 
 =head1 OPTIONS
 
