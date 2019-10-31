@@ -247,9 +247,16 @@ sub clean_string{
   if($OFS eq "_"){$replaceBy = "-";}
 
       if($string =~ m/\Q$OFS/){
-        print "The header has been modified !! Indeed, the string <$string> contains the Output Field Separator (OFS) <$OFS>, so we replace it by <$replaceBy>.".
-        " If you want to keep the string/header intact, please chose another OFS using the option --ofs\n" if ! $quiet;
-        eval "\$string =~ tr/\Q$OFS\E/\Q$replaceBy\E/";
+        if ($OFS eq " "){
+            print "The string <$string> contains spaces while is is used as Output Field Separator (OFS) to create fasta header, so we have quoted it (\"string\").\n".
+            "If you want to keep the string/header intact, please chose another OFS using the option --ofs\n" if ! $quiet;
+            $string="\"".$string."\"";
+        }
+        else{
+          print "The fasta header has been modified !! Indeed, the string <$string> contains the Output Field Separator (OFS) <$OFS> used to build the header, so we replace it by <$replaceBy>.".
+          "If you want to keep the string/header intact, please chose another OFS using the option --ofs\n" if ! $quiet;
+          eval "\$string =~ tr/\Q$OFS\E/\Q$replaceBy\E/";
+        }
       }
   return $string
 }
