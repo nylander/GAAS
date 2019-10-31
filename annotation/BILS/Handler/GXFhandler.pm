@@ -836,12 +836,12 @@ sub _it_is_duplication{
 	else{push (@list_feature, $potentialList);} # it's a feature
 
 	#### PREPARE THE SENTENCE TO CHECK
-	my $current_string=_create_string($uniqID, $feature);
+	my $current_string=_create_comparison_string($uniqID, $feature);
 
 	#Check all the level2 list element
 	foreach my $feature_in_omniscient ( @list_feature ){
 
-		my $string=_create_string($uniqID, $feature_in_omniscient);
+		my $string=_create_comparison_string($uniqID, $feature_in_omniscient);
 		if($current_string eq $string){
 			$is_dupli=1;
 			push (@{$duplicate->{$level}{$primary_tag}{$id}}, $feature);
@@ -888,22 +888,45 @@ sub get_level{
 	}
 }
 
-#create string that should be uniq by feature
-sub _create_string{
+# create string that should be uniq by feature
+# will be used to detect duplicated features
+sub _create_comparison_string{
 	my ($uniqID, $feature)=@_;
 
 	my $string=$feature->seq_id().$feature->primary_tag().$feature->start().$feature->end();
+  my $primary_tag = lc($feature->primary_tag);
 
-	my $primary_tag = lc($feature->primary_tag);
-	if ( exists($LEVEL1->{$primary_tag}) ){
-		$string .= $uniqID->{$feature->_tag_value('ID')}; # compare with original ID
+  # get the ID
+	my $ID=undef;
+	if(exists_keys($uniqID,($feature->_tag_value('ID')))){
+		$ID = $uniqID->{$feature->_tag_value('ID')};
 	}
+	else{
+		$ID = $feature->_tag_value('ID')
+	}
+
+  # If we are checking a level1 feature no need to go further
+	if ( exists($LEVEL1->{$primary_tag}) ){
+		$string .= $ID; # compare with original ID
+    return $string;
+	}
+
+  # If we are not checking a level1 feature, let's take the parent info too
+  my $Parent=undef;
+
+  if(exists_keys($uniqID,($feature->_tag_value('Parent')))){
+    $Parent = $uniqID->{$feature->_tag_value('Parent')};
+  }
+  else{
+    $Parent = $feature->_tag_value('Parent')
+  }
+
 	if ( exists($LEVEL2->{$primary_tag}) ){
-		$string .= $uniqID->{$feature->_tag_value('ID')}; # compare with original ID
-		$string .= $uniqID->{$feature->_tag_value('Parent')}; # compare with original Parent
+		$string .= $ID; # compare with original ID
+		$string .= $Parent; # compare with original Parent
 	}
 	if ( exists($LEVEL3->{$primary_tag}) ){
-		$string .= $uniqID->{$feature->_tag_value('Parent')}; # compare with original Parent
+		$string .= $Parent; # compare with original Parent
 	}
 
 	return $string;
@@ -1084,7 +1107,7 @@ sub _check_l2_linked_to_l3{
 	my ($hash_omniscient, $mRNAGeneLink, $miscCount, $uniqID, $uniqIDtoType, $verbose)=@_;
 	my $resume_case=undef;
 
- 	foreach my $tag_l3 (keys %{$hash_omniscient->{'level3'}}){
+ 	foreach my $tag_l3 (sort {$a cmp $b} keys %{$hash_omniscient->{'level3'}}){
 
  	  	foreach my $id_l2 (keys %{$hash_omniscient->{'level3'}{$tag_l3}}){
 
@@ -1157,8 +1180,9 @@ sub _check_l2_linked_to_l3{
 				if (! exists($mRNAGeneLink->{ $id_l2 }) ) { # it was not previous case (L3 linked directly to L1)
 
 	 	  		    #start fill L2
-	 	  			my $l2_feature=clone($hash_omniscient->{'level3'}{$tag_l3}{$id_l2}[0]);#create a copy of the first mRNA feature;
-					my $new_ID = $l2_feature->_tag_value('Parent');
+	 	  		my $l2_feature=clone($hash_omniscient->{'level3'}{$tag_l3}{$id_l2}[0]);#create a copy of the first mRNA feature;
+          $l2_feature->frame(".") if ($l2_feature->frame ne "."); # If we clone a CDS there will be a frame information to remove.
+          my $new_ID = $l2_feature->_tag_value('Parent');
 					create_or_replace_tag($l2_feature,'ID', $new_ID); #modify ID to replace by parent value
 					my $primary_tag_l2;
 					if( exists_keys($hash_omniscient,('level3', 'cds', $id_l2)) ) {
@@ -1172,6 +1196,7 @@ sub _check_l2_linked_to_l3{
 
 				   #fill L1
 					my $l1_feature=clone($hash_omniscient->{'level3'}{$tag_l3}{$id_l2}[0]);#create a copy of the first mRNA feature;
+          $l1_feature->frame(".") if ($l1_feature->frame ne "."); # If we clone a CDS there will be a frame information to remove.
 					$l1_feature->remove_tag('Parent'); # remove parent ID because, none.
 
 					#Deal case where we reconstruct other thing than a gene
@@ -2246,7 +2271,6 @@ sub _merge_overlap_features{
 							}
 							check_level1_positions($omniscient, $omniscient->{'level1'}{$tag_l1}{$id_l1}, 0);
 						}
-
 					}
 				}
 	 		}
@@ -2600,7 +2624,7 @@ sub select_gff_format{
     my ($file) = @_;
 
     #HANDLE format
-    my $format=3;
+    my %format;
     my $problem3=undef;
     my $nbLineChecked=100; #number line to use to check the formnat
     my $cpt=0;
@@ -2613,38 +2637,51 @@ sub select_gff_format{
 
             $cpt++;
             if($cpt > $nbLineChecked){
-                    _printSurrounded("Doesn't look like a GFF file\nLet's see what the Bioperl parser can do with that...",100,"!");
                     last;
             }
             if($_ =~ /^.*\t.*\t.*\t.*\t.*\t.*\t.*\t.*\t(.*)/){
                 if(length($1) < 1){next;}
 
-                my $string = $1;
-                if($string =~ /=/  and $string =~ /;/ ){ last; };
+                my $Ninethcolum = $1;
+                if($Ninethcolum =~ /=/  and $Ninethcolum =~ /;/ ){ $format{3}++;};
 
-                if($string !~ /=/  and $string !~ /;/ ){
-                        $format=1;
-                        #_printSurrounded("Problem detected wihtin the 9th colum of the gff file\nYou cannot have space between attributes and between tag and values.\nAll your attributes will be gathered within the GROUP tag",100,"!");
-                        last;
+                if($Ninethcolum !~ /=/  and $Ninethcolum !~ /;/ ){
+                         $format{1}++;
                 }
-                elsif($string !~ /=/  and $string =~ /;/ ){
-                                $format=2;
-                                last;
+                elsif($Ninethcolum !~ /=/  and $Ninethcolum =~ /;/ ){
+                                 $format{2}++;
                 }
-                my $c = () = $string =~ /=/g;
-                my $d = () = $string =~ /\ /g;
-                if($c > 1 and $d > 1  and $string !~ /;/ ){
+                my $c = () = $Ninethcolum =~ /=/g;
+                my $d = () = $Ninethcolum =~ /\ /g;
+                if($c > 1 and $d > 1  and $Ninethcolum !~ /;/ ){
                        $problem3=1;
                 }
      	   }
         }
     }
     close($fh);
-    if($problem3){
-        _printSurrounded("Thre is a problem with your GFF format.\nThis format is wrong: tag=value tag=value.\nYou should have: tag=value;tag=value or tag value ; tag value\nThe best parser we can use will keep only the first attribute.",100,"!");
-    	$format=1;
+
+	if($problem3){
+        _printSurrounded("There is a problem with your GFF format.\nThis format is wrong: tag=value tag=value.\nYou should have: tag=value;tag=value or tag value ; tag value\nThe best parser (gff1) we can use will keep only the first attribute.",100,"!");
+    	$format{1}++;
     }
-    return $format;
+
+   if (%format){
+	    my $number_of_format = scalar keys %format;
+	    if ($number_of_format > 1){
+	    	print ("There is a problem we found several formats in this file:");
+	    	my $var = join ",", keys %format;
+	    	print "$var\n";
+	    	print "Let's see what we can do...\n";
+		}
+	}
+	else{
+		_printSurrounded("Doesn't look like a GFF file\nLet's see what the Bioperl parser can do with that...(using gff3 parser)",100,"!");
+		$format{3}++;
+	}
+	if($format{3}){return 3;}
+	if($format{2}){return 2;}
+  if($format{3}){return 1;}
 }
 
 # We modify the attributes: group=gene_id "e_gw1.5.2.1" protein_id 335805 exonNumber 1
@@ -2652,6 +2689,7 @@ sub select_gff_format{
 sub _gff1_corrector{
 	my ($feat)=@_;
 
+	#print "_gff1_corrector ".$feat->gff_string."\n";# if ($verbose >=2);
 	if($feat->has_tag('group')){
 		my @attribs = $feat->get_tag_values('group');
 		my $attribs = join ' ', @attribs;
@@ -2684,7 +2722,7 @@ sub _gff1_corrector{
 	        $previousChar = $a;
 	    }
 
-	    if($string != ""){ if($previousChar eq " "){chop $string;} push @parsed, $string;}
+	    if($string ne ""){ if($previousChar eq " "){chop $string;} push @parsed, $string;}
 	    while (@parsed){
 	    	my $value = pop @parsed;
 	    	my $tag = pop @parsed;
