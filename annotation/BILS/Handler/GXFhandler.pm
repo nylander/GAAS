@@ -836,12 +836,12 @@ sub _it_is_duplication{
 	else{push (@list_feature, $potentialList);} # it's a feature
 
 	#### PREPARE THE SENTENCE TO CHECK
-	my $current_string=_create_string($uniqID, $feature);
+	my $current_string=_create_comparison_string($uniqID, $feature);
 
 	#Check all the level2 list element
 	foreach my $feature_in_omniscient ( @list_feature ){
 
-		my $string=_create_string($uniqID, $feature_in_omniscient);
+		my $string=_create_comparison_string($uniqID, $feature_in_omniscient);
 		if($current_string eq $string){
 			$is_dupli=1;
 			push (@{$duplicate->{$level}{$primary_tag}{$id}}, $feature);
@@ -888,12 +888,15 @@ sub get_level{
 	}
 }
 
-#create string that should be uniq by feature
-sub _create_string{
+# create string that should be uniq by feature
+# will be used to detect duplicated features
+sub _create_comparison_string{
 	my ($uniqID, $feature)=@_;
 
 	my $string=$feature->seq_id().$feature->primary_tag().$feature->start().$feature->end();
+  my $primary_tag = lc($feature->primary_tag);
 
+  # get the ID
 	my $ID=undef;
 	if(exists_keys($uniqID,($feature->_tag_value('ID')))){
 		$ID = $uniqID->{$feature->_tag_value('ID')};
@@ -901,19 +904,23 @@ sub _create_string{
 	else{
 		$ID = $feature->_tag_value('ID')
 	}
-	my $Parent=undef;
-	if(exists_keys($uniqID,($feature->_tag_value('Parent')))){
-		$ID = $uniqID->{$feature->_tag_value('Parent')};
-	}
-	else{
-		$Parent = $feature->_tag_value('Parent')
-	}
 
-	my $primary_tag = lc($feature->primary_tag);
-
+  # If we are checking a level1 feature no need to go further
 	if ( exists($LEVEL1->{$primary_tag}) ){
 		$string .= $ID; # compare with original ID
+    return $string;
 	}
+
+  # If we are not checking a level1 feature, let's take the parent info too
+  my $Parent=undef;
+
+  if(exists_keys($uniqID,($feature->_tag_value('Parent')))){
+    $Parent = $uniqID->{$feature->_tag_value('Parent')};
+  }
+  else{
+    $Parent = $feature->_tag_value('Parent')
+  }
+
 	if ( exists($LEVEL2->{$primary_tag}) ){
 		$string .= $ID; # compare with original ID
 		$string .= $Parent; # compare with original Parent
@@ -1100,7 +1107,7 @@ sub _check_l2_linked_to_l3{
 	my ($hash_omniscient, $mRNAGeneLink, $miscCount, $uniqID, $uniqIDtoType, $verbose)=@_;
 	my $resume_case=undef;
 
- 	foreach my $tag_l3 (keys %{$hash_omniscient->{'level3'}}){
+ 	foreach my $tag_l3 (sort {$a cmp $b} keys %{$hash_omniscient->{'level3'}}){
 
  	  	foreach my $id_l2 (keys %{$hash_omniscient->{'level3'}{$tag_l3}}){
 
@@ -1173,8 +1180,9 @@ sub _check_l2_linked_to_l3{
 				if (! exists($mRNAGeneLink->{ $id_l2 }) ) { # it was not previous case (L3 linked directly to L1)
 
 	 	  		    #start fill L2
-	 	  			my $l2_feature=clone($hash_omniscient->{'level3'}{$tag_l3}{$id_l2}[0]);#create a copy of the first mRNA feature;
-					my $new_ID = $l2_feature->_tag_value('Parent');
+	 	  		my $l2_feature=clone($hash_omniscient->{'level3'}{$tag_l3}{$id_l2}[0]);#create a copy of the first mRNA feature;
+          $l2_feature->frame(".") if ($l2_feature->frame ne "."); # If we clone a CDS there will be a frame information to remove.
+          my $new_ID = $l2_feature->_tag_value('Parent');
 					create_or_replace_tag($l2_feature,'ID', $new_ID); #modify ID to replace by parent value
 					my $primary_tag_l2;
 					if( exists_keys($hash_omniscient,('level3', 'cds', $id_l2)) ) {
@@ -1188,6 +1196,7 @@ sub _check_l2_linked_to_l3{
 
 				   #fill L1
 					my $l1_feature=clone($hash_omniscient->{'level3'}{$tag_l3}{$id_l2}[0]);#create a copy of the first mRNA feature;
+          $l1_feature->frame(".") if ($l1_feature->frame ne "."); # If we clone a CDS there will be a frame information to remove.
 					$l1_feature->remove_tag('Parent'); # remove parent ID because, none.
 
 					#Deal case where we reconstruct other thing than a gene
@@ -2262,7 +2271,6 @@ sub _merge_overlap_features{
 							}
 							check_level1_positions($omniscient, $omniscient->{'level1'}{$tag_l1}{$id_l1}, 0);
 						}
-
 					}
 				}
 	 		}
