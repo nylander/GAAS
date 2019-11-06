@@ -7,6 +7,7 @@ It's often hard to understand and differentiate all GFF/GTF formats/flavors. Her
 # Table of Contents
 
    * [Forewords](#forewords)
+   * [Introduction](#introduction)
    * [GFF](#gff)
       * [GFF0 (before 13-11-1997)](#gff0)
       * [GFF1 (13-11-1997)](#gff1)
@@ -31,16 +32,16 @@ It's often hard to understand and differentiate all GFF/GTF formats/flavors. Her
         * [Difference between GENCODE and Ensembl GTF](#difference-between-gencode-and-ensembl-gtf)
       
 # Forewords  
-⇨	When I use the term gff it includes all gff formats/flavors. (The first version of the format was not called gff1 but gff. But to make it easier I will always express the version of the format saying gff1 when it's the first version of it. So from now when I say gff it means all gff formats/flavors).  
+⇨	When I use the term gff it includes all gff formats/flavors. (The first version of the format was not called gff1 but gff. But to make it easier I will always specify the version of the format saying gff1 when I talk about the first version of it).  
 ⇨	I the same way, when I use the term gtf it includes all gtf formats/flavors.  
 ⇨	I have created the term **gxf** that means all the gff and gtf formats/flavors.
 
-The GFF Protocol Specification was initially proposed by **Richard Durbin** and **David Haussler**.
-The format has been originaly developed to help the gene prediction (or gene finding) world. Indeed the gene prediction methods are based on two main steps, **first** finding signals (starts, splice sites, stops, motifs, etc.) and regions (exons, introns, protein domains etc.); **secondly** combining these to give complete gene, RNA transcript or protein structures. These two steps were usually performed within the same program. In order to decoupled them they have created the format called GFF (**Gene-Finding Format**) allowing the transfer of feature information from a tool to another one.
+# Introduction  
 
-The GFF fomat has been developed to be easy to parse and process by a variety of programs in different languages (e.g Unix tools as grep and sort, perl, awk, etc). For these reasons, they decided that each feature is described on a single line, and line order is not relevant.
+**GFF (Gene-Finding Format)** is a general-purpose genome annotation format. It was conceived during a 1997 meeting on computational genefinding at the Isaac Newton Institute, Cambridge, UK and developed in collaboration between the Sanger Centre, the University of California at Santa Cruz and other participants (_Holmes I: Studies in Probabilistic Sequence Alignment and Evolution. PhD thesis University of Cambridge 1998._). The key players have been **Richard Durbin** and **David Haussler**.  
 
-A GFF record is an extension of a basic (name,start,end) tuple (or "NSE") that can be used to identify a substring of a biological sequence. 
+**GFF** is a one-line-per-record format that can be used to identify a substring of a biological sequence. It is an extension of a basic (name,start,end) tuple (or "NSE"). It was originally designed as a common format for sharing information between **gene-finding sensors** (finding signals:starts, splice sites, stops, motifs; finding regions: exons, introns, protein domains etc.), and **gene predictors** (predicting gene, RNA transcript or protein structures). These two steps were usually performed within the same program but thanks to the GFF format they can be decoupled allowing the transfer of feature information from a tool to another one.  
+But its uses go beyond gene-finding purpose and is used as a convenient way of representing a set of many kinds of feature. The GFF fomat has been developed to be easy to parse and process by a variety of programs in different languages (e.g Unix tools as grep and sort, perl, awk, etc). For these reasons, they decided that each feature is described on a single line, and line order is not relevant.
 
 # GFF
 
