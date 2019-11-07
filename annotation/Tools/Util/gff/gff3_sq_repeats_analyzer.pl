@@ -10,7 +10,7 @@ use Bio::SeqIO;
 use Bio::Tools::GFF;
 my $header = qq{
 ########################################################
-# BILS 2019 - Sweden                                   #  
+# NBIS 2019 - Sweden                                   #  
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################

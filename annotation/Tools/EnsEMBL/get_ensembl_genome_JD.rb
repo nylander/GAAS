@@ -14,7 +14,7 @@ require 'net/ftp'
 species = ARGV.shift
 version = ARGV.shift
 pathVersion=""
-bils_path="/projects/references/genomes"
+nbis_path="/projects/references/genomes"
 
 abort "You should really remember to provide a species_name and optionaly a release!" if species.nil?
 
@@ -137,11 +137,11 @@ end
 
 releaseName=String($ftp.pwd).split('/')[2]
 pathToWrite=""
-if File.directory?(bils_path)
-	pathToWrite="#{bils_path}/#{species}/EnsEMBL/#{releaseName}";
+if File.directory?(nbis_path)
+	pathToWrite="#{nbis_path}/#{species}/EnsEMBL/#{releaseName}";
 
 else
-	puts "apparently we are not on the bils annotation cluster"
+	puts "apparently we are not on the nbis annotation cluster"
         pathToWrite="#{species}_#{releaseName}"
 end
 

@@ -12,13 +12,13 @@ use Data::Dumper;
 use Pod::Usage;
 use List::MoreUtils qw(uniq);
 use Bio::Tools::GFF;
-use BILS::Handler::GFF3handler qw(:Ok);
-use BILS::Handler::GXFhandler qw(:Ok);
+use NBIS::Handler::GFF3handler qw(:Ok);
+use NBIS::Handler::GXFhandler qw(:Ok);
 
 
 my $usage = qq{
 ########################################################
-# BILS 2017 - Sweden                                   #  
+# NBIS 2017 - Sweden                                   #  
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################

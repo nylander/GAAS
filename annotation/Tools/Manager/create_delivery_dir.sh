@@ -36,7 +36,7 @@ else
 	mkdir -p "$dirname/fasta/transcript"
 	
 	#write Readme
-	echo -e "* BILS Genome Annotation Platform team *" >> $dirname/ReadMe.txt
+	echo -e "* NBIS Genome Annotation Platform team *" >> $dirname/ReadMe.txt
 	mydate=$(date)
 	echo -e "$mydate\nPlease find here an overview about data available.\n" >> $dirname/ReadMe.txt
 	echo -e "<Species_Annotation_Report.docx> file => A complete report of work/process performed." >> $dirname/ReadMe.txt

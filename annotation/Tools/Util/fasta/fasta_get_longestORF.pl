@@ -4,7 +4,7 @@ use Carp;
 use strict;
 use POSIX qw(strftime);
 use Getopt::Long;
-use BILS::FASTA::Longest_orf;
+use NBIS::FASTA::Longest_orf;
 use Pod::Usage;
 use Bio::Seq;
 use Bio::SeqIO;
@@ -13,9 +13,9 @@ my $start_run = time();
 
 my $header = qq{
 ########################################################
-# BILS 2017 - Sweden                                   #  
-# jacques.dainat\@bils.se                               #
-# Please cite BILS (www.bils.se) when using this tool. #
+# NBIS 2017 - Sweden                                   #  
+# jacques.dainat\@nbis.se                               #
+# Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 };
 

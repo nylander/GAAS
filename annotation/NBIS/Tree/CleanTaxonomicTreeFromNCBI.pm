@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-package BILS::Tree::CleanTaxonomicTreeFromNCBI;
+package NBIS::Tree::CleanTaxonomicTreeFromNCBI;
 
 use Data::Dumper;
 
@@ -18,7 +18,7 @@ our @EXPORT_OK = qw/ some_other /;
 =head1 DESCRIPTION
 
 	A library to clean the taxonomic tree coming from NCBI. Indeed there is several ancestor in some unitary internal branches
-	Inherits from BILS::Tree
+	Inherits from NBIS::Tree
 	
 =cut	
 

@@ -3,7 +3,7 @@
 ###################################################
 # Jacques Dainat 01/2016                          #  
 # Bioinformatics Infrastructure for Life Sciences #
-# jacques.dainat@bils.se                          #
+# jacques.dainat@nbis.se                          #
 ###################################################
 
 use Carp;
@@ -13,8 +13,8 @@ use Pod::Usage;
 use Getopt::Long;
 use IO::File ;
 use Bio::Tools::GFF;
-use BILS::Handler::GFF3handler qw(:Ok);
-use BILS::Handler::GXFhandler qw(:Ok);
+use NBIS::Handler::GFF3handler qw(:Ok);
+use NBIS::Handler::GXFhandler qw(:Ok);
 
 my $start_run = time();
 

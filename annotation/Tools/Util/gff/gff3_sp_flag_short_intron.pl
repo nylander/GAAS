@@ -8,10 +8,10 @@ use Carp;
 use Getopt::Long;
 use IO::File;
 use Pod::Usage;
-use BILS::Handler::GXFhandler qw(:Ok);
-use BILS::Handler::GFF3handler qw(:Ok);
+use NBIS::Handler::GXFhandler qw(:Ok);
+use NBIS::Handler::GFF3handler qw(:Ok);
 use Bio::Tools::GFF;
-use BILS::GFF3::Statistics qw(:Ok);
+use NBIS::GFF3::Statistics qw(:Ok);
 
 my $header = qq{
 ########################################################

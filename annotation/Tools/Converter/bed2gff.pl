@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
-## BILS 2015
-## jacques.dainat@bils.se
+## NBIS 2015
+## jacques.dainat@nbis.se
 # BED format described here: https://genome.ucsc.edu/FAQ/FAQformat.html#format1
 
 use strict;
@@ -12,9 +12,9 @@ use Data::Dumper;
 
 my $usage = qq{
 ########################################################
-# BILS 2015 - Sweden                                   #
-# jacques.dainat\@bils.se                               #
-# Please cite BILS (www.bils.se) when using this tool. #
+# NBIS 2015 - Sweden                                   #
+# jacques.dainat\@nbis.se                               #
+# Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 /!\\Only first 6 column inplemented... if your bed file contains more columns and you need their information... you need to finish the implementation };
 

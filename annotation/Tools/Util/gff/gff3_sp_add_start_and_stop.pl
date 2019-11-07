@@ -10,8 +10,8 @@ use Pod::Usage;
 use Bio::DB::FASTA;
 use Bio::Tools::CodonTable;
 use Clone 'clone';
-use BILS::Handler::GXFhandler qw(:Ok);
-use BILS::Handler::GFF3handler qw(:Ok);
+use NBIS::Handler::GXFhandler qw(:Ok);
+use NBIS::Handler::GFF3handler qw(:Ok);
 
 my $header = qq{
 ########################################################

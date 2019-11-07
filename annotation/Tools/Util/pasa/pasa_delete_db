@@ -5,7 +5,7 @@
 DB=$1
 
 DB_HOST=bdb
-DB_USER=bils_pasa_admin
+DB_USER=nbis_pasa_admin
 DB_PW=swetrUT2
 
 

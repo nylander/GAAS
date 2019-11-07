@@ -7,17 +7,17 @@ use Pod::Usage;
 use Getopt::Long;
 use IO::File ;
 use Bio::Tools::GFF;
-use BILS::Handler::GFF3handler qw(:Ok);
-use BILS::Handler::GXFhandler qw(:Ok);
+use NBIS::Handler::GFF3handler qw(:Ok);
+use NBIS::Handler::GXFhandler qw(:Ok);
 
 my $start_run = time();
 
 
 my $header = qq{
 ########################################################
-# BILS 2015 - Sweden                                   #  
-# jacques.dainat\@bils.se                               #
-# Please cite BILS (www.bils.se) when using this tool. #
+# NBIS 2015 - Sweden                                   #  
+# jacques.dainat\@nbis.se                               #
+# Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 };
 my $inputFile;

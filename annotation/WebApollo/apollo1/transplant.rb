@@ -37,7 +37,7 @@ opts.parse!
 
 home = ENV['HOME']
 
-SERVER = "bils-web.imbim.uu.se"
+SERVER = "nbis-web.imbim.uu.se"
 USER = "root"
 LOCAL_PROJECT = "/big/webapollo/projects/#{options.species}"
 LOCAL_DATA = "/big/data/#{options.species}"

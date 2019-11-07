@@ -15,13 +15,13 @@ use Time::Piece;
 use Time::Seconds;
 use Data::Dumper;
 use URI::Escape;
-use BILS::Handler::GFF3handler qw(:Ok);
-use BILS::Handler::GXFhandler qw(:Ok);
+use NBIS::Handler::GFF3handler qw(:Ok);
+use NBIS::Handler::GXFhandler qw(:Ok);
 
 my $header = qq{
 ########################################################
-# BILS 2015 - Sweden                                   #  
-# Please cite BILS (www.bils.se) when using this tool. #
+# NBIS 2015 - Sweden                                   #  
+# Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 };
 

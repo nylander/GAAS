@@ -10,9 +10,9 @@ use IO::File;
 use Pod::Usage;
 use List::MoreUtils qw(uniq);
 use Clone 'clone';
-use BILS::Handler::GFF3handler qw(:Ok);
-use BILS::Handler::GXFhandler qw(:Ok);
-use BILS::Plot::R qw(:Ok);
+use NBIS::Handler::GFF3handler qw(:Ok);
+use NBIS::Handler::GXFhandler qw(:Ok);
+use NBIS::Plot::R qw(:Ok);
 
 #####
 # What we call parial gene (containing "_partial_part-" in the ID) ?
@@ -28,7 +28,7 @@ my $usage = qq{
 ########################################################
 # NBIS 2018 - Sweden                                   #  
 # jacques.dainat\@nbis.se                               #
-# Please cite BILS (www.nbis.se) when using this tool. #
+# Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 };
 

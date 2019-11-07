@@ -13,9 +13,9 @@ use List::MoreUtils qw(uniq);
 use Bio::Tools::GFF;
 use Bio::DB::Fasta;
 use Bio::SeqIO;
-use BILS::Handler::GFF3handler qw(:Ok);
-use BILS::Handler::GXFhandler qw(:Ok);
-use BILS::Plot::R qw(:Ok);
+use NBIS::Handler::GFF3handler qw(:Ok);
+use NBIS::Handler::GXFhandler qw(:Ok);
+use NBIS::Plot::R qw(:Ok);
 
 my $start_run = time();
 my $startP=time;

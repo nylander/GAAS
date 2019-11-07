@@ -1,13 +1,13 @@
 #!/usr/bin/perl -w
 
-package BILS::GFF3::Statistics ;
+package NBIS::GFF3::Statistics ;
 
 use strict;
 use warnings;
 use Data::Dumper;
 use Bio::SeqIO;
 use Clone 'clone';
-use BILS::Handler::GFF3handler qw(:Ok);
+use NBIS::Handler::GFF3handler qw(:Ok);
 use Exporter qw(import);
 
 our $VERSION     = 1.00;

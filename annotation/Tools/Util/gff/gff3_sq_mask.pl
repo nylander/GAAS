@@ -2,7 +2,7 @@
 
 ####
 # Jacques Dainat 2015/03
-# jacques.dainat@bils.se
+# jacques.dainat@nbis.se
 ####
 use strict;
 use Pod::Usage;

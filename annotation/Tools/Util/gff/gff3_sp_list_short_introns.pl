@@ -8,16 +8,16 @@ use Carp;
 use Getopt::Long;
 use Pod::Usage;
 use Clone 'clone';
-use BILS::Handler::GXFhandler qw(:Ok);
-use BILS::Handler::GFF3handler qw(:Ok);
+use NBIS::Handler::GXFhandler qw(:Ok);
+use NBIS::Handler::GFF3handler qw(:Ok);
 use Bio::Tools::GFF;
-use BILS::GFF3::Statistics qw(:Ok);
+use NBIS::GFF3::Statistics qw(:Ok);
 
 my $header = qq{
 ########################################################
 # NBIS 2018 - Sweden                                   #  
 # jacques.dainat\@nbis.se                               #
-# Please cite BILS (www.nbis.se) when using this tool. #
+# Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 };
 

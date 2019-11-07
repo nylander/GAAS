@@ -8,13 +8,13 @@ use IO::File;
 use Data::Dumper;
 use List::MoreUtils qw(uniq);
 use Bio::Tools::GFF;
-use BILS::Handler::GFF3handler qw(:Ok);
-use BILS::Handler::GXFhandler qw(:Ok);
-use BILS::GFF3::Statistics qw(:Ok);
+use NBIS::Handler::GFF3handler qw(:Ok);
+use NBIS::Handler::GXFhandler qw(:Ok);
+use NBIS::GFF3::Statistics qw(:Ok);
 
 my $header = qq{
 ########################################################
-# BILS 2019 - Sweden                                   #
+# NBIS 2019 - Sweden                                   #
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################

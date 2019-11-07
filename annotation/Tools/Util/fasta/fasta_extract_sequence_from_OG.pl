@@ -25,7 +25,7 @@ my $path;
 
 my $header = qq{
 ########################################################
-# BILS 2018 - Sweden                                   #
+# NBIS 2018 - Sweden                                   #
 # lucile.soler\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################

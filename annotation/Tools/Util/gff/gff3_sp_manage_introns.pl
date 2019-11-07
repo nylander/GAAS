@@ -10,18 +10,18 @@ use IO::File;
 use Pod::Usage;
 use Data::Dumper;
 use Statistics::R;
-use BILS::CheckModule qw(:Ok);
-use BILS::Plot::R qw(:Ok);
-use BILS::Handler::GXFhandler qw(:Ok);
-use BILS::Handler::GFF3handler qw(:Ok);
+use NBIS::CheckModule qw(:Ok);
+use NBIS::Plot::R qw(:Ok);
+use NBIS::Handler::GXFhandler qw(:Ok);
+use NBIS::Handler::GFF3handler qw(:Ok);
 use Bio::Tools::GFF;
-use BILS::GFF3::Statistics qw(:Ok);
+use NBIS::GFF3::Statistics qw(:Ok);
 
 my $header = qq{
 ########################################################
-# BILS 2016 - Sweden                                   #  
-# jacques.dainat\@bils.se                               #
-# Please cite BILS (www.bils.se) when using this tool. #
+# NBIS 2016 - Sweden                                   #  
+# jacques.dainat\@nbis.se                               #
+# Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 };
 

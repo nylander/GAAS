@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-package BILS::Handler::GXFhandler ;
+package NBIS::Handler::GXFhandler ;
 
 use strict;
 use warnings;
@@ -11,7 +11,7 @@ use Try::Tiny;
 use LWP::UserAgent;
 use Bio::OntologyIO::obo;
 use Clone 'clone';
-use BILS::Handler::GFF3handler qw(:Ok);
+use NBIS::Handler::GFF3handler qw(:Ok);
 use Bio::Tools::GFF;
 use Exporter qw(import);
 
@@ -2873,9 +2873,9 @@ sub _handle_ontology{
 	if($internalO){ #No URI provided for the feature-ontology(file case), or doesn't exist (hash / table case) let's use the interal one
 
 		try{
-			my $full_path = `perldoc -lm BILS::Handler::GXFhandler`;
-			my $index = index($full_path, "BILS/");
-			$index+=5; #To not shrinck BILS/ part of the path
+			my $full_path = `perldoc -lm NBIS::Handler::GXFhandler`;
+			my $index = index($full_path, "NBIS/");
+			$index+=5; #To not shrinck NBIS/ part of the path
 			my $path_begin =  substr $full_path, 0, $index;
 			my $correct_path = $path_begin."Ontology/SOFA";
 
@@ -2975,9 +2975,9 @@ sub _load_levels_from_json{
 	my ($verbose) = @_ ;
 
 	try{
-		my $full_path = `perldoc -lm BILS::Handler::GXFhandler`;
-		my $index = index($full_path, "BILS/Handler/");
-		$index+=13; #To not shrinck BILS/Handler/ part of the path
+		my $full_path = `perldoc -lm NBIS::Handler::GXFhandler`;
+		my $index = index($full_path, "NBIS/Handler/");
+		$index+=13; #To not shrinck NBIS/Handler/ part of the path
 		my $path_begin =  substr $full_path, 0, $index;
 
 		# --Deal with feature L1--

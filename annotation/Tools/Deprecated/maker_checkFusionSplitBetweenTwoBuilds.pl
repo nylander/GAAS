@@ -3,7 +3,7 @@
 ################################################
 # maker_checkFusionSplitBetweenTwoBuilds.pl v1 #
 # Jacques Dainat 10/2014                       #
-# Jacques.dainat@bils.se                       #
+# Jacques.dainat@nbis.se                       #
 ################################################
 
 use strict;

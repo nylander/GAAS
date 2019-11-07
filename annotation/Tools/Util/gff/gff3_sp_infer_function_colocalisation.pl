@@ -9,14 +9,14 @@ use Statistics::R;
 use Pod::Usage;
 use Bio::Tools::GFF;
 use List::MoreUtils qw(uniq);
-use BILS::Handler::GFF3handler qw(:Ok);
-use BILS::Handler::GXFhandler qw(:Ok);
+use NBIS::Handler::GFF3handler qw(:Ok);
+use NBIS::Handler::GXFhandler qw(:Ok);
 
 my $header = qq{
 ########################################################
-# BILS 2015 - Sweden                                   #  
-# jacques.dainat\@bils.se                               #
-# Please cite BILS (www.bils.se) when using this tool. #
+# NBIS 2015 - Sweden                                   #  
+# jacques.dainat\@nbis.se                               #
+# Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 };
 
@@ -111,10 +111,10 @@ $featureType=lc($featureType);
 #####################################
 
 ###########
-# DEFINE BILS PATTERN OF NAMES 
+# DEFINE NBIS PATTERN OF NAMES 
 ###########
-my $bils_suffix_p=qr/_([0-9]*(_iso[0-9]+)?$|iso[0-9]+$)/o;
-my $bils_suffix_d=qr/_partial_part.*/;
+my $nbis_suffix_p=qr/_([0-9]*(_iso[0-9]+)?$|iso[0-9]+$)/o;
+my $nbis_suffix_d=qr/_partial_part.*/;
 
                 #####################
                 #     MAIN          #
@@ -146,7 +146,7 @@ if(! $_dblr){
         my @tmp=$gene_feature->get_tag_values($tag);
         my $name=lc(shift @tmp);
         $hash_geneNameLab{$name}++; 
-        $name =~ s/$bils_suffix_p//; # We remove what has been added by BILS during gene name annotation
+        $name =~ s/$nbis_suffix_p//; # We remove what has been added by NBIS during gene name annotation
         $hash_geneName{$name}++; 
       }
     }
@@ -1032,7 +1032,7 @@ sub liftGeneName{
         ###########################
         # ADD ORTHOLOGY INFORMATION at gene level
         my $name_geneB=$geneB_feature->_tag_value('ID');
-        $name_geneB =~ s/$bils_suffix_d//;
+        $name_geneB =~ s/$nbis_suffix_d//;
         create_or_replace_tag($geneA_feature, 'orthology', $name_geneB);
       }
     }
@@ -1101,16 +1101,16 @@ sub check_feature_same_names{
         if($gene_cpt == 1){$typeCheck = 'As';} else {$typeCheck = 'Bs';}
       }
       ####
-      #  MANAGE IF Name on target comes from bils functional annotation. We have to remove _1 _2 etc (Not DEFAULT behavior)
-      if($_ablt and  $typeCheck eq "Bs") # We remove what has been added by BILS during gene name annotation
+      #  MANAGE IF Name on target comes from nbis functional annotation. We have to remove _1 _2 etc (Not DEFAULT behavior)
+      if($_ablt and  $typeCheck eq "Bs") # We remove what has been added by NBIS during gene name annotation
       {
-        $name_gene_feature =~ s/$bils_suffix_p//;
+        $name_gene_feature =~ s/$nbis_suffix_p//;
       }
       ####
-      #  MANAGE IF Name on reference comes from bils functional annotation. We have to remove _1 _2 etc (DEFAULT behavior)
-      if(! $_dblr and  $typeCheck eq "As") # We remove what has been added by BILS during gene name annotation
+      #  MANAGE IF Name on reference comes from nbis functional annotation. We have to remove _1 _2 etc (DEFAULT behavior)
+      if(! $_dblr and  $typeCheck eq "As") # We remove what has been added by NBIS during gene name annotation
       {
-        $name_gene_feature =~ s/$bils_suffix_p//;
+        $name_gene_feature =~ s/$nbis_suffix_p//;
       }
 
       if ($gene_cpt >= 2){
@@ -1174,13 +1174,13 @@ Exon features are considered. If there is no exon, cds will be used instead.
 
 =item B<--dblr>   
 
-Deactivate BILS Label Reference. By default to compare names from two files we remove a potential label _(0-9)* at the end of geme names in the reference file because they can have been added by BILS during the functional annotation process. 
+Deactivate NBIS Label Reference. By default to compare names from two files we remove a potential label _(0-9)* at the end of geme names in the reference file because they can have been added by NBIS during the functional annotation process. 
 If we lift a new name to the reference annotation, we first check that the name is already existing elsewhere in the annotation. If it exists, we also add the labbel according to the number of gene with that name.
 If you don't want to take in account the labbel, you can deactivate the behaviour by calling that otpion (--dbl).
 
 =item B<--ablt>   
 
-Activate BILS Label Target. By default we don't look for label in target file. Most of time has not been annotated by BILS. But in case where the target file is also annotated by BILS, 
+Activate NBIS Label Target. By default we don't look for label in target file. Most of time has not been annotated by NBIS. But in case where the target file is also annotated by NBIS, 
 it possible to take in account the possible label at the end of gene names by activating the option.
 
 =item B<--feature> 

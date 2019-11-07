@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl -w
 
-## BILS 2015
-## jacques.dainat@bils.se
+## NBIS 2015
+## jacques.dainat@nbis.se
 
 use strict;
 use Pod::Usage;
@@ -10,9 +10,9 @@ use Bio::SeqIO;
 
 my $header = qq{
 ########################################################
-# BILS 2015 - Sweden                                   #  
-# jacques.dainat\@bils.se                               #
-# Please cite BILS (www.bils.se) when using this tool. #
+# NBIS 2015 - Sweden                                   #  
+# jacques.dainat\@nbis.se                               #
+# Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 };
 

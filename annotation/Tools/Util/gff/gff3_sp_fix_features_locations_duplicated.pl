@@ -9,8 +9,8 @@ use Data::Dumper;
 use Pod::Usage;
 use File::Basename;
 use List::MoreUtils qw(uniq);
-use BILS::Handler::GXFhandler qw(:Ok);
-use BILS::Handler::GFF3handler qw(:Ok);
+use NBIS::Handler::GXFhandler qw(:Ok);
+use NBIS::Handler::GFF3handler qw(:Ok);
 
 my $usage = qq{
 ########################################################

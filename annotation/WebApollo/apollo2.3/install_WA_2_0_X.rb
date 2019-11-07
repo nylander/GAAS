@@ -15,7 +15,7 @@
 # == EXPERT OPTIONS
 #
 # == AUTHOR
-#   Jacques Dainat, jacques.dainat@bils.se
+#   Jacques Dainat, jacques.dainat@nbis.se
 
 require 'optparse'
 require 'ostruct'

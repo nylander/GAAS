@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
-## BILS 2015
-## jacques.dainat@bils.se
+## NBIS 2015
+## jacques.dainat@nbis.se
 
 use strict;
 use Pod::Usage;
@@ -10,15 +10,15 @@ use POSIX qw(strftime);
 use Bio::SeqIO;
 use Data::Dumper;
 use Bio::Tools::GFF;
-use BILS::Handler::GFF3handler qw(:Ok);
-use BILS::Handler::GXFhandler qw(:Ok);
+use NBIS::Handler::GFF3handler qw(:Ok);
+use NBIS::Handler::GXFhandler qw(:Ok);
 use Bio::DB::Fasta;
 
 my $usage = qq{
 ########################################################
-# BILS 2015 - Sweden                                   #  
-# jacques.dainat\@bils.se                               #
-# Please cite BILS (www.bils.se) when using this tool. #
+# NBIS 2015 - Sweden                                   #  
+# jacques.dainat\@nbis.se                               #
+# Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 
 Usage: perl my_script.pl --gff Infile [--out outfile]

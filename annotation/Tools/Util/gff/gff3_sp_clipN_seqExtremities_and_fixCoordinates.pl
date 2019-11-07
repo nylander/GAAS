@@ -8,8 +8,8 @@ use Bio::SeqIO ;
 use Bio::DB::Fasta;
 use Bio::Tools::GFF;
 use File::Basename;
-use BILS::Handler::GFF3handler qw(:Ok);
-use BILS::Handler::GXFhandler qw(:Ok);
+use NBIS::Handler::GFF3handler qw(:Ok);
+use NBIS::Handler::GXFhandler qw(:Ok);
 
 
 my $start_run = time();

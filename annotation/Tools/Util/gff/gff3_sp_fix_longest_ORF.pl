@@ -22,15 +22,15 @@ use Bio::Tools::GFF;
 use Bio::DB::Fasta;
 #use Bio::Seq;
 use Bio::SeqIO;
-use BILS::Handler::GFF3handler qw(:Ok);
-use BILS::Handler::GXFhandler qw(:Ok);
-use BILS::Plot::R qw(:Ok);
+use NBIS::Handler::GFF3handler qw(:Ok);
+use NBIS::Handler::GXFhandler qw(:Ok);
+use NBIS::Plot::R qw(:Ok);
 
 my $SIZE_OPT=21;
 
 my $header = qq{
 ########################################################
-# BILS 2019 - Sweden                                   #  
+# NBIS 2019 - Sweden                                   #  
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################

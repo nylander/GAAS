@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-package BILS::Handler::GFF3handler ;
+package NBIS::Handler::GFF3handler ;
 
 use strict;
 use warnings;

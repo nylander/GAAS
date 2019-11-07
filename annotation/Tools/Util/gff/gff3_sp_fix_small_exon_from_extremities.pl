@@ -13,12 +13,12 @@ use Bio::Tools::GFF;
 use Bio::DB::Fasta;
 #use Bio::Seq;
 use Bio::SeqIO;
-use BILS::Handler::GFF3handler qw(:Ok);
-use BILS::Handler::GXFhandler qw(:Ok);
+use NBIS::Handler::GFF3handler qw(:Ok);
+use NBIS::Handler::GXFhandler qw(:Ok);
 
 my $header = qq{
 ########################################################
-# BILS 2018 - Sweden                                   #  
+# NBIS 2018 - Sweden                                   #  
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################

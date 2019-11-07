@@ -10,7 +10,7 @@ To know more about gff3 format it's over there => https://github.com/The-Sequenc
 
 Once you cloned the git repositpry you have to configure your installation as explained below:
 
-## 1) Most of scripts use the BILS librairy which is located here: GAAS/annotation/BILS
+## 1) Most of scripts use the NBIS librairy which is located here: GAAS/annotation/NBIS
 Consequently, in order to use those scripts, you must add the library location to your path like that:
 
 	export PERL5LIB=$PERL5LIB:/pathTo/GAAS/annotation
