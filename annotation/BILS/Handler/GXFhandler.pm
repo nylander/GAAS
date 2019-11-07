@@ -4,7 +4,6 @@ package BILS::Handler::GXFhandler ;
 
 use strict;
 use warnings;
-use Data::Dumper;
 use File::Basename;
 use JSON;
 use Sort::Naturally;
@@ -13,14 +12,15 @@ use LWP::UserAgent;
 use Bio::OntologyIO::obo;
 use Clone 'clone';
 use BILS::Handler::GFF3handler qw(:Ok);
-use Exporter qw(import);
 use Bio::Tools::GFF;
+use Exporter qw(import);
 
 our $VERSION     = 1.00;
 our @ISA         = qw(Exporter);
 our @EXPORT_OK   = qw(get_level select_gff_format check_mrna_positions modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop slurp_gff3_file_JD _check_all_level1_positions _check_all_level2_positions);
 our %EXPORT_TAGS = ( DEFAULT => [qw()],
                  	 Ok    => [qw(get_level select_gff_format check_mrna_positions modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop slurp_gff3_file_JD _check_all_level1_positions _check_all_level2_positions)]);
+
 =head1 SYNOPSIS
 
 
@@ -390,7 +390,7 @@ sub manage_one_feature{
 #	+--------------------------------------------------------+
 	    if( get_level($feature) eq 'level1' ) {
 
-	    	##########
+	    ##########
 			# get ID #
 			#my $had_ID=undef;
 	    	#if($feature->has_tag('ID')){$had_ID;}
@@ -2681,7 +2681,7 @@ sub select_gff_format{
 	}
 	if($format{3}){return 3;}
 	if($format{2}){return 2;}
-  if($format{3}){return 1;}
+  if($format{1}){return 1;}
 }
 
 # We modify the attributes: group=gene_id "e_gw1.5.2.1" protein_id 335805 exonNumber 1
