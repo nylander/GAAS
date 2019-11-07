@@ -1,11 +1,5 @@
 #!/usr/bin/env perl
 
-###################################################
-# Jacques Dainat 01/2016                          #  
-# Bioinformatics Infrastructure for Life Sciences #
-# jacques.dainat@bils.se                          #
-###################################################
-
 use Carp;
 use strict;
 use warnings;
@@ -17,6 +11,13 @@ use BILS::Handler::GFF3handler qw(:Ok);
 use BILS::Handler::GXFhandler qw(:Ok);
 
 my $start_run = time();
+my $header = qq{
+########################################################
+# BILS 2018 - Sweden                                   #
+# jacques.dainat\@nbis.se                               #
+# Please cite NBIS (www.nbis.se) when using this tool. #
+########################################################
+};
 
 my $inputFile=undef;
 my $outfile=undef;
@@ -42,12 +43,13 @@ if ( !GetOptions ('file|input|gff=s' => \$inputFile,
 
 if ($opt_help) {
     pod2usage( { -verbose => 2,
-                 -exitval => 0 } );
+                 -exitval => 2,
+                 -message => "$header\n" } );
 }
 
 if ((!defined($inputFile)) ){
-   pod2usage( { -message => 'at least 1 parameter is mandatory: -i',
-                 -verbose => 1,
+   pod2usage( { -message => "$header\nAt least 1 parameter is mandatory: -i",
+                 -verbose => 0,
                  -exitval => 1 } );
 }
 
@@ -68,7 +70,7 @@ if ($outfile) {
   $outfile=~ s/.gff//g;
   open(my $fh, '>', $outfile.".gff") or die "Could not open file '$outfile' $!";
   $gffout= Bio::Tools::GFF->new(-fh => $fh, -gff_version => $outformat );
-  
+
 }
 else{
   $gffout = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => $outformat );
@@ -151,7 +153,7 @@ sub  manage_attributes{
     my $level = get_level($feature);
     my $primary_tag=$feature->primary_tag;
     my $id=$feature->_tag_value($tag_in);
-       
+
     # check primary tag (feature type) to handle
     foreach my $ptag (@$ptagList){
       if($ptag eq "all"){
@@ -173,7 +175,7 @@ __END__
 =head1 NAME
 
 gff3_add_locus_tag.pl -
-add a locus tag based on the ID of the a feature (by defaul gene feature). 
+add a locus tag based on the ID of the a feature (by defaul gene feature).
 
 =head1 SYNOPSIS
 
@@ -190,9 +192,9 @@ STRING: Input gff file that will be read.
 
 =item B<-p>,  B<--type> or  B<-l>
 
-primary tag option, case insensitive, list. Allow to specied the feature types that will be handled. 
+primary tag option, case insensitive, list. Allow to specied the feature types that will be handled.
 You can specified a specific feature by given its primary tag name (column 3) as: cds, Gene, MrNa
-You can specify directly all the feature of a particular level: 
+You can specify directly all the feature of a particular level:
       level2=mRNA,ncRNA,tRNA,etc
       level3=CDS,exon,UTR,etc
 By default all feature are taking in account. fill the option by the value "all" will have the same behaviour.
@@ -205,11 +207,11 @@ Locus tag output, by defaut it will be called locus_tag, but using this option y
 
 Tag input, by default the value of the attribute ID is used to fill the locus tag output, but you can chose whichever you want with this option.
 
-=item B<--of> 
+=item B<--of>
 
 Output format, if no ouput format is given, the same as the input one detected will be used. Otherwise you can force to have a gff version 1 or 2 or 3 by giving the corresponding number.
 
-=item B<-o> or B<--output> 
+=item B<-o> or B<--output>
 
 STRING: Output file.  If no output file is specified, the output will be written to STDOUT. The result is in tabulate format.
 

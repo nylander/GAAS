@@ -1,18 +1,19 @@
 #!/usr/bin/env perl
 
-my $header = qq{
-########################################################
-# BILS 2015 - Sweden                                   #  
-########################################################
-};
-
-
 use strict;
 use Pod::Usage;
 use Getopt::Long;
 use BILS::Handler::GXFhandler qw(:Ok);
 use BILS::Handler::GFF3handler qw(:Ok);
 use Bio::Tools::GFF;
+
+my $header = qq{
+########################################################
+# BILS 2018 - Sweden                                   #
+# jacques.dainat\@nbis.se                               #
+# Please cite NBIS (www.nbis.se) when using this tool. #
+########################################################
+};
 
 my $start_run = time();
 my $opt_gfffile;
@@ -25,6 +26,7 @@ my $opt_version_input = undef;
 my $opt_version_output = 3;
 
 # OPTION MANAGMENT
+my @copyARGV=@ARGV;
 if ( !GetOptions( 'g|gff=s'         => \$opt_gfffile,
                   'c|ct=s'          => \$opt_comonTag,
                   'v=i'             => \$opt_verbose,
@@ -41,12 +43,13 @@ if ( !GetOptions( 'g|gff=s'         => \$opt_gfffile,
 
 if ($opt_help) {
     pod2usage( { -verbose => 2,
-                 -exitval => 2 } );
+                 -exitval => 2,
+                 -message => "$header\n" } );
 }
- 
+
 if (! defined($opt_gfffile) ){
     pod2usage( {
-           -message => "\nAt least 1 parameter is mandatory:\nInput reference gff file (-g).\n\n".
+           -message => "$header\nAt least 1 parameter is mandatory:\nInput reference gff file (-g).\n\n".
            "Ouptut is optional. Look at the help documentation to know more.\n",
            -verbose => 0,
            -exitval => 1 } );
@@ -95,6 +98,7 @@ print_omniscient($hash_omniscient, $gffout); #print gene modified
 
 my $end_run = time();
 my $run_time = $end_run - $start_run;
+print "usage: $0 @copyARGV\n";
 print "Job done in $run_time seconds\n";
 
 
@@ -126,16 +130,16 @@ The result is written to the specified output file, or to STDOUT.
 
 Input GFF3 file that will be read (and sorted)
 
-=item B<-c> or B<--ct> 
+=item B<-c> or B<--ct>
 
 When the gff file provided is not correcly formated and features are linked to each other by a comon tag (by default locus_tag), this tag can be provided to parse the file correctly.
 
-=item B<-k> or B<--kingdom> 
+=item B<-k> or B<--kingdom>
 
 Default eukaryote. You can set it to prokaryote (p/prok/proka/prokaryote). In eukaryote mode, when features overlap at level3 and come from two different level 2 features of the same type, they will be merged under the same level 1 feature. In prokaryote case they don't because genes can overlap.
 
 
-=item B<-v> 
+=item B<-v>
 
 Verbose option to see the warning messages when parsing the gff file.
 
