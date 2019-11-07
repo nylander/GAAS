@@ -1,10 +1,10 @@
 #!/usr/bin/env perl
 
 use strict;
+use warnings;
 use Pod::Usage;
 use Getopt::Long;
-use NBIS::Handler::GXFhandler qw(:Ok);
-use NBIS::Handler::GFF3handler qw(:Ok);
+use NBIS::GFF3::Omniscient;
 use Bio::Tools::GFF;
 
 my $header = qq{
