@@ -8,18 +8,15 @@ use Carp;
 use Getopt::Long;
 use IO::File;
 use Pod::Usage;
-use Data::Dumper;
 use Statistics::R;
+use Bio::Tools::GFF;
 use NBIS::CheckModule qw(:Ok);
 use NBIS::Plot::R qw(:Ok);
-use NBIS::Handler::GXFhandler qw(:Ok);
-use NBIS::Handler::GFF3handler qw(:Ok);
-use Bio::Tools::GFF;
-use NBIS::GFF3::Statistics qw(:Ok);
+use NBIS::GFF3::Omniscient;
 
 my $header = qq{
 ########################################################
-# NBIS 2016 - Sweden                                   #  
+# NBIS 2016 - Sweden                                   #
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
@@ -100,7 +97,7 @@ if (defined($opt_output) ) {
   if (-f $opt_output){
       print "Cannot create a directory with the name $opt_output because a file with this name already exists.\n";exit();
   }
- $outputPDF_prefix=$opt_output."/intronPlot_";   
+ $outputPDF_prefix=$opt_output."/intronPlot_";
 }
 else{
   $outputPDF_prefix="intronPlot_";
@@ -121,7 +118,7 @@ else {
 }
 
 # #####################################
-# # END Manage OPTION  
+# # END Manage OPTION
 # #####################################
 
 
@@ -211,17 +208,17 @@ foreach my $file (@opt_files){
           my $counterL3=-1;
           #Initialize intron to 0 to avoid error during printing results
           my $indexLast = $#{$hash_omniscient->{'level3'}{$tag_l3}{$id_l2}};
-          
+
           my @sortedList = sort {$a->start <=> $b->start} @{$hash_omniscient->{'level3'}{$tag_l3}{$id_l2}};
-          
+
             foreach my $feature_l3 ( @sortedList ){
 
               #count number feature of tag_l3 type
               $counterL3++;
 
               ################
-              #Manage Introns# 
-              # from the second intron to the last (from index 1 to last index of the table sortedList) 
+              #Manage Introns#
+              # from the second intron to the last (from index 1 to last index of the table sortedList)
               # We go inside this loop only if we have more than 1 feature.
               if($counterL3 > 0 and $counterL3 <= $indexLast){
                 my $intronSize = $sortedList[$counterL3]->start - $sortedList[$counterL3-1]->end;
@@ -244,7 +241,7 @@ foreach  my $tag (keys %introns){
   my @sorted_intron = (sort { $a <=> $b } @{$introns{$tag}});
   #########################
   # Write value in tmp files
-   
+
   # Manage Output
   my $ostreamAED   = IO::File->new();
   $ostreamAED->open( $pathIntron, 'w' ) or
@@ -292,7 +289,7 @@ foreach  my $tag (keys %introns){
 
   #R command
   $R->run(qq`
-        
+
         listValues1=as.matrix(read.table("$pathIntron", sep="\t", he=F))
         pdf("$outputPDF")
         hist1<-hist(listValues1,breaks=$breaks_ok,main="$title", xlab="$xlab")
@@ -310,7 +307,7 @@ foreach  my $tag (keys %introns){
 # remove temporary files
 unlink $pathIntron;
 
-      ######################### 
+      #########################
       ######### END ###########
       #########################
 
@@ -333,14 +330,14 @@ __END__
 
 
 =head1 NAME
- 
-gff3_sp_manage_introns.pl - This script give some information about introns (longest, shortest size mean ...) using the statistic method, 
+
+gff3_sp_manage_introns.pl - This script give some information about introns (longest, shortest size mean ...) using the statistic method,
 then plot all the intron size values to get an overview of the introns size distribution.
 It gives you as well the value of the longest intron after removing X percent(s) of the longest (removing potential biais / false positive).
 
 =head1 SYNOPSIS
 
-    ./gff3_sp_manage_introns.pl --gff=infile --out=outFile 
+    ./gff3_sp_manage_introns.pl --gff=infile --out=outFile
     ./gff3_sp_manage_introns.pl --help
 
 =head1 OPTIONS

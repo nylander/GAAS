@@ -1,20 +1,19 @@
 #!/usr/bin/env perl
 
 ###################################################
-# Jacques Dainat 01/2016                          #  
+# Jacques Dainat 01/2016                          #
 # Bioinformatics Infrastructure for Life Sciences #
 # jacques.dainat@nbis.se                          #
 ###################################################
 
-use Carp;
 use strict;
 use warnings;
+use Carp;
 use Pod::Usage;
 use Getopt::Long;
 use IO::File ;
 use Bio::Tools::GFF;
-use NBIS::Handler::GFF3handler qw(:Ok);
-use NBIS::Handler::GXFhandler qw(:Ok);
+use NBIS::GFF3::Omniscient qw(select_gff_format create_or_replace_tag);
 
 my $start_run = time();
 
@@ -61,7 +60,7 @@ if ($outfile) {
   $outfile=~ s/.gff//g;
   open(my $fh, '>', $outfile.".gff") or die "Could not open file '$outfile' $!";
   $gffout= Bio::Tools::GFF->new(-fh => $fh, -gff_version => $outformat );
-  
+
 }
 else{
   $gffout = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => $outformat);
@@ -136,11 +135,11 @@ change IDs to give uniq one. This script is sequential, it means it will works g
 
 STRING: Input gff(1 or 2 or 3) or gtf file that will be read.
 
-=item B<--of> 
+=item B<--of>
 
 Output format, if no ouput format is given, the same as the input one detected will be used. Otherwise you can force to have a gff version 1 or 2 or 3 by giving the corresponding number.
 
-=item B<-o> or B<--output> 
+=item B<-o> or B<--output>
 
 STRING: Output file.  If no output file is specified, the output will be written to STDOUT. The result is in tabulate format.
 

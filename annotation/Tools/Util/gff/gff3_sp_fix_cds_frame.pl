@@ -1,5 +1,12 @@
 #!/usr/bin/env perl
 
+use strict;
+use warnings;
+use Pod::Usage;
+use Getopt::Long;
+use NBIS::GFF3::Omniscient;
+use Bio::Tools::GFF;
+
 my $header = qq{
 ########################################################
 # NBIS 2015 - Sweden                                   #
@@ -7,14 +14,6 @@ my $header = qq{
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 };
-
-
-use strict;
-use Pod::Usage;
-use Getopt::Long;
-use NBIS::Handler::GXFhandler qw(:Ok);
-use NBIS::Handler::GFF3handler qw(:Ok);
-use Bio::Tools::GFF;
 
 my $start_run = time();
 my $opt_gfffile;
@@ -86,7 +85,7 @@ __END__
 =head1 NAME
 
 gff3_fix_cds_frame.pl -
-This script will fix the cds phases. 
+This script will fix the cds phases.
 The result is written to the specified output file, or to STDOUT.
 
 =head1 SYNOPSIS

@@ -1,26 +1,19 @@
 #!/usr/bin/env perl
 
-###
-# Original develloped by Marc Hoeppner
-# Modified by Jacques Dainat
-# 2015/03
-###
-
-use Carp;
 use strict;
+use warnings;
+use Carp;
 use Pod::Usage;
 use Getopt::Long;
 use Scalar::Util qw(openhandle);
 use Time::Piece;
 use Time::Seconds;
-use Data::Dumper;
 use URI::Escape;
-use NBIS::Handler::GFF3handler qw(:Ok);
-use NBIS::Handler::GXFhandler qw(:Ok);
+use NBIS::GFF3::Omniscient;
 
 my $header = qq{
 ########################################################
-# NBIS 2015 - Sweden                                   #  
+# NBIS 2015 - Sweden                                   #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 };
@@ -47,7 +40,7 @@ if ($help) {
                  -exitval => 2,
                  -message => "$header\n" } );
 }
- 
+
 if ( ! (defined($gff)) or !(defined($blast)) ){
     pod2usage( {
            -message => "$header\nAt least 2 parameter is mandatory:\nInput reference gff file (--gff) and Input blast file (--blast)\n\n",
@@ -85,9 +78,9 @@ print ("$gff file parsed\n");
 remove_omniscient_elements_from_level2_ID_list ($hash_omniscient, $killlist);
 
 # Write the remaining things to output
-print_omniscient($hash_omniscient, $out); #print gene modified in file 
+print_omniscient($hash_omniscient, $out); #print gene modified in file
 
-      ######################### 
+      #########################
       ######### END ###########
       #########################
 #######################################################################################################################
@@ -193,10 +186,11 @@ sub parse_blast
 
 
 =head1 NAME
- 
+
 gff_filter_by_mrnaBlastValue.pl
-ancient name gff_filter_by_mrna_id.pl
-The script aims to remove from a gff file all the mRNA that have a similarity over THRESHOLD with another mRNA. This is typically useful when creating a list of MRNA to use to train abinitio gene finder. 
+ancient name gff_filter_by_mrna_id.pl gff_filter_by_mrnaBlastValue.pl
+The script aims to remove from a gff file all the sequence that have a similarity over THRESHOLD with another sequence (will keep only one).
+This is typically useful when creating a list of mRNA to use to train abinitio gene finder.
 A reciprocal blast of the sequences need to have been performed prior to the use of this script in order to get the blastp input file.
 
 =head1 SYNOPSIS
@@ -212,7 +206,7 @@ A reciprocal blast of the sequences need to have been performed prior to the use
 
 Input GFF3 file correponding to gene build.
 
-=item B<--blast> 
+=item B<--blast>
 
 The list of the all-vs-all blast file (outfmt 6, blastp)
 

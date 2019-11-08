@@ -1,27 +1,26 @@
 #!/usr/bin/env perl
 
 ###################################################
-# Jacques Dainat 01/2016                          #  
-# Bioinformatics Infrastructure for Life Sciences #
+# Jacques Dainat 01/2016                          #
+# National Bioinformatics Infrastructure Sweden   #
 # jacques.dainat@nbis.se                          #
 ###################################################
 
-use Carp;
+
 use strict;
 use warnings;
+use Carp;
 use Pod::Usage;
 use Getopt::Long;
 use IO::File ;
 use Bio::Tools::GFF;
-use NBIS::Handler::GFF3handler qw(:Ok);
-use NBIS::Handler::GXFhandler qw(:Ok);
 
 my $start_run = time();
 
 my $inputFile=undef;
 my $outfolder=undef;
 my $opt_help = 0;
-my $interval=1000;
+my $interval=10;
 my $feature_type="gene";
 
 Getopt::Long::Configure ('bundling');
@@ -53,7 +52,7 @@ my $ref_in = Bio::Tools::GFF->new(-file => $inputFile, -gff_version => 3);
 # Manage Output
 if (-d $outfolder) {
   print "The output directory <$outfolder> already exists.\n";exit;
-} 
+}
 else{
   print "Creating the $outfolder folder\n";
   mkdir $outfolder;
@@ -137,7 +136,7 @@ Integer.  Number of group of feature to include in each file. 1000 by default.
 =item B<--ft> or B<--feature_type>
 The top feature of the feature group. By default "gene".
 
-=item B<-o> or B<--output> 
+=item B<-o> or B<--output>
 
 STRING: Output file.  If no output file is specified, the output will be written to STDOUT. The result is in tabulate format.
 

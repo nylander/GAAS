@@ -1,14 +1,14 @@
 #!/usr/bin/env perl
 
 use strict;
+use warnings;
 use Getopt::Long;
 use Pod::Usage;
 use IO::File;
 use List::MoreUtils qw(uniq);
 use File::Basename;
 use Bio::Tools::GFF;
-use NBIS::Handler::GFF3handler qw(:Ok);
-use NBIS::Handler::GXFhandler qw(:Ok);
+use NBIS::GFF3::Omniscient;
 
 my $header = qq{
 ########################################################
@@ -84,7 +84,7 @@ my $nbLevel2 = keys %$hash_mRNAGeneLink;
 
 #Check if we have isoforms
 if($nbLevel1 != $nbLevel2){
-  
+
 
   #create list of level2 where we kept only level2 that have cds and only the longest isoform !
   my $list_id_l2 = get_longest_cds_level2($hash_omniscient);

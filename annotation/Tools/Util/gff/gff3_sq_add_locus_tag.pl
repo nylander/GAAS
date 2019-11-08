@@ -1,14 +1,13 @@
 #!/usr/bin/env perl
 
-use Carp;
 use strict;
 use warnings;
+use Carp;
 use Pod::Usage;
 use Getopt::Long;
 use IO::File ;
 use Bio::Tools::GFF;
-use NBIS::Handler::GFF3handler qw(:Ok);
-use NBIS::Handler::GXFhandler qw(:Ok);
+use NBIS::GFF3::Omniscient;
 
 my $start_run = time();
 my $header = qq{

@@ -1,20 +1,18 @@
 #!/usr/bin/env perl
 
-use Carp;
 use strict;
-use Data::Dumper;
+use warnings;
 use Getopt::Long;
 use File::Basename;
 use Statistics::R;
 use Pod::Usage;
 use Bio::Tools::GFF;
 use List::MoreUtils qw(uniq);
-use NBIS::Handler::GFF3handler qw(:Ok);
-use NBIS::Handler::GXFhandler qw(:Ok);
+use NBIS::GFF3::Omniscient;
 
 my $header = qq{
 ########################################################
-# NBIS 2015 - Sweden                                   #  
+# NBIS 2015 - Sweden                                   #
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
@@ -46,18 +44,18 @@ if ( !GetOptions(
     "outdir|out|o=s" => \$output))
 
 {
-    pod2usage( { -message => "$header"."Failed to parse command line.", 
+    pod2usage( { -message => "$header"."Failed to parse command line.",
                  -verbose => 1,
                  -exitval => 1} );
 }
 
 # Print Help and exit
 if ($help) {
-    pod2usage( { -message => "$header", 
+    pod2usage( { -message => "$header",
                  -verbose => 2,
                  -exitval => 2 } );
 }
- 
+
 if ( ! (defined($ref)) or  ! (defined($tar)) ){
     pod2usage( {
            -message => "$header\nAt least 2 parameters are mandatory.\n",
@@ -111,7 +109,7 @@ $featureType=lc($featureType);
 #####################################
 
 ###########
-# DEFINE NBIS PATTERN OF NAMES 
+# DEFINE NBIS PATTERN OF NAMES
 ###########
 my $nbis_suffix_p=qr/_([0-9]*(_iso[0-9]+)?$|iso[0-9]+$)/o;
 my $nbis_suffix_d=qr/_partial_part.*/;
@@ -135,7 +133,7 @@ if(! $_dblr){
   foreach my $tag_level1 (keys %{$refhash_omniscient->{'level1'}}){
     foreach my $geneID (keys %{$refhash_omniscient->{'level1'}{$tag_level1}} ) {
       my $gene_feature = $refhash_omniscient->{'level1'}{$tag_level1}{$geneID};
-      my $tag=undef; 
+      my $tag=undef;
       if($gene_feature->has_tag('Name')){
         $tag='Name';
       }
@@ -145,9 +143,9 @@ if(! $_dblr){
       if($tag){
         my @tmp=$gene_feature->get_tag_values($tag);
         my $name=lc(shift @tmp);
-        $hash_geneNameLab{$name}++; 
+        $hash_geneNameLab{$name}++;
         $name =~ s/$nbis_suffix_p//; # We remove what has been added by NBIS during gene name annotation
-        $hash_geneName{$name}++; 
+        $hash_geneName{$name}++;
       }
     }
   }
@@ -207,8 +205,8 @@ my $nbTotalClusterCaseA=0;
 my $nbTotalClusterCaseB=0;
 my %clusterCase;
 my %o_one2one;
-my %o_one2many; 
-my %o_many2one; 
+my %o_one2many;
+my %o_many2one;
 my %o_many2many;
 my %split_omniscient;
 my %fusion_omniscient;
@@ -220,9 +218,9 @@ foreach my $tag_level1 (keys %{$refhash_sortBySeq}) {
 
     ######
     # LOOP over all gene feature
-    # USE A COPY - use of of temporary variable to be sure to loop over all element.   
+    # USE A COPY - use of of temporary variable to be sure to loop over all element.
     my @copyContig = @{$refhash_sortBySeq->{$tag_level1}{$ContigName}}; #
-    foreach my $copyGene (@copyContig) { 
+    foreach my $copyGene (@copyContig) {
 
       my @copyGeneNameList=$copyGene->get_tag_values('ID');
       my $GeneName=lc(shift @copyGeneNameList);
@@ -239,24 +237,24 @@ foreach my $tag_level1 (keys %{$refhash_sortBySeq}) {
 
 
       if ($letStudyThatGene){
-        
+
         # Declare table which I will work with
         my @ListRefOverlapAtotest_list;my @ListOverlapAtested_list;my @ListNoOverlapA_list; my @ListOverlapAtestnoneed_list;
-        my @ListRefOverlapBtotest_list;my @ListOverlapBtested_list;my @ListNoOverlapB_list; my @ListOverlapBtestnoneed_list; 
+        my @ListRefOverlapBtotest_list;my @ListOverlapBtested_list;my @ListNoOverlapB_list; my @ListOverlapBtestnoneed_list;
 
-        my $ListBtotest=\@ListRefOverlapBtotest_list; my $ListOverlapAtested=\@ListOverlapAtested_list; my $ListNoOverlapA=\@ListNoOverlapA_list; 
+        my $ListBtotest=\@ListRefOverlapBtotest_list; my $ListOverlapAtested=\@ListOverlapAtested_list; my $ListNoOverlapA=\@ListNoOverlapA_list;
                                                                 my $ListOverlapBtested=\@ListOverlapBtested_list; my $ListNoOverlapB=\@ListNoOverlapB_list;
 
-        #### Initialize list of gene to test                                                  
+        #### Initialize list of gene to test
         my @LinkTocurrentGeneFeature;
         push (@LinkTocurrentGeneFeature, $copyGene);  #### >>>>>> BASE OF THE FEATURE TESTED FOR OVERLAP !!! CURRENTLY WE CHECK THE GENE FEATURE !
         my $ListAtotest=\@LinkTocurrentGeneFeature;
-        
+
 
         my $lap=0;
         while (@{$ListAtotest} != 0 or @{$ListBtotest} != 0 ){
             $lap++;
-            
+
             #########
             # TEST A side
             if (@{$ListAtotest} != 0){
@@ -264,11 +262,11 @@ foreach my $tag_level1 (keys %{$refhash_sortBySeq}) {
                 my ($ListToTestX, $ListOverlapTested, $ListNoOverlapTested) = retrieveAllOverlap( $lap, $ContigName,
                                                                               $refhash_sortBySeq, $tarhash_sortBySeq, $ListAtotest, $ListOverlapAtested, $ListNoOverlapA,1,
                                                                                $refhash_omniscient, $tarhash_omniscient, $featureType);
- 
+
                 $ListBtotest = $ListToTestX;
                 $ListOverlapAtested = $ListOverlapTested;
                 $ListNoOverlapA = $ListNoOverlapTested;
-                
+
                 # Reinitialisation empty
                 my @list_empty;
                 $ListAtotest = \@list_empty;
@@ -284,7 +282,7 @@ foreach my $tag_level1 (keys %{$refhash_sortBySeq}) {
                 #print "START TEST BBBBBBBBBBBBBBBB\n";
                 my ($ListToTestX, $ListOverlapTested, $ListNoOverlapTested) = retrieveAllOverlap( $lap, $ContigName,
                                                                                 $tarhash_sortBySeq, $refhash_sortBySeq, $ListBtotest, $ListOverlapBtested,$ListNoOverlapB,2,
-                                                                                 $tarhash_omniscient, $refhash_omniscient, $featureType);                        
+                                                                                 $tarhash_omniscient, $refhash_omniscient, $featureType);
                 $ListAtotest = $ListToTestX;
                 $ListOverlapBtested = $ListOverlapTested;
                 $ListNoOverlapB = $ListNoOverlapTested;
@@ -308,7 +306,7 @@ foreach my $tag_level1 (keys %{$refhash_sortBySeq}) {
         $OverlapingB+=$nbOverlpInB;
 
         my $nbFragment = $nbOverlpInA+$nbOverlpInB;
-       
+
     ##################################
     # Manage different cases         #
     ##################################
@@ -316,7 +314,7 @@ foreach my $tag_level1 (keys %{$refhash_sortBySeq}) {
         if ( $nbFragment < 2 ){
            #HEre can be printed => Single gene from file A and PerfectMatch from A or B depending to an iption like my $contigFusionA = "ok";  < /!\ >
         }
-        elsif ( $nbFragment == 2){ #case can be stretched 
+        elsif ( $nbFragment == 2){ #case can be stretched
           @{$o_one2one{$GeneName}} = (@OverlapInA,@OverlapInB);
         }
         else{ # $nbFragment > 2)
@@ -326,7 +324,7 @@ foreach my $tag_level1 (keys %{$refhash_sortBySeq}) {
           elsif(@OverlapInB == 1){
             @{ $o_many2one{$GeneName}} = ([@OverlapInA],@OverlapInB);
           }  # Split in the target Build
-          else{ # 
+          else{ #
 
            @{ $o_many2many{$GeneName}} = ([@OverlapInA],[@OverlapInB]);
             $nbTotalClusterCaseA=$nbTotalClusterCaseA+$nbOverlpInA;
@@ -373,7 +371,7 @@ foreach my $key (keys %o_one2many){
 
 #  print $geneA_feature->gff_string."\n";
 #  print $geneB[0]->gff_string."\n";
-#  print $geneB[1]->gff_string."\n\n";    
+#  print $geneB[1]->gff_string."\n\n";
 
   # prepare in case we have to save the feature
   my $geneA_name = lc($geneA_feature->_tag_value('ID'));
@@ -389,7 +387,7 @@ foreach my $key (keys %o_one2many){
       $nb_fusion_ok++;
       fill_omniscient_from_other_omniscient_level1_id(\@IDlist_A, $refhash_omniscient, \%fusion_omniscient);
   }
-  elsif($liftOver){ # Gene are the same / Option lift given / we try to lift name from one gene choosen randomly  
+  elsif($liftOver){ # Gene are the same / Option lift given / we try to lift name from one gene choosen randomly
     @{$tmp_o_one2one{$geneA_name}} = (($geneA_feature),($geneB[0]));
   }
 
@@ -401,7 +399,7 @@ foreach my $key (keys %o_one2many){
     my $overlap_percent_2 = testOverlaplevel3($geneA_feature, $geneB[1], $refhash_omniscient, $tarhash_omniscient, $featureType);
 
     ## We don't consider if both have 100% overlap
-    my $bestFeature = undef; 
+    my $bestFeature = undef;
     if ($overlap_percent_1 > $overlap_percent_2){
       $bestFeature=$geneB[0];
     }
@@ -410,7 +408,7 @@ foreach my $key (keys %o_one2many){
     }
 
     if ($bestFeature){
-      @{$tmp_o_one2one{$geneA_name}} = (($geneA_feature),($bestFeature));     
+      @{$tmp_o_one2one{$geneA_name}} = (($geneA_feature),($bestFeature));
     }
   }
 }
@@ -435,9 +433,9 @@ foreach my $key (keys %o_many2one){
 
   my @geneA = @{$o_many2one{$key}[0]};
   my $geneB_feature = $o_many2one{$key}[1];
-  
+
   my $sameGene=check_feature_same_names(\%hash_geneName, \@geneA, 'As');
-  
+
   # prepare in case we have to save the feature
   my $geneA0_name=lc($geneA[0]->_tag_value('ID'));
   my $geneA1_name=lc($geneA[1]->_tag_value('ID'));
@@ -445,11 +443,11 @@ foreach my $key (keys %o_many2one){
 
   if(! $sameGene){ # NAME DIFFERENT in A - only one long in B
       #print "Looks like $geneA0_name and $geneA1_name should be only one gene which has been split.\n";
-      fill_omniscient_from_other_omniscient_level1_id(\@IDlist, $refhash_omniscient, \%split_omniscient);  
+      fill_omniscient_from_other_omniscient_level1_id(\@IDlist, $refhash_omniscient, \%split_omniscient);
   }
   elsif($sameGene eq "none"){ # NAME DIFFERENT in A (cannot really compare because one is missing) - only one long in B
     $nb_split_notV++;
-    fill_omniscient_from_other_omniscient_level1_id(\@IDlist, $refhash_omniscient, \%split_omniscient); 
+    fill_omniscient_from_other_omniscient_level1_id(\@IDlist, $refhash_omniscient, \%split_omniscient);
   }
   else{$nb_split_ok++;
     if ($liftOver) { #same gene we take one randomly to use the name
@@ -535,7 +533,7 @@ $resultToPrint.=  "$nb_one2one one2one cases. (A one2one case is 1 gene from $re
 if($liftOver){
   $resultToPrint.=  "Among the one2one cases $overlapOK genes overlap correctly. We lifted annotation for $nbLifted_one2one of these cases. Among them:\nWe modified previous annotation for $nbNameChanged_one2one case(s).\n".
   "We newly annotated $nbNewName_one2one previously unannotated case(s).\n";
-  
+
 }
 
 $resultToPrint.=  "\n$nb_one2many one2many (putative fusion) cases. (A fusion case is 1   gene  from $ref overlaping >=2 genes of $tar. \n".
@@ -569,7 +567,7 @@ $resultToPrint.="\nCommand line executed:";
 foreach (@ARGV) { $resultToPrint.= "$_ " };$resultToPrint.="\n";
 ## OUTPUT
 if($output){
-  
+
   $resultToPrint.=  "=> Result are written in gff3 format in $output directory\n\n";
   print $outReport $resultToPrint;
 
@@ -619,10 +617,10 @@ sub retrieveAllOverlap {
       # Now test of all the opposite pieces
       foreach my $tagB (keys %{$pieceStudiedHashB}){ # allow to work only on gene on the contig
         foreach my $geneOppo_f( @{$pieceStudiedHashB->{$tagB}{$ContigName}}){ # allow to work only on gene on the contig
-          
+
           my $startB=$geneOppo_f->start;
           my $endB=$geneOppo_f->end;
-          
+
           my $resuOverlap = testOverlap($startA, $endA, $startB, $endB);  ## <====== Call Overlap method
 
           if ($resuOverlap){
@@ -644,20 +642,20 @@ sub retrieveAllOverlap {
       }
       ## END ALL OPPO CHECKED
 
-     if(! $Overlaped_FinalAnswer){ 
+     if(! $Overlaped_FinalAnswer){
         if ($lap == "1"){
           #print "NO Overlap\n";
           push (@{$ListA_NoOverlap}, $geneRef_f);
         }
-        else{ 
+        else{
           #print "No More Overlap\n";
           $ListA_tested = pushIfNotExit($ListA_tested, $geneRef_f);
         }
-      } 
+      }
      else{
         $ListA_tested = pushIfNotExit($ListA_tested, $geneRef_f);
       }
-                
+
       # REMOVE
       # Need to be deleted to not re-use it for retrieve overlap => Because we will found again the same // The removed one will be display through @ListA_Overlap_tested
       removeElementInList($pieceStudiedHashA, $geneRef_f, $ContigName);
@@ -676,7 +674,7 @@ sub  testOverlaplevel3{
 
   if($featureType eq "all"){
 
-    foreach my $tag_level2_A (keys %{$refhash_omniscient->{'level2'}}){      
+    foreach my $tag_level2_A (keys %{$refhash_omniscient->{'level2'}}){
       if (exists $refhash_omniscient->{'level2'}{$tag_level2_A}{$name_geneA}){
 
         foreach my $feature_level2_A (@{$refhash_omniscient->{'level2'}{$tag_level2_A}{$name_geneA}}){
@@ -717,18 +715,18 @@ sub  testOverlaplevel3{
     }
   }
   else{
-    #if (exists_keys($refhash_omniscient, ('level2', $featureType, $name_geneA)) ){ 
+    #if (exists_keys($refhash_omniscient, ('level2', $featureType, $name_geneA)) ){
     if (exists $refhash_omniscient->{'level2'}{$featureType}{$name_geneA}){
 
       foreach my $feature_level2_A (@{$refhash_omniscient->{'level2'}{$featureType}{$name_geneA}}){
         my $name_feature_level2_A=lc($feature_level2_A->_tag_value('ID'));
 
       #  if (exists_keys($refhash_omniscient, ('level2', $featureType, $name_geneB)) ){
-        if (exists $tarhash_omniscient->{'level2'}{$featureType}{$name_geneB}){ 
+        if (exists $tarhash_omniscient->{'level2'}{$featureType}{$name_geneB}){
 
           foreach my $feature_level2_B (@{$tarhash_omniscient->{'level2'}{$featureType}{$name_geneB}}){
             my $name_feature_level2_B=lc($feature_level2_B->_tag_value('ID'));
-            
+
             my $ref_list_to_checkA=undef;
             if(exists($refhash_omniscient->{'level3'}{'exon'}{$name_feature_level2_A})){
               $ref_list_to_checkA=$refhash_omniscient->{'level3'}{'exon'}{$name_feature_level2_A};
@@ -768,10 +766,10 @@ sub pushIfNotExit{
   my $feature_id = shift @tmp;
 
   foreach my $f (@listEx){
-    
+
     my @tmp = $f->get_tag_values('ID');
     my $f_id = shift @tmp;
-    
+
     if ($feature_id eq $f_id){
       return $list;
     }
@@ -799,11 +797,11 @@ sub sort_by_seq{
   my ($hash_omniscient, $featureType)=@_;
 
   my %hash_sortBySeq;
-  
+
   foreach my $tag_level1 (keys %{$hash_omniscient->{'level1'}}){
     foreach my $level1_id (keys %{$hash_omniscient->{'level1'}{$tag_level1}}){
       my $level1_feature = $hash_omniscient->{'level1'}{$tag_level1}{$level1_id};
-      
+
   #    foreach my $tag_level2 (keys %{$hash_omniscient->{'level2'}}){
         if (exists_keys($hash_omniscient, ('level2', $featureType, $level1_id)) ){ # check if they have mRNA avoiding autovivifcation
           my $firstFeature=$hash_omniscient->{'level2'}{$featureType}{$level1_id}[0];
@@ -812,13 +810,13 @@ sub sort_by_seq{
             my @mrna_values = $firstFeature->get_tag_values('ID');
            my $mrna_id = shift @mrna_values;
           }
-          else{print "tag missing\n";exit;} 
-        
+          else{print "tag missing\n";exit;}
+
           my $position=$level1_feature->seq_id."".$level1_feature->strand;
           push (@{$hash_sortBySeq{$tag_level1}{$position}}, $level1_feature);
         }
     #  }
-    } 
+    }
   }
   return \%hash_sortBySeq;
 }
@@ -837,11 +835,11 @@ sub testOverlap {
 
 sub manage_one2one{
   my ($o_one2one,$refhash_omniscient,$reftar_omniscient, $overlapT, $hash_geneName)=@_;
- 
+
   my $nameChanged=0;
   my $newName=0;
   my $overlapOK=0;
-  
+
   foreach my $key (keys %{$o_one2one}){
 
     my $geneA_feature = $o_one2one->{$key}[0];
@@ -854,7 +852,7 @@ sub manage_one2one{
     my $name_geneB=lc($geneB_feature->_tag_value('ID'));
 
     foreach my $tag_level2_A (keys %{$refhash_omniscient->{'level2'}}){
-      
+
       if (exists $refhash_omniscient->{'level2'}{$tag_level2_A}{$name_geneA}){
 
         foreach my $feature_level2_A (@{$refhash_omniscient->{'level2'}{$tag_level2_A}{$name_geneA}}){
@@ -882,7 +880,7 @@ sub manage_one2one{
                   $ref_list_to_checkB=$tarhash_omniscient->{'level3'}{'cds'}{$name_feature_level2_B};
                 }
 
-                my $overlap_percent=0; 
+                my $overlap_percent=0;
                 if(! $inv){
                   if($ref_list_to_checkA and $ref_list_to_checkB){
                     $overlap_percent = featuresList_overlap($ref_list_to_checkA, $ref_list_to_checkB);
@@ -893,7 +891,7 @@ sub manage_one2one{
                     $overlap_percent = featuresList_overlap($ref_list_to_checkB, $ref_list_to_checkA);
                   }
                 }
-                
+
                 if($overlap_percent > $best_overlap){
                   $best_overlap=$overlap_percent;
                 }
@@ -952,7 +950,7 @@ sub liftGeneName{
               $name_featureA = uc($geneA_feature->_tag_value('Name'));
             }
             my $name_featureB=uc($geneB_feature->_tag_value($tag));
-            
+
             #####
             # We take add label if necessary if not deactivated
             if (! $_dblr){
@@ -979,7 +977,7 @@ sub liftGeneName{
             if($name_featureA eq "Name Absent"){
               $newName=1
             }else{$nameChanged=1;}
-            
+
             ################
             ## take care of "description" attribute
             my $new_description=get_attribute_value($refhash_omniscient, $geneB_feature, $id_geneB, 'description');
@@ -1036,12 +1034,12 @@ sub liftGeneName{
         create_or_replace_tag($geneA_feature, 'orthology', $name_geneB);
       }
     }
-  
+
 return $nameChanged, $newName;
 }
 
 sub get_attribute_value{
-  
+
   my ($refhash_omniscient, $gene_feature, $id_gene, $attribute)=@_;
 
   my $value=undef;
@@ -1085,7 +1083,7 @@ sub check_feature_same_names{
     #  print "Warning: No name found for ".$gene_feature->gff_string."\n";
       $sameName="none";last;
     }
-    
+
     if($tag){
       my @tmp=$gene_feature->get_tag_values($tag);
       my $name_gene_feature=lc(shift @tmp);
@@ -1125,9 +1123,9 @@ sub check_feature_same_names{
 }
 =head1 NAME
 
-infer_function_from_synteny.pl 
+infer_function_from_synteny.pl
 
-From 2 gffs file from the same assembly, the tool will lift functional information from a target file (--tar file) on the reference file (--ref file). 
+From 2 gffs file from the same assembly, the tool will lift functional information from a target file (--tar file) on the reference file (--ref file).
 So the tool the detect the genes from target that overlap, according to the threshold choosen, the genes of the reference file.
 Thus, one2one,one2many (fusion), many2one (split) and many2many cases are detected.
 Function for one2one cases are liftover, and other cases are reported in corresponding output file.
@@ -1143,17 +1141,17 @@ Function for one2one cases are liftover, and other cases are reported in corresp
 
 =item B<--ref>, B<--reffile> or B<-f>
 
-Input GFF3 file correponding to the reference file where function will be written on. 
+Input GFF3 file correponding to the reference file where function will be written on.
 
-=item B<--tar>, B<--mapped> or B<--m> 
+=item B<--tar>, B<--mapped> or B<--m>
 
 Input GFF3 file corresponding to the target file containing function that will be lift over on the reference.
 
-=item B<--inv>, B<--inverse> or B<--oppposite> 
+=item B<--inv>, B<--inverse> or B<--oppposite>
 
 By default the ref file genes are tested against the tar file genes for the overlaping percentage. To do the opposite just set this parameter (Do not correspond to a shift between reference and target files).
 
-=item B<--transfert>, B<--lift> or B<-t> 
+=item B<--transfert>, B<--lift> or B<-t>
 
 Lift the function of genes from target file to gene of reference file is they overlap on2one with length percentage over "value" parameter.
 Particular cases: - one2many => if the many genes from tar have the same name we lift it to the ref according to the overlap percentage value threshold.
@@ -1163,27 +1161,27 @@ Particular cases: - one2many => if the many genes from tar have the same name we
 
 cno = checkMultiOverlap => When this option is activated, multi-overlaping genes (one2many, many2one (cases not takken in account by the --lift option), and many2many) will be checked.
 The most overlaping couple of gene will be taken to try to lift the name according to the overlap percentage value threshold.
-If a gene has the same overlapping value within several couple we do not lift-over the function because we cannot define wich one is the real 'ortholog' one. 
+If a gene has the same overlapping value within several couple we do not lift-over the function because we cannot define wich one is the real 'ortholog' one.
 
-=item B<--value>, B<--threshold> or B<--overlap> 
-    
+=item B<--value>, B<--threshold> or B<--overlap>
+
 Define the percentage of overlaping to use to consider genes as ortholog. Usefull only if "lift" option activated.
 /!\\ Dont forget your kraken data set has already been selected by an overlapping filer. So if the previous kraken scipt you choose to keep gene mapped over 20 percent;
 Here choose a value of 20 will mean you accept to consider the gene as ortholog even if 20% of 20% is mapped (~4%).
 Exon features are considered. If there is no exon, cds will be used instead.
 
-=item B<--dblr>   
+=item B<--dblr>
 
-Deactivate NBIS Label Reference. By default to compare names from two files we remove a potential label _(0-9)* at the end of geme names in the reference file because they can have been added by NBIS during the functional annotation process. 
+Deactivate NBIS Label Reference. By default to compare names from two files we remove a potential label _(0-9)* at the end of geme names in the reference file because they can have been added by NBIS during the functional annotation process.
 If we lift a new name to the reference annotation, we first check that the name is already existing elsewhere in the annotation. If it exists, we also add the labbel according to the number of gene with that name.
 If you don't want to take in account the labbel, you can deactivate the behaviour by calling that otpion (--dbl).
 
-=item B<--ablt>   
+=item B<--ablt>
 
-Activate NBIS Label Target. By default we don't look for label in target file. Most of time has not been annotated by NBIS. But in case where the target file is also annotated by NBIS, 
+Activate NBIS Label Target. By default we don't look for label in target file. Most of time has not been annotated by NBIS. But in case where the target file is also annotated by NBIS,
 it possible to take in account the possible label at the end of gene names by activating the option.
 
-=item B<--feature> 
+=item B<--feature>
 
 The script checks the overlap using the cds or exon of level2 features.  By default we are considering only mRNA as level2 feature. If you want to change the level2 feature type you can set up that option and defining the new feature to consider. --feature tRNA.
 An option "all" has to be fully implemented.

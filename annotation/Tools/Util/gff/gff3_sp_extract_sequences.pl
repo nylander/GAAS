@@ -9,8 +9,15 @@ use Sort::Naturally;
 use Bio::SeqIO;
 use Bio::DB::Fasta;
 use Bio::Tools::GFF;
-use NBIS::Handler::GFF3handler qw(:Ok);
-use NBIS::Handler::GXFhandler qw(:Ok);
+use NBIS::GFF3::Omniscient;
+
+my $header = qq{
+########################################################
+# NBIS 2016 - Sweden                                   #
+# jacques.dainat\@nbis.se                               #
+# Please cite NBIS (www.nbis.se) when using this tool. #
+########################################################
+};
 
 my $DONOTREVCOMP = undef;
 my $start_run = time();
@@ -31,14 +38,6 @@ my $opt_type = 'cds';
 my $opt_cleanFinalStop=undef;
 my $opt_cleanInternalStop=undef;
 my $quiet = undef;
-
-my $header = qq{
-########################################################
-# NBIS 2016 - Sweden                                   #
-# jacques.dainat\@nbis.se                               #
-# Please cite NBIS (www.nbis.se) when using this tool. #
-########################################################
-};
 
 # OPTION MANAGMENT
 my @copyARGV=@ARGV;

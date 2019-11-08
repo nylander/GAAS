@@ -1,13 +1,25 @@
 #!/usr/bin/perl -w
 
-package NBIS::GFF3::Omniscient;
+package NBIS::GFF3::Omniscient::OmniscientI;
 
+use strict;
+use warnings;
+use Try::Tiny;
+use JSON;
+use Bio::Tools::GFF;
+use File::Basename;
+use Sort::Naturally;
+use LWP::UserAgent;
+use Bio::OntologyIO::obo;
+use Clone 'clone';
+use Exporter;
+use NBIS::GFF3::Omniscient::OmniscientTools;
 
-BEGIN{
-  my @methods = qw(get_level select_gff_format check_mrna_positions modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop slurp_gff3_file_JD _check_all_level1_positions _check_all_level2_positions);
-  for my $sub_name ( @methods ){
-    push @EXPORT, $sub_name;
-  }
+our @ISA = qw(Exporter);
+our @EXPORT = qw(get_level select_gff_format check_mrna_positions modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop slurp_gff3_file_JD _check_all_level1_positions _check_all_level2_positions);
+sub import {
+  NBIS::GFF3::Omniscient::OmniscientI->export_to_level(1, @_); # to be able to load the EXPORT functions by calling NBIS::GFF3::Omniscient::OmniscientI; (normal case)
+  NBIS::GFF3::Omniscient::OmniscientI->export_to_level(2, @_); # to be able to load the EXPORT functions by calling NBIS::GFF3::Omniscient;
 }
 
 =head1 SYNOPSIS

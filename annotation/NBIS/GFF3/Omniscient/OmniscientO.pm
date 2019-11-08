@@ -1,13 +1,20 @@
 #!/usr/bin/perl -w
 
-package NBIS::GFF3::Omniscient;
+package NBIS::GFF3::Omniscient::OmniscientO;
 
+use strict;
+use warnings;
+use Sort::Naturally;
+use Bio::Tools::GFF;
+use URI::Escape;
+use NBIS::GFF3::Omniscient::OmniscientTools;
+use Exporter;
 
-BEGIN{
-  my @methods = qw(print_ref_list_feature print_omniscient print_omniscient_as_match print_omniscient_from_level1_id_list webapollo_compliant embl_compliant convert_omniscient_to_ensembl_style );
-  for my $sub_name ( @methods ){
-    push @EXPORT, $sub_name;
-  }
+our @ISA = qw(Exporter);
+our @EXPORT = qw(print_ref_list_feature print_omniscient print_omniscient_as_match print_omniscient_from_level1_id_list webapollo_compliant embl_compliant convert_omniscient_to_ensembl_style );
+sub import {
+  NBIS::GFF3::Omniscient::OmniscientO->export_to_level(1, @_); # to be able to load the EXPORT functions by calling NBIS::GFF3::Omniscient::OmniscientI; (normal case)
+  NBIS::GFF3::Omniscient::OmniscientO->export_to_level(2, @_); # to be able to load the EXPORT functions by calling NBIS::GFF3::Omniscient;
 }
 
 =head1 SYNOPSIS

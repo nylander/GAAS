@@ -1,36 +1,30 @@
 #!/usr/bin/env perl
 
-###################################################
-# Jacques Dainat 01/2016                          #  
-# Bioinformatics Infrastructure for Life Sciences #
-# jacques.dainat@nbis.se                          #
-###################################################
-
-use Carp;
 use strict;
 use warnings;
+use Carp;
 use Pod::Usage;
 use Getopt::Long;
 use Bio::DB::Fasta;
 use IO::File ;
 use Bio::Tools::GFF;
-use NBIS::Handler::GFF3handler qw(:Ok);
-use NBIS::Handler::GXFhandler qw(:Ok);
+use NBIS::GFF3::Omniscient qw(exists_keys);
+
+my $header = qq{
+########################################################
+# NBIS 2019 - Sweden                                   #
+# jacques.dainat\@nbis.se                              #
+# Please cite NBIS (www.nbis.se) when using this tool. #
+########################################################
+};
 
 my $start_run = time();
-
 my $opt_gfffile=undef;
 my $verbose=undef;
 my $opt_fastafile=undef;
 my $outfile=undef;
 my $opt_help = 0;
-my $header = qq{
-########################################################
-# NBIS 2019 - Sweden                                   #  
-# jacques.dainat\@nbis.se                              #
-# Please cite NBIS (www.nbis.se) when using this tool. #
-########################################################
-};
+
 
 Getopt::Long::Configure ('bundling');
 if ( !GetOptions ('file|input|gff=s' => \$opt_gfffile,
@@ -87,10 +81,10 @@ while (my $feature = $ref_in->next_feature() ) {
   if($db->seq($feature->seq_id)){
     $gffout->write_feature($feature);
     # to count number of sequence with annotation
-    if(! exists_keys(\%seqNameSeen, ($feature->seq_id))){ 
+    if(! exists_keys(\%seqNameSeen, ($feature->seq_id))){
       $seqNameSeen{$feature->seq_id}++;
     }
-    $cpt_kept++; 
+    $cpt_kept++;
   }
   else{
     print "SequenceID ".$feature->seq_id." is absent from the fasta file\n" if($verbose);
@@ -104,8 +98,6 @@ print "We kept $cpt_kept annotations that are linked to $nbSeqWithAnnotation seq
 my $end_run = time();
 my $run_time = $end_run - $start_run;
 print "Job done in $run_time seconds\n";
-
-
 
 __END__
 
@@ -136,7 +128,7 @@ STRING: fasta file.
 
 For verbosity
 
-=item B<-o> or B<--output> 
+=item B<-o> or B<--output>
 
 STRING: Output file.  If no output file is specified, the output will be written to STDOUT. The result is in tabulate format.
 

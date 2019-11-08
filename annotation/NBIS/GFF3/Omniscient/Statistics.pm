@@ -1,13 +1,19 @@
 #!/usr/bin/perl -w
 
-package NBIS::GFF3::Omniscient;
+package NBIS::GFF3::Omniscient::Statistics;
 
+use strict;
+use warnings;
+use Bio::Tools::GFF;
+use Bio::SeqIO;;
+use NBIS::GFF3::Omniscient::OmniscientTools;
+use Exporter;
+our @ISA = qw(Exporter);
+our @EXPORT = qw( gff3_statistics );
 
-BEGIN{
-  my @methods  = qw( gff3_statistics );
-  for my $sub_name ( @methods ){
-    push @EXPORT, $sub_name;
-  }
+sub import {
+  NBIS::GFF3::Omniscient::Statistics->export_to_level(1, @_); # to be able to load the EXPORT functions by calling NBIS::GFF3::Omniscient::OmniscientI; (normal case)
+  NBIS::GFF3::Omniscient::Statistics->export_to_level(2, @_); # to be able to load the EXPORT functions by calling NBIS::GFF3::Omniscient;
 }
 
 =head1 SYNOPSIS

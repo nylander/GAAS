@@ -1,16 +1,14 @@
 #!/usr/bin/env perl
 
 use strict;
+use warnings;
 use Getopt::Long;
 use Pod::Usage;
 use Statistics::R;
 use IO::File;
-use Data::Dumper;
 use List::MoreUtils qw(uniq);
 use Bio::Tools::GFF;
-use NBIS::Handler::GFF3handler qw(:Ok);
-use NBIS::Handler::GXFhandler qw(:Ok);
-use NBIS::GFF3::Statistics qw(:Ok);
+use NBIS::GFF3::Omniscient;
 use NBIS::CheckModule qw(:Ok);
 use NBIS::Plot::R qw(:Ok);
 
@@ -164,13 +162,13 @@ if($nbLevel1 != $nbLevel2){
 
   # create a new omniscient with only one mRNA isoform per gene
   my $omniscientNew = create_omniscient_from_idlevel2list($hash_omniscient, $hash_mRNAGeneLink, $list_id_l2);
-  
+
   # print stats
   my $stat;
   my $distri;
   if($opt_genomeSize){
     ($stat, $distri) = gff3_statistics($omniscientNew, $opt_genomeSize);
-  }else{ 
+  }else{
     ($stat, $distri) = gff3_statistics($omniscientNew);
   }
 
@@ -181,7 +179,7 @@ if($nbLevel1 != $nbLevel2){
     }
     print $out "\n";
   }
-  
+
   #print distribution after having removed the isoforms
   if($opt_plot){
     print_distribution($opt_plot, "without_isoforms", $distri);
@@ -216,7 +214,7 @@ sub print_distribution{
     foreach my $level (keys %{$distri->{$type}} ) {
       foreach my $tag ( keys %{$distri->{$type}{$level}} ) {
         if( exists_keys ($distri,($type, $level, $tag, 'whole') ) ){
-          
+
           if(! -d $folder){
             mkdir $folder;
           }
@@ -226,7 +224,7 @@ sub print_distribution{
           }
 
           my $outputPDF = $folder."/".$subfolder."/".$type."Class_".$tag.".pdf";
-          
+
           #CREATE THE R COMMAND
           my $nbValues = @{$distri->{$type}{$level}{$tag}{'whole'}};
           my $R_command = rcc_plot_from_list($distri->{$type}{$level}{$tag}{'whole'},  undef, "histogram", "$tag"." size (nt)", "Number of $tag", "Distribution of $tag sizes\nMade with $nbValues $tag"."s", $outputPDF);

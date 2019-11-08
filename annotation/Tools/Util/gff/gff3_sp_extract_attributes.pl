@@ -1,21 +1,19 @@
 #!/usr/bin/env perl
 
-
+use strict;
+use warnings;
 use Carp;
 use Clone 'clone';
-use strict;
 use Getopt::Long;
 use Pod::Usage;
 use IO::File;
-use Data::Dumper;
 use List::MoreUtils qw(uniq);
 use Bio::Tools::GFF;
-use NBIS::Handler::GFF3handler qw(:Ok);
-use NBIS::Handler::GXFhandler qw(:Ok);
+use NBIS::GFF3::Omniscient;
 
 my $header = qq{
 ########################################################
-# NBIS 2015 - Sweden                                   #  
+# NBIS 2015 - Sweden                                   #
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
@@ -52,7 +50,7 @@ if ($help) {
                  -exitval => 2,
                  -message => "$header\n" } );
 }
- 
+
 if ( ! (defined($gff)) ){
     pod2usage( {
            -message => "$header\nAt least 1 parameter is mandatory:\nInput reference gff file (--gff) \n\n",
@@ -95,8 +93,8 @@ if(! $primaryTag or $primaryTag eq "all"){
 my @attListOk;
 if ($attributes){
   my @attList = split(/,/, $attributes); # split at comma as separated value
-  
-  foreach my $attribute (@attList){ 
+
+  foreach my $attribute (@attList){
       push @attListOk, $attribute;
       print "$attribute attribute will be processed.\n";
 
@@ -119,19 +117,19 @@ print ("GFF3 file parsed\n");
 
 foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){
   foreach my $id_l1 (keys %{$hash_omniscient->{'level1'}{$tag_l1}}){
-        
+
     my $feature_l1=$hash_omniscient->{'level1'}{$tag_l1}{$id_l1};
-        
+
     manage_attributes($feature_l1, 'level1', \@ptagList,\@attListOk);
 
     #################
     # == LEVEL 2 == #
     #################
     foreach my $tag_l2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
-      
+
       if ( exists ($hash_omniscient->{'level2'}{$tag_l2}{$id_l1} ) ){
         foreach my $feature_l2 ( @{$hash_omniscient->{'level2'}{$tag_l2}{$id_l1}}) {
-          
+
           manage_attributes($feature_l2,'level2',, \@ptagList,\@attListOk);
           #################
           # == LEVEL 3 == #
@@ -190,7 +188,7 @@ sub tag_from_list{
 
   my $tags_string = undef;
   foreach my $att ( @{$attListOk} ){
-    
+
     # create handler if needed (on the fly)
     if (! $one_tsv){
       if(! exists ( $handlers{$att} ) ) {
@@ -205,13 +203,13 @@ sub tag_from_list{
         $handlers{$att}=$out;
       }
     }
-        
+
 
     if ($feature->has_tag($att)){
 
       # get values of the attribute
       my @values = $feature->get_tag_values($att);
-      
+
       # print values of one attribute per file
       if (! $one_tsv){
         my $out = $handlers{$att};
@@ -249,7 +247,7 @@ __END__
 # while( my $feature = $gffio->next_feature()) {
 
 #     #manage handler
-#     my $source_tag = lc($feature->source_tag);    
+#     my $source_tag = lc($feature->source_tag);
 #     if(! exists ( $handlers{$source_tag} ) ) {
 
 #       open(my $fh, '>', $splitedData_dir."/".$source_tag.".gff") or die "Could not open file '$source_tag' $!";
@@ -265,7 +263,7 @@ __END__
 
 gff3_extract_attributes.pl -
 The script take a gff3 file as input. -
-The script allows to extract choosen attributes of all or specific feature types. 
+The script allows to extract choosen attributes of all or specific feature types.
 The 9th column of a gff/gtf file contains a list of attributes. An attribute (gff3) is like that tag=value
 
 =head1 SYNOPSIS
@@ -283,9 +281,9 @@ Input GFF3 file that will be read (and sorted)
 
 =item B<-p>,  B<-t> or  B<-l>
 
-primary tag option, case insensitive, list. Allow to specied the feature types that will be handled. 
+primary tag option, case insensitive, list. Allow to specied the feature types that will be handled.
 You can specified a specific feature by given its primary tag name (column 3) as: cds, Gene, MrNa
-You can specify directly all the feature of a particular level: 
+You can specify directly all the feature of a particular level:
       level2=mRNA,ncRNA,tRNA,etc
       level3=CDS,exon,UTR,etc
 By default all feature are taking in account. fill the option by the value "all" will have the same behaviour.
@@ -299,7 +297,7 @@ Attributes specified, will be extracted from the feature type specified by the o
 
 By default the values of each attribute tag is writen in its dedicated file. To write the values of all tags in only one file use this option.
 
-=item B<-d> 
+=item B<-d>
 By default when an attribute is not found for a feature, a dot (.) is reported. If you don't want anything to be printed in such case use this option.
 
 =item B<-o> , B<--output> , B<--out> or B<--outfile>
@@ -314,4 +312,3 @@ Display this helpful text.
 =back
 
 =cut
-

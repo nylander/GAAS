@@ -1,25 +1,21 @@
 #!/usr/bin/env perl
 
-use Carp;
 use strict;
 use warnings;
+use Carp;
 use Pod::Usage;
 use Getopt::Long;
 use IO::File ;
 use Bio::Tools::GFF;
-use NBIS::Handler::GFF3handler qw(:Ok);
-use NBIS::Handler::GXFhandler qw(:Ok);
-
-my $start_run = time();
-
 
 my $header = qq{
 ########################################################
-# NBIS 2015 - Sweden                                   #  
+# NBIS 2015 - Sweden                                   #
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 };
+my $start_run = time();
 my $inputFile;
 my $outfile;
 my $opt_help = 0;
@@ -79,7 +75,7 @@ while (my $feature = $ref_in->next_feature() ) {
   $line_cpt++;
 
   my $position=lc($feature->seq_id)."".lc($feature->primary_tag)."".$feature->start()."".$feature->end(); #uniq position
-  
+
   if(exists ($check{$position} ) ){
     $count++;
     next;
@@ -111,7 +107,7 @@ __END__
 =head1 NAME
 
 gff3_remove_redundant_entries.pl -
-remove redundant entries: same seq_id,primary_tag,start,stop. 
+remove redundant entries: same seq_id,primary_tag,start,stop.
 
 =head1 SYNOPSIS
 
@@ -127,7 +123,7 @@ remove redundant entries: same seq_id,primary_tag,start,stop.
 STRING: Input gff file that will be read.
 
 
-=item B<-o> or B<--output> 
+=item B<-o> or B<--output>
 
 STRING: Output file.  If no output file is specified, the output will be written to STDOUT. The result is in tabulate format.
 

@@ -1,19 +1,18 @@
 #!/usr/bin/env perl
 
+use strict;
+use warnings;
 use Carp;
 use Clone 'clone';
-use strict;
 use Getopt::Long;
 use Pod::Usage;
-use Data::Dumper;
 use List::MoreUtils qw(uniq);
 use Bio::Tools::GFF;
-use NBIS::Handler::GFF3handler qw(:Ok);
-use NBIS::Handler::GXFhandler qw(:Ok);
+use NBIS::GFF3::Omniscient;
 
 my $header = qq{
 ########################################################
-# NBIS 2015 - Sweden                                   #  
+# NBIS 2015 - Sweden                                   #
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
@@ -48,7 +47,7 @@ if ($help) {
                  -exitval => 2,
                  -message => "$header\n" } );
 }
- 
+
 if ( ! (defined($gff)) ){
     pod2usage( {
            -message => "$header\nAt least 1 parameter is mandatory:\nInput reference gff file (--gff) \n\n",
@@ -102,8 +101,8 @@ if ($attributes){
   else{
     @attListPair= split(/,/, $attributes);
     my $nbAtt=$#attListPair+1;
-    
-    foreach my $attributeTuple (@attListPair){ 
+
+    foreach my $attributeTuple (@attListPair){
       my @attList= split(/\//, $attributeTuple);
       if($#attList == 0){ # Attribute alone
         #check for ID attribute
@@ -122,7 +121,7 @@ if ($attributes){
           print "$attList[0] attribute will be added. The value will be empty.\n";
         }
         else{
-          print "$attList[0] attribute will be removed.\n";          
+          print "$attList[0] attribute will be removed.\n";
         }
       }
       else{ # Attribute will be replaced/copied with a new tag name
@@ -143,25 +142,25 @@ if ($attributes){
 ######################
 ### Parse GFF input #
 my ($hash_omniscient, $hash_mRNAGeneLink) = slurp_gff3_file_JD({ input => $gff
-                                                              });  
+                                                              });
 print ("GFF3 file parsed\n");
 
 
 foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){
   foreach my $id_l1 (keys %{$hash_omniscient->{'level1'}{$tag_l1}}){
-        
+
     my $feature_l1=$hash_omniscient->{'level1'}{$tag_l1}{$id_l1};
-        
+
     manage_attributes($feature_l1, 'level1', \@ptagList,\%attListOk);
 
     #################
     # == LEVEL 2 == #
     #################
     foreach my $tag_l2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
-      
+
       if ( exists ($hash_omniscient->{'level2'}{$tag_l2}{$id_l1} ) ){
         foreach my $feature_l2 ( @{$hash_omniscient->{'level2'}{$tag_l2}{$id_l1}}) {
-          
+
           manage_attributes($feature_l2,'level2',, \@ptagList,\%attListOk);
           #################
           # == LEVEL 3 == #
@@ -220,17 +219,17 @@ sub  manage_attributes{
 sub remove_tag_from_list{
   my  ($feature, $attListOk)=@_;
 
-  if (exists ($attListOk{"all_attributes"} ) ){ # all attributes removed except ID and Parent 
+  if (exists ($attListOk{"all_attributes"} ) ){ # all attributes removed except ID and Parent
     my @list_att = $feature->get_all_tags;
     foreach my $tag (@list_att){
       if(lc($tag) ne "id" and lc($tag) ne "parent"){
-        $feature->remove_tag($tag);        
+        $feature->remove_tag($tag);
       }
     }
   }
   else{
     foreach my $att (keys %{$attListOk}){
-      
+
       if ($feature->has_tag($att)){
 
         if ($attListOk{$att} eq "null" ){ # the attribute name is kept inctact
@@ -251,7 +250,7 @@ sub remove_tag_from_list{
         if ($attListOk{$att} eq "null" ){ # the attribute name is kept inctact
           create_or_replace_tag($feature,$att,'empty');
         }
-      } 
+      }
     }
   }
 }
@@ -263,7 +262,7 @@ __END__
 
 gff3_manageAttributes.pl -
 The script take a gff3 file as input. -
-The script allows to remove choosen attributes to choosen features. 
+The script allows to remove choosen attributes to choosen features.
 
 =head1 SYNOPSIS
 
@@ -280,9 +279,9 @@ Input GFF3 file that will be read (and sorted)
 
 =item B<-p>,  B<--type> or  B<-l>
 
-primary tag option, case insensitive, list. Allow to specied the feature types that will be handled. 
+primary tag option, case insensitive, list. Allow to specied the feature types that will be handled.
 You can specified a specific feature by given its primary tag name (column 3) as: cds, Gene, MrNa
-You can specify directly all the feature of a particular level: 
+You can specify directly all the feature of a particular level:
       level2=mRNA,ncRNA,tRNA,etc
       level3=CDS,exon,UTR,etc
 By default all feature are taking in account. fill the option by the value "all" will have the same behaviour.

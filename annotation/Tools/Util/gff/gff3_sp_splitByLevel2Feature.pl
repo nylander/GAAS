@@ -1,5 +1,12 @@
 #!/usr/bin/env perl
 
+use strict;
+use warnings;
+use Pod::Usage;
+use Getopt::Long;
+use NBIS::GFF3::Omniscient;
+use Bio::Tools::GFF;
+
 my $header = qq{
 ########################################################
 # NBIS 2015 - Sweden                                   #
@@ -7,14 +14,6 @@ my $header = qq{
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 };
-
-
-use strict;
-use Pod::Usage;
-use Getopt::Long;
-use NBIS::Handler::GXFhandler qw(:Ok);
-use NBIS::Handler::GFF3handler qw(:Ok);
-use Bio::Tools::GFF;
 
 my $start_run = time();
 my $opt_gfffile;
@@ -81,7 +80,7 @@ my $gffout;
 # == LEVEL 1 == #
 foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
   foreach my $key_l1 (keys %{$hash_omniscient->{'level1'}{$tag_l1}}){
-      
+
     #################
     # == LEVEL 2 == #
     my $level1_printed=undef;

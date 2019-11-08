@@ -1,19 +1,18 @@
 #!/usr/bin/env perl
 
-use Carp;
 use strict;
+use warnings;
+use Carp;
 use File::Basename;
 use Getopt::Long;
 use Pod::Usage;
-use Data::Dumper;
 use List::MoreUtils qw(uniq);
 use Bio::Tools::GFF;
-use NBIS::Handler::GFF3handler qw(:Ok);
-use NBIS::Handler::GXFhandler qw(:Ok);
+use NBIS::GFF3::Omniscient;
 
 my $header = qq{
 ########################################################
-# NBIS 2019 - Sweden                                   #  
+# NBIS 2019 - Sweden                                   #
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
@@ -47,7 +46,7 @@ if ($help) {
                  -exitval => 2,
                  -message => "$header\n" } );
 }
- 
+
 if ( ! defined($gff) ){
     pod2usage( {
            -message => "$header\nAt least 1 parameter is mandatory:\nInput reference gff file (--gff)\n\n",
@@ -87,7 +86,7 @@ my $sortBySeq = gather_and_sort_l1_location_by_seq_id($omniscient);
 
 foreach my $locusID ( keys %{$sortBySeq}){ # tag_l1 = gene or repeat etc...
 
-  foreach my $tag_l1 ( keys %{$sortBySeq->{$locusID}} ) { 
+  foreach my $tag_l1 ( keys %{$sortBySeq->{$locusID}} ) {
 
     # Go through location from left to right ### !!
     while ( @{$sortBySeq->{$locusID}{$tag_l1}} ){
@@ -104,20 +103,20 @@ foreach my $locusID ( keys %{$sortBySeq}){ # tag_l1 = gene or repeat etc...
       #loop to look at potential set of overlaping genes otherwise go through only once
       while ( $continue ){
 
-        # Next location 
+        # Next location
         my $location2 = @{$sortBySeq->{$locusID}{$tag_l1}}[0];
         my $id2_l1 = $location2->[0];
         my $dist = $location2->[1] - $location->[2] + 1;
         print "distance $id_l1 - id2_l1 = $dist\n" if ($verbose);
-        
+
         ############################
         #deal with overlap
         if ( ($location->[1] <= $location2->[2]) and ($location->[2] >= $location2->[1])){
-             
+
               if( ! $overlap){
 
                 foreach my $tag_level1 (keys %{$omniscient->{'level1'}}){
-                  if (exists_keys($omniscient, ('level1', $tag_level1, lc($id_l1) ) ) ){ 
+                  if (exists_keys($omniscient, ('level1', $tag_level1, lc($id_l1) ) ) ){
                     my $level1_feature = $omniscient->{'level1'}{$tag_level1}{lc($id_l1)};
                     add_info($level1_feature, 'O', $verbose);
                   }
@@ -125,9 +124,9 @@ foreach my $locusID ( keys %{$sortBySeq}){ # tag_l1 = gene or repeat etc...
               }
 
               $overlap=1;
-                       
+
               foreach my $tag_level1 (keys %{$omniscient->{'level1'}}){
-                if (exists_keys($omniscient, ('level1', $tag_level1, lc($id2_l1) ) ) ){ 
+                if (exists_keys($omniscient, ('level1', $tag_level1, lc($id2_l1) ) ) ){
                   my $level1_feature = $omniscient->{'level1'}{$tag_level1}{lc($id2_l1)};
                   add_info($level1_feature, 'O', $verbose);
                 }
@@ -138,7 +137,7 @@ foreach my $locusID ( keys %{$sortBySeq}){ # tag_l1 = gene or repeat etc...
                                                                           #location A  -------------------------                                --------------------------
                                                                           #location B                ---------
                 $total++;
-                next;  
+                next;
               }
               else{
                                                                           # We need to use the location B to check the left extremity of the next locus
@@ -147,7 +146,7 @@ foreach my $locusID ( keys %{$sortBySeq}){ # tag_l1 = gene or repeat etc...
                 $jump = 1;
                 last;
               }
-        
+
         }
         #
         ############################
@@ -158,27 +157,27 @@ foreach my $locusID ( keys %{$sortBySeq}){ # tag_l1 = gene or repeat etc...
         # locus distance is under minimum distance
         if( $dist < $opt_dist)  {
           print "$dist < $opt_dist\n";
-                  
+
           foreach my $tag_level1 (keys %{$omniscient->{'level1'}}){
-            if (exists_keys($omniscient, ('level1', $tag_level1, lc($id_l1) ) ) ){ 
-              my $level1_feature = $omniscient->{'level1'}{$tag_level1}{lc($id_l1)};            
+            if (exists_keys($omniscient, ('level1', $tag_level1, lc($id_l1) ) ) ){
+              my $level1_feature = $omniscient->{'level1'}{$tag_level1}{lc($id_l1)};
               add_info($level1_feature, 'R'.$dist, $verbose);
             }
           }
 
           foreach my $tag_level1 (keys %{$omniscient->{'level1'}}){
-            if (exists_keys($omniscient, ('level1', $tag_level1, lc($id2_l1) ) ) ){ 
-              my $level1_feature = $omniscient->{'level1'}{$tag_level1}{lc($id2_l1)};  
+            if (exists_keys($omniscient, ('level1', $tag_level1, lc($id2_l1) ) ) ){
+              my $level1_feature = $omniscient->{'level1'}{$tag_level1}{lc($id2_l1)};
               add_info($level1_feature, 'L'.$dist, $verbose);
             }
           }
         }
 
-        # distance with next is ok but we have to check what was the result with the previous locus 
+        # distance with next is ok but we have to check what was the result with the previous locus
         else{
          foreach my $tag_level1 (keys %{$omniscient->{'level1'}}){
-            if (exists_keys($omniscient, ('level1', $tag_level1, lc($id_l1) ) ) ){ 
-              my $level1_feature = $omniscient->{'level1'}{$tag_level1}{lc($id_l1)};            
+            if (exists_keys($omniscient, ('level1', $tag_level1, lc($id_l1) ) ) ){
+              my $level1_feature = $omniscient->{'level1'}{$tag_level1}{lc($id_l1)};
               if(! $level1_feature->has_tag('low_dist')){
                 $geneCounter_ok ++;
                 push @gene_id_ok, lc($id_l1);
@@ -226,7 +225,7 @@ sub add_info{
     $feature->add_tag_value('low_dist', $value);
     print $feature->_tag_value('ID')." add $value\n" if ($verbose);
   }
-  else{         
+  else{
     create_or_replace_tag($feature, 'low_dist', $value);
     $geneCounter_skip++;
     print $feature->_tag_value('ID')." create $value\n" if ($verbose);
@@ -239,8 +238,8 @@ __END__
 
 gff3_sp_filter_by_locus_distance.pl -
 
-The script aims to remove or flag loci that are too close to each other. 
-Close loci are important to remove when training abinitio tools in order to train intergenic region properly. Indeed if intergenic region (surrouneded part of a locus) contain part of another locus, the training on intergenic part will be biased. 
+The script aims to remove or flag loci that are too close to each other.
+Close loci are important to remove when training abinitio tools in order to train intergenic region properly. Indeed if intergenic region (surrouneded part of a locus) contain part of another locus, the training on intergenic part will be biased.
 
 =head1 SYNOPSIS
 
@@ -262,7 +261,7 @@ filter by default).
 
 =item B<--add> or B<--add_flag>
 
-Instead of filter the result into two output files, write only one and add the flag <low_dist> in the gff.(tag = Lvalue or tag = Rvalue  where L is left and R right and the value is the distance with accordingle the left or right locus) 
+Instead of filter the result into two output files, write only one and add the flag <low_dist> in the gff.(tag = Lvalue or tag = Rvalue  where L is left and R right and the value is the distance with accordingle the left or right locus)
 
 =item B<-o> , B<--output> , B<--out> or B<--outfile>
 

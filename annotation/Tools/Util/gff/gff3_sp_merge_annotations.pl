@@ -1,18 +1,17 @@
 #!/usr/bin/env perl
 
-
-use Carp;
 use strict;
+use warnings;
+use Carp;
 use Getopt::Long;
 use Pod::Usage;
 use List::MoreUtils qw(uniq);
 use Bio::Tools::GFF;
-use NBIS::Handler::GFF3handler qw(:Ok);
-use NBIS::Handler::GXFhandler qw(:Ok);
+use NBIS::GFF3::Omniscient;
 
 my $header = qq{
 ########################################################
-# NBIS 2016 - Sweden                                   #  
+# NBIS 2016 - Sweden                                   #
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
@@ -71,17 +70,17 @@ else{
 
 my $file1 = shift @opt_files;
 my ($hash_omniscient, $hash_mRNAGeneLink) = slurp_gff3_file_JD({ input => $file1
-                                                              });  
+                                                              });
 print ("$file1 GFF3 file parsed\n");
 info_omniscient($hash_omniscient);
 
 #Add the features of the other file in the first omniscient. It takes care of name to not have duplicates
 foreach my $next_file (@opt_files){
   my ($hash_omniscient2, $hash_mRNAGeneLink2) = slurp_gff3_file_JD({ input => $next_file
-                                                              });  
+                                                              });
   print ("$next_file GFF3 file parsed\n");
   info_omniscient($hash_omniscient2);
-  
+
   #merge annotation taking care of Uniq name. Does not look if mRNA are identic or so one, it will be handle later.
   merge_omniscients($hash_omniscient, $hash_omniscient2);
   print ("\n$next_file added we now have:\n");
@@ -91,24 +90,24 @@ foreach my $next_file (@opt_files){
 # Now all the feature are in the same omniscient
 # We have to check the omniscient to merge overlaping genes together and remove the identical ones
 my ($hash_omniscient, $hash_mRNAGeneLink) = slurp_gff3_file_JD({ input => $hash_omniscient
-                                                              });  
+                                                              });
 print ("\nfinal result:\n");
 info_omniscient($hash_omniscient);
 
 ########
 # Print results
-print_omniscient($hash_omniscient, $gffout);  
+print_omniscient($hash_omniscient, $gffout);
 
 __END__
 
 =head1 NAME
- 
-gff3_sp_merge_annotations.pl - 
+
+gff3_sp_merge_annotations.pl -
 This script merge different gff annotation files in gff format in one. It uses the NBIS GXF HANDLER that takes care of duplicated names and fixes other oddities met in those files.
 
 =head1 SYNOPSIS
 
-    ./gff3_sp_merge_annotations.pl --gff=infile1 --gff=infile2 --out=outFile 
+    ./gff3_sp_merge_annotations.pl --gff=infile1 --gff=infile2 --out=outFile
     ./gff3_sp_merge_annotations.pl --help
 
 =head1 OPTIONS
