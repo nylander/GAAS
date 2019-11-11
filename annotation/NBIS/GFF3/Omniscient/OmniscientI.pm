@@ -2893,10 +2893,10 @@ sub _handle_ontology{
 
 		try{
 			my $full_path = `perldoc -lm NBIS::GFF3::Omniscient`;
-			my $index = index($full_path, "NBIS/GFF3/");
-			$index+=5; #To not shrinck NBIS/ part of the path
+      my $index = index($full_path, "NBIS/GFF3/");
+			$index+=10; #To not shrinck NBIS/GFF3/ part of the path
 			my $path_begin =  substr $full_path, 0, $index;;
-      my $correct_path = $path_begin."Ontology/SOFA";
+      my $correct_path = $path_begin."Ontology/";
 			opendir (DIR, $correct_path) or die $!;
 			my @list_file;
 
