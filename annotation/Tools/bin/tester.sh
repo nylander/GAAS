@@ -1,1 +1,1 @@
-../..//BILS/Handler/Benchmark/gff_benchmark/tester.sh
+../../NBIS/GFF3/test/test_gff_syntax/tester.sh
