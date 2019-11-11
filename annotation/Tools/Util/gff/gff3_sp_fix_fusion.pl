@@ -33,6 +33,7 @@ my $header = qq{
 my $outfile = undef;
 my $gff = undef;
 my $file_fasta=undef;
+my $opt_codonTableID=0;
 my $stranded=undef;
 my $threshold=undef;
 my $verbose=undef;
@@ -44,6 +45,7 @@ if ( !GetOptions(
     "gff=s" => \$gff,
     "fasta|fa=s" => \$file_fasta,
     "stranded|s" => \$stranded,
+    "table|codon|ct=i" => \$opt_codonTableID,
     "verbose|v" => \$verbose,
     "threshold|t=i" => \$threshold,
     "output|outfile|out|o=s" => \$outfile))
@@ -89,6 +91,13 @@ else{
   $gffout2 = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 3);
   $gffout3 = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 3);
   $gffout4 = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 3);
+}
+
+if($opt_codonTableID<0 and $opt_codonTableID>25){
+  print "$opt_codonTableID codon table is not a correct value. It should be between 0 and 25 (0,23 and 25 can be problematic !)\n";
+}
+else{
+  print "We will use the codon table ".$opt_codonTableID.". If it is not what you want please stop the tool and use the --table option. \n";
 }
 
 if(!$threshold){
@@ -237,8 +246,8 @@ else{print "\rProgress : 100 %\n"; }
 
 ###
 # Fix frame
-fil_cds_frame(\%omniscient_modified_gene);
-fil_cds_frame($hash_omniscient);
+fil_cds_frame(\%omniscient_modified_gene, $db, $opt_codonTableID);
+fil_cds_frame($hash_omniscient, $db, $opt_codonTableID);
 
 
 #####################################
@@ -268,7 +277,7 @@ foreach my $tag_l1 (keys %{$omniscient_modified_gene{'level1'}} ){ # primary_tag
 
 # 4) special case where two newly created gene from to different gene are overlapping
 # Be careful If you by testing 2 identical omniscient, the method could remove element haven't yet been loop over. So check the gene exists before to analyse it !
-my $hash_sortBySeq = gather_and_sort_l1_by_seq_id_and_strand(\%omniscient_modified_gene);
+$hash_sortBySeq = gather_and_sort_l1_by_seq_id_and_strand(\%omniscient_modified_gene);
 foreach my $tag_l1 (keys %{$omniscient_modified_gene{'level1'}} ){ # primary_tag_key_level1 = gene or repeat etc...
     foreach my $id_l1 (keys %{$omniscient_modified_gene{'level1'}{$tag_l1}} ) {
 
@@ -554,7 +563,8 @@ sub take_care_utr{
                   #################################
                   # Get the longest ORF positive ## record ORF = start, end (half-open), length, and frame
                   my ($longest_ORF_prot_obj_p, $orf_utr_region_p) = translate_JD($utr_obj,
-                                                                              -orf => 'longest');
+                                                                              -orf => 'longest',
+                                                                              -codontable => $opt_codonTableID);
                   ########################################
                   # Get the longest ORF opposite strand ## record ORF = start, end (half-open), length, and frame
                   my $length_longest_ORF_prot_obj_n=0;
@@ -563,7 +573,8 @@ sub take_care_utr{
 
                   if(! $stranded){
                     ($longest_ORF_prot_obj_n, $orf_utr_region_n) = translate_JD($opposite_utr_obj,
-                                                                                -orf => 'longest');
+                                                                                -orf => 'longest',
+                                                                                -codontable => $opt_codonTableID);
                     $length_longest_ORF_prot_obj_n = $longest_ORF_prot_obj_n->length();
                   }
 
@@ -765,7 +776,7 @@ sub split_gene_model{
 
                   # $containerUsed exist when we already use the gene container. So in the case where we have only one mRNA, the split will give 2 mRNA. One is linked to the original gene container (done before)
                   # The second must be linked to a new gene container. So, even if must_be_a_new_gene method say no, we must create it because the original one has been already used.
-                  my ($new_gene, $new_mrna, $overlaping_gene_ft, $overlaping_mrna_ft) = must_be_a_new_gene_new_mrna($tmpOmniscient, $new_pred_cds_list, $newPred_exon_list);
+                  ($new_gene, $new_mrna, $overlaping_gene_ft, $overlaping_mrna_ft) = must_be_a_new_gene_new_mrna($tmpOmniscient, $new_pred_cds_list, $newPred_exon_list);
                   if ( $new_gene ){
                     $newcontainerUsed++;
                     $gene_id = take_care_gene_id($gene_id, $tmpOmniscient);
@@ -1400,6 +1411,10 @@ Input GFF3 file that will be read (and sorted)
 
 Genome fasta file
 The name of the fasta file containing the genome to work with.
+
+=item B<--ct>, B<--codon> or B<--table>
+
+Codon table to use. 0 By default.
 
 =item B<-t> or B<--threshold>
 

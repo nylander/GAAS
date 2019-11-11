@@ -380,9 +380,9 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
 
 ###########
 # Fix frame
-fil_cds_frame(\%omniscient_modified_gene);
+fil_cds_frame(\%omniscient_modified_gene, $db, $codonTable);
 #fil_cds_frame(\%omniscient_pseudogene);
-fil_cds_frame($hash_omniscient);
+fil_cds_frame($hash_omniscient, $db, $codonTable);
 
 #Clean omniscient_modified_gene of duplicated/identical genes and isoforms
 print "removing duplicates\n" if $verbose;
@@ -477,7 +477,8 @@ sub modify_gene_model{
                   shape_exon_extremity($exons_features, $new_pred_cds_list);
 
                   # Create UTR
-                  my ($new_pred_utr5_list, $variable_not_needed, $new_pred_utr3_list) = modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop($exons_features, $realORFstart, $realORFend);
+                  my $variable_not_needed;
+                  ($new_pred_utr5_list, $variable_not_needed, $new_pred_utr3_list) = modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop($exons_features, $realORFstart, $realORFend);
 
                   #############################################################
                   #  Remove ancient cds
@@ -606,11 +607,11 @@ sub split_gene_model{
   shape_exon_extremity($newPred_exon_list, $new_pred_cds_list);
 
   #create UTR
-  my ($new_pred_utr5_list, $variable_not_needed, $new_pred_utr3_list) = modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop($newPred_exon_list, $realORFstart, $realORFend);
+  ($new_pred_utr5_list, $variable_not_needed, $new_pred_utr3_list) = modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop($newPred_exon_list, $realORFstart, $realORFend);
 
   ######################################################
   # Modelate gene and mRNA features for new prediction #
-  my @values = $newPred_exon_list->[0]->get_tag_values('Parent');
+  @values = $newPred_exon_list->[0]->get_tag_values('Parent');
   my $transcript_id = shift @values;
   my $new_mRNA_feature = Bio::SeqFeature::Generic->new(-seq_id => $newPred_exon_list->[0]->seq_id, -source_tag => $newPred_exon_list->[0]->source_tag, -primary_tag => 'mRNA' , -start => $newPred_exon_list->[0]->start,  -end => $newPred_exon_list->[$#{$newPred_exon_list}]->end, -frame => $newPred_exon_list->[0]->frame, -strand => $newPred_exon_list->[0]->strand , -tag => { 'ID' => $transcript_id , 'Parent' => $realGeneName }) ;
 
@@ -645,7 +646,7 @@ sub split_gene_model{
     my @id_list=($id_level2);
 
     remove_tuple_from_omniscient(\@id_list, $hash_omniscient, 'level3', 'false', \@tag_list);
-    my @id_list=($gene_id_tag_key);my @id_list2=($id_level2);
+    @id_list=($gene_id_tag_key);my @id_list2=($id_level2);
     remove_element_from_omniscient(\@id_list, \@id_list2, $hash_omniscient, 'level2', 'false', \@tag_list);
     #reshape end and start
     check_start_end_of_gene_feature($hash_omniscient, $gene_id_tag_key);
@@ -824,8 +825,8 @@ sub create_two_exon_lists {
         my @values = $duplicated_exon_feature->get_tag_values('ID');
         my $value = $values[0];
         create_or_replace_tag($duplicated_exon_feature,'ID', 'new_'.$value);
-        my @values = $duplicated_exon_feature->get_tag_values('Parent');
-        my $value = $values[0];
+        @values = $duplicated_exon_feature->get_tag_values('Parent');
+        $value = $values[0];
         create_or_replace_tag($duplicated_exon_feature,'Parent', 'new_'.$value);
         push( @list_exon_newPred, $duplicated_exon_feature);
         next;
@@ -835,8 +836,8 @@ sub create_two_exon_lists {
         my @values = $exon_feature->get_tag_values('ID');
         my $value = $values[0];
         create_or_replace_tag($exon_feature,'ID', 'new_'.$value);
-        my @values = $exon_feature->get_tag_values('Parent');
-        my $value = $values[0];
+        @values = $exon_feature->get_tag_values('Parent');
+        $value = $values[0];
         create_or_replace_tag($exon_feature,'Parent', 'new_'.$value);
         push( @list_exon_newPred, $exon_feature);
         next;
@@ -851,8 +852,8 @@ sub create_two_exon_lists {
           my @values = $duplicated_exon_feature->get_tag_values('ID');
           my $value = $values[0];
           create_or_replace_tag($duplicated_exon_feature,'ID', 'new_'.$value);
-          my @values = $duplicated_exon_feature->get_tag_values('Parent');
-          my $value = $values[0];
+          @values = $duplicated_exon_feature->get_tag_values('Parent');
+          $value = $values[0];
           create_or_replace_tag($duplicated_exon_feature,'Parent', 'new_'.$value);
           push( @list_exon_newPred, $duplicated_exon_feature);
         }
@@ -863,8 +864,8 @@ sub create_two_exon_lists {
             my @values = $duplicated_exon_feature->get_tag_values('ID');
             my $value = $values[0];
             create_or_replace_tag($duplicated_exon_feature,'ID', 'new_'.$value);
-            my @values = $duplicated_exon_feature->get_tag_values('Parent');
-            my $value = $values[0];
+            @values = $duplicated_exon_feature->get_tag_values('Parent');
+            $value = $values[0];
             create_or_replace_tag($duplicated_exon_feature,'Parent', 'new_'.$value);
             push( @list_exon_newPred, $duplicated_exon_feature);
           }else{
@@ -1346,7 +1347,7 @@ The name of the fasta file containing the genome to work with.
 
 =item B<--ct>, B<--codon> or B<--table>
 
-Codon table to use. 1 By default.
+Codon table to use. 0 By default.
 
 =item B<-m> or B<--model>
 

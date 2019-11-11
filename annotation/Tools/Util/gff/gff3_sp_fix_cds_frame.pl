@@ -4,8 +4,10 @@ use strict;
 use warnings;
 use Pod::Usage;
 use Getopt::Long;
-use NBIS::GFF3::Omniscient;
 use Bio::Tools::GFF;
+use Bio::DB::Fasta;
+use NBIS::GFF3::Omniscient;
+
 
 my $header = qq{
 ########################################################
@@ -16,14 +18,19 @@ my $header = qq{
 };
 
 my $start_run = time();
+my $opt_fasta = undef;
 my $opt_gfffile;
+my $opt_verbose;
+my $codonTable=0;
 my $opt_output;
 my $opt_help = 0;
 
 # OPTION MANAGMENT
-if ( !GetOptions( 'g|gff=s' => \$opt_gfffile,
-                  'o|output=s'      => \$opt_output,
-
+if ( !GetOptions( 'g|gff=s'     => \$opt_gfffile,
+                  'o|output=s'  => \$opt_output,
+                  "fasta|fa=s" => \$opt_fasta,
+                  "v|vebose!" => \$opt_verbose,
+                  "table|codon|ct=i" => \$codonTable,
                   'h|help!'         => \$opt_help ) )
 {
     pod2usage( { -message => 'Failed to parse command line',
@@ -38,9 +45,9 @@ if ($opt_help) {
                  -message => "$header \n" } );
 }
 
-if (! defined($opt_gfffile) ){
+if (! defined($opt_gfffile) or ! defined($opt_fasta)){
     pod2usage( {
-           -message => "$header\nAt least 1 parameter is mandatory:\nInput reference gff file (-g).\n\n".
+           -message => "$header\nAt least 2 parameters are mandatory:\nInput reference gff file (-g) and Input fasta file (--fasta).\n\n".
            "Ouptut is optional. Look at the help documentation to know more.\n",
            -verbose => 0,
            -exitval => 1 } );
@@ -59,19 +66,31 @@ else{
   $gffout = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 3);
 }
 
+if($codonTable<0 and $codonTable>25){
+  print "$codonTable codon table is not a correct value. It should be between 0 and 25 (0,23 and 25 can be problematic !)\n";
+}
+else{
+  print "We will use the codon table ".$codonTable.". If it is not what you want please stop the tool and use the --table option. \n";
+}
+
                 #####################
                 #     MAIN          #
                 #####################
 
+####################
+# index the genome #
+my $db = Bio::DB::Fasta->new($opt_fasta);
+print ("Genome fasta parsed\n");
+
 ######################
 ### Parse GFF input #
 my ($hash_omniscient, $hash_mRNAGeneLink) = slurp_gff3_file_JD({ input => $opt_gfffile
-                                                              });
+                                                            });
 print ("GFF3 file parsed\n");
 
 ###
 # Fix frame
-fil_cds_frame($hash_omniscient);
+fil_cds_frame($hash_omniscient, $db, $opt_verbose);
 
 ###
 # Print result
@@ -90,7 +109,7 @@ The result is written to the specified output file, or to STDOUT.
 
 =head1 SYNOPSIS
 
-    ./gff3_fix_cds_frame.pl -g infile.gff [ -o outfile ]
+    ./gff3_fix_cds_frame.pl -g infile.gff -f fasta[ -o outfile ]
     ./gff3_fix_cds_frame.pl --help
 
 =head1 OPTIONS
@@ -99,7 +118,19 @@ The result is written to the specified output file, or to STDOUT.
 
 =item B<-g>, B<--gff> or B<-ref>
 
-Input GFF3 file that will be read (and sorted)
+Input GFF3 file
+
+=item B<-fa> or B<--fasta>
+
+Genome fasta file
+
+=item B<--ct>, B<--codon> or B<--table>
+
+Codon table to use. 0 By default.
+
+=item B<-v> or B<--verbose>
+
+Add verbosity
 
 =item B<-o> or B<--output>
 

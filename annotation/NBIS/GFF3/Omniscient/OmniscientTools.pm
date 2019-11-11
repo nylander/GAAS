@@ -972,7 +972,7 @@ sub create_or_replace_tag{
 #and 2 means that there are two extra bases (the second and third bases of the codon) before the first codon.
 sub fil_cds_frame {
 
-	my ($hash_omniscient)=@_;
+	my ($hash_omniscient, $db, $verbose)=@_;
 
 	foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
 
@@ -993,18 +993,105 @@ sub fil_cds_frame {
 						@cds_list=sort {$b->start <=> $a->start}  @{$hash_omniscient->{'level3'}{'cds'}{$level2_ID}};
 					}
 
-
-					my $extra_base_start_cds=0;
-					my $frame=0;
-					foreach my $cds_feature ( @cds_list) {
-						$cds_feature->frame($frame);
-						my $cds_length=$cds_feature->end-$cds_feature->start +1;
-						$frame=(3-(($cds_length-$frame)%3))%3; #second modulo allows to avoid the frame with 3. Instead we have 0.
-					}
+					my $phase = _get_cds_start_phase( $db, $hash_omniscient->{'level3'}{'cds'}{$level2_ID} );
+          if ($phase ) { #If no phase found we keep original, otherwise we loop over CDS features to set the correct phase
+            foreach my $cds_feature ( @cds_list) {
+              my $original_phase = $cds_feature->frame;
+              if ($original_phase != $phase ){
+                print "Original phase $original_phase replaced by $phase for ".$cds_feature->_tag_value("ID")."\n" if $verbose;
+                $cds_feature->frame($phase);
+              }
+  						my $cds_length=$cds_feature->end-$cds_feature->start +1;
+  						$phase=(3-(($cds_length-$phase)%3))%3; #second modulo allows to avoid the frame with 3. Instead we have 0.
+  					}
+          }
 				}
 			}
 		}
 	}
+}
+
+# @Purpose: get phase of the start of a CDS
+# @input: 1 =>  $db of the fasta genome, list of CDS features, codon table
+# @output 1 => integer (0,1,2) or undef
+sub _get_cds_start_phase {
+  my ($db, $cds_list, $codonTableId) = @_;
+
+  if(! $codonTableId){$codonTableId = 0;}
+
+  my $cds_dna_seq = undef;
+  my @cds_list_sorted=sort {$a->start <=> $b->start}  @{$cds_list};
+  foreach my $cds_feature ( @cds_list_sorted) {
+    $cds_dna_seq .= $db->seq( $cds_feature->seq_id, $cds_feature->start, $cds_feature->end );
+  }
+  my $cds_obj = Bio::Seq->new(-seq => $cds_dna_seq, -alphabet => 'dna' );
+  #Reverse the object depending on strand
+  if ($cds_list->[0]->strand == -1 or $cds_list->[0]->strand eq "-"){
+    $cds_obj = $cds_obj->revcom();
+  }
+  my $codonTable = Bio::Tools::CodonTable->new( -id => $codonTableId);
+  # case we have start codon => phase 0
+  if ($codonTable->is_start_codon(substr($cds_obj->seq, 0, 3)) ) {
+    return 0;
+  }# No start codon we have to check the phase
+  else{
+      #try wihtout offset
+      my $protein_seq_obj = $cds_obj->translate();
+      my $lastChar =  substr $protein_seq_obj->seq(),-1,1;
+      my $count = () = $protein_seq_obj->seq() =~ /\*/g;
+      if ($lastChar eq "*"){ # if last char is a stop we remove it
+
+        if ($count == 1){
+            #print "Missing start codon, phase 0, stop present\n";
+            return 0;
+        }
+      }
+      else{
+        if ($count == 0){
+          #print "Missing start codon, phase 0, missing stop codon\n";
+          return 0;
+        }
+      }
+
+      #try wiht offset (+2 nucleotide)
+      $protein_seq_obj = $cds_obj->translate(-offset => 3); #remove 2 nucleotide at the beginning
+      $lastChar =  substr $protein_seq_obj->seq(),-1,1;
+      $count = () = $protein_seq_obj->seq() =~ /\*/g;
+      if ($lastChar eq "*"){ # if last char is a stop we remove it
+        if ($count == 1){
+            #print "Missing start codon, phase +2, stop present\n";
+            return 2;
+        }
+      }
+      else{
+        if ($count == 0){
+          #print "Missing start codon, phase +2, missing stop codon\n";
+          return 2;
+        }
+      }
+
+      #try wiht offset (+1 nucleotide)
+      $protein_seq_obj = $cds_obj->translate(-offset => 2); #remove 2 nucleotide at the beginning
+      $lastChar =  substr $protein_seq_obj->seq(),-1,1;
+      $count = () = $protein_seq_obj->seq() =~ /\*/g;
+      if ($lastChar eq "*"){ # if last char is a stop we remove it
+        if ($count == 1){
+            #print "Missing start codon, phase +1, stop present\n";
+            return 1;
+        }
+      }
+      else{
+        if ($count == 0){
+          #print "Missing start codon, phase +1, missing stop codon\n";
+          return 1;
+        }
+      }
+
+      # always stop codon in the middle of the sequence... cannot determine correct phase, keep original phase and trow a warning !
+      warn "WARNING OmniscientTools _get_cds_start_phase: No phase found for the CDS. ".
+      "All frames contain an internal stop codon, thus we cannot determine the correct phase. We will keep original stored phase information.\n";
+      return undef;
+  }
 }
 
 sub info_omniscient {
