@@ -121,7 +121,7 @@ cd GAAS
         ```
 
 
-   * B.2) Add the path to the BILS perl library as well as the bin folder containing all tools. You can add in you *~/.bashrc* or *~/.profile* file.
+   * B.2) Add the path to the NBIS perl library as well as the bin folder containing all tools. You can add in you *~/.bashrc* or *~/.profile* file.
       ```
       export PERL5LIB=$PERL5LIB:/pathTo/GAAS/annotation
       export PATH=${PATH}:/pathTo/GAAS/annotation/Tools/bin
