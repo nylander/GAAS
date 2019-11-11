@@ -74,8 +74,8 @@ my @COMONTAG = ('locus_tag','gene_id');
 # $locus_tag => tag to consider for gathering features (in top of the default one)
 # $gff_version => Int (if is used, force the parser to use this gff parser instead of guessing)
 # $verbose =>define the deepth of verbosity
-# $nocheck is to deactivate sanity check. It's in devellopement. We should be able to tune the deactivation of selected checks. Cuurently linked to kraken analysis, we deativate everythong except _remove_orphan_l1
-
+# $nocheck is to deactivate sanity check. We can tune the deactivation of check steps using nocheck_skip.
+# $nocheck_skip [list] is to avoid the deactivation of all check with the $nocheck parameter. Check steps listed here will not be deactivated.
 sub slurp_gff3_file_JD {
 
 	my $start_run = time();
@@ -90,12 +90,13 @@ sub slurp_gff3_file_JD {
 	if(ref($args) ne 'HASH'){ print "Hash Arguments expected for slurp_gff3_file_JD. Please check the call.\n";exit;	}
 
 	# Declare all variables and fill them
-	my ($file, $gff_version, $locus_tag, $verbose, $nocheck, $quiet, $kingdom);
+	my ($file, $gff_version, $locus_tag, $verbose, $nocheck, $quiet, $kingdom, $nocheck_skip);
 	if( defined($args->{input})) {$file = $args->{input};} 		 else{ print "Input data --input is mandatory when using slurp_gff3_file_JD!"; exit;}
 	if( ! defined($args->{gff_version})) {$gff_version = undef;} else{ $gff_version = $args->{gff_version}; }
 	if( ! defined($args->{locus_tag})) {$locus_tag = undef;}     else{ push @COMONTAG, $args->{locus_tag}; } #add a new comon tag to the list if provided.}
 	if( ! defined($args->{verbose}) ) {$verbose = 0;}    		 else{ $verbose = $args->{verbose}; }
 	if( ! defined($args->{nocheck})) {$nocheck = undef;} 		 else{ $nocheck = $args->{nocheck}; }
+  if( ! defined($args->{nocheck_skip})) {$nocheck_skip = undef;} 		 else{ $nocheck_skip = $args->{nocheck_skip}; } # list of check to skip
 	if( ! defined($args->{quiet})) {$quiet = undef;}     		 else{ $quiet = $args->{quiet}; $verbose=0; }
 	# $kingdom => Default eukaryote. In eukaryote mode, when features overlap at level3 and come from two different level 2 features of the same type, they will be merged under the same level 1 feature. In prokaryote case they don't because genes can overlap.
 	if( defined($args->{kingdom}) and (($args->{kingdom} =~ 'prok') or ($args->{kingdom} eq 'p') ) ){
@@ -251,54 +252,67 @@ sub slurp_gff3_file_JD {
     #Check if duplicate detected:
     _check_duplicates(\%duplicate, \%omniscient, $verbose);
     if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
-	_printSurrounded("Check1: _check_sequential",30,"*") if ($verbose >= 1) ;
 
-	if(! $nocheck){
-	    #Check sequential if we can fix cases. Hash to be done first, else is risky that we remove orphan L1 feature ... that are not yet linked to a sequential bucket
-		if( keys %infoSequential ){ #hash is not empty
+
+	if(! $nocheck or  grep( /^_check_sequential/, $nocheck_skip ) ) {
+	  #Check sequential if we can fix cases. Hash to be done first, else is risky that we remove orphan L1 feature ... that are not yet linked to a sequential bucket
+    _printSurrounded("Check1: _check_sequential",30,"*") if ($verbose >= 1) ;
+    if( keys %infoSequential ){ #hash is not empty
 	    	_check_sequential(\%infoSequential, \%omniscient, \%miscCount, \%uniqID, \%uniqIDtoType, \%locusTAG, \%mRNAGeneLink, $verbose);
 	    	undef %infoSequential;
 	    }
 	    else{ print "Nothing to check as sequential !\n" if($verbose >= 1) }
 		if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n"; $previous_time = time();}
-		_printSurrounded("Check2: _check_l2_linked_to_l3",30,"*") if($verbose >= 1) ;
+  }
 
+  if(! $nocheck or  grep( /^_check_l2_linked_to_l3/, $nocheck_skip ) ) {
 	    #Check relationship between l3 and l2
+      _printSurrounded("Check2: _check_l2_linked_to_l3",30,"*") if($verbose >= 1) ;
 	    _check_l2_linked_to_l3(\%omniscient, \%mRNAGeneLink, \%miscCount, \%uniqID, \%uniqIDtoType, $verbose); # When creating L2 missing we create as well L1 if missing too
 		if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
-		_printSurrounded("Check3: _check_l1_linked_to_l2",30,"*") if ($verbose >= 1) ;
+  }
 
+  if(! $nocheck or  grep( /^_check_l1_linked_to_l2/, $nocheck_skip ) ) {
 	    #Check relationship between mRNA and gene.  / gene position are checked! If No Level1 we create it !
+      _printSurrounded("Check3: _check_l1_linked_to_l2",30,"*") if ($verbose >= 1) ;
 	    _check_l1_linked_to_l2(\%omniscient, $verbose);
 		if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
-		_printSurrounded("Check4: _remove_orphan_l1",30,"*") if ($verbose >= 1) ;
 	}
 
+  if(! $nocheck or  grep( /^_remove_orphan_l1$/, $nocheck_skip ) ) {
 	    #check level1 has subfeature else we remove it
+      _printSurrounded("Check4: _remove_orphan_l1",30,"*") if ($verbose >= 1) ;
 	  	_remove_orphan_l1(\%omniscient, \%miscCount, \%uniqID, \%uniqIDtoType, \%mRNAGeneLink, $verbose); #or fix if level2 is missing (refseq case)
 		if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
-	  	_printSurrounded("Check5: _check_exons",30,"*") if ($verbose >= 1) ;
+  }
 
-	if(! $nocheck){
+	if(! $nocheck or  grep( /^_check_exons/, $nocheck_skip ) ) {
 	    #Check relationship L3 feature, exons have to be defined... / mRNA position are checked!
+      _printSurrounded("Check5: _check_exons",30,"*") if ($verbose >= 1) ;
 	    _check_exons(\%omniscient, \%mRNAGeneLink, \%miscCount, \%uniqID,  \%uniqIDtoType, $verbose);
 		if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n"; $previous_time = time();}
-		_printSurrounded("Check6: _check_utrs",30,"*") if ($verbose >= 1) ;
+  }
 
+  if(! $nocheck or  grep( /^_check_utrs/, $nocheck_skip ) ) {
 		#Check relationship L3 feature, exons have to be defined... / mRNA position are checked!
+    _printSurrounded("Check6: _check_utrs",30,"*") if ($verbose >= 1) ;
 	    _check_utrs(\%omniscient, \%mRNAGeneLink, \%miscCount, \%uniqID,  \%uniqIDtoType, $verbose);
 		if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n"; $previous_time = time();}
-		_printSurrounded("Check7: _check_all_level2_positions",30,"*") if ($verbose >= 1) ;
+	}
 
+  if(! $nocheck or  grep( /^_check_all_level2_positions/, $nocheck_skip ) ) {
 		# Check rna positions compared to its l2 features
+    _printSurrounded("Check7: _check_all_level2_positions",30,"*") if ($verbose >= 1) ;
 		_check_all_level2_positions(\%omniscient, $verbose);
 		if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
-		_printSurrounded("Check8: _check_all_level1_positions",30,"*") if ($verbose >= 1) ;
+	}
 
+  if(! $nocheck or  grep( /^_check_all_level1_positions/, $nocheck_skip ) ) {
 		# Check gene positions compared to its l2 features
+    _printSurrounded("Check8: _check_all_level1_positions",30,"*") if ($verbose >= 1) ;
 		_check_all_level1_positions(\%omniscient, $verbose);
 		if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
-
+  }
 
 		#check loci names (when overlap should be the same if type is the same)
 		if ($kingdom eq "euka"){
@@ -307,6 +321,7 @@ sub slurp_gff3_file_JD {
 		    if($verbose >= 1)  {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
 		}
 
+  if(! $nocheck or  grep( /^_check_identical_isoforms/, $nocheck_skip ) ) {
 		#check identical isoforms
 		_printSurrounded("Check10: _check_identical_isoforms",30,"*") if ($verbose >= 1) ;
 		_check_identical_isoforms(\%omniscient, \%mRNAGeneLink, $verbose);

@@ -1,17 +1,16 @@
 #!/usr/bin/env perl
 
-use Carp;
 use strict;
+use warnings;
+use Carp;
 use File::Basename;
 use Getopt::Long;
-use Data::Dumper;
 use Statistics::R;
 use IO::File;
 use Pod::Usage;
 use List::MoreUtils qw(uniq);
 use Clone 'clone';
-use NBIS::Handler::GFF3handler qw(:Ok);
-use NBIS::Handler::GXFhandler qw(:Ok);
+use NBIS::GFF3::Omniscient;
 use NBIS::Plot::R qw(:Ok);
 
 #####
@@ -26,7 +25,7 @@ use NBIS::Plot::R qw(:Ok);
 
 my $usage = qq{
 ########################################################
-# NBIS 2018 - Sweden                                   #  
+# NBIS 2018 - Sweden                                   #
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
@@ -55,11 +54,11 @@ if ( !GetOptions(
 # Print Help and exit
 # Print Help and exit
 if ($help) {
-    pod2usage( { -message => "$usage", 
+    pod2usage( { -message => "$usage",
                  -verbose => 2,
                  -exitval => 2 } );
 }
- 
+
 if ( ! (defined($gff)) ){
     pod2usage( {
            -message => "\nAt least 1 parameter is mandatory:\nInput reference gtf file (--f)\n\n".
@@ -68,22 +67,12 @@ if ( ! (defined($gff)) ){
            -exitval => 2 } );
 }
 
-
-## Manage output file
-$outfile=~ s/.gff//g;
-
-my $ostreamPlotFile = new IO::File;
-my $pathPlotFile=$outfile."-geneMapped.txt";
-my $pathOutPlot=$outfile."-geneMapped_plot.pdf"; 
-$ostreamPlotFile->open($pathPlotFile, 'w' ) or
-        croak(
-          sprintf( "Can not open '%s' for writing %s", $pathPlotFile, $! )
-        );
-
 ## Manage output file
 my $gffout;
 my $outReport     = IO::File->new();
 if ($outfile) {
+  $outfile=~ s/.gff//g;
+
   open(my $fh, '>', $outfile.".gff") or die "Could not open file '$outfile' $!";
   $gffout= Bio::Tools::GFF->new(-fh => $fh, -gff_version => 3 );
 
@@ -95,9 +84,23 @@ else{
   $outReport->fdopen( fileno(STDOUT), 'w' ) or die "Could not open file STDOUT $!";
 }
 
+## -----Manage plot output file-----
+my $ostreamPlotFile = new IO::File;
+my $pathPlotFile="geneMapped.txt";
+my $pathOutPlot="geneMapped_plot.pdf";
+if ($outfile) {
+  $pathPlotFile=$outfile."-geneMapped.txt";
+  $pathOutPlot=$outfile."-geneMapped_plot.pdf";
+}
+$ostreamPlotFile->open($pathPlotFile, 'w' ) or
+        croak(
+          sprintf( "Can not open '%s' for writing %s", $pathPlotFile, $! )
+        );
+
+# Message
 my $messageValue;
 if ( defined($valueK) ){
-  $messageValue = "You choose to keep in output only genes mapped over $valueK percent.\n" 
+  $messageValue = "You choose to keep in output only genes mapped over $valueK percent.\n"
 }else{
   $messageValue = "We will keep all the mapped features.\n";
   $valueK=0;
@@ -119,7 +122,8 @@ if ($outfile) {
 # 1 is to put on the nocheck option
 my ($hash_omniscient, $hash_mRNAGeneLink) =  slurp_gff3_file_JD({
                                                                input => $gff,
-                                                               nocheck => 1
+                                                               nocheck => 1,
+                                                               nocheck_skip => qw(_remove_orphan_l1)
                                                                });
 
 #track stats
@@ -128,17 +132,17 @@ my $nbRecordMap=0; #total original gene that map before check the threshold
 my $nbOriginalL0Map=0; #total map before check the threshold
 my $nbOriginal_multiMap_seqdif=0; #number of gene that have multimap on seq location before check the threshold
 my $nbOriginal_total_multiMap_seqdif=0; #total of multimap on different seq before check the threshold
-my $nbOriginal_multiMap_sameseq=0;  #number of gene that have multimap on same seq after check the threshold 
+my $nbOriginal_multiMap_sameseq=0;  #number of gene that have multimap on same seq after check the threshold
 my $nbOriginal_total_multiMap_sameseq=0; #total of multimap on different seq after check the threshold
 
 #my $nbMapL1=0; #total gene that map after check the threshold
 #my $nbMapL1Uniq=0;
 my $nbGeneIdUniqMap=0;
-my $nb_multiMap_seqdif=0;  #number of gene that have multimap on different seq after check the threshold 
+my $nb_multiMap_seqdif=0;  #number of gene that have multimap on different seq after check the threshold
 my $nb_total_multiMap_seqdif=0; #total of multimap on different seq after check the threshold
-my $nb_total_multiMap_seqdif_bothcase=0; 
-my $nb_total_multiMap_sameseq_bothcase=0; 
-my $nb_multiMap_sameseq=0;  #number of gene that have multimap on same seq after check the threshold 
+my $nb_total_multiMap_seqdif_bothcase=0;
+my $nb_total_multiMap_sameseq_bothcase=0;
+my $nb_multiMap_sameseq=0;  #number of gene that have multimap on same seq after check the threshold
 my $nb_total_multiMap_sameseq=0; #total of multimap on different seq after check the threshold
 my $bothCase=0;
 
@@ -154,11 +158,11 @@ my $list_uID_new_omniscient;
 my $loop=0;
 
 #################
-# == LEVEL level1 
+# == LEVEL level1
 ################
 foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
   foreach my $id_tag_key_level1 (keys %{$hash_omniscient->{'level1'}{$primary_tag_key_level1}}){
-    
+
     ########################################
     # Prepare hash in case of muli mapping #
     ########################################
@@ -179,7 +183,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
     #################
     # == LEVEL 2 == #
     #################
-    foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...      
+    foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
       if ( exists_keys($hash_omniscient, ('level2',$primary_tag_key_level2,$id_tag_key_level1) ) ){
         foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1}}) {
           push(@{$listOfProperHash{$feature_level2->seq_id()}{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1}},$feature_level2) ;
@@ -218,21 +222,21 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
       $nbOriginal_total_multiMap_seqdif+=$nbMapTrueHere;
     }
 
-    
+
     my $sucessMapL0=0;
     my $sucessMapL1OusideScope=0;
     my $firstL0Map="yes";
-    
+
 
     # A record contains 1 or several LEVEL 0
     ################
     # == LEVEL 0
     ################
     foreach my $seqid_key (keys %listOfProperHash){
-      
+
       #if it contains a feature mapped we continue
       if(exists_keys(\%listHashWithTrue,$seqid_key)){
-        
+
         #keep track of statistics
         if($firstL0Map){ # first record of
           $nbRecordMap++;
@@ -245,10 +249,10 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
         if(! exists_keys($hash,('level3'))){
           $nb_noCaseL3++;
         }
-      
+
         my ($hash_omniscient_clean, $hash_mRNAGeneLink_clean) = slurp_gff3_file_JD({ input => $hash
                                                                                    });
-        
+
         if($verbose){
           print "\nA proper hash:\n";
           print_omniscient($hash_omniscient_clean, $gffout);
@@ -269,27 +273,26 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
             $gene_feature = $hash_omniscient_clean->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1};
             my @ListmrnaNoMatch;
             print "level1 feature:\n".$gene_feature->gff_string."\n" if $verbose;
-            
+
             ################
             # == LEVEL 2
             ################
 
             my $sucessMapL2=0;
             foreach my $primary_tag_key_level2 (keys %{$hash_omniscient_clean->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
-                
+
               if ( exists_keys($hash_omniscient_clean, ('level2',$primary_tag_key_level2,$id_tag_key_level1) ) ){
                 foreach my $feature_level2 ( @{$hash_omniscient_clean->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1}}) {
                   print "level2 feature:\n".$feature_level2->gff_string."\n" if $verbose;
 
                   my $percentMatch=0;
-                  my $matchSize=0;
 
                   my $level2_ID = lc($feature_level2->_tag_value('ID'));
 
                   ###################################################
                   # == LEVEL 3
                   # We will look the size of mapped features
-                  # Feature can be exon ,cds or utr in that order 
+                  # Feature can be exon ,cds or utr in that order
                   ###################################################
 
                   my $refListFetaureL3 = takeOneListLevel3From1idLevel2($hash_omniscient_clean, $level2_ID);
@@ -301,12 +304,12 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
                     }
                     next;
                   }
-                  
+
                   my $matchSize = 0;
                   my $matchFeatureExample = undef;
 
                   foreach my $feature (@{$refListFetaureL3}){
-                    print "level3 feature:\n".$feature->gff_string."\n" if $verbose;  
+                    print "level3 feature:\n".$feature->gff_string."\n" if $verbose;
                     my $end=$feature->end();
                     my $start=$feature->start();
 
@@ -322,9 +325,9 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
                     }
                     elsif(! $mapping_state eq "false"){
                       print "error !! We don't understand the $kraken_tag attribute value found for the feature".$feature->gff_string()."\n Indeed, we expect false or true.\n";
-                    }               
+                    }
                   }
-                    
+
 
                   #compute the total sie (has to be compute against the original hash)
                   my $totalSize=0;
@@ -338,16 +341,16 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
                   #if($percentMatch > 100){
                   #  print $id_tag_key_level1."\n";exit;
                   #}
-                    
+
                   #######
                   # Add information to gff
                   ########
                   if ($percentMatch >= $valueK) {
-                    $sucessMapL2++;   
+                    $sucessMapL2++;
                     #We print gene only if a percentage match value is superior to the threshold fixed (No threshold equal everything = 0)
                     $percentMatch = sprintf('%.2f', $percentMatch);
 
-                    manage_gene_label($gene_feature, $percentMatch, $kraken_tag); # add info to level1 (gene) feature 
+                    manage_gene_label($gene_feature, $percentMatch, $kraken_tag); # add info to level1 (gene) feature
 
                     create_or_replace_tag($feature_level2,$kraken_tag,$percentMatch."%"); # add info to level2 (mRNA) feature
                     create_or_replace_tag($feature_level2,'description',"Mapped at ".$percentMatch."%"); # add info to level2 (mRNA) feature
@@ -389,15 +392,15 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
             $loop++;
           }
           elsif($loop == 1){
-            $new_omniscient, $list_uID_new_omniscient = merge_omniscients($new_omniscient, $hash_omniscient_clean);
+            ($new_omniscient, $list_uID_new_omniscient) = merge_omniscients($new_omniscient, $hash_omniscient_clean);
             $loop++;
           }
           else{
-            $new_omniscient, $list_uID_new_omniscient = merge_omniscients($new_omniscient, $hash_omniscient_clean, $list_uID_new_omniscient);
+            ($new_omniscient, $list_uID_new_omniscient) = merge_omniscients($new_omniscient, $hash_omniscient_clean, $list_uID_new_omniscient);
           }
 
           #keep track of successful multimap (same sequences) > Cases saved with different GeneID in new_omniscient ()
-          if($sucessMapL1 > 1){    
+          if($sucessMapL1 > 1){
             $nb_multiMap_sameseq++;
             $nb_total_multiMap_sameseq+=$sucessMapL1;
           }
@@ -417,7 +420,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
         $nb_multiMap_seqdif++;
         $nb_total_multiMap_seqdif+=$sucessMapL0;
       }
-    }  
+    }
   }
 }
 print "Calcul of mapped percentage length finished !\n";
@@ -427,7 +430,7 @@ print "Calcul of mapped percentage length finished !\n";
 # Check if nothing mapped
 my $nbKey = keys %mappedPercentPerGene;
 if ($nbKey == 0){
- print "No succefully mapped feature found!\n"; 
+ print "No succefully mapped feature found!\n";
 }
 
 ###############
@@ -443,7 +446,7 @@ foreach my $key (keys %mappedPercentPerGene){
 print_omniscient($new_omniscient, $gffout);
 
 my $nbEndGene = nb_feature_level1($new_omniscient);
-my $total_multi_map = $nbEndGene - $nbOriginalL0Map; 
+my $total_multi_map = $nbEndGene - $nbOriginalL0Map;
 #my $nbGeneMapped = $nbOriginalL0Map - ($nbOriginal_total_multiMap_seqdif - $nbOriginal_multiMap_seqdif); # Total of gene mapped
 
 my $messageEnd;
@@ -451,7 +454,7 @@ $messageEnd.= "\nTo resume:\n==========\n\n";
 $messageEnd.= "The original file contained $nbOriginalGene genes\n\n";
 
 $messageEnd.= "Before filtering:\nWe have $nbRecordMap mapped genes for a total of $nbOriginalL0Map maps.\n$nbOriginal_multiMap_seqdif genes have several maps on different sequences for a total of $nbOriginal_total_multiMap_seqdif maps.\n";
-$messageEnd.= "/!\ Multi map on same sequence not taken into account\n\n";
+$messageEnd.= "/!\\ Multi map on same sequence not taken into account\n\n";
 
 $messageEnd.= "After filtering:\nWe have $nbGeneIdUniqMap mapped genes for a total of $nbEndGene maps.(Over the $valueK % match threshold).\n";
 my $nbGeneOneMap=$nbGeneIdUniqMap - $nb_multiMap_seqdif - $nb_multiMap_sameseq - $bothCase;
@@ -475,23 +478,30 @@ print $outReport $messageEnd;
 #############
 #PLOT
 #############
-# Create the legend
-my $nbOfGeneSelected= $nbGeneIdUniqMap;
-# parse file name to remove extension
-my ($file1,$dir1,$ext1) = fileparse($gff, qr/\.[^.]*/);
-my $legend=$nbOfGeneSelected." genes selected from ".$file1;
-
-my @listTuple=([$pathPlotFile,$legend]);
-my $R_command=rcc_density_one_row_per_file(\@listTuple,"histogram","Percentage of gene length mapped","10","",$pathOutPlot); # create the R command
-execute_R_command($R_command);
-
 my $messagePlot;
-$messagePlot = "Plot done in the pdf file named $pathOutPlot\n";
+if ($nbGeneIdUniqMap){
+  # Create the legend
+  my $nbOfGeneSelected = $nbGeneIdUniqMap;
+  # parse file name to remove extension
+  my ($file1,$dir1,$ext1) = fileparse($gff, qr/\.[^.]*/);
+  my $legend=$nbOfGeneSelected." genes selected from ".$file1;
+
+  my @listTuple=([$pathPlotFile,$legend]);
+  my $R_command=rcc_density_one_row_per_file(\@listTuple,"histogram","Percentage of gene length mapped","10","",$pathOutPlot); # create the R command
+  execute_R_command($R_command);
+
+  my $messagePlot;
+  $messagePlot = "Plot done in the pdf file named $pathOutPlot\n";
+}
+else{
+  $messagePlot = "Cannot perform any plot without data.\n";
+}
 
 #print info
 if ($outfile) {
   print $outReport $messagePlot;
-}else{print $messagePlot;}
+}
+else{print $messagePlot;}
 
 # Delete temporary file
 unlink "$pathPlotFile";
@@ -513,8 +523,9 @@ print "We finished !! Bye Bye.\n";
                  ##
 
 
-# We have the l1 id from hash omniscient and the omniscient, and we are looking for the proper feature l2 and its subfeture l3. 
-# When this function is called, a new_omniscient containing only one isoform has been newly created. To be sure to retrieve the proper l2 from which the current l2 has been created,
+# We have the l1 id from hash omniscient and the omniscient, and we are looking for the proper feature l2 and its subfeture l3.
+# When this function is called, a new_omniscient containing only one isoform has been newly created.
+# To be sure to retrieve the proper l2 from which the current l2 has been created,
 # We look a the transcript_id attribute rather than the ID, because only this attribute is stayed un-modified.
 #
 sub compute_total_size{
@@ -524,7 +535,7 @@ sub compute_total_size{
   my $total_size=0;
 
 
-      foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...            
+      foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
         if ( exists_keys($hash_omniscient, ('level2',$primary_tag_key_level2, $l1_original_id) ) ){
           my $found=undef;
           foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$l1_original_id}}) {
@@ -555,11 +566,11 @@ sub compute_total_size{
   return $total_size;
 }
 
-# Feature we look at are in the order exon ,cds or utr 
+# Feature we look at are in the order exon ,cds or utr
 #
 sub takeOneListLevel3From1idLevel2 {
   my ($hash_omniscient, $level2_ID)=@_;
-  
+
   my $refListFetaureL3=undef;
   my $refListExon=undef;
   my $refListCDS=undef;
@@ -579,7 +590,7 @@ sub takeOneListLevel3From1idLevel2 {
       }
     }
   }
-  if ( exists_keys($hash_omniscient,('level3','cds',$level2_ID) ) and ! $get_one_true){ 
+  if ( exists_keys($hash_omniscient,('level3','cds',$level2_ID) ) and ! $get_one_true){
     $refListFetaureL3 = $hash_omniscient->{'level3'}{'cds'}{$level2_ID};
     $refListCDS = $hash_omniscient->{'level3'}{'cds'}{$level2_ID};
 
@@ -640,7 +651,7 @@ sub manage_gene_label{
   else{ # kraken_mapped tag exists, check if we have to change it
     my @values = $gene_feature->get_tag_values($kraken_tag);
     my $alreadyMap = lc(shift @values) ;
-    if ($alreadyMap eq "false" or $alreadyMap eq "true"){ 
+    if ($alreadyMap eq "false" or $alreadyMap eq "true"){
       label_by_value($gene_feature, $percentMatch, $kraken_tag);
     }
     elsif ( ($alreadyMap ne 'full') and (( $percentMatch != 0 ) and ($alreadyMap eq 'none')) ){ # if the existing tag is full or the new tag we want to add is none ($percentMatch == 0), we skip it.
@@ -696,7 +707,7 @@ The script take a gff file as input. It will analyse the kraken_mapped attribute
 /!\ The script handles chimeric files (i.e containg gene part mapped on the template genome and others on the de-novo one)
 /!\/!\ If the file is complete (containing kraken_mapped="TRUE" and kraken_mapped="FALSE" attributes), the script calcul the real percentage lentgh that has been mapped. Else the calcul is only based on feature with kraken_mapped="TRUE" attributes. So in this case the result most of time will be 100%, execpt for cases where several piecies are mapped at different area of the de-novo genome.
 According to a threshold (0 by default), gene with a mapping percentage over that value will be reported.
-A plot nammed geneMapped_plot.pdf is performed to visualize the result. 
+A plot nammed geneMapped_plot.pdf is performed to visualize the result.
 
 =head1 SYNOPSIS
 
