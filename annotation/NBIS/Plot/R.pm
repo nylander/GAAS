@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-package BILS::Plot::R ;
+package NBIS::Plot::R ;
 
 use strict;
 use Bio::Tools::GFF;

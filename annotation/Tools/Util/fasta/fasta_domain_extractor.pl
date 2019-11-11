@@ -3,7 +3,7 @@
 ###################################################
 # domainExtractor.pl - Jacques Dainat 01/2015     #
 # Bioinformatics Infrastructure for Life Sciences #
-# jacques.dainat@bils.se			  #
+# jacques.dainat@nbis.se			  #
 ###################################################
 
 
@@ -14,7 +14,7 @@ use Getopt::Long;
 use IO::File;
 my $header_nbis = qq{
 ########################################################
-# BILS 2018 - Sweden                                   #  
+# NBIS 2018 - Sweden                                   #  
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################

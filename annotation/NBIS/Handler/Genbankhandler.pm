@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-package BILS::Handler::Genbankhandler ;
+package NBIS::Handler::Genbankhandler ;
 
 use strict;
 use Clone 'clone';

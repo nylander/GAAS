@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
-## BILS 2015 (www.bils.se)
-## jacques.dainat@bils.se
+## NBIS 2015 (www.nbis.se)
+## jacques.dainat@nbis.se
 
 use strict;
 use Getopt::Long;

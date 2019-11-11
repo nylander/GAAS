@@ -1,20 +1,21 @@
 #!/usr/bin/perl -w
 
-package BILS::GFF3::Statistics ;
+package NBIS::GFF3::Omniscient::Statistics;
 
 use strict;
 use warnings;
-use Data::Dumper;
-use Bio::SeqIO;
-use Clone 'clone';
-use BILS::Handler::GFF3handler qw(:Ok);
-use Exporter qw(import);
+use Bio::Tools::GFF;
+use Bio::SeqIO;;
+use NBIS::GFF3::Omniscient::OmniscientTools;
+use Exporter;
+our @ISA = qw(Exporter);
+our @EXPORT = qw( gff3_statistics );
 
-our $VERSION     = 1.00;
-our @ISA         = qw(Exporter);
-our @EXPORT_OK   = qw(gff3_statistics);
-our %EXPORT_TAGS = ( DEFAULT => [qw()],
-                 Ok    => [qw(gff3_statistics)]);
+sub import {
+  NBIS::GFF3::Omniscient::Statistics->export_to_level(1, @_); # to be able to load the EXPORT functions by calling NBIS::GFF3::Omniscient::OmniscientI; (normal case)
+  NBIS::GFF3::Omniscient::Statistics->export_to_level(2, @_); # to be able to load the EXPORT functions by calling NBIS::GFF3::Omniscient;
+}
+
 =head1 SYNOPSIS
 
 
@@ -86,7 +87,7 @@ sub gff3_statistics {
 				}
 			}
 			if(! $feature_l1){print "Problem ! We didnt retrieve the level1 feature with id $id_l1\n";exit;}
-			
+
 			#count number of feature
 			$all_info{$tag_l2}{'level1'}{$tag_l1}{'nb_feat'}++;
 
@@ -118,7 +119,7 @@ sub gff3_statistics {
 				#print $feature_l2->gff_string()."\n";
 				#count number of feature
 				$all_info{$tag_l2}{'level2'}{$tag_l2}{'nb_feat'}++;
-				
+
 				#compute feature size
 				my $sizeFeature=($feature_l2->end-$feature_l2->start)+1;
 	  			$all_info{$tag_l2}{'level2'}{$tag_l2}{'size_feat'}+=$sizeFeature;
@@ -147,13 +148,13 @@ sub gff3_statistics {
 
 					if($counterL2_match > 0 and $counterL2_match <= $indexLastL2){
 		    			my $intronSize= $sortedList[$counterL2_match]->start - $sortedList[$counterL2_match-1]->end;
-		    			
+
 		    			#compute feature size
 		    			$all_info{$tag_l2}{'level2'}{'intron'}{'size_feat'}+=$intronSize;
 
 		    			#create distribution list
 						push @{$all_info{$tag_l2}{'level2'}{'intron'}{'distribution'}}, $sizeFeature;
-		    			
+
 		    			# grab longest
 			    	  	if ((! $all_info{$tag_l2}{'level2'}{'intron'}{'longest'}) or ($all_info{$tag_l2}{'level2'}{'intron'}{'longest'} < $intronSize)){
     						$all_info{$tag_l2}{'level2'}{'intron'}{'longest'}=$intronSize;
@@ -182,7 +183,7 @@ sub gff3_statistics {
 		    		if(exists ($hash_omniscient->{'level3'}{$tag_l3}{$id_l2})){
 						my $sizeMultiFeat=0;
 						my $counterL3=-1;
-						my $indexLast = $#{$hash_omniscient->{'level3'}{$tag_l3}{$id_l2}};				
+						my $indexLast = $#{$hash_omniscient->{'level3'}{$tag_l3}{$id_l2}};
 
 						my @sortedList = sort {$a->start <=> $b->start} @{$hash_omniscient->{'level3'}{$tag_l3}{$id_l2}};
 		    			foreach my $feature_l3 ( @sortedList ){
@@ -191,16 +192,16 @@ sub gff3_statistics {
 		    				$counterL3++;
 
 		    				#-------------------------------------------------
-		    				#				Manage Introns   
+		    				#				Manage Introns
 		    				#-------------------------------------------------
-		    				# from the second intron to the last (from index 1 to last index of the table sortedList) 
+		    				# from the second intron to the last (from index 1 to last index of the table sortedList)
 		    				# We go inside this loop only if we have more than 1 feature.
 		    				if($counterL3 > 0 and $counterL3 <= $indexLast){
 		    					my $intronSize = $sortedList[$counterL3]->start - $sortedList[$counterL3-1]->end;
-		    					
+
 		    					#compute feature size
 		    					$all_info{$tag_l2}{'level3'}{$tag_l3}{'intron'}{'size_feat'}+=$intronSize;
-		    					
+
 		    					#create distribution list
 								push @{$all_info{$tag_l2}{'level3'}{$tag_l3}{'intron'}{'distribution'}}, $sizeFeature;
 
@@ -208,12 +209,12 @@ sub gff3_statistics {
 			    	  			if ((! $all_info{$tag_l2}{'level3'}{$tag_l3}{'intron'}{'longest'}) or ($all_info{$tag_l2}{'level3'}{$tag_l3}{'intron'}{'longest'} < $intronSize)){
     								$all_info{$tag_l2}{'level3'}{$tag_l3}{'intron'}{'longest'}=$intronSize;
     							}
-    							
+
     							# grab shorter
 			    				if ((! $all_info{$tag_l2}{'level3'}{$tag_l3}{'intron'}{'shortest'}) or ($all_info{$tag_l2}{'level3'}{$tag_l3}{'intron'}{'shortest'} > $intronSize)){
 			    					$all_info{$tag_l2}{'level3'}{$tag_l3}{'intron'}{'shortest'}=$intronSize;
 			    				}
-		    					
+
 		    					#Count number
 		    					$all_info{$tag_l2}{'level3'}{$tag_l3}{'intron'}{'nb_feat'}+=1;
 		    				}
@@ -223,17 +224,17 @@ sub gff3_statistics {
 		    				$all_info{$tag_l2}{'level3'}{$tag_l3}{'size_feat'}+=$sizeFeature;
 
 		    				#-------------------------------------------------
-		    				# MANAGE SPREAD FEATURES (multi exon features) 
+		    				# MANAGE SPREAD FEATURES (multi exon features)
 		    				#-------------------------------------------------
 		    	  			if(($tag_l3 =~ /cds/) or ($tag_l3 =~ /utr/)){
 		    	  				$sizeMultiFeat+=$sizeFeature;
 		    	  				$all_info{$tag_l2}{'level3'}{$tag_l3}{'exon'}{'nb_feat'}++;
 
-		    	  				#### MANAGE piece of multi exon features (spread features) 
+		    	  				#### MANAGE piece of multi exon features (spread features)
 
 		    	  				#create distribution list of multifeature piece
 								push @{$all_info{$tag_l2}{'level3'}{$tag_l3}{'piece'}{'distribution'}}, $sizeFeature;
-		    	  			
+
 								# grab longest
 			    	  			if ((! $all_info{$tag_l2}{'level3'}{$tag_l3}{'piece'}{'longest'}) or ($all_info{$tag_l2}{'level3'}{$tag_l3}{'piece'}{'longest'} < $sizeFeature)){
     								$all_info{$tag_l2}{'level3'}{$tag_l3}{'piece'}{'longest'}=$sizeFeature;
@@ -244,7 +245,7 @@ sub gff3_statistics {
 			    				}
 		    	  			}
 		    	  			#-------------------------------------------------
-		    				# MANAGE single FEATURES (multi exon features) 
+		    				# MANAGE single FEATURES (multi exon features)
 		    				#-------------------------------------------------
 		    	  			else{
 		    	  				#count number of feature
@@ -278,7 +279,7 @@ sub gff3_statistics {
 		    			if (($tag_l3 =~ /utr/) or ($tag_l3 =~ /cds/)){
 		    				#count number of feature
 		    				$all_info{$tag_l2}{'level3'}{$tag_l3}{'nb_feat'}++;
-	    				
+
 		    				#create distribution list
 							push @{$all_info{$tag_l2}{'level3'}{$tag_l3}{'distribution'}}, $sizeMultiFeat;
 
@@ -286,7 +287,7 @@ sub gff3_statistics {
 			    	  		if ((! $all_info{$tag_l2}{'level3'}{$tag_l3}{'longest'}) or ($all_info{$tag_l2}{'level3'}{$tag_l3}{'longest'} < $sizeMultiFeat)){
     							$all_info{$tag_l2}{'level3'}{$tag_l3}{'longest'}=$sizeMultiFeat;
     						}
-    						
+
     						# grab shorter
 			    			if ((! $all_info{$tag_l2}{'level3'}{$tag_l3}{'shortest'}) or ($all_info{$tag_l2}{'level3'}{$tag_l3}{'shortest'} > $sizeMultiFeat)){
 			    				$all_info{$tag_l2}{'level3'}{$tag_l3}{'shortest'}=$sizeMultiFeat;
@@ -361,7 +362,7 @@ sub gff3_statistics {
 		push @result_list, \@result;
 
 		#extract distribution values
-		
+
 		foreach my $level (keys %{$all_info{$type}} ) {
 
 			foreach my $tag ( keys %{$all_info{$type}{$level}} ) {
@@ -425,7 +426,7 @@ sub _info_number {
 		}
 	 }
 
-	#print level3 - 
+	#print level3 -
 	foreach my $tag_l3 (sort keys %{$all_info->{'level3'}}){
 	    push @resu, sprintf("%-45s%d%s", "Number of $tag_l3"."s", $all_info->{'level3'}{$tag_l3}{'nb_feat'},"\n");
 	}

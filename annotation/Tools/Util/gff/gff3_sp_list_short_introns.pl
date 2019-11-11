@@ -8,16 +8,14 @@ use Carp;
 use Getopt::Long;
 use Pod::Usage;
 use Clone 'clone';
-use BILS::Handler::GXFhandler qw(:Ok);
-use BILS::Handler::GFF3handler qw(:Ok);
 use Bio::Tools::GFF;
-use BILS::GFF3::Statistics qw(:Ok);
+use NBIS::GFF3::Omniscient;
 
 my $header = qq{
 ########################################################
-# NBIS 2018 - Sweden                                   #  
+# NBIS 2018 - Sweden                                   #
 # jacques.dainat\@nbis.se                               #
-# Please cite BILS (www.nbis.se) when using this tool. #
+# Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 };
 
@@ -66,7 +64,7 @@ else{
 
 
 # #####################################
-# # END Manage OPTION  
+# # END Manage OPTION
 # #####################################
 
 
@@ -142,17 +140,17 @@ my %result;
         my $counterL3=-1;
         #Initialize intron to 0 to avoid error during printing results
         my $indexLast = $#{$hash_omniscient->{'level3'}{'exon'}{$id_l2}};
-        
+
         my @sortedList = sort {$a->start <=> $b->start} @{$hash_omniscient->{'level3'}{'exon'}{$id_l2}};
-        
+
           foreach my $feature_l3 ( @sortedList ){
 
             #count number feature of tag_l3 type
             $counterL3++;
 
             ################
-            #Manage Introns# 
-            # from the second intron to the last (from index 1 to last index of the table sortedList) 
+            #Manage Introns#
+            # from the second intron to the last (from index 1 to last index of the table sortedList)
             # We go inside this loop only if we have more than 1 feature.
             if($counterL3 > 0 and $counterL3 <= $indexLast){
               my $intronStart = $sortedList[$counterL3-1]->end+1;
@@ -160,12 +158,12 @@ my %result;
               my $intron_size = ($intronEnd - $intronStart + 1);
               if ($intron_size < $INTRON_LENGTH){
                 my $seqid = $feature_l1->seq_id();
-                
+
                 $total_intron++;
                 $total_gene{$id_l1}++;
                 $result{$seqid}{$total_intron} = "$seqid\t$id_l1\t$intronStart\t$intron_size\n";
 
-              } 
+              }
             }
           }# END FOREACH L3
         }
@@ -180,7 +178,7 @@ foreach my $seqid (keys %result){
 
 my $gene_number = keys %total_gene;
 print $fh "\n$total_intron introns found for $gene_number uniq genes\n";
-      ######################### 
+      #########################
       ######### END ###########
       #########################
 
@@ -213,13 +211,13 @@ if ( !GetOptions( 'f|gff|ref|reffile=s' => \$opt_file,
                   'h|help!'         => \$opt_help ) )
 
 =head1 NAME
- 
+
 gff3_sp_list_short_introns.pl
-The script aims to list all the introns inferior to a certain size. Introns are calculated on the fly from exons. (intron feature will not be used) 
+The script aims to list all the introns inferior to a certain size. Introns are calculated on the fly from exons. (intron feature will not be used)
 
 =head1 SYNOPSIS
 
-    ./gff3_sp_list_short_introns.pl --gff=infile --out=outFile 
+    ./gff3_sp_list_short_introns.pl --gff=infile --out=outFile
     ./gff3_sp_list_short_introns.pl --help
 
 =head1 OPTIONS

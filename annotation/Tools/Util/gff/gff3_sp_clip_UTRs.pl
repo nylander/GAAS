@@ -1,20 +1,18 @@
 #!/usr/bin/env perl
 
-
-use Carp;
 use strict;
+use warnings;
+use Carp;
 use Clone 'clone';
 use Getopt::Long;
-use Data::Dumper;
 use Pod::Usage;
 use List::MoreUtils qw(uniq);
 use Bio::Tools::GFF;
-use BILS::Handler::GFF3handler qw(:Ok);
-use BILS::Handler::GXFhandler qw(:Ok);
+use NBIS::GFF3::Omniscient;
 
 my $header = qq{
 ########################################################
-# NBIS 2019 - Sweden                                   #  
+# NBIS 2019 - Sweden                                   #
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
@@ -74,7 +72,7 @@ my $resume_case=undef;
 ######################
 ### Parse GFF input #
 my ($omniscient, $mRNAGeneLink) = slurp_gff3_file_JD({ input => $gff
-                                                              });  
+                                                              });
 print ("$gff GFF3 file parsed\n");
 info_omniscient($omniscient);
 
@@ -94,8 +92,8 @@ my $sortBySeq = gather_and_sort_l1_location_by_seq_id($omniscient);
 
 
 foreach my $locusID ( keys %{$sortBySeq}){ # tag_l1 = gene or repeat etc...
- 
-  foreach my $tag_l1 ( keys %{$sortBySeq->{$locusID}} ) { 
+
+  foreach my $tag_l1 ( keys %{$sortBySeq->{$locusID}} ) {
 
     # Go through location from left to right ### !!
     while ( @{$sortBySeq->{$locusID}{$tag_l1}} ){
@@ -110,14 +108,14 @@ foreach my $locusID ( keys %{$sortBySeq}){ # tag_l1 = gene or repeat etc...
         my $continue = 0;
         while ( defined($continue) ){
 
-          # Next location 
+          # Next location
           my $location2 = @{$sortBySeq->{$locusID}{$tag_l1}}[$continue];
           my $id_l1_right = $location2->[0];
-          
+
           #if overlap
           if ( ($location->[1] <= $location2->[2]) and ($location->[2] >= $location2->[1])){
             print "$id_l1_left and $id_l1_right overlaps\n" if($verbose);
-            _check_gene_overlap_at_UTR($omniscient , $location, $location2, $verbose); #If contains UTR  
+            _check_gene_overlap_at_UTR($omniscient , $location, $location2, $verbose); #If contains UTR
 
             $continue++;
           }
@@ -134,7 +132,7 @@ foreach my $locusID ( keys %{$sortBySeq}){ # tag_l1 = gene or repeat etc...
 
 ########
 # Print results
-print_omniscient($omniscient, $gffout);  
+print_omniscient($omniscient, $gffout);
 
 #######################################################################################################################
         ####################
@@ -183,7 +181,7 @@ sub _check_gene_overlap_at_UTR{
 
       # foreach my $l2_type (keys %{$hash_omniscient->{'level2'}} ){
       #   if(exists_keys($hash_omniscient,('level2', $l2_type, $gene_id))){
-      #     foreach my $mrna_feature (@{$hash_omniscient->{'level2'}{$l2_type}{$gene_id}}){       
+      #     foreach my $mrna_feature (@{$hash_omniscient->{'level2'}{$l2_type}{$gene_id}}){
       #       my $righ_utrs = undef;
       #       my $sorted_cds = get_cds_from_l2($hash_omniscient, $mrna_feature);
       #       if ($sorted_cds){ #this l2 has a cds
@@ -193,7 +191,7 @@ sub _check_gene_overlap_at_UTR{
 
       #       foreach my $l2_type_B (keys %{$hash_omniscient->{'level2'}} ){
       #         if(exists_keys($hash_omniscient,('level2', $l2_type_B, $gene_id2))){
-      #           foreach my $mrna_feature_B (@{$hash_omniscient->{'level2'}{$l2_type}{$gene_id2}}){       
+      #           foreach my $mrna_feature_B (@{$hash_omniscient->{'level2'}{$l2_type}{$gene_id2}}){
       #             my $sorted_cds_B = get_cds_from_l2($hash_omniscient, $mrna_feature_B);
       #             if ($sorted_cds_B){ #this l2 has a cds
       #               if($sorted_cds_B[0]->start <=  $sorted_cds[$#sorted_cds]->end and $sorted_cds_B[$#sorted_cds_B]->end  >= $sorted_cds[0]->start){
@@ -256,7 +254,7 @@ sub _control_utr_from_model_left{
   }
 
   my $l2_M1_id  = lc($l2_feature_M1->_tag_value('ID'));
-  my $l2_M2_id  = lc($l2_feature_M2->_tag_value('ID')); 
+  my $l2_M2_id  = lc($l2_feature_M2->_tag_value('ID'));
 
   ##############################
   # Look at utr of the M1erence
@@ -277,7 +275,7 @@ sub _control_utr_from_model_left{
     my $length_utr_M1 =  $M1_utr_right_end - $M1_utr_right_start +1;
     my $length_utr_M2 =  $M2_utr_left_end - $M2_utr_left_start + 1;
     my $dist_between_M1_and_M2 =  $M2_cds_start - $M1_cds_end - 1; # /!\ CALCUL DIFFERENT
-   
+
     my $separting_point = undef;
     if($length_utr_M1 > $length_utr_M2){
       $separting_point = $M2_utr_left_start;
@@ -291,7 +289,7 @@ sub _control_utr_from_model_left{
 
     if($separting_point){
       print "lets shrink the UTR M1 (separting_point=$separting_point): \n";
-      foreach my $l3_type (keys %{$omniscient->{'level3'}} ){               
+      foreach my $l3_type (keys %{$omniscient->{'level3'}} ){
         if ($l3_type =~ 'utr' or $l3_type =~ 'exon'){ #lets shrink it
           if(exists_keys($omniscient,('level3', $l3_type, lc($l2_M1_id)))){
             my @new_list_of_feature3;
@@ -326,7 +324,7 @@ sub _control_utr_from_model_left{
 
   elsif ($M1_utr_right_start <= $M2_cds_end and $M1_utr_right_end >= $M2_cds_start){ #overlap CDS
     print "shrink_right utr of model 1\n";
-    foreach my $l3_type (keys %{$omniscient->{'level3'}} ){               
+    foreach my $l3_type (keys %{$omniscient->{'level3'}} ){
       if ($l3_type =~ 'utr' or $l3_type =~ 'exon'){ #lets shrink it
         if(exists_keys($omniscient,('level3', $l3_type, lc($l2_M1_id)))){
           my @new_list_of_feature3;
@@ -392,7 +390,7 @@ sub _control_utr_from_model_right{
   }
 
   my $l2_M1_id  = lc($l2_feature_M1->_tag_value('ID'));
-  my $l2_M2_id  = lc($l2_feature_M2->_tag_value('ID')); 
+  my $l2_M2_id  = lc($l2_feature_M2->_tag_value('ID'));
 
   ##############################
   # Look at utr of the M1
@@ -428,12 +426,12 @@ sub _control_utr_from_model_right{
 
     if($separting_point){
       print "lets shrink the UTR M1: \n";
-      foreach my $l3_type (keys %{$omniscient->{'level3'}} ){               
+      foreach my $l3_type (keys %{$omniscient->{'level3'}} ){
         if ($l3_type =~ 'utr' or $l3_type =~ 'exon'){ #lets shrink it
           if(exists_keys($omniscient,('level3', $l3_type, lc($l2_M2_id)))){
             my @new_list_of_feature3;
             foreach my $feature_l3 ( sort {$a->start <=> $b->start} @{$omniscient->{'level3'}{$l3_type}{lc($l2_M2_id)}} ){
-              if($feature_l3->end() <= $separting_point){ 
+              if($feature_l3->end() <= $separting_point){
                  print "we throw the feature caseX1 ".$feature_l3->gff_string."\n"  if $verbose;
               }
               elsif ($feature_l3->start() <= $separting_point and $feature_l3->end() >= $separting_point){
@@ -461,13 +459,13 @@ sub _control_utr_from_model_right{
   elsif ($M2_utr_left_start <= $M1_cds_end and $M2_utr_left_end >= $M1_cds_start){ #overlap CDS
       print "case2 ?\n";
     #shrink_left_utr of model 2
-    foreach my $l3_type (keys %{$omniscient->{'level3'}} ){               
+    foreach my $l3_type (keys %{$omniscient->{'level3'}} ){
       if ($l3_type =~ 'utr' or $l3_type =~ 'exon'){ #lets shrink it
         if(exists_keys($omniscient,('level3', $l3_type, lc($l2_M2_id)))){
           my @new_list_of_feature3;
           foreach my $feature_l3 ( sort {$a->start <=> $b->start} @{$omniscient->{'level3'}{$l3_type}{lc($l2_M2_id)}} ){
             print "$l3_type ".$feature_l3->start()."<= $M1_cds_end and ".$feature_l3->end()." >= $M1_cds_end \n";
-            if($feature_l3->end() <= $M1_cds_end){ 
+            if($feature_l3->end() <= $M1_cds_end){
                print "we throw the feature case1C ".$feature_l3->gff_string."\n"  if $verbose;
             }
             elsif ($feature_l3->start() <= $M1_cds_end and $feature_l3->end() >= $M1_cds_end){
@@ -515,11 +513,11 @@ sub _get_cds_location{
 
   my $cds_start = undef;
   my $cds_end = undef;
-  my $l2_id = $l2_feature->_tag_value('ID'); 
+  my $l2_id = $l2_feature->_tag_value('ID');
   if(exists_keys($omniscient,('level3', 'cds', lc($l2_id)))){
     sort {$a->start <=> $b->start} @{$omniscient->{'level3'}{'cds'}{lc($l2_id)}};
     $cds_start  = $omniscient->{'level3'}{'cds'}{lc($l2_id)}[0]->start; #first element of the array
-    $cds_end = $omniscient->{'level3'}{'cds'}{lc($l2_id)}[$#{$omniscient->{'level3'}{'cds'}{lc($l2_id)}}]->end; #last element of the array  
+    $cds_end = $omniscient->{'level3'}{'cds'}{lc($l2_id)}[$#{$omniscient->{'level3'}{'cds'}{lc($l2_id)}}]->end; #last element of the array
   }
   else{
     print "unextpected the feature".$l2_feature->gff_string." doesnt have cds while it has a utr...!\n"; exit;
@@ -543,9 +541,9 @@ sub _get_utrs_extremities{
         print "exists_keys $l3_type for $l2_id\n" if $verbose;
         sort {$a->start <=> $b->start} @{$omniscient->{'level3'}{$l3_type}{lc($l2_id)}};
 
-        my $utr_start  = $omniscient->{'level3'}{$l3_type}{lc($l2_id)}[0]->start; #first element of the array 
+        my $utr_start  = $omniscient->{'level3'}{$l3_type}{lc($l2_id)}[0]->start; #first element of the array
         my $utr_end = $omniscient->{'level3'}{$l3_type}{lc($l2_id)}[$#{$omniscient->{'level3'}{$l3_type}{lc($l2_id)}}]->end; #last element of the array
-        
+
          #check with utr is that 5' or 3'
         if($utr_start > $cds_end ){
           $utr_right_start = $utr_start ;
@@ -570,7 +568,7 @@ sub clean_from_l3{
   delete $omniscient->{'level3'}{$l3_type}{l2_id};
 
   #clean l2
-  foreach my $l3_type (keys %{$omniscient->{'level3'}} ){   
+  foreach my $l3_type (keys %{$omniscient->{'level3'}} ){
     if(exists_keys($omniscient,('level3', $l3_type, $l2_id))){
       return;
     }
@@ -605,7 +603,7 @@ sub _get_right_utrs{
 
   foreach my $tag_l3 (keys %{$omniscient->{'level3'}}){
     if($tag_l3 =~ "utr"){
-      if (exists_keys ($omniscient, ('level2', $tag_l3, $l2_id) ) ){          
+      if (exists_keys ($omniscient, ('level2', $tag_l3, $l2_id) ) ){
           my @sorted_utr = sort {$a->start <=> $b->start} @{$omniscient->{'level3'}{$tag_l3}{$l2_id}};
           if ($sorted_utr[0]->start > $cds_end)
             return \@sorted_utr;
@@ -623,7 +621,7 @@ sub _get_left_utrs{
 
   foreach my $tag_l3 (keys %{$omniscient->{'level3'}}){
     if($tag_l3 =~ "utr"){
-      if (exists_keys ($omniscient, ('level2', $tag_l3, $l2_id) ) ){          
+      if (exists_keys ($omniscient, ('level2', $tag_l3, $l2_id) ) ){
           my @sorted_utr = sort {$a->start <=> $b->start} @{$omniscient->{'level3'}{$tag_l3}{$l2_id}};
           if ($sorted_utr[$#sorted_utr]->end < $cds_start)
             return \@sorted_utr;
@@ -637,15 +635,15 @@ sub _get_left_utrs{
 __END__
 
 =head1 NAME
- 
-gff3_sp_clip_UTRs.pl - 
+
+gff3_sp_clip_UTRs.pl -
 This script focuses on UTR and it aims at cleaning overpredicted UTRs (e.g when annotating with RNAseq unstranded in Fungi). It will clip the left/right UTRs to avoid overlaps with other UTR/cds.
 The only case where a UTR overlaping with something is not clipped, it is when the CDS of the reference mRNA is overlaping the CDS of the neighbor mRNA investigated.
 
 
 =head1 SYNOPSIS
 
-    ./gff3_sp_clip_UTRs.pl --gff annotation.gff --out=outFile 
+    ./gff3_sp_clip_UTRs.pl --gff annotation.gff --out=outFile
     ./gff3_sp_clip_UTRs.pl --help
 
 =head1 OPTIONS
@@ -654,7 +652,7 @@ The only case where a UTR overlaping with something is not clipped, it is when t
 
 =item B<--gff> or  B<-g>
 
-Input GFF3 file(s) used as M1erence. 
+Input GFF3 file(s) used as M1erence.
 
 
 =item  B<--out>, B<--output>, B<--outfile> or B<-o>

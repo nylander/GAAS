@@ -1,22 +1,21 @@
 #!/usr/bin/env perl
 
-use Carp;
 use strict;
+use warnings;
+use Carp;
 use POSIX qw(strftime);
 use Getopt::Long;
 use Pod::Usage;
-use Data::Dumper;
 use Bio::Tools::GFF;
-use BILS::Handler::GFF3handler qw(:Ok);
-use BILS::Handler::GXFhandler qw(:Ok);
+use NBIS::GFF3::Omniscient;
 
 my $start_run = time();
 
 my $header = qq{
 ########################################################
-# BILS 2018 - Sweden                                   #  
-# jacques.dainat\@bils.se                               #
-# Please cite BILS (www.bils.se) when using this tool. #
+# NBIS 2018 - Sweden                                   #
+# jacques.dainat\@nbis.se                               #
+# Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 };
 
@@ -52,7 +51,7 @@ if ($help) {
                  -exitval => 2,
                  -message => "$header\n" } );
 }
- 
+
 if ( ! (defined($gff)) ){
     pod2usage( {
            -message => "$header\nAt least 1 parameter is mandatory:\n Input reference gff file (--gff)\n\n",
@@ -80,7 +79,7 @@ my $gffout_pass;
 my $gffout_notpass;
 if ($outfile) {
   $outfile=~ s/.gff//g;
-  open(my $fh, '>', $outfile."_pass_".$opt_test.$PROT_LENGTH.".gff") or die "Could not open file '$outfile' $!"; 
+  open(my $fh, '>', $outfile."_pass_".$opt_test.$PROT_LENGTH.".gff") or die "Could not open file '$outfile' $!";
   $gffout_pass= Bio::Tools::GFF->new(-fh => $fh, -gff_version => 3 );
 }
 else{
@@ -89,7 +88,7 @@ else{
 
 if ($outfile) {
   $outfile=~ s/.gff//g;
-  open(my $fh, '>', $outfile."_notpass_".$opt_test.$PROT_LENGTH.".gff") or die "Could not open file '$outfile' $!"; 
+  open(my $fh, '>', $outfile."_notpass_".$opt_test.$PROT_LENGTH.".gff") or die "Could not open file '$outfile' $!";
   $gffout_notpass= Bio::Tools::GFF->new(-fh => $fh, -gff_version => 3 );
 }
 else{
@@ -125,10 +124,10 @@ foreach my $primary_tag_l1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag
       my $one_pass=undef;
       if ( exists_keys( $hash_omniscient, ('level2', $primary_tag_l2, $gene_id_l1) ) ){
         foreach my $level2_feature ( @{$hash_omniscient->{'level2'}{$primary_tag_l2}{$gene_id_l1}}) {
-               
+
           # get level2 id
-          my $id_level2 = lc($level2_feature->_tag_value('ID'));       
-          
+          my $id_level2 = lc($level2_feature->_tag_value('ID'));
+
           ##############################
           #If it's a mRNA = have CDS. #
           if ( exists ($hash_omniscient->{'level3'}{'cds'}{$id_level2} ) ){
@@ -138,10 +137,10 @@ foreach my $primary_tag_l1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag
             # Manage CDS #
             my $cds_size=0;
             foreach my $cds (@{$hash_omniscient->{'level3'}{'cds'}{$id_level2}}){
-              $cds_size+= ($cds->end() - $cds->start() + 1); 
+              $cds_size+= ($cds->end() - $cds->start() + 1);
             }
             $cds_size = ($cds_size - 3) / 3; # Remove the stop codon and divide by 3 to get Amnino acid
-            
+
             if(test_size($cds_size, $PROT_LENGTH, $opt_test) ){
               $one_pass="true";
             }
@@ -192,7 +191,7 @@ print "Job done in $run_time seconds\n";
 
 sub test_size{
   my ($size, $PROT_LENGTH, $operator) = @_;
-            
+
   if ($operator eq ">"){
     if ($size > $PROT_LENGTH){
       return "true";
@@ -217,8 +216,8 @@ sub test_size{
     if ($size >= $PROT_LENGTH){
       return "true";
     }
-  }  
-          
+  }
+
 return undef;
 }
 

@@ -12,9 +12,9 @@ use Pod::Usage;
 
 my $header = qq{
 ########################################################
-# BILS 2015 - Sweden                                   #
+# NBIS 2015 - Sweden                                   #
 # Marc Hoeppner / Jacques Dainat                        #
-# Please cite BILS (www.bils.se) when using this tool. #
+# Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 };
 

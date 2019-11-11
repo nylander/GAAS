@@ -16,7 +16,7 @@ use IO::File;
 use Pod::Usage;
 use List::MoreUtils qw(uniq);
 use Bio::Tools::GFF;
-use BILS::CheckModule qw(:Ok);
+use NBIS::CheckModule qw(:Ok);
 # END libraries
 
 # PARAMETERS - OPTION

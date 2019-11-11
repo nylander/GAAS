@@ -1,6 +1,7 @@
 #!/usr/bin/env perl
 
 use strict;
+use warnings;
 use Getopt::Long;
 use Bio::Tools::GFF;
 
@@ -12,16 +13,16 @@ perl my_script.pl
 
   Input:
     [--gff filename]
-		The name of the gff file to read. 
-		
+		The name of the gff file to read.
+
 	[--clear_names]
 		Flag to remove the 'Name' attribute from gene and mRNA features
 	[--id_trunk ]
 		6-character base for all IDs (e.g. HOMSAP for Homo sapiens)
 	[--clean ]
-		Set to anything to remove Maker quality scores from GFF file	
+		Set to anything to remove Maker quality scores from GFF file
 	[--ccount ]
-		Set the cdna counter to something other than 0 
+		Set the cdna counter to something other than 0
 	[--gcount ]
 		Set the gene counter to something other than 0
 	[--exount ]
@@ -29,16 +30,16 @@ perl my_script.pl
 	[--tcount ]
 		Set the transcript counter to something other than 0
 
-  Ouput:    
+  Ouput:
     [--outfile filename]
-        The name of the output file. 
+        The name of the output file.
 };
 
 my $outfile = undef;
 my $gff = undef;
 my $clear_names;
 
-my $gcount = undef; 
+my $gcount = undef;
 my $tcount = undef;
 my $ecount = undef;
 my $ccount = undef;
@@ -89,13 +90,13 @@ my $gffio = Bio::Tools::GFF->new(-file => $gff, -gff_version => 3);
 my $gffout = Bio::Tools::GFF->new(-gff_version => 3);
 
 while( my $feature = $gffio->next_feature()) {
-	
+
 	my $old_id = ($feature->get_tag_values('ID'))[0];
 
 	if ($feature->has_tag('Name') and defined ($clear_names) ) {
                         $feature->remove_tag('Name');
         }
-		
+
 	my @parents = undef;
 	unless ($feature->primary_tag =~/gene/) {
 		@parents = $feature->get_tag_values('Parent');
@@ -107,10 +108,10 @@ while( my $feature = $gffio->next_feature()) {
 		$current_gene = $new_id;
 		$feature->remove_tag('ID');
 		$feature->add_tag_value('ID',$new_id);
-		
+
 		$feature->add_tag_value("oId",$old_id);
-	
-	} elsif ($feature->primary_tag =~ /mRNA/ or $feature->primary_tag =~ /RNA/) { 
+
+	} elsif ($feature->primary_tag =~ /mRNA/ or $feature->primary_tag =~ /RNA/) {
 		$tcounter += 1;
 		my $new_id = $id_trunk . "T" . $tcounter ;
 
@@ -135,15 +136,15 @@ while( my $feature = $gffio->next_feature()) {
 	} elsif ($feature->primary_tag =~ /exon/) {
 		$ecounter += 1;
                 my $new_id = $id_trunk . "E" . $ecounter ;
-		
+
 		# Parents can be > 1, so we need to look up all new IDs
 		my @new_parents = ();
 
 		foreach my $parent (@parents) {
-			
+
 			my $this_mapped_id = $transcript_hash{$parent} ;
 			push(@new_parents,$this_mapped_id);
-		
+
 		}
 
                 $feature->remove_tag('Parent');
@@ -157,7 +158,7 @@ while( my $feature = $gffio->next_feature()) {
 		# CDS features are one-id-multiple-location features, so only one ID.
 		# $ccounter += 1;
                 # my $new_id = $id_trunk . "C" . $ccounter ;
-		
+
 		my $new_id = "" ;
 
 		if (exists $lookup{$old_id}) {
@@ -167,9 +168,9 @@ while( my $feature = $gffio->next_feature()) {
                         $new_id = $id_trunk . "C" . $ccounter ;
                         $lookup{$old_id} = $new_id;
                 }
-		
+
 		my $parent = shift @parents;
-	
+
 		my $current_transcript = $transcript_hash{$parent};
 
                 $feature->remove_tag('Parent');
@@ -186,7 +187,7 @@ while( my $feature = $gffio->next_feature()) {
 			$new_id = $lookup{$old_id};
 		} else {
 			$ucounter += 1;
-			$new_id = $id_trunk . "U" . $ucounter ; 
+			$new_id = $id_trunk . "U" . $ucounter ;
 			$lookup{$old_id} = $new_id;
 		}
 
@@ -200,7 +201,7 @@ while( my $feature = $gffio->next_feature()) {
 
                 $feature->remove_tag('Parent');
                 $feature->add_tag_value('Parent',$current_transcript);
-	
+
 		$feature->add_tag_value('OId',$old_id);
 
 	} elsif ($feature->primary_tag =~ /stop_codon_read_through/ ) {
@@ -221,13 +222,8 @@ while( my $feature = $gffio->next_feature()) {
 
 	}
 
-	
-	print $feature->gff_string($gffout) , "\n";	
+
+	print $feature->gff_string($gffout) , "\n";
 }
 
 $gffio->close();
-
-
-
-
-

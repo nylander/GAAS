@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-package BILS::CheckModule;
+package NBIS::CheckModule;
 
 use strict;
 use Exporter qw(import);

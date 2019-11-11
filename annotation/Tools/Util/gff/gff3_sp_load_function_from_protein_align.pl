@@ -1,24 +1,23 @@
 #!/usr/bin/env perl
 
-use Carp;
 use strict;
+use warnings;
+use Carp;
 use Try::Tiny;
 use File::Basename;
 use POSIX qw(strftime);
 use Bio::DB::Taxonomy;
 use Getopt::Long;
 use Bio::DB::Fasta;
-use Data::Dumper;
 use Pod::Usage;
 use List::MoreUtils qw(uniq);
 use Bio::Tools::GFF;
-use BILS::Handler::GFF3handler qw(:Ok);
-use BILS::Handler::GXFhandler qw(:Ok);
+use NBIS::GFF3::Omniscient;
 
 
 my $usage = qq{
 ########################################################
-# BILS 2017 - Sweden                                   #  
+# NBIS 2017 - Sweden                                   #
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
@@ -62,7 +61,7 @@ if ( !GetOptions(
     "fasta|pfasta=s"         => \$protein_fasta,
     "w"                      => \$whole_sequence_opt,
     "value|threshold=i"      => \$valueK,
-    'method|m:s'             => \$method_opt, 
+    'method|m:s'             => \$method_opt,
     "verbose|v"              => \$verbose,
     "output|out|o=s"         => \$opt_output))
 
@@ -78,7 +77,7 @@ if ($help) {
                  -exitval => 2,
                  -message => "$usage\n" } );
 }
- 
+
 if ( ! ($annotation_gff and $protein_gff and $protein_fasta) ){
     pod2usage( {
            -message => "\nAt least 3 parameters are mandatory:\nAnnotation gff file (-a), Protein gff file (--pgff), Protein fasta file (--pfasta)\n\n".
@@ -113,7 +112,7 @@ if(defined ($sort_method_by_pe)){
 ##########################
 ##### Manage Output ######
 
-## Manage screen output 
+## Manage screen output
 our $screen_out = undef;
 
 our @outputTab;
@@ -131,7 +130,7 @@ if (defined($opt_output) ) {
 
   #create the folder
   mkdir $opt_output;
-  
+
   my $outfile_gff = $annotation_gff;
   $outfile_gff =~ s/.gff//g;
   $outfile_gff = $outfile_gff."_updated.gff";
@@ -191,7 +190,7 @@ if(defined($sort_method_by_species) ){
   }
 }
 
-#Manage priority 
+#Manage priority
 if ($priority_opt ne "pe" and $priority_opt ne "sp"){
   print "Priority option with value $priority_opt doesn't exist. Please select pe or sp. (i.e help)\n";exit;
 }
@@ -241,7 +240,7 @@ my %allIDs_prot; # save ID in lower case to avoid cast problems
 foreach my $long_id (@long_ids_prot){
   #uniprot case long_id=>sp|Q5R8S7|PPIA_PONPY short_id=Q5R8S7
   my $short_id = _take_clean_id($long_id);
-  $allIDs_prot{lc($short_id)}=$long_id; 
+  $allIDs_prot{lc($short_id)}=$long_id;
 }
 _print( "Done\n",0);
 
@@ -251,7 +250,7 @@ my $omniscient2_sorted = gather_and_sort_l1_location_by_seq_id_and_strand($prot_
 my %cases;
 
 foreach my $locusID ( keys %{$omniscient1_sorted}){ # tag_l1 = protein_match match ....
-  foreach my $tag_l1 ( keys %{$omniscient1_sorted->{$locusID}} ) { 
+  foreach my $tag_l1 ( keys %{$omniscient1_sorted->{$locusID}} ) {
 
     # Go through location from left to right ### !!
     my @aligns;
@@ -262,18 +261,18 @@ foreach my $locusID ( keys %{$omniscient1_sorted}){ # tag_l1 = protein_match mat
       my $id1_l1 = lc($location->[0]);
 
       if( exists_keys($omniscient2_sorted, ($locusID ) ) ) {
-        
-        foreach my $tag2_l1 ( keys %{$omniscient2_sorted->{$locusID}} ) { 
-             
+
+        foreach my $tag2_l1 ( keys %{$omniscient2_sorted->{$locusID}} ) {
+
           while ( @{$omniscient2_sorted->{$locusID}{$tag2_l1}} ){
 
             my $location2 = shift  @{$omniscient2_sorted->{$locusID}{$tag2_l1}};# This location will be updated on the fly
             my $id2_l1 = lc($location2->[0]);
-                          
+
             #If location_to_check start if over the end of the reference location, we stop
-            if($location2->[1] > $location->[2]) {last;} 
+            if($location2->[1] > $location->[2]) {last;}
             #If location_to_check end if inferior to the start of the reference location, we continue next
-            if($location2->[2] < $location->[1]) {next;} 
+            if($location2->[2] < $location->[1]) {next;}
 
             # Let's check at Gene LEVEL
             if( location_overlap($location, $location2) ){ #location overlap at gene level check now level3
@@ -288,18 +287,18 @@ foreach my $locusID ( keys %{$omniscient1_sorted}){ # tag_l1 = protein_match mat
                 # align contains: level1 id of the protein into the gff file (gene_id2),
                 ## overlap percent whole gene model against protein  (w_overlap12),
                 # absolute overlap percent whole gene model against the protein  ($w_overlap12_abs). Absolute means we check the cigar annotation of the protein to check the shift in the reading frame and take in account the few nucleotide in more or in less
-                ## overlap percent of the protein  against the whole gene model ($w_overlap21), 
-                # absolute overlap percent of the protein  against the whole gene model ($w_overlap21_abs),               
+                ## overlap percent of the protein  against the whole gene model ($w_overlap21),
+                # absolute overlap percent of the protein  against the whole gene model ($w_overlap21_abs),
                 ## overlap percent cds part of the gene model against protein  (overlap12),
                 # absolute overlap percent cds part of the gene model against the protein  ($overlap12_abs). Absolute means we check the cigar annotation of the protein to check the shift in the reading frame and take in account the few nucleotide in more or in less
-                ## overlap percent of the protein against the cds part of the gene model ($overlap21), 
+                ## overlap percent of the protein against the cds part of the gene model ($overlap21),
                 # absolute overlap percent of the protein against the cds part of the gene model ($overlap21_abs),
                 # absolute overlap percent of the protein  against the whole gene model but rationalized by the total length (prot+gene-overlap) $w_overlap_JD_abs
                 # absolute overlap percent of the protein  against the coding part of the gene model but rationalized by the total length (prot+gene-overlap) $overlap_JD_abs
                 push @aligns, [@{$align}];
-              }              
+              }
             }
-          } 
+          }
         }
       }
 
@@ -311,28 +310,28 @@ foreach my $locusID ( keys %{$omniscient1_sorted}){ # tag_l1 = protein_match mat
                                 # Let's filter them
       #We have at least one prot aligned to this gene model
       my @aligns_filtered;
-      if(@aligns){   
+      if(@aligns){
 
         # Manage option coding sequence or whole sequence
         my $col = 6;
         if($whole_sequence_opt){$col = 5;}
-        
+
         #Sort results and filter by the overlap value threshold
         foreach my $result ( sort {$b->[$col] <=> $a->[$col] }  @aligns ){
 
           # filter by value Threshold
-          if($result->[$col] > $valueK){   
+          if($result->[$col] > $valueK){
             push @aligns_filtered, $result;
           }
         }
-        
-        #print @aligns_filtered results 
+
+        #print @aligns_filtered results
         if ($verbose){
           _print( "\n\nprotein aligned to the gene $id1_l1 over the threshold $valueK:\n", 0);
           foreach my $result ( @aligns_filtered){
             if($result->[$col] > $valueK){
               _print( "@$result\n", 0 );
-            } 
+            }
           }
           print "\n";
         }
@@ -344,25 +343,25 @@ foreach my $locusID ( keys %{$omniscient1_sorted}){ # tag_l1 = protein_match mat
           if($sort_method_by_pe and $sort_method_by_species){
             _print( "get_result_sort_method_by_pe_and_species case 1 !\n",0) if ($verbose);
             $selected = get_result_sort_method_by_pe_and_species(\@aligns_filtered, $col, $sort_method_by_pe, $opt_test, $sort_method_by_species);
-            if($selected){$cases{1}++;}       
+            if($selected){$cases{1}++;}
           }
 
           #####################################################
           # 2.1) filter by pe or if need be by specific species
           if(!$selected  and $priority_opt eq "pe"){
-            
+
             # filter by protein existence value
             if(! $selected and $sort_method_by_pe){
               _print( "pe case 2.1.1!\n", 0) if ($verbose);
               $selected = get_result_sort_method_by_pe(\@aligns_filtered, $col, $sort_method_by_pe, $opt_test);
-              if($selected){$cases{211}++;$cases{21}++;}        
+              if($selected){$cases{211}++;$cases{21}++;}
             }
-            
+
             # filter by specific species
             if(! $selected and $sort_method_by_species){
               _print( "sort_method_by_species case 2.1.2!\n", 0) if ($verbose);
               $selected = get_result_sort_method_by_species($sort_method_by_species, \@aligns_filtered, $col);
-              if($selected){$cases{212}++;$cases{22}++;}       
+              if($selected){$cases{212}++;$cases{22}++;}
             }
           }
           #####################################################
@@ -373,7 +372,7 @@ foreach my $locusID ( keys %{$omniscient1_sorted}){ # tag_l1 = protein_match mat
             if(! $selected and $sort_method_by_species){
               _print( "sort_method_by_species case 2.2.1!\n", 0) if ($verbose);
               $selected = get_result_sort_method_by_species($sort_method_by_species, \@aligns_filtered, $col);
-               if($selected){$cases{221}++;$cases{22}++;}      
+               if($selected){$cases{221}++;$cases{22}++;}
             }
 
             #########################################
@@ -381,7 +380,7 @@ foreach my $locusID ( keys %{$omniscient1_sorted}){ # tag_l1 = protein_match mat
             if(! $selected and $sort_method_by_pe){
               _print( "pe case 2.2.2!\n", 0) if ($verbose);
               $selected = get_result_sort_method_by_pe(\@aligns_filtered, $col, $sort_method_by_pe, $opt_test);
-              if($selected){$cases{222}++;$cases{21}++;}         
+              if($selected){$cases{222}++;$cases{21}++;}
             }
           }
 
@@ -391,7 +390,7 @@ foreach my $locusID ( keys %{$omniscient1_sorted}){ # tag_l1 = protein_match mat
             _print( "Normal case 3!\n", 0 ) if ($verbose);
             # read from best value to the lowest one
             $selected = $aligns_filtered[0];
-            $cases{3}++; 
+            $cases{3}++;
           }
 
           _print( "Protein selected =  $selected\n",0) if ($verbose);
@@ -426,7 +425,7 @@ foreach my $locusID ( keys %{$omniscient1_sorted}){ # tag_l1 = protein_match mat
                 if( $method_opt ne "add"){
                   if( ! ($method_opt eq "complete" and $feature_l1->has_tag('product') ) ){
                     create_or_replace_tag($feature_l2, 'product', $product);
-                  }else{$product_added=0;} 
+                  }else{$product_added=0;}
                 }
                 else{
                   create_or_replace_tag($feature_l2, 'lfp_product', $product);
@@ -448,15 +447,15 @@ foreach my $locusID ( keys %{$omniscient1_sorted}){ # tag_l1 = protein_match mat
           }
 
 
-      
+
         }
         else{
-          $cases{0}++; 
+          $cases{0}++;
           _print( "No protein overlap over the threshold $valueK for this gene model: $id1_l1\n", 0) if ($verbose);
         }
       }
       else{
-        $cases{-1}++; 
+        $cases{-1}++;
         _print( "No protein aligned to this gene model: $id1_l1\n", 0) if ($verbose);
       }
     }
@@ -494,7 +493,7 @@ foreach my $key (sort{$a <=> $b} keys %cases_explanation){
               ########
                ######
                 ####
-                 ##     
+                 ##
 
 ############################
 ## PROTEIN PRIORETIZATION
@@ -512,18 +511,18 @@ foreach my $key (sort{$a <=> $b} keys %cases_explanation){
 # It's an arbitrary choice
 sub _taxid_ref_sorted{
 
-  my %sorted = ( 1 => 'Homo sapiens', 
-    2 => 'Mus musculus', 
-    3 => 'Drosophila melanogaster',  
-    4 => 'Caenorhabditis elegans', 
-    5 => 'Arabidopsis thaliana' 
+  my %sorted = ( 1 => 'Homo sapiens',
+    2 => 'Mus musculus',
+    3 => 'Drosophila melanogaster',
+    4 => 'Caenorhabditis elegans',
+    5 => 'Arabidopsis thaliana'
   );
 
   return \%sorted;
 }
 
 sub get_result_sort_method_by_pe_and_species{
-  my ($aligns, $col, $sort_method_by_pe, $opt_test, $sort_method_by_species)=@_; 
+  my ($aligns, $col, $sort_method_by_pe, $opt_test, $sort_method_by_species)=@_;
 
   my $selected = undef;
 
@@ -566,9 +565,9 @@ sub get_result_sort_method_by_pe_and_species{
             $selected=$result;last;
           }
         }
-      }           
+      }
     }
-    $counter++;  
+    $counter++;
   }
 
   return $selected;
@@ -588,7 +587,7 @@ sub get_result_sort_method_by_species{
 
     # read from best value to the lowest one
     foreach my $result ( @{$aligns} ){
- 
+
       my $species = _get_species($result);
       #print "<$species> vs >$sort_method_by_species->{$counter}<\n";
 
@@ -596,7 +595,7 @@ sub get_result_sort_method_by_species{
         $selected=$result;last;
       }
     }
-    $counter++;          
+    $counter++;
   }
 
   return $selected;
@@ -647,7 +646,7 @@ sub _get_function{
   my ($self)=@_;
   my $header = $self->[$#{$self}];
   my $egal = index($header, '=');
-  my $function  = substr $header, 0, $egal-2;    
+  my $function  = substr $header, 0, $egal-2;
 
   $function =~ s/^\s+|\s+$//g; #removing leading and trailing white spaces
 
@@ -661,7 +660,7 @@ sub _get_species{
   my $species = undef;
 
   my $header = $self->[$#{$self}];
-  
+
   my $egal = index($header, '=');
   my $abb = substr $header, $egal-2, 2;
   my $clipped = substr $header, $egal+1;
@@ -700,7 +699,7 @@ sub _get_gn{
   while (lc($abb) ne "gn") {
     $egal = index($clipped, '=');
     if($egal == -1){last;} #no = character found
-    
+
     $abb = substr $clipped, $egal-2, 2;
     $clipped = substr $clipped, $egal+1;
   }
@@ -733,7 +732,7 @@ sub _get_pe{
   while (lc($abb) ne "pe") {
     $egal = index($clipped, '=');
     if($egal == -1){last;} #no = character found
-    
+
     $abb = substr $clipped, $egal-2, 2;
     $clipped = substr $clipped, $egal+1;
   }
@@ -766,7 +765,7 @@ sub _get_sv{
   while (lc($abb) ne "sv") {
     $egal = index($clipped, '=');
     if($egal == -1){last;} #no = character found
-    
+
     $abb = substr $clipped, $egal-2, 2;
     $clipped = substr $clipped, $egal+1;
   }
@@ -789,9 +788,9 @@ sub  _get_sequence{
 
   my $sequence = "";
   my $descritpion = "";
-  my $seq_id_correct = _take_clean_id($seq_id); 
+  my $seq_id_correct = _take_clean_id($seq_id);
   if( exists $allIDs_prot{lc($seq_id_correct)}){
-      
+
     my $seq_id_original= $allIDs_prot{lc($seq_id_correct)};
 
     $sequence = $db->subseq($seq_id_original);
@@ -803,7 +802,7 @@ sub  _get_sequence{
   }
   else{
     warn "Problem ! protein ID $seq_id_correct not found into the protein fasta file!\n";
-  }  
+  }
 
   return length($sequence), $seq_id_correct, $descritpion;
 }
@@ -834,13 +833,13 @@ sub check_gene_overlap_gffAlign{
 
 #  my $overlap12=undef;
   my $overlap12_abs=undef
-  
+
 #  my $w_overlap12=undef;
   my $w_overlap12_abs=undef
-  
+
 #  my $overlap21=undef;
   my $overlap21_abs=undef;
-  
+
 #  my $w_overlap21=undef;
   my $w_overlap21_abs=undef;
 
@@ -851,14 +850,14 @@ sub check_gene_overlap_gffAlign{
 
   #print "IN $gene_id, $gene_id2\n";
   foreach my $l2_type (keys %{$hash_omniscient->{'level2'}} ){
-    
+
     if(exists_keys($hash_omniscient,('level2', $l2_type, lc($gene_id)))){
 
       foreach my $mrna_feature ( sort {$a->start <=> $b->start } @{$hash_omniscient->{'level2'}{$l2_type}{lc($gene_id)}}){ # from here bothe feature level2 are the same type
         my $mrna_id = $mrna_feature->_tag_value('ID');
 
 
-        #hash_omniscient contains match 
+        #hash_omniscient contains match
         foreach my $l1_type (keys %{$prot_omniscient->{'level1'}} ){
 
           #check full CDS for each mRNA
@@ -867,8 +866,8 @@ sub check_gene_overlap_gffAlign{
             #calcul lenght2
             my $lenght2=0;
             foreach my $tag_l2 (keys %{$prot_omniscient->{'level2'}}){
-                
-              if(exists_keys($prot_omniscient,('level2', $tag_l2, lc($gene_id2)))){                   
+
+              if(exists_keys($prot_omniscient,('level2', $tag_l2, lc($gene_id2)))){
                 foreach my $feature2 (@{$prot_omniscient->{'level2'}{$tag_l2}{lc($gene_id2)}}){
                   #print$feature2->end." -  ".$feature2->start."\n";
                   #print $feature2->end - $feature2->start." + 1\n";
@@ -881,9 +880,9 @@ sub check_gene_overlap_gffAlign{
 
             my $w_overlap=0;
             my $w_abs_overlap=0;
-            my $w_lenght1=0;            
+            my $w_lenght1=0;
             ####################################
-            # CALCUL ONTO THE WHOLE GENE MODEL #                              
+            # CALCUL ONTO THE WHOLE GENE MODEL #
             my @list_tag_l3=('exon');
             if(! exists_keys( $hash_omniscient, ('level3','exon'))){
               warn "No exon found into the annoation file for feature $gene_id, we will use all the other l3 features\n";
@@ -891,28 +890,28 @@ sub check_gene_overlap_gffAlign{
                 push @list_tag_l3,$tag_l3;
               }
             }
-              
+
             foreach my $tag_l3 ( @list_tag_l3 ){
-              
-              if(exists_keys($hash_omniscient,('level3', $tag_l3, lc($mrna_id)))){                   
+
+              if(exists_keys($hash_omniscient,('level3', $tag_l3, lc($mrna_id)))){
                 foreach my $feature1 ( sort {$a->start <=> $b->start}  @{$hash_omniscient->{'level3'}{$tag_l3}{lc($mrna_id)}}){
-                  
+
                   #print "annot location: ".$feature1->start." ".$feature1->end."\n";
-                  $w_lenght1 = $w_lenght1 + ($feature1->end - $feature1->start + 1);          
+                  $w_lenght1 = $w_lenght1 + ($feature1->end - $feature1->start + 1);
                   #print $feature1->gff_string."\n";
-                  
+
                   foreach my $tag_l2 (keys %{$prot_omniscient->{'level2'}}){
 
-                    if(exists_keys($prot_omniscient,('level2', $tag_l2, lc($gene_id2)))){       
+                    if(exists_keys($prot_omniscient,('level2', $tag_l2, lc($gene_id2)))){
                       foreach my $feature2 (sort {$a->start <=> $b->start }  @{$prot_omniscient->{'level2'}{$tag_l2}{lc($gene_id2)}}){
                         #print "    ".$feature2->gff_string."\n";
                         if(($feature2->start <= $feature1->end) and ($feature2->end >= $feature1->start )){ # they overlap
-                              
-                          if($feature2->start > $feature1->end) {last;} 
-                          if($feature2->end < $feature1->start) {next;} 
+
+                          if($feature2->start > $feature1->end) {last;}
+                          if($feature2->end < $feature1->start) {next;}
                           #print "prot location: ".$feature2->start." ".$feature2->end."\n";
                           my $start = $feature2->start > $feature1->start ? $feature2->start : $feature1->start;
-                          
+
                           my $end = $feature2->end < $feature1->end ? $feature2->end :  $feature1->end;
 
                              my $chunck_abs_overlap += get_absolute_match($feature2, $start, $end);
@@ -929,11 +928,11 @@ sub check_gene_overlap_gffAlign{
                 #print "gene_id $gene_id, gene_id2 $gene_id2 <=> w_overlap = $w_overlap - w_abs_overlap = $w_abs_overlap\n";
               }
             }
-            
+
             #1 -> 2
             #$w_overlap12 = sprintf "%.1f", ($w_overlap*100/$w_lenght1);
             $w_overlap12_abs = sprintf "%.1f", ($w_abs_overlap*100/$w_lenght1);
-            
+
 
             my $overlap=0;
             my $abs_overlap=0;
@@ -941,27 +940,27 @@ sub check_gene_overlap_gffAlign{
             # ##########################################################################
             # # CALCUL ONTO THE CODING SEQUENCE PART OF THE GENE MODEL ONLY (SKIP UTR) #
             if(exists_keys( $hash_omniscient, ('level3','cds',lc($mrna_id) ))){
-                
+
               foreach my $feature1 ( sort {$a->start <=> $b->start}  @{$hash_omniscient->{'level3'}{'cds'}{lc($mrna_id)}}){
-                
+
             #     #print "annot location: ".$feature1->start." ".$feature1->end."\n";
-                $lenght1 = $lenght1 + ($feature1->end - $feature1->start + 1);          
+                $lenght1 = $lenght1 + ($feature1->end - $feature1->start + 1);
             #     print $feature1->gff_string."\n";
-                
+
                 foreach my $tag_l2 (keys %{$prot_omniscient->{'level2'}}){
 
-                  if(exists_keys($prot_omniscient,('level2', $tag_l2, lc($gene_id2)))){       
+                  if(exists_keys($prot_omniscient,('level2', $tag_l2, lc($gene_id2)))){
                     foreach my $feature2 (sort {$a->start <=> $b->start }  @{$prot_omniscient->{'level2'}{$tag_l2}{lc($gene_id2)}}){
-                      
+
                       if(($feature2->start <= $feature1->end) and ($feature2->end >= $feature1->start )){ # they overlap
-                        
-                        if($feature2->start > $feature1->end) {last;} 
+
+                        if($feature2->start > $feature1->end) {last;}
                         if($feature2->end < $feature1->start) {next;}
 
             #             print "We overlap !\n";
                         #print "prot location: ".$feature2->start." ".$feature2->end."\n";
                         my $start = $feature2->start > $feature1->start ? $feature2->start : $feature1->start;
-                        
+
                         my $end = $feature2->end < $feature1->end ? $feature2->end :  $feature1->end;
 
                            my $chunck_abs_overlap += get_absolute_match($feature2, $start, $end);
@@ -983,7 +982,7 @@ sub check_gene_overlap_gffAlign{
 
             ###########################
             # CORRECT THE 21 value by the real length of the protein (Not the whole original protein is aligned into the protein gff file)
-            try{          
+            try{
               my ($protLenSeqOriginal, $proteinName, $descritpion) = _get_sequence($db_prot, $prot_tag);
               my $lenght_corrected = $protLenSeqOriginal*3;
               #2 -> 1 whole sequence
@@ -1022,7 +1021,7 @@ sub get_absolute_match{
   my  ($feature, $start, $end)=@_;
   my  $absMatch=0;
   my  $nuc_polish=0;
-  
+
   # We first need to check that the GAP feature is present among the protein attributes
   if(! $feature->has_tag('Gap')){
     warn "I cannot calculate the absolute match because the tag Gap is absent !\n";
@@ -1044,7 +1043,7 @@ sub get_absolute_match{
 
         #compute how long is the piece in nucleotide
         my $nuc = nuc_gap_val($gap);
-        
+
         #if nucleotide to shrink is over the size of the piece we skip the piece, and compute the size to shrink left
         if ($nuc_left >= $nuc){
           $nuc_left=$nuc_left-$nuc;
@@ -1084,7 +1083,7 @@ sub get_absolute_match{
 
         #compute how long is the piece in nucleotide
         my $nuc = nuc_gap_val($gap);
-        
+
         #if nucleotide to shrink is over the size of the piece we skip the piece, and compute the size to shrink left
         if ($nuc_right >= $nuc){
           $nuc_right=$nuc_right-$nuc;
@@ -1115,7 +1114,7 @@ sub get_absolute_match{
     }
 
     my ($match_size, $nuc_polish) = calcul_match_gap(\@gap, $nuc_polish);
-    
+
     $absMatch+=$match_size;
     #print "match_size = $match_size\n";
     #my $plus= int(abs($feature->end - $end)/3);
@@ -1147,7 +1146,7 @@ sub  calcul_match_gap{
         elsif($gap =~ /^I/){ # insert a gap into the reference sequence - I1 is an amino acid insertion (3bp in nucleotide space)
           substr($gap, 0, 1) = "";
           $nuc_polish -= ($gap*3);
-        }  
+        }
         elsif($gap =~ /^R/){# frameshift reverse in the reference sequence - F and R therefore allow for single bp movement either to the left or right within amino acid space. Sometime this happens in Exonerate where it appears as a slightly shifted codon (codons look stacked ), but it also happens when an amino acid is split across a splice site (1st part of a codon is on one exon and second part on the next exon).
           substr($gap, 0, 1) = "";
           $nuc_polish -= $gap;
@@ -1179,10 +1178,10 @@ sub nuc_gap_val{
   elsif($gap =~ /^I/){ # insert a gap into the reference sequence - I1 is an amino acid insertion (3bp in nucleotide space)
     $nuc = substr $gap, 1;
     $nuc=$nuc*3;
-  }  
+  }
   elsif($gap =~ /^F/){ # frameshift forward in the reference sequence - F and R therefore allow for single bp movement either to the left or right within amino acid space. Sometime this happens in Exonerate where it appears as a slightly shifted codon (codons look stacked ), but it also happens when an amino acid is split across a splice site (1st part of a codon is on one exon and second part on the next exon).
     $nuc = substr $gap, 1;
-  }  
+  }
   elsif($gap =~ /^R/){ # frameshift reverse in the reference sequence -
     $nuc = substr $gap, 1;
   }
@@ -1212,10 +1211,10 @@ __END__
 =head1 NAME
 
 script.pl -
-The script take an annotation in gff format, a protein alignment in gff format and a protein fasta file as input. It checks if protein alignement overlap gene models, and will load the gene name and/or the function to the gene model according to the user requirements. 
+The script take an annotation in gff format, a protein alignment in gff format and a protein fasta file as input. It checks if protein alignement overlap gene models, and will load the gene name and/or the function to the gene model according to the user requirements.
 The script apllies these following steps:
 For each gene model structure it take the proteins aligned against, and sort them by an overlaping score. The best coming first.
-Then it filters them by applying the overlaping score threshold. 
+Then it filters them by applying the overlaping score threshold.
 1) If you activated the PE and the species filtering, we will try to find the best protein that follows the defined requirement.
 2.1) If you activated the PE filtering or the precedent filtering (1) didn't succeed, we take the best protein according to the PE requirement.
 2.2) If you activated the species filtering or the precedent filtering (1) didn't succeed, we take the best protein according to the list of prioritized species defined.

@@ -1,23 +1,21 @@
 #!/usr/bin/env perl
 
 ###################################################
-# Jacques Dainat 01/2016                          #  
+# Jacques Dainat 01/2016                          #
 # Bioinformatics Infrastructure for Life Sciences #
-# jacques.dainat@bils.se                          #
+# jacques.dainat@nbis.se                          #
 ###################################################
 
-use Carp;
 use strict;
 use warnings;
+use Carp;
 use Pod::Usage;
 use Getopt::Long;
 use IO::File ;
 use Bio::Tools::GFF;
-use BILS::Handler::GFF3handler qw(:Ok);
-use BILS::Handler::GXFhandler qw(:Ok);
+use NBIS::GFF3::Omniscient qw(select_gff_format create_or_replace_tag exists_keys);
 
 my $start_run = time();
-
 my $inputFile=undef;
 my $outfile=undef;
 my $outformat=undef;
@@ -61,7 +59,7 @@ if ($outfile) {
   $outfile=~ s/.gff//g;
   open(my $fh, '>', $outfile.".gff") or die "Could not open file '$outfile' $!";
   $gffout= Bio::Tools::GFF->new(-fh => $fh, -gff_version => $outformat );
-  
+
 }
 else{
   $gffout = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => $outformat);
@@ -82,7 +80,7 @@ while (my $feature = $ref_in->next_feature() ) {
   $line_cpt++;
 
   _uniq_ID ($feature, \%hash_IDs, \%featCount, \%mapID);
-  
+
   if($feature->has_tag('Parent')){
     my $parent = lc($feature->_tag_value('Parent'));
     if(! exists($mapID{$parent})){
@@ -113,17 +111,17 @@ print "Job done in $run_time seconds\n";
 sub _uniq_ID{
   my ($feature, $hash_IDs, $miscCount, $mapID) = @_;
 
-  
+
   my  $key=lc($feature->primary_tag);
   $miscCount->{$key}++;
   my $id = $key."-".$miscCount->{$key};
 
-  while( exists_keys($hash_IDs, ($id) ) ){  #loop until we found an uniq tag 
+  while( exists_keys($hash_IDs, ($id) ) ){  #loop until we found an uniq tag
     $miscCount->{$key}++;
     $id = $key."-".$miscCount->{$key};
   }
 
-  #push the new ID  
+  #push the new ID
   $hash_IDs->{$id}++;
   $mapID->{lc($feature->_tag_value('ID'))} = $id;
 
@@ -151,11 +149,11 @@ change IDs to give uniq one. This script is sequential, it means it will works g
 
 STRING: Input gff(1 or 2 or 3) or gtf file that will be read.
 
-=item B<--of> 
+=item B<--of>
 
 Output format, if no ouput format is given, the same as the input one detected will be used. Otherwise you can force to have a gff version 1 or 2 or 3 by giving the corresponding number.
 
-=item B<-o> or B<--output> 
+=item B<-o> or B<--output>
 
 STRING: Output file.  If no output file is specified, the output will be written to STDOUT. The result is in tabulate format.
 

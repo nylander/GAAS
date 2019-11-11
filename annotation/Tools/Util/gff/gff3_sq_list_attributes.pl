@@ -1,22 +1,20 @@
 #!/usr/bin/env perl
 
-
+use strict;
+use warnings;
 use Carp;
 use Clone 'clone';
-use strict;
 use Getopt::Long;
 use Pod::Usage;
 use IO::File;
-use Data::Dumper;
 use List::MoreUtils qw(uniq);
 use Bio::Tools::GFF;
-use BILS::Handler::GFF3handler qw(:Ok);
-use BILS::Handler::GXFhandler qw(:Ok);
+use NBIS::GFF3::Omniscient qw(select_gff_format exists_keys);
 
 my $start_run = time();
 my $header = qq{
 ########################################################
-# BILS 2015 - Sweden                                   #  
+# NBIS 2015 - Sweden                                   #
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
@@ -46,7 +44,7 @@ if ($help) {
                  -exitval => 2,
                  -message => "$header\n" } );
 }
- 
+
 if ( ! (defined($gff)) ){
     pod2usage( {
            -message => "$header\nAt least 1 parameter is mandatory:\nInput reference gff file (--gff) \n\n",
@@ -118,9 +116,9 @@ else{
 my $nbFeat = scalar keys %attributes_per_level;
 print $out "\nWe met ".$nbFeat." different feature types.";
 foreach my $feature_type ( sort keys %attributes_per_level){
-  my $nbAtt = scalar keys $attributes_per_level{$feature_type};
+  my $nbAtt = scalar keys %{$attributes_per_level{$feature_type}};
   print $out "\nHere the list of all the attributes tags met for the feature type <".$feature_type."> (".$nbAtt." attributes):\n";
-  foreach my $attribute ( sort keys $attributes_per_level{$feature_type}){
+  foreach my $attribute ( sort keys %{$attributes_per_level{$feature_type}} ){
     print $out $attribute."\n";
   }
 }
@@ -207,9 +205,9 @@ Input GFF3 file that will be read (and sorted)
 
 =item B<-p>,  B<-t> or  B<-l>
 
-primary tag option, case insensitive, list. Allow to specied the feature types that will be handled. 
+primary tag option, case insensitive, list. Allow to specied the feature types that will be handled.
 You can specified a specific feature by given its primary tag name (column 3) as: cds, Gene, MrNa
-You can specify directly all the feature of a particular level: 
+You can specify directly all the feature of a particular level:
       level2=mRNA,ncRNA,tRNA,etc
       level3=CDS,exon,UTR,etc
 By default all feature are taking in account. fill the option by the value "all" will have the same behaviour.

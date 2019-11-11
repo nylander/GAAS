@@ -13,9 +13,9 @@ use Private::Bio::IO::GFF;
 
 my $usage = qq{
 ########################################################
-# BILS 2015 - Sweden                                   #	
-# jacques.dainat\@bils.se                               #
-# Please cite BILS (www.bils.se) when using this tool. #
+# NBIS 2015 - Sweden                                   #	
+# jacques.dainat\@nbis.se                               #
+# Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 
 That script lift-over the transcript GO term to the gene level. (duplicates are removed)

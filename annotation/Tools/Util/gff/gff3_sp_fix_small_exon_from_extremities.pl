@@ -1,24 +1,22 @@
 #!/usr/bin/env perl
 
+use strict;
+use warnings;
 use Carp;
 use Clone 'clone';
-use strict;
 use File::Basename;
 use Getopt::Long;
 use Statistics::R;
 use Pod::Usage;
-use Data::Dumper;
 use List::MoreUtils qw(uniq);
 use Bio::Tools::GFF;
 use Bio::DB::Fasta;
-#use Bio::Seq;
 use Bio::SeqIO;
-use BILS::Handler::GFF3handler qw(:Ok);
-use BILS::Handler::GXFhandler qw(:Ok);
+use NBIS::GFF3::Omniscient;
 
 my $header = qq{
 ########################################################
-# BILS 2018 - Sweden                                   #  
+# NBIS 2018 - Sweden                                   #
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
@@ -54,7 +52,7 @@ if ($help) {
                  -exitval => 2,
                  -message => "$header\n" } );
 }
- 
+
 if ( ! (defined($gff)) or !(defined($file_fasta)) ){
     pod2usage( {
            -message => "$header\nAt least 2 parameter is mandatory:\nInput reference gff file (--gff) and Input fasta file (--fasta)\n\n",
@@ -105,7 +103,7 @@ my $geneCounter=0;
 
 foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
   foreach my $gene_id (keys %{$hash_omniscient->{'level1'}{$primary_tag_key_level1}}){
-    
+
     my $gene_feature = $hash_omniscient->{'level1'}{$primary_tag_key_level1}{$gene_id};
     my $strand = $gene_feature->strand();
     print "gene_id = $gene_id\n" if $verbose;
@@ -114,26 +112,26 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
       if ( exists_keys( $hash_omniscient, ('level2', $primary_tag_key_level2, $gene_id) ) ){
         my $rnaFix=undef;
         foreach my $level2_feature ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$gene_id}}) {
-         
-          # get level2 id
-          my $level2_ID = lc($level2_feature->_tag_value('ID'));       
 
-          my $exonFix=undef;  
+          # get level2 id
+          my $level2_ID = lc($level2_feature->_tag_value('ID'));
+
+          my $exonFix=undef;
           if ( exists_keys( $hash_omniscient, ('level3', 'exon', $level2_ID) ) ){
-            my @exon_sorted = sort {$a->start <=> $b->start} @{$hash_omniscient->{'level3'}{'exon'}{$level2_ID}};        
-             
+            my @exon_sorted = sort {$a->start <=> $b->start} @{$hash_omniscient->{'level3'}{'exon'}{$level2_ID}};
+
             my $number_exon=$#{$hash_omniscient->{'level3'}{'exon'}{$level2_ID}}+1;
 
             #####################
             #start with left exon
             my $left_exon = $exon_sorted[0];
             my $exon_size = ($left_exon->end - $left_exon->start +1);
-            
+
             if($exon_size < $SIZE_OPT){
 
               my $original_exon_start = $left_exon->start;
               my $new_exon_start = $left_exon->start-($SIZE_OPT - $exon_size );
-              
+
               #modify the exon start
               $left_exon->start($new_exon_start);
               $exonCounter++;
@@ -144,7 +142,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
               #take care of CDS if needed
               if ( exists_keys( $hash_omniscient, ('level3', 'cds', $level2_ID) ) ){
                 my @cds_sorted = sort {$a->start <=> $b->start} @{$hash_omniscient->{'level3'}{'cds'}{$level2_ID}};
-                
+
                 #Check if the exon modification could affect the CDS
                 if($original_exon_start == $cds_sorted[0]->start()){
 
@@ -152,7 +150,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
 
                   #get the sequence
                   my $sequence = $db->seq( $gene_feature->seq_id() );
-                  #get codon table 
+                  #get codon table
                   my $codonTable = Bio::Tools::CodonTable->new( -id => $codonTableId);
 
                   #extract the codon
@@ -160,7 +158,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
 
                   if($strand eq "+" or $strand == "1"){
                      #Check if it is not terminal codon, otherwise we have to extend the CDS.
-                    
+
                     if(! $codonTable->is_start_codon( $this_codon )){
                       print "first exon plus strand : this is not a start codon\n";exit;
                     }
@@ -183,12 +181,12 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
             ################
             #then right exon
             if($number_exon > 1){
-              
+
               my $right_exon =  $exon_sorted[$#exon_sorted];
               my $exon_size = ($right_exon->end - $right_exon->start +1);
-             
+
               if($exon_size < $SIZE_OPT){
-                
+
                 my $original_exon_end = $right_exon->end;
                 my $new_exon_end = $right_exon->end+($SIZE_OPT - $exon_size );
 
@@ -202,7 +200,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
                 #take care of CDS if needed
                 if ( exists_keys( $hash_omniscient, ('level3', 'cds', $level2_ID) ) ){
                   my @cds_sorted = sort {$a->start <=> $b->start} @{$hash_omniscient->{'level3'}{'cds'}{$level2_ID}};
-                  
+
                   #Check if the exon modification could affect the CDS
                   if($original_exon_end == $cds_sorted[$#cds_sorted]->end()){
 
@@ -210,7 +208,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
 
                     #get the sequence
                     my $sequence = $db->seq( $gene_feature->seq_id() );
-                    #get codon table 
+                    #get codon table
                     my $codonTable = Bio::Tools::CodonTable->new( -id => $codonTableId);
 
                     #extract the codon
@@ -219,7 +217,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
                     if($strand eq "+" or $strand == "1"){
                       print "last plus strand\n" if $verbose;
                        #Check if it is not terminal codon, otherwise we have to extend the CDS.
-                      
+
                       if(! $codonTable->is_ter_codon( $this_codon )){
 
                         print "last exon plus strand : $this_codon is not a stop codon\n";exit;

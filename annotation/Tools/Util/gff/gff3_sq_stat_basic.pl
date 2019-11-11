@@ -1,22 +1,24 @@
 #!/usr/bin/env perl
 
-use Carp;
 use strict;
+use warnings;
+use Carp;
 use warnings;
 use Pod::Usage;
 use Getopt::Long;
 use IO::File ;
 use Bio::SeqIO;
 use Bio::Tools::GFF;
+
 my $header = qq{
 ########################################################
-# NBIS 2019 - Sweden                                   #  
+# NBIS 2019 - Sweden                                   #
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 };
-my $start_run = time();
 
+my $start_run = time();
 my @inputFile;
 my $outputFile;
 my $genome;
@@ -120,7 +122,7 @@ print $ostream "Type (3rd column)\tNumber\tSize total (kb)\tSize mean (bp)\t% of
     my $SizeMean=sprintf("%0.2f",($type_bp->{$gnx}/$type_count->{$gnx}));
     my $xGenome=sprintf("%0.2f",($type_bp->{$gnx}/$genomeSize)*100);
     print $ostream $gnx,"\t",$type_count->{$gnx},"\t",$Sitotal,"\t",$SizeMean,"\t",$xGenome,"\n";
-    
+
     $totalNumber=$totalNumber+$type_count->{$gnx};
     $totalSize=$totalSize+$type_bp->{$gnx};
 
@@ -179,7 +181,7 @@ STRING: Input gff file that will be read. Several files can be processed at once
 That input is design to know the genome size in order to calculate the percentage of the genome represented by each kind of feature type.
 You can provide an INTEGER or the genome in fasta format. If you provide the fasta, the genome size will be calculated on the fly.
 
-=item B<-o> or B<--output> 
+=item B<-o> or B<--output>
 
 STRING: Output file. If no output file is specified, the output will be written to STDOUT. The result is in tabulate format.
 

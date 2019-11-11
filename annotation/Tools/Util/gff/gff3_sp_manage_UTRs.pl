@@ -8,15 +8,14 @@ use IO::File;
 use Pod::Usage;
 use Getopt::Long qw(:config no_auto_abbrev);
 use Statistics::R;
-use BILS::Handler::GXFhandler qw(:Ok);
-use BILS::Handler::GFF3handler qw(:Ok);
+use NBIS::GFF3::Omniscient;
 use Bio::Tools::GFF;
 
 my $header = qq{
 ########################################################
-# BILS 2015 - Sweden                                   #  
-# jacques.dainat\@bils.se                               #
-# Please cite BILS (www.bils.se) when using this tool. #
+# NBIS 2015 - Sweden                                   #
+# jacques.dainat\@nbis.se                               #
+# Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 };
 
@@ -94,7 +93,7 @@ if($opt_utr3 or $opt_utr5 or $opt_bst){
 print $ostreamReport $string1;
 if($opt_output){print $string1;}
 # #####################################
-# # END Manage OPTION  
+# # END Manage OPTION
 # #####################################
 
 
@@ -115,7 +114,7 @@ if (defined($opt_output) ) {
 
   my $file_in=$opt_reffile;
   $file_in =~ s/.gff.*//g;
-  
+
   #manage name output
   my $utr_type_under=undef;
   my $utr_type_over=undef;
@@ -192,12 +191,12 @@ foreach my $tag_l3 ( keys %{$hash_omniscient->{'level3'}} ) {
      if ($tag_l3 ne 'three_prime_utr' and $tag_l3 ne 'five_prime_utr') {
 
        foreach my $id_l2 ( keys %{$hash_omniscient->{'level3'}{$tag_l3}} ){
-        
+
          my $geneID = $hash_mRNAGeneLink->{$id_l2};
          my $feature_l2 = get_feature_l2_from_id_l2_l1($hash_omniscient, $id_l2, $geneID);
          my $strand = $feature_l2->strand();
          my $cds_feature_example =  $hash_omniscient->{'level3'}{'cds'}{$id_l2}[0]; #if utr exists, cds should exists
-        
+
          foreach my $feature_l3 ( @{$hash_omniscient->{'level3'}{$tag_l3}{$id_l2}}){
            if($feature_l3->start <= $cds_feature_example->start){
              if ($strand eq "+" or $strand eq "1"){
@@ -229,7 +228,7 @@ foreach my $tag_l2 (keys %{$hash_omniscient->{'level2'}}) {
 
       my $has_an_utr=undef;
       my $id_l2= lc($feature_l2->_tag_value('ID'));
-      
+
       foreach my $tag_l3 (keys %{$hash_omniscient->{'level3'}}) {
         if($tag_l3 =~ /utr/){
           if(exists ($hash_omniscient->{'level3'}{$tag_l3}{$id_l2})){
@@ -242,7 +241,7 @@ foreach my $tag_l2 (keys %{$hash_omniscient->{'level2'}}) {
             if(! exists $UTRbymRNA{'both'}{$id_l2}){
               $UTRbymRNA{'both'}{$id_l2}=$nbUTR;
             }else{$UTRbymRNA{'both'}{$id_l2}+=$nbUTR;}
-            
+
            #   print_omniscient_from_level1_id_list($hash_omniscient,[$geneID],$utr_gff{$tag_l3});
           }
         }
@@ -250,7 +249,7 @@ foreach my $tag_l2 (keys %{$hash_omniscient->{'level2'}}) {
       if(!$has_an_utr){
          $UTRbymRNA{'both'}{$id_l2}=0;
       }
-    }  
+    }
   }
 }
 
@@ -306,7 +305,7 @@ if($opt_utr3 or $opt_utr5 or $opt_bst){
           $geneName_ok{$hash_mRNAGeneLink->{$id_level2}}++;
         }
       }                                           ### REMOVE OPTION BOTH ?
-      # case both side together (when added) should be over $opt_nbUTR) 
+      # case both side together (when added) should be over $opt_nbUTR)
       if ($opt_bst and $tag eq "both"){
         if ($UTRbymRNA{$tag}{$id_level2} >=  $opt_nbUTR){
           push @listIDl2discarded, $id_level2;
@@ -317,7 +316,7 @@ if($opt_utr3 or $opt_utr5 or $opt_bst){
           $geneName_ok{$hash_mRNAGeneLink->{$id_level2}}++;
         }
       }
-      # case both side independant (side 3 and and5 should be over $opt_nbUTR) 
+      # case both side independant (side 3 and and5 should be over $opt_nbUTR)
 
       # case no option print all so put all in @listIDlok
       if(! $opt_utr3 and ! $opt_utr5 and ! $opt_bst) { # in case where no option, We do by default side3 side5 idependant. On sufficiant to discard the mRNA
@@ -366,7 +365,7 @@ if($opt_utr3 or $opt_utr5 or $opt_bst){
 if ($opt_plot){
 
   foreach my $utr_type (keys %UTRdistribution) {
-    
+
     my $txtFile;
     my $outPlot;
     my $txtFileOver;
@@ -410,7 +409,7 @@ if ($opt_plot){
           }
         }
         else{ #print utr under threshold
-          if($firstLine){ 
+          if($firstLine){
             print FH $value."\t".$UTRdistribution{$utr_type}{$value};
             $firstLine=undef;
           }
@@ -444,7 +443,7 @@ if ($opt_plot){
         pdf("$outPlot")
         plot(listValues[,2]~listValues[,1], xlab="Contig size", ylab="Frequency", main="Size distribution of $utr_type")
         dev.off()
-        
+
         pdf("$outPlotOver")
         plot(listValueMoreThan[,2]~listValueMoreThan[,1], xlab="Contig size", ylab="Frequency", main="Size distribution of $utr_type over 5")
         dev.off()`
@@ -491,7 +490,7 @@ In the second case, will be discarded only the genes where the addition of UTR's
 
 =head1 SYNOPSIS
 
-    ./maker_manageUTR.pl --ref=infile --three --five -p --out=outFile 
+    ./maker_manageUTR.pl --ref=infile --three --five -p --out=outFile
     ./maker_manageUTR.pl --help
 
 =head1 OPTIONS

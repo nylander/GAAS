@@ -1,25 +1,23 @@
-package Sbatch;
+package Bsub;
 
 use strict;
 use warnings;
 use File::Basename;
-#use IPC::Cmd qw[can_run run];
 use Carp;
 use Moose;
-use BILS::Grid::GridRunner;
+use NBIS::Grid::GridRunner;
 
 extends 'GridRunner';
 
-has scheduler => ('is' => 'rw', isa => 'Str', default => 'Slurm');
+has scheduler => ('is' => 'rw', isa => 'Str', default => 'LSF');
 
 # The BUILD method is called after an object is created.
 sub BUILD {
-     my $answer = system("squeue 1>/dev/null 2>&1");
-     if ($? != 0) {
-         print "Slurm does not seem to be installed!\n";  exit;
-    }
+  my $answer = system("bjobs 1>/dev/null 2>&1");
+  if ($? != 0) {
+      print "LSF does not seem to be installed!\n";  exit;
+  }
 }
-
 
 ####
 sub _submit_job {
@@ -80,25 +78,27 @@ sub _submit_job {
     my $cmd = undef;
     if($self->{queue}){
       my $queue = $self->{queue};
-      $cmd = "sbatch -p $queue -e $shell_script.stderr -o $shell_script.stdout ";
+      $cmd = "bsub -q $queue -e $shell_script.stderr -o $shell_script.stdout ";
     }
     else{
-	$cmd = "sbatch -e $shell_script.stderr -o $shell_script.stdout ";
+      $cmd = "bsub -e $shell_script.stderr -o $shell_script.stdout ";
     }
     if (my $memory = $self->{memory}) {
-  	$cmd .= " --mem=".$memory."gb ";
+      $cmd .= " -R \"rusage[mem=$memory]\" ";
     }
-    $cmd .= " $shell_script 2>&1 ";
+      $cmd .= " $shell_script 2>&1 ";
+
 
     # ---------------- run the bsub job ---------------
-    print "Submitting: $shell_script with sbatch\n" if $self->verbose;
+    print "Submitting: $shell_script with bsub\n" if $self->verbose;
     my $job_id_text = `$cmd`;
     $num_cmds_launched++;
+
 
     # ---------------- check status ---------------
     my $ret = $?;
     if ($ret) {
-        print STDERR "SBATCH failed to accept job: $cmd\n (ret $ret)\n";
+        print STDERR "BSUB failed to accept job: $cmd\n (ret $ret)\n";
 
         unlink $shell_script; # cleanup, try again later
 
@@ -106,14 +106,14 @@ sub _submit_job {
         return ($orig_num_cmds_launched);
 
     }
+
     else {
 
         $shell_script = basename($shell_script);
         open (my $logdir_jobsfh, ">>$log_dir/job_ids.txt") or die "Error, cannot open file $log_dir/job_ids.txt";
         ## get the job ID and log it:
-        if ($job_id_text =~ /Submitted batch job (\d+)/) {
+        if ($job_id_text =~ /Job \<(\d+)\>/) {
             my $job_id = $1;
-
             print $logdir_jobsfh "$job_id\t$shell_script\n";
 
             $self->{nodes_in_progress}->{$monitor_finished} = $job_id;
@@ -145,7 +145,7 @@ sub _job_running_or_pending_on_grid {
 
     # print STDERR "Polling grid to check status of job: $job_id\n";
 
-    my $response = `squeue $job_id`;
+    my $response = `bjobs $job_id`;
     #print STDERR "Response:\n$response\n";
 
     foreach my $line (split(/\n/, $response)) {

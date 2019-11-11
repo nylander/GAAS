@@ -1,20 +1,18 @@
 #!/usr/bin/env perl
 
 use strict;
+use warnings;
 use Getopt::Long;
 use Pod::Usage;
 use Statistics::R;
 use IO::File;
-use Data::Dumper;
 use List::MoreUtils qw(uniq);
 use Bio::Tools::GFF;
-use BILS::Handler::GFF3handler qw(:Ok);
-use BILS::Handler::GXFhandler qw(:Ok);
-use BILS::GFF3::Statistics qw(:Ok);
+use NBIS::GFF3::Omniscient;
 
 my $header = qq{
 ########################################################
-# BILS 2019 - Sweden                                   #
+# NBIS 2019 - Sweden                                   #
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
@@ -116,7 +114,7 @@ foreach my $infoList (@$stat){
 }
 
 ###############################################################
-### Print Statistics function 
+### Print Statistics function
 ###############################################################:
 my %names_l1;
 my $name_l1_nb=undef;
@@ -151,7 +149,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
     my $gene_feature=$hash_omniscient->{'level1'}{$primary_tag_key_level1}{$gene_id_tag_key};
     my $id_gene=$gene_feature->_tag_value('ID');
 
-    #Check For NAME 
+    #Check For NAME
     if($gene_feature->has_tag('Name') ){
       my $value = $gene_feature->_tag_value('Name');
       $names_l1{$value}++;
@@ -170,7 +168,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
           my $l2_has_description=undef;
           my $id_mrna=$level2_feature->_tag_value('ID');
 
-          #Check For NAME 
+          #Check For NAME
           if($level2_feature->has_tag('Name') ){
             my $value = $level2_feature->_tag_value('Name');
             $names_l2{$value}++;
@@ -178,7 +176,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
             #print "l2 has tag name with value:".$value."\n";
           }
 
-          #Check For product 
+          #Check For product
           if($level2_feature->has_tag('product') ){
             my $value = $level2_feature->_tag_value('product');
             if ($value ne "hypothetical protein"){
@@ -188,9 +186,9 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
                 #print "l2 has tag product with value:".$value."\n";
             }
           }
-     
 
-          #Check For description 
+
+          #Check For description
           if($level2_feature->has_tag('description') ){
             my $value = $level2_feature->_tag_value('description');
             if ($value ne "hypothetical protein"){
@@ -201,7 +199,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
             }
           }
 
-          #Check For Ontology_term 
+          #Check For Ontology_term
           if($level2_feature->has_tag('Ontology_term') ){
             my @values = $level2_feature->get_tag_values('Ontology_term');
             foreach my $tuple (@values){
@@ -215,7 +213,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
             }
           }
 
-          #Check For Dbxref 
+          #Check For Dbxref
           if($level2_feature->has_tag('Dbxref') ){
             my @values = $level2_feature->get_tag_values('Dbxref');
             foreach my $tuple (@values){
@@ -255,7 +253,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
 # create streamOutput
 if($opt_output){
   foreach my $type (keys %DB_omni_mrna){
-    my $ostreamFunct = IO::File->new(); 
+    my $ostreamFunct = IO::File->new();
     $ostreamFunct->open( $opt_output."/$type.txt", 'w' ) or
         croak(
             sprintf( "Can not open '%s' for writing %s", $opt_output."/$type.txt", $! )
@@ -302,15 +300,15 @@ $stringPrint .= "\nnb mRNA without Functional annotation ($listOfFunction) = $nb
                   "nb mRNA with Functional annotation ($listOfFunction) = $nbmRNAwithFunction (remind: total mRNA = $total_nb_l2)\n".
                   "nb gene without Functional annotation ($listOfFunction) = $nbGeneWithoutFunction (remind: total gene = $total_nb_l1)\n".
                   "nb gene with Functional annotation ($listOfFunction) = $nbGeneWithFunction (remind: total gene = $total_nb_l1)\n\n";
-        
+
 
 #-----name------
 if ($name_l1_nb){
-  $stringPrint .= "We found $name_l1_nb genes with <Name> attribute. (remind: total gene = $total_nb_l1)\n"; 
+  $stringPrint .= "We found $name_l1_nb genes with <Name> attribute. (remind: total gene = $total_nb_l1)\n";
 }
 else{$stringPrint .= "No gene with <Name> attribute found.\n";}
 if ($name_l2_nb){
-  $stringPrint .= "We found $name_l2_nb mRNAs with <Name> attribute. They probably have the same names as their parent genes. (remind: total mRNA = $total_nb_l2)\n"; 
+  $stringPrint .= "We found $name_l2_nb mRNAs with <Name> attribute. They probably have the same names as their parent genes. (remind: total mRNA = $total_nb_l2)\n";
 }
 else{$stringPrint .= "No mRNA with <Name> attribute found.\n";}
 
@@ -320,7 +318,7 @@ if ($nbGeneWithDescription){
 }
 else{$stringPrint .= "No gene with <description> attribute found.\n";}
 if ($description_l2_nb){
-  $stringPrint .= "We have $description_l2_nb mRNAs with <description> attribute.\n"; 
+  $stringPrint .= "We have $description_l2_nb mRNAs with <description> attribute.\n";
 }
 else{$stringPrint .= "No mRNA with <description> attribute found.\n";}
 
@@ -330,7 +328,7 @@ if($nbGeneWithProduct){
 }
 else{$stringPrint .= "No gene with <product> attribute found.\n";}
 if ($product_l2_nb){
-  $stringPrint .= "We have $product_l2_nb mRNAs with <product> attribute.\n"; 
+  $stringPrint .= "We have $product_l2_nb mRNAs with <product> attribute.\n";
 }
 else{$stringPrint .= "No mRNA with <product> attribute found.\n";}
 
@@ -354,7 +352,7 @@ print "Bye Bye.\n";
 
 sub sizedPrint{
   my ($term,$size) = @_;
-  my $result; 
+  my $result;
   my $sizeTerm = ($term) ? length($term) : 0;
   if ($sizeTerm > $size ){
     $result=substr($term, 0,$size);
@@ -362,12 +360,12 @@ sub sizedPrint{
   }
   else{
     my $nbBlanc=$size-$sizeTerm;
-    
+
     my $float = $nbBlanc/2;
     my $nbBlanc_before = sprintf "%.0f", $float;
     my $nbBlanc_after = $nbBlanc - $nbBlanc_before;
 
-    $result="";    
+    $result="";
     for (my $i = 0; $i < $nbBlanc_before; $i++){
       $result.=" ";
     }

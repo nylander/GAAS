@@ -1,10 +1,8 @@
 #!/usr/bin/env perl
 
-#libraries
 use strict;
 use warnings;
 use File::Basename;
-use Data::Dumper;
 use Carp;
 use Time::Piece;
 use Time::Seconds;
@@ -15,14 +13,11 @@ use Pod::Usage;
 use List::MoreUtils qw(uniq);
 use Bio::DB::Fasta;
 use Bio::Tools::GFF;
-use BILS::Handler::GFF3handler qw(:Ok);
-use BILS::GFF3::Statistics qw(:Ok);
-use BILS::Handler::GXFhandler qw(:Ok);
-# END libraries
+use NBIS::GFF3::Omniscient;
 
 my $header = qq{
 ########################################################
-# BILS 2019 - Sweden                                   #  
+# NBIS 2019 - Sweden                                   #
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
@@ -87,7 +82,7 @@ if ( !GetOptions( 'f|ref|reffile|gff|gff3=s' => \$opt_reffile,
 		              'pe=i' => \$opt_pe,
                   'i|interpro=s' => \$opt_InterproFile,
                   'id=s' => \$opt_name,
-                  'idau=s' => \$opt_nameU,               
+                  'idau=s' => \$opt_nameU,
                   'nb=i'      => \$nbIDstart,
                   'o|output=s'      => \$opt_output,
                   'v'      => \$opt_verbose,
@@ -117,7 +112,7 @@ if ( ! (defined($opt_reffile)) ){
 #################################################
 
 if($opt_pe>5 or $opt_pe<1){
-	print "Error the Protein Existence (PE) value must be between 1 and 5\n";exit; 
+	print "Error the Protein Existence (PE) value must be between 1 and 5\n";exit;
 }
 
 my $streamBlast = IO::File->new();
@@ -156,7 +151,7 @@ if (defined($opt_output) ) {
   my $file_out_name = fileparse($opt_reffile);
   $ostreamGFF=Bio::Tools::GFF->new(-file => ">$opt_output/$file_out_name", -gff_version => 3 ) or
   croak(sprintf( "Can not open '%s' for writing %s", $opt_output."/".$opt_reffile, $! ));
-  
+
   $ostreamLog=IO::File->new(">".$opt_output."/error.txt" ) or
   croak( sprintf( "Can not open '%s' for writing %s", $opt_output."/log.txt", $! ));
 }
@@ -199,12 +194,12 @@ if($opt_output){ print_time("$stringPrint");} # When ostreamReport is a file we 
 ######################
 ### Parse GFF input #
 my ($hash_omniscient, $hash_mRNAGeneLink) = slurp_gff3_file_JD({ input => $opt_reffile
-                                                              });  
+                                                              });
 print_time("Parsing Finished\n");
 ### END Parse GFF input #
 #########################
 
-#Print directly what has been read 
+#Print directly what has been read
 my ($stat, $distri) = gff3_statistics($hash_omniscient);
 $ostreamReport->print("Statistics:\n==========\n");
 if($opt_output){print "Statistics:\n==========\n";} # When ostreamReport is a file we have to also display on screen
@@ -232,7 +227,7 @@ if (defined $opt_BlastFile){
   my @ids      = $db->get_all_primary_ids;
   foreach my $id (@ids ){$allIDs{lc($id)}=$id;}
   print_time("Parsing Finished\n\n");
-  
+
   # parse blast output
   print( "Reading features from $opt_BlastFile...\n");
   parse_blast($streamBlast, $opt_blastEvalue, $hash_mRNAGeneLink);
@@ -242,11 +237,11 @@ if (defined $opt_BlastFile){
 # Manage Interpro File #
 if (defined $opt_InterproFile){
   parse_interpro_tsv($streamInter,$opt_InterproFile);
-  
+
   # create streamOutput
   if($opt_output){
     foreach my $type (keys %functionData){
-      my $ostreamFunct = IO::File->new(); 
+      my $ostreamFunct = IO::File->new();
       $ostreamFunct->open( $opt_output."/$type.txt", 'w' ) or
           croak(
               sprintf( "Can not open '%s' for writing %s", $opt_output."/$type.txt", $! )
@@ -268,7 +263,7 @@ if ($opt_BlastFile || $opt_InterproFile ){#|| $opt_BlastFile || $opt_InterproFil
   #################
   foreach my $primary_tag_level1 (keys %{$hash_omniscient ->{'level1'}}){ # primary_tag_level1 = gene or repeat etc...
     foreach my $id_level1 (keys %{$hash_omniscient ->{'level1'}{$primary_tag_level1}}){
-      
+
       my $feature_level1=$hash_omniscient->{'level1'}{$primary_tag_level1}{$id_level1};
       # Clean NAME attribute
       if($feature_level1->has_tag('Name')){
@@ -280,11 +275,11 @@ if ($opt_BlastFile || $opt_InterproFile ){#|| $opt_BlastFile || $opt_InterproFil
         if (exists ($geneNameBlast{$id_level1})){
           create_or_replace_tag($feature_level1, 'Name', $geneNameBlast{$id_level1});
           $nbNamedGene++;
-          
+
           # Check name duplicated given
           my $nameClean=$geneNameBlast{$id_level1};
           $nameClean =~ s/_([2-9]{1}[0-9]*|[0-9]{2,})*$//;
-          
+
           my $nameToCompare;
           if(exists ($nameBlast{$nameClean})){ # We check that is really a name where we added the suffix _1
             $nameToCompare=$nameClean;
@@ -303,7 +298,7 @@ if ($opt_BlastFile || $opt_InterproFile ){#|| $opt_BlastFile || $opt_InterproFil
       # == LEVEL 2 == #
       #################
       foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
-        
+
         if ( exists_keys ($hash_omniscient, ('level2', $primary_tag_key_level2, $id_level1) ) ){
           foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_level1}}) {
 
@@ -312,7 +307,7 @@ if ($opt_BlastFile || $opt_InterproFile ){#|| $opt_BlastFile || $opt_InterproFil
             if($feature_level2->has_tag('Name')){
               $feature_level2->remove_tag('Name');
             }
-            
+
             #Manage Name if option set
             if($opt_BlastFile){
               # add gene Name
@@ -321,7 +316,7 @@ if ($opt_BlastFile || $opt_InterproFile ){#|| $opt_BlastFile || $opt_InterproFil
                 create_or_replace_tag($feature_level2, 'Name', $mRNABlastName);
               }
               my $productData=printProductFunct($level2_ID);
-              
+
               #add UniprotID attribute
               if (exists ($mRNAUniprotIDFromBlast{$level2_ID})){
                 my $mRNAUniprotID=$mRNAUniprotIDFromBlast{$level2_ID};
@@ -368,7 +363,7 @@ if ($opt_BlastFile || $opt_InterproFile ){#|| $opt_BlastFile || $opt_InterproFil
           }
         }
       }
-    } 
+    }
   }
 }
 
@@ -377,14 +372,14 @@ if ($opt_BlastFile || $opt_InterproFile ){#|| $opt_BlastFile || $opt_InterproFil
 # change names if asked for
 if ($opt_nameU || $opt_name ){#|| $opt_BlastFile || $opt_InterproFile){
   print_time("load new IDs");
-  
+
   my %hash_sortBySeq;
   foreach my $tag_level1 ( keys %{$hash_omniscient->{'level1'}}){
     foreach my $level1_id ( keys %{$hash_omniscient->{'level1'}{$tag_level1}}){
       my $position=$hash_omniscient->{'level1'}{$tag_level1}{$level1_id}->seq_id;
       push (@{$hash_sortBySeq{$position}{$tag_level1}}, $hash_omniscient->{'level1'}{$tag_level1}{$level1_id});
     }
-  } 
+  }
 
   #################
   # == LEVEL 1 == #
@@ -408,8 +403,8 @@ if ($opt_nameU || $opt_name ){#|| $opt_BlastFile || $opt_InterproFile){
         my $letter_tag = get_letter_tag($primary_tag_level1);
 
         if(! exists_keys(\%numbering,($letter_tag ))){$numbering{$letter_tag }=$nbIDstart;}
-        $newID_level1 = manageID($prefixName, $numbering{$letter_tag }, $letter_tag ); 
-        $numbering{$letter_tag }++; 
+        $newID_level1 = manageID($prefixName, $numbering{$letter_tag }, $letter_tag );
+        $numbering{$letter_tag }++;
         create_or_replace_tag($feature_level1, 'ID', $newID_level1);
 
         $finalID{$feature_level1->_tag_value('ID')}=$newID_level1;
@@ -417,13 +412,13 @@ if ($opt_nameU || $opt_name ){#|| $opt_BlastFile || $opt_InterproFile){
         # == LEVEL 2 == #
         #################
         foreach my $primary_tag_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_level2 = mrna or mirna or ncrna or trna etc...
-          
+
           if ( exists_keys ($hash_omniscient, ('level2', $primary_tag_level2, $id_level1) ) ){
             foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_level2}{$id_level1}}) {
 
               my $level2_ID = $feature_level2->_tag_value('ID');
               my $newID_level2=undef;
-              
+
               #keep track of Maker ID
               if($opt_InterproFile){#In that case the name given by Maker is removed from ID and from Name. We have to kee a track
                 create_or_replace_tag($feature_level2, 'makerName', $level2_ID);
@@ -432,15 +427,15 @@ if ($opt_nameU || $opt_name ){#|| $opt_BlastFile || $opt_InterproFile){
               my $letter_tag = get_letter_tag($primary_tag_level2);
               if(! exists_keys(\%numbering,($letter_tag))){$numbering{$letter_tag}=$nbIDstart;}
               $newID_level2 = manageID($prefixName, $numbering{$letter_tag},$letter_tag);
-              $numbering{$letter_tag}++; 
+              $numbering{$letter_tag}++;
               create_or_replace_tag($feature_level2, 'ID', $newID_level2);
               create_or_replace_tag($feature_level2, 'Parent', $newID_level1);
-              
+
               $finalID{$level2_ID}=$newID_level2;
               #################
               # == LEVEL 3 == #
               #################
-             
+
               foreach my $primary_tag_level3 (keys %{$hash_omniscient->{'level3'}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
 
                   if ( exists_keys ($hash_omniscient,('level3',$primary_tag_level3, lc($level2_ID)) ) ){
@@ -455,24 +450,24 @@ if ($opt_nameU || $opt_name ){#|| $opt_BlastFile || $opt_InterproFile){
 
                       my $letter_tag = get_letter_tag($primary_tag_level3);
                       if(! exists_keys(\%numbering,($letter_tag))){$numbering{$letter_tag}=$nbIDstart;}
-                      my $newID_level3 = manageID($prefixName, $numbering{$letter_tag},$letter_tag); 
+                      my $newID_level3 = manageID($prefixName, $numbering{$letter_tag},$letter_tag);
                       if( $primary_tag_level3 =~ /cds/ or $primary_tag_level3 =~ /utr/ ) {
                         if($opt_nameU){
                           $numbering{$letter_tag}++;
-                        }       
+                        }
                       }
                       else{
                         $numbering{$letter_tag}++;
                       }
                       create_or_replace_tag($feature_level3, 'ID', $newID_level3);
                       create_or_replace_tag($feature_level3, 'Parent', $newID_level2);
-                      
+
                       $finalID{$level3_ID}=$newID_level3;
                     }
                     #save the new l3 into the new l2 id name
-                    $hash_omniscient->{'level3'}{$primary_tag_level3}{lc($newID_level2)} = delete $hash_omniscient->{'level3'}{$primary_tag_level3}{lc($level2_ID)} # delete command return the value before deteling it, so we just transfert the value 
+                    $hash_omniscient->{'level3'}{$primary_tag_level3}{lc($newID_level2)} = delete $hash_omniscient->{'level3'}{$primary_tag_level3}{lc($level2_ID)} # delete command return the value before deteling it, so we just transfert the value
                   }
-                  if ($opt_name and  ( $primary_tag_level3 =~ /cds/ or $primary_tag_level3 =~ /utr/ ) ){ 
+                  if ($opt_name and  ( $primary_tag_level3 =~ /cds/ or $primary_tag_level3 =~ /utr/ ) ){
                     my $letter_tag = get_letter_tag($primary_tag_level3);
                     $numbering{$letter_tag}++;
                   } # with this option we increment UTR name only for each UTR (cds also)
@@ -480,17 +475,17 @@ if ($opt_nameU || $opt_name ){#|| $opt_BlastFile || $opt_InterproFile){
               }
             }
             if($newID_level1){
-              $hash_omniscient->{'level2'}{$primary_tag_level2}{lc($newID_level1)} = delete $hash_omniscient->{'level2'}{$primary_tag_level2}{$id_level1}; # modify the id key of the hash. The delete command return the value before deteling it, so we just transfert the value 
-            } 
+              $hash_omniscient->{'level2'}{$primary_tag_level2}{lc($newID_level1)} = delete $hash_omniscient->{'level2'}{$primary_tag_level2}{$id_level1}; # modify the id key of the hash. The delete command return the value before deteling it, so we just transfert the value
+            }
           }
         }
-      
+
         if($newID_level1){
-          $hash_omniscient->{'level1'}{$primary_tag_level1}{lc($newID_level1)} = delete $hash_omniscient->{'level1'}{$primary_tag_level1}{$id_level1}; # modify the id key of the hash. The delete command return the value before deteling it, so we just transfert the value 
+          $hash_omniscient->{'level1'}{$primary_tag_level1}{lc($newID_level1)} = delete $hash_omniscient->{'level1'}{$primary_tag_level1}{$id_level1}; # modify the id key of the hash. The delete command return the value before deteling it, so we just transfert the value
         }
       }
     }
-  } 
+  }
 }
 
 ###########################
@@ -546,7 +541,7 @@ if ($opt_InterproFile){
   $stringPrint .= "nb mRNA without Functional annotation ($listOfFunction) = $nbmRNAwithoutFunction\n".
                   "nb mRNA with Functional annotation ($listOfFunction) = $nbmRNAwithFunction\n".
                   "nb gene without Functional annotation ($listOfFunction) = $nbGeneWithoutFunction\n".
-                  "nb gene with Functional annotation ($listOfFunction) = $nbGeneWithFunction\n"; 
+                  "nb gene with Functional annotation ($listOfFunction) = $nbGeneWithFunction\n";
 }
 
 if($opt_BlastFile){
@@ -583,7 +578,7 @@ if(defined $opt_output){print_time( "$stringPrint" ) ;}
 print_time("Writing result...");
 print_omniscient($hash_omniscient, $ostreamGFF);
 
-      ######################### 
+      #########################
       ######### END ###########
       #########################
 #######################################################################################################################
@@ -605,20 +600,20 @@ sub get_letter_tag{
 
   $tag = lc($tag);
   if(! exists_keys (\%tag_hash,( $tag ))) {
-    
+
     my $substringLength=1;
     my $letter = uc(substr($tag, 0, $substringLength));
-    
+
     while(  grep( /^\Q$letter\E$/, @tag_list) ) { # to avoid duplicate
       $substringLength++;
-      $letter = uc(substr($tag, 0, $substringLength));  
+      $letter = uc(substr($tag, 0, $substringLength));
     }
     $tag_hash{ $tag }=uc($letter);
     push(@tag_list, $letter)
   }
   return $tag_hash{ $tag };
 }
-  
+
 # print with time
 sub print_time{
   my $t = localtime;
@@ -633,7 +628,7 @@ sub manageGeneNameBlast{
   my ($geneName)=@_;
   foreach my $element (keys %$geneName){
     my @tab=@{$geneName->{$element}};
-    
+
     my %seen;
     my @unique;
     for my $w (@tab) { # remove duplicate in list case insensitive
@@ -677,7 +672,7 @@ sub printProductFunct{
   my $first="yes";
   if (exists $mRNAproduct{$refname}){
     foreach my $element (@{$mRNAproduct{$refname}})
-    { 
+    {
       if($first eq "yes"){
         $String.="$element";
         $first="no";
@@ -694,8 +689,8 @@ sub addFunctions{
   my $functionAdded=undef;
   my $ID=lc($feature->_tag_value('ID'));
   foreach my $function_type (keys %functionData){
-    
-    
+
+
     if(exists ($functionData{$function_type}{$ID})){
       $functionAdded="true";
 
@@ -733,7 +728,7 @@ sub parse_blast {
 #################################################################################
 ####### Step 1 : CATCH all candidates (the better candidate for each mRNA)####### (with a gene name)
 
-  my %candidates; 
+  my %candidates;
 
   while( my $line = <$file_in>)  {
     my @values = split(/\t/, $line);
@@ -752,17 +747,17 @@ sub parse_blast {
         if( exists $allIDs{lc($prot_name)}){
         	$protID_correct = $allIDs{lc($prot_name)};
         	my $header = $db->header( $protID_correct );
-      	
+
         	if ($header =~ m/GN=/){
       			if($header =~ /PE=([1-5])\s/){
       				if($1 <= $opt_pe){
       					$candidates{$l2_name}=[$header, $evalue, $uniprot_id];
-      				}    				
+      				}
       			}
       			else{$ostreamLog->print("No Protein Existence (PE) information in this header: $header\n")if($opt_verbose or $opt_output); }
       		}
-      		else{ 
-      			$ostreamLog->print( "No gene name (GN=) in this header $header\n") if($opt_verbose or $opt_output); 
+      		else{
+      			$ostreamLog->print( "No gene name (GN=) in this header $header\n") if($opt_verbose or $opt_output);
       			$candidates{$l2_name}=["error", $evalue, $prot_name."-".$l2_name];
       		}
       	}
@@ -777,18 +772,18 @@ sub parse_blast {
       if( exists $allIDs{lc($prot_name)}){
         $protID_correct = $allIDs{lc($prot_name)};
         my $header = $db->header( $protID_correct );
-      
+
         if ($header =~ m/GN=/){
           if($header =~ /PE=([1-5])\s/){
             if($1 <= $opt_pe){
               $candidates{$l2_name}=[$header, $evalue, $uniprot_id];
             }
           }
-          else{ $ostreamLog->print( "No Protein Existence (PE) information in this header: $header\n") if($opt_verbose or $opt_output); }                        
+          else{ $ostreamLog->print( "No Protein Existence (PE) information in this header: $header\n") if($opt_verbose or $opt_output); }
         }
         else{ $ostreamLog->print("No gene name (GN=) in this header $header\n") if($opt_verbose or $opt_output); }
       }
-	    else{ $ostreamLog->print( "ERROR $prot_name not found among the db! You probably didn't give to me the same fasta file than the one used for the blast. (l2=$l2_name)\n") if($opt_verbose or $opt_output);}      
+	    else{ $ostreamLog->print( "ERROR $prot_name not found among the db! You probably didn't give to me the same fasta file than the one used for the blast. (l2=$l2_name)\n") if($opt_verbose or $opt_output);}
     }
   }
 
@@ -797,22 +792,22 @@ sub parse_blast {
 
 ##################################################
 ####### Step 2 : go through all candidates ####### report gene name for each mRNA
-  
-  my %geneName; 
+
+  my %geneName;
   my %linkBmRNAandGene;
 
   foreach my $l2 (keys %candidates){
     if( $candidates{$l2}[0] eq "error" ){
       $ostreamLog->print( "error nothing found for $candidates{$l2}[2]\n") if($opt_verbose or $opt_output); next;
     }
-    
+
     #Save uniprot id of the best match
     print "save for $l2  ".$candidates{$l2}[2]."\n" if($opt_verbose);
     $mRNAUniprotIDFromBlast{$l2} = $candidates{$l2}[2];
-    print "save for $l2  ".$candidates{$l2}[2]."\n";  
+    print "save for $l2  ".$candidates{$l2}[2]."\n";
     my $header = $candidates{$l2}[0];
     print "header: ".$header."\n" if($opt_verbose);
-    
+
     if ($header =~ m/(^[^\s]+)\s(.+?(?= \w{2}=))(.+)/){
 	    my $protID = $1;
 	    my $description = $2;
@@ -820,47 +815,47 @@ sub parse_blast {
 	    $theRest =~ s/\n//g;
 	    $theRest =~ s/\r//g;
 	    my $nameGene = undef;
-	    push ( @{ $mRNAproduct{$l2} }, $description );     
-	
+	    push ( @{ $mRNAproduct{$l2} }, $description );
+
  	    #deal with the rest
 	    my %hash_rest;
 	    my $tuple=undef;
 	    while ($theRest){
-        ($theRest, $tuple) = stringCatcher($theRest);     
+        ($theRest, $tuple) = stringCatcher($theRest);
         my ($type,$value) = split /=/,$tuple;
 		    #print "$protID: type:$type --- value:$value\n";
 		    $hash_rest{lc($type)}=$value;
 	    }
-	     
+
       if(exists($hash_rest{"gn"})){
 		    $nameGene=$hash_rest{"gn"};
-	        
+
 		    if(exists_keys ($hash_mRNAGeneLink,($l2)) ){
-			    my $geneID = $hash_mRNAGeneLink->{$l2};      
+			    my $geneID = $hash_mRNAGeneLink->{$l2};
 	       	#print "push $geneID $nameGene\n";
 			    push ( @{ $geneName{lc($geneID)} }, lc($nameGene) );
-	        push( @{ $linkBmRNAandGene{lc($geneID)}}, lc($l2)); # save mRNA name for each gene name 
+	        push( @{ $linkBmRNAandGene{lc($geneID)}}, lc($l2)); # save mRNA name for each gene name
 		    }
 		    else{ $ostreamLog->print( "No parent found for $l2 (defined in the blast file) in hash_mRNAGeneLink (created by the gff file).\n") if($opt_verbose or $opt_output); }
 	    }
 	    else{ $ostreamLog->print( "Header from the db fasta file doesn't match the regular expression: $header\n") if($opt_verbose or $opt_output); }
     }
   }
-  
+
   ####################################################
   ####### Step 3 : Manage NAME final gene name ####### several isoforms could have different gene name reported. So we have to keep that information in some way to report only one STRING to gene name attribute of the gene feature.
   ################# Remove redundancy to have only one name for each gene
 
-   manageGeneNameBlast(\%geneName); 
-  
-  
+   manageGeneNameBlast(\%geneName);
+
+
   ##########################################################
-  ####### Step 4 : CLEAN NAMES REDUNDANCY inter gene ####### 
+  ####### Step 4 : CLEAN NAMES REDUNDANCY inter gene #######
 
    my %geneNewNameUsed;
    foreach my $geneID (keys %geneName){
      $nbGeneNameInBlast++;
-    
+
      my @mRNAList=@{$linkBmRNAandGene{$geneID}};
      my $String = $geneName{$geneID};
  #    print "$String\n";
@@ -885,7 +880,7 @@ sub parse_blast {
        $geneNewNameUsed{$String}++;
        $geneNameBlast{$geneID}=$String;
        # link name to mRNA and and isoform name _1 _2 _3 if several mRNA
-       my $cptmRNA=1;  
+       my $cptmRNA=1;
        if ($#mRNAList != 0) {
          foreach my $mRNA (@mRNAList){
            $mRNANameBlast{$mRNA}=$String."_iso".$cptmRNA;
@@ -904,7 +899,7 @@ sub stringCatcher{
 
     if ( $String =~ m/(\w{2}=.+?(?= \w{2}=))(.+)/ ) {
         $newString = substr $String, length($1)+1;
-    	return ($newString, $1); 
+    	return ($newString, $1);
     }
     else{ return (undef, $String); }
 }
@@ -914,10 +909,10 @@ sub parse_interpro_tsv {
   my($file_in,$fileName) = @_;
   print( "Reading features from $fileName...\n");
 
-  while( my $line = <$file_in>)  {    
-    
+  while( my $line = <$file_in>)  {
+
     my @values = split(/\t/, $line);
-    my $sizeList = @values;   
+    my $sizeList = @values;
     my $mRNAID=lc($values[0]);
 
       #Check for the specific DB
@@ -934,7 +929,7 @@ sub parse_interpro_tsv {
 	        $GeneAssociatedToTerm{$db_name}{$hash_mRNAGeneLink->{$mRNAID}}++;
 	      }
 	}
-   
+
       #check for interpro
       if( $sizeList>11 ){
         my $db_name="InterPro";
@@ -946,7 +941,7 @@ sub parse_interpro_tsv {
 	if (! grep( /^\Q$interpro_tuple\E$/, @{$functionData{$db_name}{$mRNAID}} ) ) {	#to avoid duplicate
 	        $TotalTerm{$db_name}++;
 	        push ( @{$functionData{$db_name}{$mRNAID}} , $interpro_tuple );
-	        if ( exists $hash_mRNAGeneLink->{$mRNAID}){ ## check if exists among our current gff annotation file analyzed	
+	        if ( exists $hash_mRNAGeneLink->{$mRNAID}){ ## check if exists among our current gff annotation file analyzed
 	          $mRNAAssociatedToTerm{$db_name}{$mRNAID}++;
 	          $GeneAssociatedToTerm{$db_name}{$hash_mRNAGeneLink->{$mRNAID}}++;
 	        }
@@ -958,7 +953,7 @@ sub parse_interpro_tsv {
         my $db_name="GO";
         my $go_flat_list = $values[13];
         $go_flat_list=~ s/\n//g;
-        my @go_list = split(/\|/,$go_flat_list); #cut at character | 
+        my @go_list = split(/\|/,$go_flat_list); #cut at character |
         foreach my $go_tuple (@go_list){
           print "GO term: ".$go_tuple."\n" if($opt_verbose);
 
@@ -978,12 +973,12 @@ sub parse_interpro_tsv {
         my $pathway_flat_list = $values[14];
         $pathway_flat_list=~ s/\n//g;
         $pathway_flat_list=~ s/ //g;
-        my  @pathway_list = split(/\|/,$pathway_flat_list); #cut at character | 
+        my  @pathway_list = split(/\|/,$pathway_flat_list); #cut at character |
         foreach my $pathway_tuple (@pathway_list){
           my @tuple = split(/:/,$pathway_tuple); #cut at character :
           my $db_name = $tuple[0];
-          print "pathway info: ".$pathway_tuple."\n" if($opt_verbose); 
-	  
+          print "pathway info: ".$pathway_tuple."\n" if($opt_verbose);
+
 	  if (! grep( /^\Q$pathway_tuple\E$/, @{$functionData{$db_name}{$mRNAID}} ) ) { # to avoid duplicate
 	          $TotalTerm{$db_name}++;
 	          push ( @{$functionData{$db_name}{$mRNAID}} , $pathway_tuple );
@@ -993,13 +988,13 @@ sub parse_interpro_tsv {
 	          }
 	  }
         }
-      }      
+      }
   }
 }
 
 sub sizedPrint{
   my ($term,$size) = @_;
-  my $result; 
+  my $result;
   my $sizeTerm = ($term) ? length($term) : 0;
   if ($sizeTerm > $size ){
     $result=substr($term, 0,$size);
@@ -1028,7 +1023,7 @@ __END__
 =head1 NAME
 
 gff3_sp_manage_functional_annotation.pl -
-The script take a gff3 file as input and blast and/or interpro output in order to attach functional annotation to corresponding features within the gff file. 
+The script take a gff3 file as input and blast and/or interpro output in order to attach functional annotation to corresponding features within the gff file.
 >The blast against Protein Database (outfmt 6) allows to fill the field/attribute NAME for gene and PRODUCT for mRNA.
 >The Interpro result (.tsv) file allows to fill the DBXREF field/attribute with pfam, tigr, interpro, GO, KEGG, etc... terms data.
 With the <id> option the script will change all the ID field by an Uniq ID created from the given prefix, a letter to specify the kind of feature (G,T,C,E,U), and the feature number.
@@ -1085,11 +1080,11 @@ Currently the best e-value win... That means another hit with a lower e-value ( 
 
 =over 8
 
-=item B<-f>, B<--reffile>,B<-ref> , B<--gff> or B<--gff3> 
+=item B<-f>, B<--reffile>,B<-ref> , B<--gff> or B<--gff3>
 
 Input GFF3 file that will be read (and sorted)
 
-=item B<-b> or B<--blast> 
+=item B<-b> or B<--blast>
 
 Input blast ( outfmt 6 = tabular )file that will be used to complement the features read from
 the first file (specified with B<--ref>).
@@ -1107,13 +1102,13 @@ The fasta file that has been used as DB for the blast. Gene names and products/d
 The PE (protein existence) in the uniprot header indicates the type of evidence that supports the existence of the protein.
 You can decide until which protein existence level you want to consider to lift the finctional information. Default 5.
 
-1. Experimental evidence at protein level 
-2. Experimental evidence at transcript level 
-3. Protein inferred from homology 
-4. Protein predicted 
+1. Experimental evidence at protein level
+2. Experimental evidence at transcript level
+3. Protein inferred from homology
+4. Protein predicted
 5. Protein uncertain
 
-=item B<-i> or B<--interpro> 
+=item B<-i> or B<--interpro>
 
 Input interpro file (.tsv) that will be used to complement the features read from
 the first file (specified with B<--ref>).

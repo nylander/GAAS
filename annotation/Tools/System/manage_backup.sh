@@ -1,6 +1,6 @@
 #!/bin/bash
 
-## jacques.dainat@bils.se - 2015
+## jacques.dainat@nbis.se - 2015
 # This script allows to make weekly/monthly/yearly compressed backup.
 # It is not completely generalized but can be done easily with some modification.
 # In the folder where you want to launch the backup you need a current_backup.log file (last modified by the last backup) and a folder called current_backup containing everything you want to backup

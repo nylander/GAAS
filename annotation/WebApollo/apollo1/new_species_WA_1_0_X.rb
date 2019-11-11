@@ -173,9 +173,9 @@ config = {
 	:data_dir => "#{web_apollo_storage}/data",		# Where the Jbrowse data is stored
 	:tool_dir => "/opt/ucsc",			# Location of blat and FaToNib
 	:organism => @organism,					# Species name
-	:chado_db => "bils_chado",				# Name of the chado db to use for storing annotations (optional)
-	:chado_db_user => "bils_chado_user",			# User with write permissions in chado db
-	:chado_db_user_pw => "bils_chado_user"			# PW for chado user	
+	:chado_db => "nbis_chado",				# Name of the chado db to use for storing annotations (optional)
+	:chado_db_user => "nbis_chado_user",			# User with write permissions in chado db
+	:chado_db_user_pw => "nbis_chado_user"			# PW for chado user	
 }
 
 ### File targets

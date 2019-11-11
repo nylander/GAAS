@@ -2,9 +2,10 @@
 
 ####
 # Jacques Dainat 2015/03
-# jacques.dainat@bils.se
+# jacques.dainat@nbis.se
 ####
 use strict;
+use warnings;
 use Pod::Usage;
 use Getopt::Long;
 use Bio::SeqIO ;
@@ -41,7 +42,7 @@ if ($opt_help) {
     pod2usage( { -verbose => 2,
                  -exitval => 0 } );
 }
- 
+
 if ( (! (defined($opt_gfffile)) ) || (! (defined($opt_fastafile)) ) || ( (! defined($opt_HardMask) && (! defined($opt_SoftMask))) ) ){
     pod2usage( {
            -message => "\nAt least 3 parametes are mandatory:\nInput reference gff file (-g);  Input reference fasta file (-f); Mask type (-hm for hard mask or -sm for soft mask)\n\n".
@@ -56,7 +57,7 @@ if (defined ($opt_HardMask) && defined ($opt_SoftMask)){
 
 my $ostream           = IO::File->new();
 if (defined($opt_output) ) {
-   $ostream->open( $opt_output, 'w' ) 
+   $ostream->open( $opt_output, 'w' )
 }
 else{
   $ostream->fdopen( fileno(STDOUT), 'w' ) or
@@ -132,7 +133,7 @@ __END__
 =head1 NAME
 
 gff3_sq_mask.pl - mask GFF-denoted segments out of a FASTA format file.
-This script masks (hard or soft) repeats among sequences. It needs 3 input parameters: a gff3 file, a fasta file, and a Mask method. 
+This script masks (hard or soft) repeats among sequences. It needs 3 input parameters: a gff3 file, a fasta file, and a Mask method.
 The result is written to the specified output file, or to STDOUT.
 
 =head1 SYNOPSIS
@@ -148,15 +149,15 @@ The result is written to the specified output file, or to STDOUT.
 
 Input GFF3 file that will be read (and sorted)
 
-=item B<-f> or B<--fasta> 
+=item B<-f> or B<--fasta>
 
 Input fasta file that will be masked
 
-=item B<-sm> 
+=item B<-sm>
 
 SoftMask option =>Sequences masked will be in lowercase
 
-=item B<-hm> 
+=item B<-hm>
 
 HardMask option => Sequences masked will be replaced by a character. By default the character used is 'n'. But you are allowed to speceify any character of your choice. To use 'z' instead of 'n' type: -hm z
 

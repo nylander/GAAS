@@ -2,7 +2,7 @@
 
 # 10/2014
 # Jacques Dainat
-# jacques.dainat@bils.se
+# jacques.dainat@nbis.se
 #
 
 #ARGS in command line

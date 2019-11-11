@@ -8,19 +8,16 @@ use Carp;
 use Getopt::Long;
 use IO::File;
 use Pod::Usage;
-use BILS::Handler::GXFhandler qw(:Ok);
-use BILS::Handler::GFF3handler qw(:Ok);
+use NBIS::GFF3::Omniscient;
 use Bio::Tools::GFF;
-use BILS::GFF3::Statistics qw(:Ok);
 
 my $header = qq{
 ########################################################
-# NBIS 2019 - Sweden                                   #  
+# NBIS 2019 - Sweden                                   #
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 };
-
 
 my $opt_file;
 my $opt_output=undef;
@@ -100,7 +97,7 @@ foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){
         # if($tag_l2 =~ "match"){
         #   my $counterL2_match=-1;
         #   foreach my $feature_l2 (@{$hash_omniscient->{'level2'}{$tag_l2}{$id_l1}}){
-      
+
         #     my @sortedList = sort {$a->start <=> $b->start} @{$hash_omniscient->{'level2'}{$tag_l2}{$id_l1}};
         #     my $indexLastL2 = $#{$hash_omniscient->{'level2'}{$tag_l2}{$id_l1}};
         #     $counterL2_match++;
@@ -114,11 +111,11 @@ foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){
         # else{
           foreach my $feature_l2 (@{$hash_omniscient->{'level2'}{$tag_l2}{$id_l1}}){
             my $level2_ID = lc($feature_l2->_tag_value('ID'));
-          
+
             # if ( exists_keys($hash_omniscient,('level3','exon',$level2_ID) ) ){
             #   my $counterL3=-1;
-            #   my $indexLast = $#{$hash_omniscient->{'level3'}{'exon'}{$level2_ID}};      
-            #   my @sortedList = sort {$a->start <=> $b->start} @{$hash_omniscient->{'level3'}{'exon'}{$level2_ID}};         
+            #   my $indexLast = $#{$hash_omniscient->{'level3'}{'exon'}{$level2_ID}};
+            #   my @sortedList = sort {$a->start <=> $b->start} @{$hash_omniscient->{'level3'}{'exon'}{$level2_ID}};
             #   foreach my $feature_l3 ( @sortedList ){
             #     #count number feature of tag_l3 type
             #     $counterL3++;
@@ -132,8 +129,8 @@ foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){
             # else{
               if ( exists_keys($hash_omniscient,('level3','cds',$level2_ID)) ){
                 my $counterL3=-1;
-                my $indexLast = $#{$hash_omniscient->{'level3'}{'cds'}{$level2_ID}};      
-                my @sortedList = sort {$a->start <=> $b->start} @{$hash_omniscient->{'level3'}{'cds'}{$level2_ID}};         
+                my $indexLast = $#{$hash_omniscient->{'level3'}{'cds'}{$level2_ID}};
+                my @sortedList = sort {$a->start <=> $b->start} @{$hash_omniscient->{'level3'}{'cds'}{$level2_ID}};
                 foreach my $feature_l3 ( @sortedList ){
                   #count number feature of tag_l3 type
                   $counterL3++;
@@ -148,8 +145,8 @@ foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){
               #   if (index(lc($tag_l3), 'utr') != -1) {
               #     if ( exists_keys($hash_omniscient,('level3',$tag_l3,$level2_ID)) ){
               #       my $counterL3=-1;
-              #       my $indexLast = $#{$hash_omniscient->{'level3'}{$tag_l3}{$level2_ID}};      
-              #       my @sortedList = sort {$a->start <=> $b->start} @{$hash_omniscient->{'level3'}{$tag_l3}{$level2_ID}};         
+              #       my $indexLast = $#{$hash_omniscient->{'level3'}{$tag_l3}{$level2_ID}};
+              #       my @sortedList = sort {$a->start <=> $b->start} @{$hash_omniscient->{'level3'}{$tag_l3}{$level2_ID}};
               #       foreach my $feature_l3 ( @sortedList ){
               #         #count number feature of tag_l3 type
               #         $counterL3++;
@@ -168,10 +165,10 @@ foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){
       }
     }
     print "Shortest intron for $id_l1:".$shortest_intron."\n" if($shortest_intron != 10000000000 and $verbose);
-    if ($shortest_intron < $Xsize){ 
+    if ($shortest_intron < $Xsize){
       print "flag the gene $id_l1\n";
       $nb_cases++;
-          
+
       my $feature_l1 = $hash_omniscient->{'level1'}{$tag_l1}{$id_l1};
       $feature_l1->add_tag_value($tag, $shortest_intron);
       if($feature_l1->has_tag('product') ){
@@ -210,7 +207,7 @@ my $toprint = "We found $nb_cases cases where introns were < $Xsize, we flagged 
 print $ostreamReport $toprint;
 if($opt_output){print $toprint;}
 print_omniscient($hash_omniscient, $gffout); #print gene modified
-      ######################### 
+      #########################
       ######### END ###########
       #########################
 
@@ -233,13 +230,13 @@ __END__
 
 
 =head1 NAME
- 
-gff3_sp_flag_short_introns.pl - This script will flag the short introns with the attribute pseudo. Is is usefull to avoid ERROR when submiting the 
+
+gff3_sp_flag_short_introns.pl - This script will flag the short introns with the attribute pseudo. Is is usefull to avoid ERROR when submiting the
 data to EBI. (Typical EBI error message: ********ERROR: Intron usually expected to be at least 10 nt long. Please check the accuracy)
 
 =head1 SYNOPSIS
 
-    ./gff3_sp_flag_short_introns.pl --gff infile --out outFile 
+    ./gff3_sp_flag_short_introns.pl --gff infile --out outFile
     ./gff3_sp_flag_short_introns.pl --help
 
 =head1 OPTIONS

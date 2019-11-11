@@ -7,7 +7,7 @@
 # The NBIS annotation toolkit.</br>
 ### (c) The NBIS Genome Annotation Platform
 
-#### [BILS](BILS)
+#### [NBIS](NBIS)
 Perl library
 
 #### [LsfTemplates](LsfTemplates)

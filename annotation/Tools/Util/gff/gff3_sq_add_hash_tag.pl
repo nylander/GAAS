@@ -1,23 +1,22 @@
 #!/usr/bin/env perl
 
-###################################################
-# Jacques Dainat 01/2016                          #  
-# Bioinformatics Infrastructure for Life Sciences #
-# jacques.dainat@bils.se                          #
-###################################################
-
-use Carp;
 use strict;
 use warnings;
+use Carp;
 use Pod::Usage;
 use Getopt::Long;
 use IO::File ;
 use Bio::Tools::GFF;
-use BILS::Handler::GFF3handler qw(:Ok);
-use BILS::Handler::GXFhandler qw(:Ok);
+
+my $header = qq{
+########################################################
+# NBIS 2016 - Sweden                                   #
+# jacques.dainat\@nbis.se                               #
+# Please cite NBIS (www.nbis.se) when using this tool. #
+########################################################
+};
 
 my $start_run = time();
-
 my $inputFile=undef;
 my $outfile=undef;
 my $opt_help = 0;
@@ -35,14 +34,15 @@ if ( !GetOptions ('file|input|gff=s' => \$inputFile,
 }
 
 if ($opt_help) {
-    pod2usage( { -verbose => 2,
-                 -exitval => 0 } );
+    pod2usage( { -verbose => 1,
+                 -exitval => 0,
+                 -message => "$header \n" } );
 }
 
 if ((!defined($inputFile)) ){
-   pod2usage( { -message => 'at least 1 parameter is mandatory: -i',
-                 -verbose => 1,
-                 -exitval => 1 } );
+   pod2usage( { -message => "$header\nAt least 1 parameter is mandatory: -i",
+                 -verbose => 0,
+                 -exitval => 2 } );
 }
 
 if (( $interval > 2 or $interval < 1) ){
@@ -62,7 +62,7 @@ if ($outfile) {
   $outfile=~ s/.gff//g;
   open(my $fh, '>', $outfile.".gff") or die "Could not open file '$outfile' $!";
   $gffout= Bio::Tools::GFF->new(-fh => $fh, -gff_version => 3 );
-  
+
 }
 else{
   $gffout = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 3);
@@ -86,7 +86,7 @@ while (my $feature = $ref_in->next_feature() ) {
   $line_cpt++;
 
   #What do we follow
-  
+
   if ($interval eq "1"){ #per sequence
 
     $actual=lc($feature->seq_id);
@@ -100,7 +100,7 @@ while (my $feature = $ref_in->next_feature() ) {
     $before=lc($feature->seq_id);
   }
 
- 
+
   if ($interval eq "2"){ #per feature group
     $actual=lc($feature->primary_tag);
     if ( ($actual ne $before) and ($before ne "") and ($actual eq "gene" or $actual eq "expressed_sequence_match" or $actual eq "match") ) {
@@ -150,7 +150,7 @@ __END__
 =head1 NAME
 
 gff3_remove_redundant_entries.pl -
-remove redundant entries: same seq_id,source_tag,start,stop. 
+remove redundant entries: same seq_id,source_tag,start,stop.
 
 =head1 SYNOPSIS
 
@@ -170,7 +170,7 @@ STRING: Input gff file that will be read.
 Integer: 1 or 2. 1 will add ### after each new sequence (column1 of the gff), while 2 will add the ### after each group of feature (gene).
 By default the value is 1.
 
-=item B<-o> or B<--output> 
+=item B<-o> or B<--output>
 
 STRING: Output file.  If no output file is specified, the output will be written to STDOUT. The result is in tabulate format.
 

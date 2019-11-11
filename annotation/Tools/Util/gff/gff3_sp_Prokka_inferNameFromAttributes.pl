@@ -1,22 +1,20 @@
 #!/usr/bin/env perl
 
-
+use strict;
+use warnings;
 use Carp;
 use Clone 'clone';
-use strict;
 use Getopt::Long;
 use Pod::Usage;
-use Data::Dumper;
 use List::MoreUtils qw(uniq);
 use Bio::Tools::GFF;
-use BILS::Handler::GFF3handler qw(:Ok);
-use BILS::Handler::GXFhandler qw(:Ok);
+use NBIS::GFF3::Omniscient;
 
 my $header = qq{
 ########################################################
-# BILS 2015 - Sweden                                   #  
-# jacques.dainat\@bils.se                               #
-# Please cite BILS (www.bils.se) when using this tool. #
+# NBIS 2015 - Sweden                                   #
+# jacques.dainat\@nbis.se                               #
+# Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 };
 
@@ -43,7 +41,7 @@ if ($help) {
                  -exitval => 2,
                  -message => "$header\n" } );
 }
- 
+
 if ( ! (defined($gff)) ){
     pod2usage( {
            -message => "$header\nAt least 1 parameter is mandatory:\nInput reference gff file (--gff) \n\n",
@@ -71,14 +69,14 @@ else{
 ######################
 ### Parse GFF input #
 my ($hash_omniscient, $hash_mRNAGeneLink) = slurp_gff3_file_JD({ input => $gff
-                                                              });  
+                                                              });
 print ("GFF3 file parsed\n");
 
 my $nbNameAdded=0;
 
 foreach my $tag (keys %{$hash_omniscient->{'level1'}}){
   foreach my $id (keys %{$hash_omniscient->{'level1'}{$tag}}){
-        
+
     my $feature=$hash_omniscient->{'level1'}{$tag}{$id};
 
     if($feature->has_tag('name')){
@@ -86,7 +84,7 @@ foreach my $tag (keys %{$hash_omniscient->{'level1'}}){
       create_or_replace_tag($feature,'Name', $name);
       $feature->remove_tag('name');
     }
-    
+
     #Name already contained in the gene attribute.
     if($feature->has_tag('gene')){
       # we get the Name
@@ -106,7 +104,7 @@ foreach my $tag (keys %{$hash_omniscient->{'level1'}}){
       my @inferenceAtt=$feature->get_tag_values('inference');
       if ($#inferenceAtt > 0){
 
-        
+
         #foreach my $val(@inferenceAtt){
         #  print "ok".$val."\n";
         #}
@@ -117,10 +115,10 @@ foreach my $tag (keys %{$hash_omniscient->{'level1'}}){
         if($name =~ /protein motif:Pfam:/i){
           next;
         }
-        if($name =~ /protein motif:CLUSTERS:/i){        
+        if($name =~ /protein motif:CLUSTERS:/i){
           next;
         }
-        if($name =~ /similar to AA sequence:UniProtKB:/i){        
+        if($name =~ /similar to AA sequence:UniProtKB:/i){
           next;
         }
         # ELSE name contains the Uniprot header of the protein coming from "--proteins" option ( Fasta file of trusted proteins to first annotate from ).
@@ -150,7 +148,7 @@ __END__
 
 gff3_addProkkaNameFromInferenceAttribute.pl -
 The script take a gff3 file as input. -
-The script give basic statistics of a gff file. 
+The script give basic statistics of a gff file.
 Remark: identical feature from level1 or level2 with identical ID will be merged as well as their subsequent features (Level2 or level3).
 
 =head1 SYNOPSIS

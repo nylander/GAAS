@@ -33,7 +33,7 @@ web_apollo_admin = "web_apollo_admin"
 web_apollo_admin_pw = "web_apollo_admin"
 
 # -- The Chado DB stores modified annotations
-chado_db = "bils_chado"
+chado_db = "nbis_chado"
 chado_db_user = "chado_admin"
 chado_db_user_pw = "chado_admin"
 

@@ -1,17 +1,15 @@
 #!/usr/bin/env perl
 
-
 use strict;
+use warnings;
 use Getopt::Long;
 use Pod::Usage;
-use Data::Dumper;
 use Bio::Tools::GFF;
-use BILS::Handler::GFF3handler qw(:Ok);
-use BILS::Handler::GXFhandler qw(:Ok);
+use NBIS::GFF3::Omniscient;
 
 my $header = qq{
 ########################################################
-# NBIS 2016 - Sweden                                   #  
+# NBIS 2016 - Sweden                                   #
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
@@ -44,7 +42,7 @@ if ($help) {
                  -exitval => 2,
                  -message => "$header\n" } );
 }
- 
+
 if ( ! (defined($gff)) ){
     pod2usage( {
            -message => "$header\nAt least 1 parameter is mandatory:\nInput reference gff file (--gff) \n\n",
@@ -100,7 +98,7 @@ my @tagLetter_list;
 ######################
 ### Parse GFF input #
 my ($hash_omniscient, $hash_mRNAGeneLink) = slurp_gff3_file_JD({ input => $gff
-                                                              });  
+                                                              });
 print ("GFF3 file parsed\n");
 
 # sort by seq id
@@ -126,17 +124,17 @@ foreach my $seqid (sort alphaNum keys %hash_sortBySeq){ # loop over all the feat
         manage_attributes($feature_l1,\%keepTrack, $prefix);
         $keepTrack{$tag_l1}++;
         $l1_ID_modified=$feature_l1->_tag_value('ID');
-        $hash_omniscient->{'level1'}{$tag_l1}{lc($l1_ID_modified)} = delete $hash_omniscient->{'level1'}{$tag_l1}{$id_l1};    
+        $hash_omniscient->{'level1'}{$tag_l1}{lc($l1_ID_modified)} = delete $hash_omniscient->{'level1'}{$tag_l1}{$id_l1};
       }
 
       #################
       # == LEVEL 2 == #
       #################
       foreach my $tag_l2 (sort {$a cmp $b}  keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
-        
+
         if ( exists ($hash_omniscient->{'level2'}{$tag_l2}{$id_l1} ) ){
           foreach my $feature_l2 ( sort {$a->start <=> $b->start} @{$hash_omniscient->{'level2'}{$tag_l2}{$id_l1}}) {
-            
+
             my $l2_ID_modified=undef;
             my $level2_ID = lc($feature_l2->_tag_value('ID'));
 
@@ -156,11 +154,11 @@ foreach my $seqid (sort alphaNum keys %hash_sortBySeq){ # loop over all the feat
             # == LEVEL 3 == #
             #################
             foreach my $tag_l3 (sort {$a cmp $b} keys %{$hash_omniscient->{'level3'}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
-              
+
               if ( exists_keys($hash_omniscient, ('level3', $tag_l3 , $level2_ID) ) ){
 
                 foreach my $feature_l3 ( sort {$a->start <=> $b->start} @{$hash_omniscient->{'level3'}{$tag_l3}{$level2_ID}}) {
-                  
+
                   if(exists ($ptagList{$tag_l3}) or  exists ($ptagList{'level3'}) ){
                     if(! exists_keys(\%keepTrack,($tag_l3))){$keepTrack{$tag_l3}=$nbIDstart;}
                     manage_attributes($feature_l3,\%keepTrack, $prefix);
@@ -207,7 +205,7 @@ print_omniscient($hash_omniscient, $gffout); #print gene modified
 
 sub  manage_attributes{
   my  ($feature, $keepTrack, $prefix)=@_;
-  
+
   my $primary_tag = lc($feature->primary_tag);
 
   if ($prefix){
@@ -222,11 +220,11 @@ sub  manage_attributes{
     $GoodNum.=$nbName;
 
     my $abb = uc(select_abb($feature));
-    
+
     my $result="$prefix$abb$GoodNum";
     create_or_replace_tag($feature,'ID', $result);
   }
-  else{  
+  else{
     create_or_replace_tag($feature,'ID', $primary_tag."-".$keepTrack->{$primary_tag});
   }
 }
@@ -235,11 +233,11 @@ sub  manage_attributes{
 sub  select_abb{
   my  ($feature)=@_;
 
-  # get the tag 
+  # get the tag
   my $primary_tag = lc($feature->primary_tag);
 
   if(! exists_keys (\%tag_hash,( $primary_tag ))) {
-    
+
     my $cpt=1;
     my $letter = uc(substr($primary_tag, 0, $cpt));
 
@@ -267,10 +265,10 @@ __END__
 
 gff3_manageIDs.pl -
 The script take a gff3 file as input and will go through all feature to overwrite the uniq ID.
-By default the ID is build as follow: 
+By default the ID is build as follow:
   primary_tag(i.e. 3rd column)-Number.
 If you provide a specific prefix the ID is build as follow (Ensembl like format ENSG00000000022):
- $prefix.$letterCode.0*.Number where the number of 0 i adapted in order to have 11 digits 
+ $prefix.$letterCode.0*.Number where the number of 0 i adapted in order to have 11 digits
 
 By default the numbering start to 1, but you can decide to change this value using the --nb option.
 The $letterCode is generated on the fly to be uniq. By defaut it used the first letter of the feature type (3rd colum). If two feature types
@@ -296,9 +294,9 @@ String. Add a specific prefix to the ID
 
 =item B<-p>,  B<-t> or  B<-l>
 
-primary tag option, case insensitive, list. Allow to specied the feature types that will be handled. 
+primary tag option, case insensitive, list. Allow to specied the feature types that will be handled.
 You can specified a specific feature by given its primary tag name (column 3) as: cds, Gene, MrNa
-You can specify directly all the feature of a particular level: 
+You can specify directly all the feature of a particular level:
       level2=mRNA,ncRNA,tRNA,etc
       level3=CDS,exon,UTR,etc
 By default all feature are taken into account. fill the option by the value "all" will have the same behaviour.

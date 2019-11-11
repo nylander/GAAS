@@ -1,18 +1,19 @@
 #!/usr/bin/env perl
 
-my $header = qq{
-########################################################
-# BILS 2017 - Sweden  - Jacques Dainat                 #  
-########################################################
-};
-
-
 use strict;
+use warnings;
 use Pod::Usage;
 use Getopt::Long;
-use BILS::Handler::GXFhandler qw(:Ok);
-use BILS::Handler::GFF3handler qw(:Ok);
+use NBIS::GFF3::Omniscient;
 use Bio::Tools::GFF;
+
+my $header = qq{
+########################################################
+# NBIS 2019 - Sweden                                   #
+# jacques.dainat\@nbis.se                               #
+# Please cite NBIS (www.nbis.se) when using this tool. #
+########################################################
+};
 
 my $start_run = time();
 my $opt_gfffile;
@@ -39,7 +40,7 @@ if ($opt_help) {
     pod2usage( { -verbose => 2,
                  -exitval => 2 } );
 }
- 
+
 if (! defined($opt_gfffile) ){
     pod2usage( {
            -message => "\nAt least 1 parameter is mandatory:\nInput reference gff file (-g).\n\n".
@@ -88,7 +89,7 @@ __END__
 =head1 NAME
 
 gff3_sp_alignment_output_style.pl -
-This script take a normal gff3 annotation format file and convert it to gff3 alignment format. It means it add a structure of match / match_part as relationship between the different features. 
+This script take a normal gff3 annotation format file and convert it to gff3 alignment format. It means it add a structure of match / match_part as relationship between the different features.
 
 =head1 SYNOPSIS
 
@@ -103,11 +104,11 @@ This script take a normal gff3 annotation format file and convert it to gff3 ali
 
 Input GFF3 file that will be read (and sorted)
 
-=item B<-c> or B<--ct> 
+=item B<-c> or B<--ct>
 
 When the gff file provided is not correcly formated and features are linked to each other by a comon tag (by default locus_tag), this tag can be provided to parse the file correctly.
 
-=item B<-v> 
+=item B<-v>
 
 Verbose option to see the warning messages when parsing the gff file.
 

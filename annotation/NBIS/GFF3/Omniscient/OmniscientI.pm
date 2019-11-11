@@ -1,25 +1,29 @@
 #!/usr/bin/perl -w
 
-package BILS::Handler::GXFhandler ;
+package NBIS::GFF3::Omniscient::OmniscientI;
 
 use strict;
 use warnings;
-use File::Basename;
-use JSON;
-use Sort::Naturally;
 use Try::Tiny;
+use JSON;
+use Bio::Tools::GFF;
+use File::Basename;
+use Sort::Naturally;
 use LWP::UserAgent;
 use Bio::OntologyIO::obo;
 use Clone 'clone';
-use BILS::Handler::GFF3handler qw(:Ok);
-use Bio::Tools::GFF;
-use Exporter qw(import);
+use Exporter;
+use NBIS::GFF3::Omniscient::OmniscientTools;
 
-our $VERSION     = 1.00;
-our @ISA         = qw(Exporter);
-our @EXPORT_OK   = qw(get_level select_gff_format check_mrna_positions modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop slurp_gff3_file_JD _check_all_level1_positions _check_all_level2_positions);
-our %EXPORT_TAGS = ( DEFAULT => [qw()],
-                 	 Ok    => [qw(get_level select_gff_format check_mrna_positions modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop slurp_gff3_file_JD _check_all_level1_positions _check_all_level2_positions)]);
+our @ISA = qw(Exporter);
+our @EXPORT = qw(get_level select_gff_format check_mrna_positions
+              modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop
+              slurp_gff3_file_JD _check_all_level1_positions _check_all_level2_positions
+              load_levels_from_json);
+sub import {
+  NBIS::GFF3::Omniscient::OmniscientI->export_to_level(1, @_); # to be able to load the EXPORT functions by calling NBIS::GFF3::Omniscient::OmniscientI; (normal case)
+  NBIS::GFF3::Omniscient::OmniscientI->export_to_level(2, @_); # to be able to load the EXPORT functions by calling NBIS::GFF3::Omniscient;
+}
 
 =head1 SYNOPSIS
 
@@ -109,7 +113,7 @@ sub slurp_gff3_file_JD {
 #	+-----------------------------------------+
 #	|			HANDLE json level			  |
 #	+-----------------------------------------+
-	_load_levels_from_json($verbose);
+	($LEVEL1, $LEVEL2, $LEVEL3) = load_levels_from_json($verbose);
 
 #	+-----------------------------------------+
 #	|	HANDLE GFF HEADER					  |
@@ -2873,12 +2877,11 @@ sub _handle_ontology{
 	if($internalO){ #No URI provided for the feature-ontology(file case), or doesn't exist (hash / table case) let's use the interal one
 
 		try{
-			my $full_path = `perldoc -lm BILS::Handler::GXFhandler`;
-			my $index = index($full_path, "BILS/");
-			$index+=5; #To not shrinck BILS/ part of the path
-			my $path_begin =  substr $full_path, 0, $index;
-			my $correct_path = $path_begin."Ontology/SOFA";
-
+			my $full_path = `perldoc -lm NBIS::GFF3::Omniscient`;
+			my $index = index($full_path, "NBIS/GFF3/");
+			$index+=5; #To not shrinck NBIS/ part of the path
+			my $path_begin =  substr $full_path, 0, $index;;
+      my $correct_path = $path_begin."Ontology/SOFA";
 			opendir (DIR, $correct_path) or die $!;
 			my @list_file;
 
@@ -2970,32 +2973,36 @@ sub _handle_globalWARNS{
 # @input: 3 =>  integer, bolean
 # @output: 1 => none (because it load information in variable accessible from everywhere in this file)
 # @Remark: none
-sub _load_levels_from_json{
+sub load_levels_from_json{
 
 	my ($verbose) = @_ ;
+  my $level1 = undef;
+  my $level2 = undef;
+  my $level3 = undef;
 
 	try{
-		my $full_path = `perldoc -lm BILS::Handler::GXFhandler`;
-		my $index = index($full_path, "BILS/Handler/");
-		$index+=13; #To not shrinck BILS/Handler/ part of the path
+		my $full_path = `perldoc -lm NBIS::GFF3::Omniscient`;
+		my $index = index($full_path, "NBIS/GFF3/");
+		$index+=10; #To not shrinck NBIS/Handler/ part of the path
 		my $path_begin =  substr $full_path, 0, $index;
-
 		# --Deal with feature L1--
 		my $correct_path_level = $path_begin."Feature_levels/features_level1.json";
-		$LEVEL1 = load_json($correct_path_level);
+		$level1 = load_json($correct_path_level);
 		# --Deal with feature L2--
 		$correct_path_level = $path_begin."Feature_levels/features_level2.json";
-		$LEVEL2 = load_json($correct_path_level);
+		$level2 = load_json($correct_path_level);
 		# --Deal with feature L3--
 		$correct_path_level = $path_begin."Feature_levels/features_level3.json";
-		$LEVEL3 = load_json($correct_path_level);
+		$level3 = load_json($correct_path_level);
 		# --Deal feature spread--
 		$correct_path_level = $path_begin."Feature_levels/features_spread.json";
 		$SPREADFEATURE = load_json($correct_path_level);
 	}
 	catch{
 		print "error: Feature levels not found we cannot continue.\n";
+    exit;
 	};
+  return $level1,$level2,$level3;
 }
 
 # @Purpose: load json data into variable

@@ -1,21 +1,20 @@
 #!/usr/bin/env perl
 
-use Carp;
 use strict;
+use warnings;
+use Carp;
 use File::Basename;
 use Getopt::Long;
 use Pod::Usage;
-use Data::Dumper;
 use List::MoreUtils qw(uniq);
 use Bio::Tools::GFF;
 use Bio::DB::Fasta;
 use Bio::SeqIO;
-use BILS::Handler::GFF3handler qw(:Ok);
-use BILS::Handler::GXFhandler qw(:Ok);
+use NBIS::GFF3::Omniscient;
 
 my $header = qq{
 ########################################################
-# BILS 2019 - Sweden                                   #  
+# NBIS 2019 - Sweden                                   #
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
@@ -55,7 +54,7 @@ if ($help) {
                  -exitval => 2,
                  -message => "$header\n" } );
 }
- 
+
 if ( ! (defined($gff)) or !(defined($file_fasta)) ){
     pod2usage( {
            -message => "$header\nAt least 2 parameter is mandatory:\nInput reference gff file (--gff) and Input fasta file (--fasta)\n\n",
@@ -119,7 +118,7 @@ my @incomplete_mRNA;
 
 
 foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
-  foreach my $gene_id (keys %{$hash_omniscient->{'level1'}{$primary_tag_key_level1}}){ 
+  foreach my $gene_id (keys %{$hash_omniscient->{'level1'}{$primary_tag_key_level1}}){
     my $gene_feature = $hash_omniscient->{'level1'}{$primary_tag_key_level1}{$gene_id};
     my $strand = $gene_feature->strand();
     print "gene_id = $gene_id\n" if $verbose;
@@ -131,14 +130,14 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
     my $ncGene=1;
     foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
       if ( exists_keys( $hash_omniscient, ('level2', $primary_tag_key_level2, $gene_id) ) ){
-        
+
         my $geneInc=undef;
         foreach my $level2_feature ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$gene_id}}) {
           my $start_missing=undef;
           my $stop_missing=undef;
 
           # get level2 id
-          my $level2_ID = lc($level2_feature->_tag_value('ID'));       
+          my $level2_ID = lc($level2_feature->_tag_value('ID'));
 
           if ( exists_keys( $hash_omniscient, ('level3', 'cds', $level2_ID) ) ){
             $ncGene=undef;
@@ -160,7 +159,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
             if (! $skip_stop_check){
               my $seqlength  = length($seqobj->seq());
               my $stop_codon = $seqobj->subseq($seqlength - 2, $seqlength) ;
-              
+
               if(! $codonTable->is_ter_codon( $stop_codon )){
                 print "stop= $stop_codon is not a valid stop codon\n" if ($verbose);
                 $stop_missing="true";
@@ -199,7 +198,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
                   push(@level3_list, @{$hash_omniscient->{'level3'}{$primary_tag_l3}{$level2_ID}})
                 }
               }
-            }     
+            }
           }
         }
         if($geneInc){
@@ -207,7 +206,7 @@ foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # pri
           #Save the mRNA and parent and child features
           if(! $add_flag){
             @level1_list=($gene_feature);
-            append_omniscient(\%omniscient_incomplete, \@level1_list, \@level2_list, \@level3_list); 
+            append_omniscient(\%omniscient_incomplete, \@level1_list, \@level2_list, \@level3_list);
           }
         }
       }
@@ -239,8 +238,8 @@ if(! $add_flag){
   #clean for printing
   if (@incomplete_mRNA){
     _check_all_level2_positions(\%omniscient_incomplete,0); # review all the feature L2 to adjust their start and stop according to the extrem start and stop from L3 sub features.
-    _check_all_level1_positions(\%omniscient_incomplete,0); 
-    
+    _check_all_level1_positions(\%omniscient_incomplete,0);
+
     remove_omniscient_elements_from_level2_ID_list($hash_omniscient, \@incomplete_mRNA);
     _check_all_level2_positions($hash_omniscient,0); # review all the feature L2 to adjust their start and stop according to the extrem start and stop from L3 sub features.
     _check_all_level1_positions($hash_omniscient,0); # Check the start and end of level1 feature based on all features level2.
@@ -278,7 +277,7 @@ sub extract_cds{
 
   #create sequence object
   my $seq  = Bio::Seq->new( '-format' => 'fasta' , -seq => $sequence);
-  
+
   #check if need to be reverse complement
   if($sortedList[0]->strand eq "-1" or $sortedList[0]->strand eq "-"){
     $seq=$seq->revcom;
@@ -292,7 +291,7 @@ sub  get_sequence{
   my $sequence="";
   my $seq_id_correct = undef;
   if( exists $allIDs{lc($seq_id)}){
-      
+
     $seq_id_correct = $allIDs{lc($seq_id)};
 
     $sequence = $db->subseq($seq_id_correct, $start, $end);
@@ -303,13 +302,13 @@ sub  get_sequence{
     if(length($sequence) != ($end-$start+1)){
       my $wholeSeq = $db->subseq($seq_id_correct);
       $wholeSeq = length($wholeSeq);
-      warn "Problem ! The size of the sequence extracted ".length($sequence)." is different than the specified span: ".($end-$start+1).".\nThat often occurs when the fasta file does not correspond to the annotation file. Or the index file comes from another fasta file which had the same name and haven't been removed.\n". 
+      warn "Problem ! The size of the sequence extracted ".length($sequence)." is different than the specified span: ".($end-$start+1).".\nThat often occurs when the fasta file does not correspond to the annotation file. Or the index file comes from another fasta file which had the same name and haven't been removed.\n".
            "As last possibility your gff contains location errors (Already encountered for a Maker annotation)\nSupplement information: seq_id=$seq_id ; seq_id_correct=$seq_id_correct ; start=$start ; end=$end ; $seq_id sequence length: $wholeSeq )\n";
     }
   }
   else{
     warn "Problem ! ID $seq_id not found !\n";
-  }  
+  }
 
   return $sequence;
 }
@@ -347,7 +346,7 @@ This option allows specifying the codon table to use - It expects an integer (1 
 
 =item B<--ad> or B<--add_flag>
 
-Instead of filter the result into two output files, write only one and add the flag <incomplete> in the gff.(tag = inclomplete, value = 1, 2, 3.  1=start missing; 2=stop missing; 3=both) 
+Instead of filter the result into two output files, write only one and add the flag <incomplete> in the gff.(tag = inclomplete, value = 1, 2, 3.  1=start missing; 2=stop missing; 3=both)
 
 =item B<--skip_start_check> or B<--sstartc>
 

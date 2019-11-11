@@ -4,7 +4,7 @@
 # You can use one or many gff or gtf files (should be well formatted)
 # /!\ Do not forget to load R
 
-# Jacques Dainat 04/2014 - bils.se
+# Jacques Dainat 04/2014 - nbis.se
 
 # get arguments
 args <- commandArgs(TRUE)

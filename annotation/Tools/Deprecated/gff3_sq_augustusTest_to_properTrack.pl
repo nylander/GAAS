@@ -1,20 +1,19 @@
 #!/usr/bin/env perl
 
 use strict;
+use warnings;
 use Getopt::Long;
 use Pod::Usage;
 use IO::File;
 use List::MoreUtils qw(uniq);
 use File::Basename;
 use Bio::Tools::GFF;
-use BILS::Handler::GFF3handler qw(:Ok);
-use BILS::Handler::GXFhandler qw(:Ok);
 
 my $header = qq{
 ########################################################
-# BILS 2018 - Sweden                                   #
+# NBIS 2014 - Sweden                                   #
 # jacques.dainat\@nbis.se                               #
-# Please cite BILS (www.nbis.se) when using this tool. #
+# Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
 };
 
@@ -74,7 +73,7 @@ if ($gff) {
 ### END Parse GFF input #
 #########################
 
-while( my $line = <$fh1>)  {   
+while( my $line = <$fh1>)  {
   my @list = split(/\s/,$line);
   my $header = $list[0];
   my @header_parts = split(/_/,$header);

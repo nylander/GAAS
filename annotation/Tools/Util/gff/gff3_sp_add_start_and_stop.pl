@@ -10,12 +10,11 @@ use Pod::Usage;
 use Bio::DB::FASTA;
 use Bio::Tools::CodonTable;
 use Clone 'clone';
-use BILS::Handler::GXFhandler qw(:Ok);
-use BILS::Handler::GFF3handler qw(:Ok);
+use NBIS::GFF3::Omniscient;
 
 my $header = qq{
 ########################################################
-# NBIS 2019 - Sweden                                   #  
+# NBIS 2019 - Sweden                                   #
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
@@ -79,7 +78,7 @@ else{
 }
 my $codon_table = Bio::Tools::CodonTable->new( -id => $codon_table_id);
 # #####################################
-# # END Manage OPTION  
+# # END Manage OPTION
 # #####################################
 
 
@@ -119,8 +118,8 @@ foreach my $tag_l2 (keys %{$hash_omniscient->{'level2'}}){
     foreach my $feature_l2 ( @{$hash_omniscient->{'level2'}{$tag_l2}{$id_l1}} ){
 
       # get level2 id
-      my $id_level2 = lc($feature_l2->_tag_value('ID'));       
-          
+      my $id_level2 = lc($feature_l2->_tag_value('ID'));
+
       ##############################
       #If it's a mRNA = have CDS. #
       if ( exists ($hash_omniscient->{'level3'}{'cds'}{$id_level2} ) ){
@@ -131,7 +130,7 @@ foreach my $tag_l2 (keys %{$hash_omniscient->{'level2'}}){
         my $cds_dna_seq = concatenate_feature_list(\@cds_feature_list);
         print "sequence: $cds_dna_seq\n" if ($verbose);
         #create the cds object
-        my $cds_obj = Bio::Seq->new(-seq => $cds_dna_seq, -alphabet => 'dna' );         
+        my $cds_obj = Bio::Seq->new(-seq => $cds_dna_seq, -alphabet => 'dna' );
         #Reverse the object depending on strand
         my $strand="+";
         if ($feature_l2->strand == -1 or $feature_l2->strand eq "-"){
@@ -139,7 +138,7 @@ foreach my $tag_l2 (keys %{$hash_omniscient->{'level2'}}){
           $strand = "-";
           print "feature on minus strand\n" if ($verbose);
         }
-        
+
         #-------------------------
         #       START CASE
         #-------------------------
@@ -150,7 +149,7 @@ foreach my $tag_l2 (keys %{$hash_omniscient->{'level2'}}){
 
           my $first_codon = substr( $cds_obj->seq, 0, 3 );
           print "first_codon = $first_codon \n" if ($verbose);
-          
+
           if ($codon_table->is_start_codon($first_codon)) {
             $counter_start_added++;
             print "first_codon is a start codon \n" if ($verbose);
@@ -160,18 +159,18 @@ foreach my $tag_l2 (keys %{$hash_omniscient->{'level2'}}){
             my $ID='start_added-'.$start_id;
             $start_id++;
             create_or_replace_tag($start_feature,'ID', $ID); #modify ID to replace by parent val
-            
-            
+
+
             if($strand eq "+"){
-              #set start position of the start codon 
+              #set start position of the start codon
               $start_feature->start($cds_feature_list[0]->start());
-              
-              #set stop position of the start codon 
+
+              #set stop position of the start codon
               my $step=3;
               my $cpt=0;
               my $size = $cds_feature_list[$cpt]->end()-$cds_feature_list[$cpt]->start()+1;
               while($size < 3){
-                
+
                 my $start_feature_new = clone( $start_feature );
                 $start_feature_new->end($cds_feature_list[$cpt]->start()+$size-1);
                 my $ID='start_added-'.$start_id;
@@ -187,10 +186,10 @@ foreach my $tag_l2 (keys %{$hash_omniscient->{'level2'}}){
               $start_feature->end($cds_feature_list[$cpt]->start()+$step-1);
             }
             else{
-              #set start position of the start codon 
+              #set start position of the start codon
               $start_feature->end($cds_feature_list[$#cds_feature_list]->end());
 
-              #set stop position of the start codon 
+              #set stop position of the start codon
               my $step=3;
               my $cpt=$#cds_feature_list;
               my $size=$cds_feature_list[$cpt]->end()-$cds_feature_list[$cpt]->start()+1;
@@ -237,13 +236,13 @@ foreach my $tag_l2 (keys %{$hash_omniscient->{'level2'}}){
             my $ID='stop_added-'.$stop_id;
             $stop_id++;
             create_or_replace_tag($stop_feature,'ID', $ID); #modify ID to replace by parent value
-            
+
             if($strand eq "+"){
-              
-              # set start position of the stop codon 
+
+              # set start position of the stop codon
               $stop_feature->end($cds_feature_list[$#cds_feature_list]->end());
 
-              #set stop position of the stop codon 
+              #set stop position of the stop codon
               my $step=3;
               my $cpt=$#cds_feature_list;
               my $size=$cds_feature_list[$cpt]->end()-$cds_feature_list[$cpt]->start()+1;
@@ -265,15 +264,15 @@ foreach my $tag_l2 (keys %{$hash_omniscient->{'level2'}}){
               $stop_feature->start($cds_feature_list[$cpt]->end()-$step+1);
             }
             else{
-              #set start position of the stop codon 
+              #set start position of the stop codon
               $stop_feature->start($cds_feature_list[0]->start());
-              
-              #set stop position of the stop codon 
+
+              #set stop position of the stop codon
               my $step=3;
               my $cpt=0;
               my $size = $cds_feature_list[$cpt]->end()-$cds_feature_list[$cpt]->start()+1;
               while($size < 3){
-                
+
                 my $stop_feature_new = clone( $stop_feature );
                 $stop_feature_new->end($cds_feature_list[$cpt]->start()+$size-1);
                 my $ID='start_added-'.$start_id;
@@ -304,7 +303,7 @@ print "$counter_start_added start codon added and $counter_start_missing CDS do 
 print "$counter_end_added stop codon added and $counter_end_missing CDS do not end by a stop codon \n";
 print "bye bye\n";
 
-      ######################### 
+      #########################
       ######### END ###########
       #########################
 
@@ -325,17 +324,17 @@ sub concatenate_feature_list{
   my ($feature_list) = @_;
 
   my $seq = "";
-  foreach my $feature (@$feature_list) { 
+  foreach my $feature (@$feature_list) {
     my $start=$feature->start();
     my $end=$feature->end();
-    my $seqid=$feature->seq_id();   
+    my $seqid=$feature->seq_id();
     $seq .= $db->seq( $seqid, $start, $end );
   }
    return $seq;
 }
 
 __END__
-EXAMPLE NORMAL 
+EXAMPLE NORMAL
 ##gff-version 3
 Pcoprophilum_scaf_9 . contig  1 1302582 . . . ID=Pcoprophilum_scaf_9;Name=Pcoprophilum_scaf_9
 Pcoprophilum_scaf_9 maker gene  189352  192747  . + . ID=genemark-Pcoprophilum_scaf_9-processed-gene-2.0;Name=genemark-Pcoprophilum_scaf_9-processed-gene-2.0
@@ -383,7 +382,7 @@ Pcoprophilum_scaf_9 maker three_prime_UTR 197438  197696  . - . ID=genemark-Pcop
 
 
 =head1 NAME
- 
+
 gff3_sp_add_start_and_stop.pl.pl - This script adds start and stop codons when a CDS feature exists. The script looks at the sequence and check the presence of start and stop codon.
 The script works even if the start or stop codon are split over several CDS features.
 

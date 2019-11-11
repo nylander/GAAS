@@ -1,16 +1,22 @@
 #!/usr/bin/env perl
 
 use strict;
+use warnings;
 use Pod::Usage;
-use Data::Dumper;
 use Getopt::Long;
 use Bio::SeqIO ;
 use Bio::DB::Fasta;
 use Bio::Tools::GFF;
 use File::Basename;
-use BILS::Handler::GFF3handler qw(:Ok);
-use BILS::Handler::GXFhandler qw(:Ok);
+use NBIS::GFF3::Omniscient;
 
+my $header = qq{
+########################################################
+# NBIS 2017 - Sweden                                   #
+# jacques.dainat\@nbis.se                              #
+# Please cite NBIS (www.nbis.se) when using this tool. #
+########################################################
+};
 
 my $start_run = time();
 my $opt_gfffile;
@@ -19,14 +25,6 @@ my $opt_output_fasta;
 my $opt_output_gff;
 my $opt_help;
 my $width = 60; # line length printed
-
-my $header = qq{
-########################################################
-# NBIS 2017 - Sweden                                   #  
-# jacques.dainat\@nbis.se                              #
-# Please cite NBIS (www.nbis.se) when using this tool. #
-########################################################
-};
 
 # OPTION MANAGMENT
 my @copyARGV=@ARGV;
@@ -47,7 +45,7 @@ if ($opt_help) {
                  -exitval => 2,
                  -message => "$header \n" } );
 }
- 
+
 if ( (! (defined($opt_gfffile)) ) or (! (defined($opt_fastafile)) ) ){
     pod2usage( {
            -message => "\nAt least 2 parametes are mandatory:\nInput reference gff file (-g);  Input reference fasta file (-f)\n\n".
@@ -70,7 +68,7 @@ else{
 
 my $gffout;
 if ($opt_output_gff) {
-  my($opt_output_gff, $dirs, $suffix) = fileparse($opt_output_gff, (".gff",".gff1",".gff2",".gff3",".gtf",".gtf1",".gtf2",".gtf3",".txt")); #remove extension 
+  my($opt_output_gff, $dirs, $suffix) = fileparse($opt_output_gff, (".gff",".gff1",".gff2",".gff3",".gtf",".gtf1",".gtf2",".gtf3",".txt")); #remove extension
   open(my $fh, '>', $opt_output_gff.".gff3") or die "Could not open file '$opt_output_gff' $!";
   $gffout= Bio::Tools::GFF->new(-fh => $fh, -gff_version => 3 );
   }
@@ -84,7 +82,7 @@ else{
 ### Parse GFF input #
 print "Reading file $opt_gfffile\n";
 my ($hash_omniscient, $hash_mRNAGeneLink) = slurp_gff3_file_JD({ input => $opt_gfffile
-                                                              });  
+                                                              });
 print "Parsing Finished\n";
 ### END Parse GFF input #
 #########################
@@ -108,14 +106,14 @@ foreach my $seq_id (@ids ){
   my $seq = $seqObject->seq;
 
   my @letters = split (//,$seq);
-  
+
   ################
   # look at N at the beginning of the sequence
   my $nb_N_start = 0;
   foreach my $letter (@letters){
 
     if ( lc($letter) eq 'n'){
-      $nb_N_start++ 
+      $nb_N_start++
     }
     else{
       last;
@@ -134,7 +132,7 @@ foreach my $seq_id (@ids ){
   my $nb_N_end = 0;
   foreach my $letter (reverse (@letters ) ){
     if ( lc($letter) eq 'n'){
-      $nb_N_end++ 
+      $nb_N_end++
     }
     else{
       last;
@@ -152,7 +150,7 @@ foreach my $seq_id (@ids ){
     #create sequence object
     my $header = $db->header($seq_id);
     my $seqObj  = Bio::Seq->new( '-format' => 'fasta' , -seq => $seq, -id => $header );
-    
+
     # print sequence object
     $ostream->write_seq($seqObj);
   }
@@ -200,7 +198,7 @@ sub shift_annotation{
         my $feature_level1 = $hash_omniscient->{'level1'}{$primary_tag_l1}{$id_tag_key_level1};
         # Shift position
         $feature_level1->start($feature_level1->start-$nb_N_start);
-        $feature_level1->end($feature_level1->end-$nb_N_start);  
+        $feature_level1->end($feature_level1->end-$nb_N_start);
 
         #################
         # == LEVEL 2 == #
@@ -212,7 +210,7 @@ sub shift_annotation{
               $feature_level2;
               # Shift position
               $feature_level2->start($feature_level2->start-$nb_N_start);
-              $feature_level2->end($feature_level2->end-$nb_N_start);  
+              $feature_level2->end($feature_level2->end-$nb_N_start);
 
 
               #################
@@ -225,10 +223,10 @@ sub shift_annotation{
               foreach my $primary_tag_l3 (keys %{$hash_omniscient->{'level3'}}){ # primary_tag_l3 = cds or exon or start_codon or utr etc...
                 if ( exists_keys( $hash_omniscient, ('level3', $primary_tag_l3, $level2_ID) ) ){
                   foreach my $feature_level3 (@{$hash_omniscient->{'level3'}{$primary_tag_l3}{$level2_ID}}) {
-                    
+
                     # Shift position
                     $feature_level3->start($feature_level3->start-$nb_N_start);
-                    $feature_level3->end($feature_level3->end-$nb_N_start);  
+                    $feature_level3->end($feature_level3->end-$nb_N_start);
                   }
                 }
               }
@@ -244,7 +242,7 @@ __END__
 
 =head1 NAME
 
-This script aim to clip the N's extremities of the sequences. The annotation from the sequence clipped are modified accrodingly to stau consistent 
+This script aim to clip the N's extremities of the sequences. The annotation from the sequence clipped are modified accrodingly to stau consistent
 
 =head1 SYNOPSIS
 
@@ -259,7 +257,7 @@ This script aim to clip the N's extremities of the sequences. The annotation fro
 
 Input GFF3 file that will be read (and sorted)
 
-=item B<-f> or B<--fasta> 
+=item B<-f> or B<--fasta>
 
 Input fasta file.
 

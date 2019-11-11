@@ -1,18 +1,17 @@
 #!/usr/bin/env perl
 
-
-use Carp;
 use strict;
+use warnings;
+use Carp;
 use Getopt::Long;
 use Pod::Usage;
 use List::MoreUtils qw(uniq);
 use Bio::Tools::GFF;
-use BILS::Handler::GFF3handler qw(:Ok);
-use BILS::Handler::GXFhandler qw(:Ok);
+use NBIS::GFF3::Omniscient;
 
 my $header = qq{
 ########################################################
-# NBIS 2016 - Sweden                                   #  
+# NBIS 2016 - Sweden                                   #
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
@@ -147,7 +146,7 @@ foreach my $next_file (@opt_files){
 
 ########
 # Print results
-print_omniscient($hash_omniscient, $gffout);  
+print_omniscient($hash_omniscient, $gffout);
 
 #END
 print "usage: $0 @copyARGV\n";
@@ -157,12 +156,12 @@ print "Job done in $run_time seconds\n";
 __END__
 
 =head1 NAME
- 
-gff3_sp_complement_annotations.pl - 
+
+gff3_sp_complement_annotations.pl -
 This script allow to complement a reference annotation with other annotations.
 A l1 feature from the addfile.gff that does not overlap a l1 feature from the reference annotation will be added.
 A l1 feature from the addfile.gff without a CDS that overlaps a l1 feature with a CDS from the reference annotation will be added.
-A l1 feature from the addfile.gff with a CDS that overlaps a l1 feature without a CDS from the reference annotation will be added. 
+A l1 feature from the addfile.gff with a CDS that overlaps a l1 feature without a CDS from the reference annotation will be added.
 A l1 feature from the addfile.gff with a CDS that overlaps a l1 feature with a CDS from the reference annotation will be added only if the CDSs don't overlap.
 A l1 feature from the addfile.gff without a CDS that overlaps a l1 feature without a CDS from the reference annotation will be added only if none of the l3 features overlap.
 /!\ It is sufficiant that only one isoform is overlapping to prevent the whole gene (l1 feature) from the addfile.gff to be added in the output.
@@ -170,7 +169,7 @@ A l1 feature from the addfile.gff without a CDS that overlaps a l1 feature witho
 
 =head1 SYNOPSIS
 
-    ./gff3_sp_complement_annotations.pl --ref annotation_ref.gff --add=addfile1.gff --add=addfile2.gff --out=outFile 
+    ./gff3_sp_complement_annotations.pl --ref annotation_ref.gff --add=addfile1.gff --add=addfile2.gff --out=outFile
     ./gff3_sp_complement_annotations.pl --help
 
 =head1 OPTIONS
@@ -179,7 +178,7 @@ A l1 feature from the addfile.gff without a CDS that overlaps a l1 feature witho
 
 =item B<--ref>,  B<-r> or B<-i>
 
-Input GFF3 file(s) used as reference. 
+Input GFF3 file(s) used as reference.
 
 =item B<--add> or B<-a>
 

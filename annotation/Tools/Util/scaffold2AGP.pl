@@ -2,7 +2,7 @@
 # 
 # Creates a AGP-file needed by e.g. EMBL for a scaffolded assembly
 # 
-# By Henrik Lantz, BILS/Uppsala University, Sweden
+# By Henrik Lantz, NBIS/Uppsala University, Sweden
 
 # usage: perl scaffold2AGP.pl -i scaffoldfile.fasta -o scaffoldfile.agp
 

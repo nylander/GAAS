@@ -1,19 +1,18 @@
 #!/usr/bin/env perl
 
-use Carp;
 use strict;
+use warning;
+use Carp;
 use POSIX qw(strftime);
 use Getopt::Long;
 use Pod::Usage;
-use Data::Dumper;
 use Bio::Tools::GFF;
-use BILS::Handler::GFF3handler qw(:Ok);
-use BILS::Handler::GXFhandler qw(:Ok);
+use NBIS::GFF3::Omniscient;
 
 my $start_run = time();
 my $header = qq{
 ########################################################
-# BILS 2018 - Sweden                                   #
+# NBIS 2018 - Sweden                                   #
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
