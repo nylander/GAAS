@@ -159,7 +159,6 @@ foreach my $makerDir (@inDir){
 		}
 	}
 
-exit;
 	#-------------------------------------------------Save maker option files-------------------------------------------------
 	print "Now save a copy of the Maker option files ...\n";
 	if (-f "$outfolder/maker_opts.ctl") {
