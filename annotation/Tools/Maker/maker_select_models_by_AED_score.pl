@@ -1,18 +1,18 @@
 #!/usr/bin/env perl
 
 use strict;
+use warnings;
 use Getopt::Long;
 use POSIX qw(strftime);
 use List::MoreUtils qw(uniq);
 use Pod::Usage;
 use Bio::Tools::GFF;
 use IO::File;
-use NBIS::Handler::GXFhandler qw(:Ok);
-use NBIS::Handler::GFF3handler qw(:Ok);
+use NBIS::GFF3::Omniscient;
 
 my $header = qq{
 ########################################################
-# NBIS 2015 - Sweden                                   #  
+# NBIS 2015 - Sweden                                   #
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
@@ -115,13 +115,13 @@ print("Parsing Finished\n\n");
 # Main compute
 my @listIDl2discarded;
 my @listIDl2ok;
-foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){ 
+foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){
   foreach my $id_l1 (keys %{$hash_omniscient->{'level1'}{$tag_l1}}){
-      
+
     #################
     # == LEVEL 2 == #
     #################
-    foreach my $tag_l2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...        
+    foreach my $tag_l2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
       if ( exists ($hash_omniscient->{'level2'}{$tag_l2}{$id_l1} ) ){
         foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$tag_l2}{$id_l1}}) {
           if($feature_level2->has_tag('_AED')){
@@ -152,7 +152,7 @@ foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){
               if ($AED_score >= $opt_score){
                 push @listIDl2ok, $id_level2 ;
               }else{push @listIDl2discarded, $id_level2 ;}
-            }  
+            }
           }
           else{
             print "WARNING: _AED attribute not found for feature ".$ostreamReport->write_feature($feature_level2);
@@ -202,7 +202,7 @@ Remark: If there is duplicate in the file they will be removed in the output. In
 
 =item B<-f>, B<--reffile>, B<--gff>  or B<-ref>
 
-Input GFF3 file that will be read 
+Input GFF3 file that will be read
 
 =item B<-v>, B<--score> or B<-s>
 

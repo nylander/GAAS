@@ -114,7 +114,7 @@ __END__
 =head1 NAME
 
 gff3_IO.pl -
-This script read and print a gff file. It will be read by GFF3HANDLER that will look for duplicate feature, duplicate ID and will print the features sorted.
+This script read and print a gff file. It will be read by GFF3::Omniscient parser that will look for duplicate features, duplicate IDs and will print the features sorted.
 The result is written to the specified output file, or to STDOUT.
 
 =head1 SYNOPSIS

@@ -4,19 +4,19 @@
 ## jacques.dainat@nbis.se
 
 use strict;
+use warnings;
 use Pod::Usage;
 use Getopt::Long;
 use POSIX qw(strftime);
 use Bio::SeqIO;
 use Data::Dumper;
 use Bio::Tools::GFF;
-use NBIS::Handler::GFF3handler qw(:Ok);
-use NBIS::Handler::GXFhandler qw(:Ok);
+use NBIS::GFF3::Omniscient;
 use Bio::DB::Fasta;
 
 my $usage = qq{
 ########################################################
-# NBIS 2015 - Sweden                                   #  
+# NBIS 2015 - Sweden                                   #
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
@@ -27,12 +27,12 @@ Usage: perl my_script.pl --gff Infile [--out outfile]
 
   Input:
     [--gff filename]
-    The name of the GFF file to convert. 
-  
-    [--fasta filename]
-    fasta file name.  
+    The name of the GFF file to convert.
 
-  Ouput:    
+    [--fasta filename]
+    fasta file name.
+
+  Ouput:
     [--out filename]
         The name of the output file (A EMBL file).
 };
@@ -113,10 +113,10 @@ foreach my $seq_id (keys %{$hash_by_group} ){
 #      print $feature->location;
 #      my $genef = Bio::SeqFeature::Generic->new(-location =>$location, -primary_tag => 'CDS');
       $seqObject->add_SeqFeature($feature);
-      
-   #   print ref($seqObject);  exit;  #Check object type 
+
+   #   print ref($seqObject);  exit;  #Check object type
    #   print Dumper($seqObject);exit;
-    } 
+    }
   }
  # print Dumper($seqObject);
   $embl_out->write_seq($seqObject);
@@ -129,23 +129,23 @@ foreach my $seq_id (keys %{$hash_by_group} ){
 
 __END__
 
-It is probably easiest to just group things and make a split location.  
+It is probably easiest to just group things and make a split location.
 You will have the most control over the objects you create.
 
 my %genes;
 while( my $f = $gff->next_feature ) {
-   my ($group) = $feature->get_tag_values('Group'); # substitute group 
+   my ($group) = $feature->get_tag_values('Group'); # substitute group
 with whatever you have in the group field
   push @{$gene{$group}}, $feature;
 }
-# get a Bio::Seq object called $seq somehow, either by reading in a 
+# get a Bio::Seq object called $seq somehow, either by reading in a
 fasta sequence file, etc...
 while( my ($gene,$features) = each %genes ) {
   my $location = Bio::Location::Split->new();
   for my $f ( @$features ) {
     $location->add_sub_Location($f->location);
   }
-  my $genef = Bio::SeqFeature::Generic->new(-location =>$location, 
+  my $genef = Bio::SeqFeature::Generic->new(-location =>$location,
 -primary_tag => 'CDS');
   $seq->add_SeqFeature($genef);
 }
@@ -167,7 +167,7 @@ The script take a EMBL file as input, and will translate it in Genbank format.
 
 =item B<--embl>
 
-Input EMBL file that will be read 
+Input EMBL file that will be read
 
 =item B<-o> , B<--output> , B<--out> , B<--outfile> or B<--gff>
 

@@ -11,8 +11,7 @@ use Cwd;
 use Pod::Usage;
 use URI::Escape;
 use Getopt::Long qw(:config no_ignore_case bundling);
-use NBIS::Handler::GXFhandler qw(:Ok);
-use NBIS::Handler::GFF3handler qw(:Ok);
+use NBIS::GFF3::Omniscient;
 use Bio::Tools::GFF;
 use IO::File;
 use File::Basename;
@@ -20,7 +19,7 @@ use IPC::Cmd qw[can_run run];
 
 my $header = qq{
 ########################################################
-# NBIS 2015 - Sweden                                   #  
+# NBIS 2015 - Sweden                                   #
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
@@ -77,15 +76,15 @@ else{
 	else{
 		push(@inDir, $in);
 	}
-} 
+}
 
 # MESSAGES
-my $nbDir=$#inDir+1; 
-if ($nbDir == 0){die "There seems to be no maker output directory here, exiting...\n";}            
+my $nbDir=$#inDir+1;
+if ($nbDir == 0){die "There seems to be no maker output directory here, exiting...\n";}
 print "We found $nbDir maker output directorie(s):\n";
 foreach my $makerDir (@inDir){
 		print "\t+$makerDir\n";
-}	
+}
 
 #CONSTANT
 my $maker_annotation_prefix = "maker_annotation";
@@ -113,7 +112,7 @@ foreach my $makerDir (@inDir){
 	        die "Could not find datastore index ($datastore), exiting...\n";
 	}
 # --------------- check output folder ----------------------
-	
+
 	my $outfolder = undef;
 	if ($output){
 		if ($nbDir == 1){
@@ -126,7 +125,7 @@ foreach my $makerDir (@inDir){
 	else{ $outfolder = "maker_output_processed_$genomeName";}
 	if (-d "$outfolder") {
 		print "The output directory <$outfolder> already exists, let's see if something is missing inside.\n";
-	} 
+	}
 	else{
 		print "Creating the $outfolder folder\n";
 		mkdir $outfolder;
@@ -187,7 +186,7 @@ foreach my $makerDir (@inDir){
 	print "Now protecting the maker_annotation.gff annotation by making it readable only...\n";
 	#make the annotation safe
 	my $annotation="$outfolder/maker_annotation.gff";
-	if (-f $annotation) {		
+	if (-f $annotation) {
 		system "chmod 444 $annotation";
 	}
 	else{
@@ -197,13 +196,13 @@ foreach my $makerDir (@inDir){
 
 	#do statistics
 	my $annotation_stat="$outfolder/maker_annotation_stat.txt";
-	if (-f $annotation_stat) {	
+	if (-f $annotation_stat) {
 		print "$annotation_stat file already exsits...\n";
 	}
 	else{
 		print "Now performing the statistics of the annotation file $annotation...\n";
 		my $full_path = can_run('gff3_sp_statistics.pl') or print "Cannot launch statistics. gff3_sp_statistics.pl script not available\n";
-		if ($full_path) {	
+		if ($full_path) {
 		        system "gff3_sp_statistics.pl --gff $annotation -o $annotation_stat > $outfolder/maker_annotation_parsing.log";
 		}
 	}
@@ -224,11 +223,11 @@ foreach my $makerDir (@inDir){
 
 sub collect_recursive {
     my ($file_hds, $full_path, $out, $genomeName) = @_;
-	
+
 	my ($name,$path,$suffix) = fileparse($full_path,qr/\.[^.]*/);
 
     if( ! -d $full_path ){
-    	
+
     	###################
     	# deal with fasta #
     	if($suffix eq ".fasta"){
@@ -248,7 +247,7 @@ sub collect_recursive {
     		}
     		if($key){
     			my $prot_out_file_name=undef;
-    			if ($key eq 'maker'){ # protein or transcript correspinding to the maker annotation 
+    			if ($key eq 'maker'){ # protein or transcript correspinding to the maker annotation
 					$prot_out_file_name = "$maker_annotation_prefix.$type.fasta";
     			}
     			else{
@@ -264,7 +263,7 @@ sub collect_recursive {
 					open($protein_out_fh, '>', "$out/$prot_out_file_name") or die "Could not open file '$out/$prot_out_file_name' $!";
 					$file_hds->{$prot_out_file_name}=$protein_out_fh;
 				}
-				 	
+
 	    		#print
 	    		open(my $fh, '<:encoding(UTF-8)', $full_path) or die "Could not open file '$full_path' $!";
 					while (<$fh>) {
@@ -280,7 +279,7 @@ sub collect_recursive {
     		system "awk -F '	' 'NF==9 {print \$0 >> \"$out/$maker_mix_prefix.gff\"}' $full_path";
 			system "awk '{if(\$2 ~ /[a-zA-Z]+/) if(\$2==\"maker\") { print \$0 >> \"$out/$maker_annotation_prefix.gff\" } else { gsub(/:/, \"_\" ,\$2); print \$0 >> \"$out/\"\$2\".gff\" } }' $full_path";
     	}
-    	
+
     	return;
     }
     if($name =~ /^theVoid/){ # In the void there is sub results already stored in the up folder. No need to go such deep otherwise we will have duplicates.
@@ -289,7 +288,7 @@ sub collect_recursive {
     opendir my $dh, $full_path or die;
     while (my $sub = readdir $dh) {
         next if $sub eq '.' or $sub eq '..';
- 
+
         collect_recursive($file_hds, "$full_path/$sub", $out, $genomeName);
     }
     close $dh;
@@ -319,7 +318,7 @@ maker_merge_outputs_from datastore.pl - The script will look over the datastore 
 
 =head1 SYNOPSIS
 
-    ./maker_merge_outputs_from.pl 
+    ./maker_merge_outputs_from.pl
     ./maker_merge_outputs_from.pl --help
 
 =head1 OPTIONS
@@ -328,7 +327,7 @@ maker_merge_outputs_from datastore.pl - The script will look over the datastore 
 
 =item B<-i>
 
-The path to the input directory. If none given, we assume that the script is launched where Maker was run. So, in that case the script will look for the folder 
+The path to the input directory. If none given, we assume that the script is launched where Maker was run. So, in that case the script will look for the folder
 *.maker.output.
 
 =item B<-o> or B<--output>

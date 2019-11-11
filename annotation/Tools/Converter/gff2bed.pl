@@ -4,15 +4,15 @@
 ## jacques.dainat@nbis.se
 
 use strict;
+use warnings;
 use Getopt::Long;
-use NBIS::Handler::GFF3handler qw(:Ok);
-use NBIS::Handler::GXFhandler qw(:Ok);
+use NBIS::GFF3::Omniscient;
 use Bio::Tools::GFF;
 use Pod::Usage;
 
 my $header = qq{
 ########################################################
-# NBIS 2015 - Sweden                                   #  
+# NBIS 2015 - Sweden                                   #
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
@@ -34,7 +34,7 @@ if( !GetOptions(
 }
 # Print Help and exit
 if ($help) {
-    pod2usage( { -message => "$header", 
+    pod2usage( { -message => "$header",
                  -verbose => 2,
                  -exitval => 2 } );
 }
@@ -58,9 +58,9 @@ else{
   $bedout=\*STDOUT ;
 }
 
-### Parse GTF input file 
+### Parse GTF input file
 my ($hash_omniscient, $hash_mRNAGeneLink) = slurp_gff3_file_JD({ input => $gff
-                                                              });  
+                                                              });
 # END parsing
 
 
@@ -101,8 +101,8 @@ foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){ # tag_l1 = gene or re
       #################
       # == LEVEL 2 == #
       #################
-      foreach my $tag_l2 (keys %{$hash_omniscient->{'level2'}}){ # tag_l2 = mrna or mirna or ncrna or trna etc...         
-        if ( exists ($hash_omniscient->{'level2'}{$tag_l2}{$id_l1} ) ){  
+      foreach my $tag_l2 (keys %{$hash_omniscient->{'level2'}}){ # tag_l2 = mrna or mirna or ncrna or trna etc...
+        if ( exists ($hash_omniscient->{'level2'}{$tag_l2}{$id_l1} ) ){
           foreach my $feature_l2 ( @{$hash_omniscient->{'level2'}{$tag_l2}{$id_l1}}) {
             my $size_l2 = $feature_l2->end - $feature_l2->start;
             print $bedout $feature_l2->seq_id."\t".$feature_l2->start."\t".$feature_l2->end."\t".$feature_l2->primary_tag."\t".$feature_l2->score."\t".$feature_l2->strand."\t".$feature_l2->start."\t".$feature_l2->end."\t0\t1\t".$size_l2."\t0\n";
@@ -117,7 +117,7 @@ foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){ # tag_l1 = gene or re
 
                 my $first_feature_l3;
                 my $last_feature_l3;
-                my $final_sizeList; 
+                my $final_sizeList;
                 my $final_startList;
 
                 my $originStart;
@@ -126,13 +126,13 @@ foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){ # tag_l1 = gene or re
                 my $score = 0 ;
 
                 foreach my $feature_l3 ( sort { $a->start <=> $b->start } @{$hash_omniscient->{'level3'}{$tag_l3}{$level2_ID}}) {
-                  
+
                   my $size_l3 = $feature_l3->end - $feature_l3->start;
-                  
-                  
-                  if($cpt==0){ 
+
+
+                  if($cpt==0){
                     $first_feature_l3 = $feature_l3;
-                    $originStart = $feature_l3->start;                   
+                    $originStart = $feature_l3->start;
 
                     $final_sizeList.="$size_l3";
                     $final_startList.="0";
@@ -144,7 +144,7 @@ foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){ # tag_l1 = gene or re
                       $final_startList.=",$start_corrected";
                   }
                   $last_feature_l3 = $feature_l3;
-                  $nb_feat++; 
+                  $nb_feat++;
                   $score += $feature_l3->score;
                 }
                 $score = $score/$nb_feat;
@@ -154,7 +154,7 @@ foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){ # tag_l1 = gene or re
         }
       }
     }
-  } 
+  }
 }
 
 __END__

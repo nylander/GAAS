@@ -1,19 +1,18 @@
 #!/usr/bin/env perl
 
+use strict;
+use warnings;
 use Carp;
 use Clone 'clone';
-use strict;
 use Getopt::Long;
 use Pod::Usage;
-use Data::Dumper;
 use List::MoreUtils qw(uniq);
 use Bio::Tools::GFF;
-use NBIS::Handler::GFF3handler qw(:Ok);
-use NBIS::Handler::GXFhandler qw(:Ok);
+use NBIS::GFF3::Omniscient;
 
 my $header = qq{
 ########################################################
-# NBIS 2019 - Sweden                                   #  
+# NBIS 2019 - Sweden                                   #
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
@@ -48,7 +47,7 @@ if ($help) {
                  -exitval => 2,
                  -message => "$header\n" } );
 }
- 
+
 if ( ! (defined($gff)) ){
     pod2usage( {
            -message => "$header\nAt least 1 parameter is mandatory:\nInput reference gff file (--gff) \n\n",
@@ -90,19 +89,19 @@ print ("GFF3 file parsed\n");
 
 foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){
   foreach my $id_l1 (keys %{$hash_omniscient->{'level1'}{$tag_l1}}){
-        
+
     my $feature_l1=$hash_omniscient->{'level1'}{$tag_l1}{$id_l1};
-        
+
     manage_attributes($feature_l1);
 
     #################
     # == LEVEL 2 == #
     #################
     foreach my $tag_l2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
-      
+
       if ( exists ($hash_omniscient->{'level2'}{$tag_l2}{$id_l1} ) ){
         foreach my $feature_l2 ( @{$hash_omniscient->{'level2'}{$tag_l2}{$id_l1}}) {
-          
+
           manage_attributes($feature_l2);
           #################
           # == LEVEL 3 == #
@@ -122,7 +121,7 @@ foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){
   }
 }
 
- 
+
 print $ostream "seq_id\tsource_tag\tprimary_tag\tstart\tend\tscore\tstrand\tframe";
 foreach my $key (sort { $a <=> $b } keys %number_to_tag){
    print $ostream "\t".$number_to_tag{$key};
@@ -161,10 +160,10 @@ sub  manage_attributes{
 
   foreach my $tag ( keys %tag_hash ) {
     $tag_to_number{$tag} = $cpt_tag;
-    $number_to_tag{$cpt_tag} = $tag;       
+    $number_to_tag{$cpt_tag} = $tag;
     my @values = $feature->get_tag_values($tag);
     $content .= "\t".join(", ", @values);
-    $cpt_tag++;    
+    $cpt_tag++;
   }
   $content .=  "\n";
 }
@@ -178,7 +177,7 @@ __END__
 
 gff3_sp_to_tabulated.pl -
 The script take a gff3 file as input and writte a tabulated file.
-Attribute's tag from the 9th column becomes title. 
+Attribute's tag from the 9th column becomes title.
 
 =head1 SYNOPSIS
 
@@ -193,11 +192,11 @@ Attribute's tag from the 9th column becomes title.
 
 Input GFF3 file that will be read (and sorted)
 
-=item B<-c> or B<--ct> 
+=item B<-c> or B<--ct>
 
 When the gff file provided is not correcly formated and features are linked to each other by a comon tag (by default locus_tag), this tag can be provided to parse the file correctly.
 
-=item B<-k> or B<--kingdom> 
+=item B<-k> or B<--kingdom>
 
 Default eukaryote. You can set it to prokaryote (p/prok/proka/prokaryote). In eukaryote mode, when features overlap at level3 and come from two different level 2 features of the same type, they will be merged under the same level 1 feature. In prokaryote case they don't because genes can overlap.
 

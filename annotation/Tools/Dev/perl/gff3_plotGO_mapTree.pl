@@ -13,14 +13,13 @@ use Getopt::Long;
 use IO::File;
 use Pod::Usage;
 use Statistics::R;
-use NBIS::Handler::GXFhandler qw(:Ok);
-use NBIS::Handler::GFF3handler qw(:Ok);
+use NBIS::GFF3::Omniscient;
 use Bio::OntologyIO;
 use Bio::Tools::GFF;
 
 my $header = qq{
 ########################################################
-# NBIS 2015 - Sweden                                   #  
+# NBIS 2015 - Sweden                                   #
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
@@ -36,7 +35,7 @@ my $DefaultUTRnb=5;
 my @copyARGV=@ARGV;
 if ( !GetOptions( 'f|gff|ref|reffile=s' => \$opt_reffile,
                   'obo=s' => \$opt_obo,
-                  'o|out|output=s' => \$opt_output,            
+                  'o|out|output=s' => \$opt_output,
                   'h|help!'         => \$opt_help ) )
 {
     pod2usage( { -message => 'Failed to parse command line',
@@ -81,7 +80,7 @@ $string1 .= "\n\nusage: $0 @copyARGV\n\n";
 print $ostreamReport $string1;
 
 # #####################################
-# # END Manage OPTION  
+# # END Manage OPTION
 # #####################################
 # print "parse obo file\n";
 # my $parser = Bio::OntologyIO->new
@@ -130,13 +129,13 @@ print("Parsing Finished\n\n");
 # get GO terms information
 ###########################
 my %GOdist;
-foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){ 
+foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){
   foreach my $id_l1 (keys %{$hash_omniscient->{'level1'}{$tag_l1}}){
-      
+
     #################
     # == LEVEL 2 == #
     #################
-    foreach my $tag_l2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...        
+    foreach my $tag_l2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
       if ( exists ($hash_omniscient->{'level2'}{$tag_l2}{$id_l1} ) ){
         foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$tag_l2}{$id_l1}}) {
           if($feature_level2->has_tag('Ontology_term')){
@@ -156,7 +155,7 @@ foreach my $tag_l1 (keys %{$hash_omniscient->{'level1'}}){
 
 
 #####################
-# Plot distribution 
+# Plot distribution
 
 
 
@@ -207,7 +206,7 @@ my $R = Statistics::R->new() or die "Problem with R : $!\n";
 #     pdf("$outPlot")
 #     plot(listValues[,2]~listValues[,1], xlab="Contig size", ylab="Frequency", main="Size distribution of $utr_type")
 #     dev.off()
-    
+
 #     pdf("$outPlotOver")
 #     plot(listValueMoreThan[,2]~listValueMoreThan[,1], xlab="Contig size", ylab="Frequency", main="Size distribution of $utr_type over 5")
 #     dev.off()`
@@ -235,7 +234,7 @@ unlink "$txtFile";
                 ####
                  ##
 
-__DATA__ 
+__DATA__
 
 
 __END__
@@ -244,13 +243,13 @@ __END__
 =head1 NAME
 
 maker_manageUTR.pl - Detect the genes containing too much UTR's exon according to a choosen threshold.
-If no UTR option (3, 5, 3 and 5, both) is given the threshold will be not used. 
+If no UTR option (3, 5, 3 and 5, both) is given the threshold will be not used.
 option 3 and 5 together is different of "both". In the first case the gene is discarded if either the 3' or the 5' UTR contains more exon than the threshold given.
 In the second case, will be discarded only the genes where the addition of UTR's exon of both side is over the threshold given.
 
 =head1 SYNOPSIS
 
-    ./maker_manageUTR.pl --ref=infile --three --five -p --out=outFile 
+    ./maker_manageUTR.pl --ref=infile --three --five -p --out=outFile
     ./maker_manageUTR.pl --help
 
 =head1 OPTIONS

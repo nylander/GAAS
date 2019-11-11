@@ -4,15 +4,15 @@
 ## jacques.dainat@nbis.se
 
 use strict;
+use warning;
 use Pod::Usage;
 use Getopt::Long;
 use Bio::Tools::GFF;
-use NBIS::Handler::GXFhandler qw(:Ok);
-use NBIS::Handler::GFF3handler qw(:Ok);
+use NBIS::GFF3::Omniscient;
 
 my $header = qq{
 ########################################################
-# NBIS 2015 - Sweden                                   #  
+# NBIS 2015 - Sweden                                   #
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
@@ -38,7 +38,7 @@ if( !GetOptions(
 
 # Print Help and exit
 if ($help) {
-    pod2usage( { -message => "$header", 
+    pod2usage( { -message => "$header",
                  -verbose => 2,
                  -exitval => 2 } );
 }
@@ -62,22 +62,22 @@ else{
 
 ######################
 ### Parse GFF input #
-### Read gff input file. 
+### Read gff input file.
 my ($hash_omniscient, $hash_mRNAGeneLink) = slurp_gff3_file_JD({ input => $gff
-                                                              });  
+                                                              });
 
 if(! $att){
   print_omniscient($hash_omniscient, $gtf_out);
 }
 else{ # rebuild gene_id and transcript_id feature;
-  
+
   my $gene_id=undef;
   #################
   # == LEVEL 1 == #
   #################
   foreach my $primary_tag_key_level1 (keys %{$hash_omniscient->{'level1'}}){ # primary_tag_key_level1 = gene or repeat etc...
     foreach my $id_tag_key_level1 (keys %{$hash_omniscient->{'level1'}{$primary_tag_key_level1}}){
-      my $feature_level1=$hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1}; 
+      my $feature_level1=$hash_omniscient->{'level1'}{$primary_tag_key_level1}{$id_tag_key_level1};
 
       # Gene ID level1
       my $gene_id_att=undef;
@@ -91,18 +91,18 @@ else{ # rebuild gene_id and transcript_id feature;
       # == LEVEL 2 == #
       #################
       foreach my $primary_tag_key_level2 (keys %{$hash_omniscient->{'level2'}}){ # primary_tag_key_level2 = mrna or mirna or ncrna or trna etc...
-        
+
         if ( exists ($hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1} ) ){
           foreach my $feature_level2 ( @{$hash_omniscient->{'level2'}{$primary_tag_key_level2}{$id_tag_key_level1}}) {
-            
-            
-            
+
+
+
             # Gene ID level2
-            my $gene_id_mrna_att=undef;           
+            my $gene_id_mrna_att=undef;
             if($feature_level2->has_tag('gene_id')){
               $gene_id_mrna_att=$feature_level2->_tag_value('gene_id');
             }
-           
+
             my $transcript_id_mrna_att=undef;
             if($feature_level2->has_tag('transcript_id')){
               $transcript_id_mrna_att=$feature_level2->_tag_value('transcript_id');
@@ -110,7 +110,7 @@ else{ # rebuild gene_id and transcript_id feature;
 
             # get gff3 feature (ID)
             my $level2_ID = lc($feature_level2->_tag_value('ID'));
-            
+
             my $level3_transcript_id=undef;
             #################
             # == LEVEL 3 == #
@@ -121,12 +121,12 @@ else{ # rebuild gene_id and transcript_id feature;
             foreach my $primary_tag_key_level3 (keys %{$hash_omniscient->{'level3'}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
               if ( exists ($hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID} ) ){
                 foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID}}) {
-                  
+
                   #Get level3 gene_id
                   if(! $level3_gene_id){
                     if($feature_level3->has_tag('gene_id')){
                       $level3_gene_id=$feature_level3->_tag_value('gene_id');
-                    }          
+                    }
                   }
 
                   #Get level3 transcript_id
@@ -174,7 +174,7 @@ else{ # rebuild gene_id and transcript_id feature;
             foreach my $primary_tag_key_level3 (keys %{$hash_omniscient->{'level3'}}){ # primary_tag_key_level3 = cds or exon or start_codon or utr etc...
               if ( exists ($hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID} ) ){
                 foreach my $feature_level3 ( @{$hash_omniscient->{'level3'}{$primary_tag_key_level3}{$level2_ID}}) {
-                  
+
                   #Check add gene_id
                   if(! $feature_level3->has_tag('gene_id')) {
                     $feature_level3->add_tag_value('gene_id', $gene_id);
@@ -195,7 +195,7 @@ else{ # rebuild gene_id and transcript_id feature;
               }
             }
 
-            ## add level2 missing information gene_id 
+            ## add level2 missing information gene_id
             if(! $feature_level2->has_tag('gene_id')) {
                $feature_level2->add_tag_value('gene_id', $gene_id);
             }
@@ -262,7 +262,7 @@ Keep in mind that some bioperl versions forget to add the header (##gff-version 
 
 =item B<--gff> or B<--in>
 
-Input GFF file that will be read 
+Input GFF file that will be read
 
 =item B<--att> or B<-a>
 

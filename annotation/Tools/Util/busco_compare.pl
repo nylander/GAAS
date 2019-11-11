@@ -1,23 +1,21 @@
 #!/usr/bin/env perl
 
 ###################################################
-# Jacques Dainat 01/2018                          #  
+# Jacques Dainat 01/2018                          #
 # National Bioinformatics Infrastructure Sweden   #
 # jacques.dainat@nbis.se                          #
 ###################################################
 
-use Carp;
 use strict;
 use warnings;
+use Carp;
 use Clone 'clone';
 use Pod::Usage;
 use Getopt::Long;
-use Data::Dumper;
 use IO::File ;
-use List::Util 'first';  
+use List::Util 'first';
 use Bio::Tools::GFF;
-use NBIS::Handler::GFF3handler qw(:Ok);
-use NBIS::Handler::GXFhandler qw(:Ok);
+use NBIS::GFF3::Omniscient;
 
 my $start_run = time();
 
@@ -88,19 +86,19 @@ if ($outfolder) {
   my $outfile="f1_complete.gff";
   open(my $fh, '>', $outfolder."/".$outfile) or die "Could not open file '$outfile' $!";
   $gffout_complete= Bio::Tools::GFF->new(-fh => $fh, -gff_version => 3 );
-  
+
   $outfile="f1_fragmented.gff";
   open(my $fh2, '>', $outfolder."/".$outfile) or die "Could not open file '$outfile' $!";
   $gffout_fragmented= Bio::Tools::GFF->new(-fh => $fh2, -gff_version => 3 );
-  
+
   $outfile="f1_duplicated.gff";
   open(my $fh3, '>', $outfolder."/".$outfile) or die "Could not open file '$outfile' $!";
   $gffout_duplicated= Bio::Tools::GFF->new(-fh => $fh3, -gff_version => 3 );
 }
 else{
-  $gffout_complete = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 3 ); 
+  $gffout_complete = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 3 );
   $gffout_fragmented = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 3 );
-  $gffout_duplicated = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 3 ); 
+  $gffout_duplicated = Bio::Tools::GFF->new(-fh => \*STDOUT, -gff_version => 3 );
 }
 $gff_out{'complete'}=$gffout_complete;
 $gff_out{'fragmented'}=$gffout_fragmented;
@@ -111,11 +109,11 @@ $gff_out{'duplicated'}=$gffout_duplicated;
 #                         MAIN
 #############################################################
 
-#Read busco1 file 
+#Read busco1 file
 my %busco1;
-while( my $line = <$fh1>)  {   
-   
-  if( $line =~ m/^\w+\s{1}Complete/){   
+while( my $line = <$fh1>)  {
+
+  if( $line =~ m/^\w+\s{1}Complete/){
     my @list = split(/\s/,$line);
     $busco1{'complete'}{$list[0]}=$line;
   }
@@ -133,11 +131,11 @@ while( my $line = <$fh1>)  {
   }
 }
 
-#Read busco2 file 
+#Read busco2 file
 my %busco2;
-while( my $line = <$fh2>)  {   
-   
-  if( $line =~ m/^\w+\s{1}Complete/){   
+while( my $line = <$fh2>)  {
+
+  if( $line =~ m/^\w+\s{1}Complete/){
     my @list = split(/\s/,$line);
     $busco2{'complete'}{$list[0]}=$line;
   }
@@ -170,7 +168,7 @@ foreach my $type1 (keys %busco1){
           # create streamOutput
           if($outfolder){
             if (! exists_keys (\%streamOutputs,($name)) ){
-              my $ostream = IO::File->new(); 
+              my $ostream = IO::File->new();
               $ostream->open( $outfolder."/$name.txt", 'w' ) or croak( sprintf( "Can not open '%s' for writing %s", $outfolder."/$name.txt", $! ) );
               $streamOutputs{$name}=$ostream;
             }
@@ -222,7 +220,7 @@ if (-d $augustus_gff_folder){
             if (!keys %{$hash_omniscient}){
               print "No gene found for $path\n";exit;
             }
-            
+
             my @listIDl1ToRemove;
             if( exists_keys ($hash_omniscient,('level1','gene'))){
               foreach my $id_l1 (keys %{$hash_omniscient->{'level1'}{'gene'}}){
@@ -231,7 +229,7 @@ if (-d $augustus_gff_folder){
                   $found=1;
                   $track_found{$type}{$id}++;
 
-                  #Add the OG name to the feature, to be displayed in WA               
+                  #Add the OG name to the feature, to be displayed in WA
                   foreach my $tag_l2 (keys %{$hash_omniscient->{'level2'}}){
                     if( exists_keys($hash_omniscient,('level2', $tag_l2, $id_l1))){
                       foreach my $feature_l2 ( @{$hash_omniscient->{'level2'}{$tag_l2}{$id_l1}} ){
@@ -243,13 +241,13 @@ if (-d $augustus_gff_folder){
                 }
                 else{push(@listIDl1ToRemove,$id_l1);}
               }
-              
+
               if ($found){
                 if(@listIDl1ToRemove){
                   print "lets remove those supernumary annotation: @listIDl1ToRemove \n" if $verbose;
                   remove_omniscient_elements_from_level1_id_list($hash_omniscient, \@listIDl1ToRemove);
                 }
-                
+
                 if($loop == 0){
                   $full_omniscient = clone($hash_omniscient);
                   $loop++;
@@ -351,11 +349,11 @@ STRING: Input busco folder1
 
 STRING: Input busco folder2
 
-=item B<-v> or B<--verbose> 
+=item B<-v> or B<--verbose>
 
 For displaying extra information
 
-=item B<-o> or B<--output> 
+=item B<-o> or B<--output>
 
 STRING: Output folder.
 

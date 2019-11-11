@@ -2,7 +2,7 @@
 
 my $header = qq{
 ########################################################
-# NBIS 2018 - Sweden                                   #  
+# NBIS 2018 - Sweden                                   #
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
@@ -10,10 +10,10 @@ my $header = qq{
 
 
 use strict;
+use warnings;
 use Pod::Usage;
 use Getopt::Long;
-use NBIS::Handler::GXFhandler qw(:Ok);
-use NBIS::Handler::GFF3handler qw(:Ok);
+use NBIS::GFF3::Omniscient;
 use Bio::Tools::GFF;
 
 my $start_run = time();
@@ -36,7 +36,7 @@ if ($opt_help) {
     pod2usage( { -verbose => 2,
                  -exitval => 2 } );
 }
- 
+
 if (! defined($opt_gfffile) ){
     pod2usage( {
            -message => "\nAt least 1 parameter is mandatory:\nInput reference gff file (-g).\n\n".
@@ -84,7 +84,7 @@ __END__
 =head1 NAME
 
 gff3_webApollo_compliant.pl -
-This script aim to remove useless/problematic information for webapollo, change some feeaturee type to avoid problem whem loading them into webapollo, and optimize some attribute for a nice displaying. 
+This script aim to remove useless/problematic information for webapollo, change some feeaturee type to avoid problem whem loading them into webapollo, and optimize some attribute for a nice displaying.
 =head1 SYNOPSIS
 
     ./gff3_webApollo_compliant.pl -g infile.gff [ -o outfile ]
