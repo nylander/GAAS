@@ -17,10 +17,12 @@ my $header = qq{
 
 my $start_run = time();
 my $opt_gfffile;
-my $opt_kingdom = undef;
+my $opt_merge = undef;
 my $opt_comonTag=undef;
-my $opt_verbose=undef;
+my $opt_verbose = 1;
+my $opt_no_check = undef;
 my $opt_output;
+my $opt_expose_feature_levels = undef;
 my $opt_help = 0;
 my $opt_version_input = undef;
 my $opt_version_output = 3;
@@ -31,9 +33,11 @@ if ( !GetOptions( 'g|gff=s'         => \$opt_gfffile,
                   'c|ct=s'          => \$opt_comonTag,
                   'v=i'             => \$opt_verbose,
                   'o|output=s'      => \$opt_output,
+                  'efl|expose!'      => \$opt_expose_feature_levels,
+                  'nc|no_check!'      => \$opt_no_check,
                   'gff_version_input|gvi=f'   => \$opt_version_input,
                   'gff_version_output|gvo=f'   => \$opt_version_output,
-                  'kingdom|k=s'     => \$opt_kingdom,
+                  'ml|merge_loci!'     => \$opt_merge,
                   'h|help!'         => \$opt_help ) )
 {
     pod2usage( { -message => 'Failed to parse command line',
@@ -87,7 +91,9 @@ my ($hash_omniscient, $hash_mRNAGeneLink) = slurp_gff3_file_JD({
                                                                locus_tag => $opt_comonTag,
                                                                gff_version => $opt_version_input,
                                                                verbose => $opt_verbose,
-                                                               kingdom => $opt_kingdom
+                                                               merge_loci => $opt_merge,
+                                                               no_check => $opt_no_check,
+                                                               expose_feature_levels => $opt_expose_feature_levels
                                                                });
 print ("GFF3 file parsed\n");
 
@@ -134,14 +140,27 @@ Input GFF3 file that will be read (and sorted)
 
 When the gff file provided is not correcly formated and features are linked to each other by a comon tag (by default locus_tag), this tag can be provided to parse the file correctly.
 
-=item B<-k> or B<--kingdom>
+=item B<--efl> or B<--expose>
 
-Default eukaryote. You can set it to prokaryote (p/prok/proka/prokaryote). In eukaryote mode, when features overlap at level3 and come from two different level 2 features of the same type, they will be merged under the same level 1 feature. In prokaryote case they don't because genes can overlap.
+If you want to see, add or modified the feature relationships you will have to use this option.
+It will copy past in you working directory the json files used to define the relation between feature types and their level organisation.
+Typical level organisation: Level1 => gene; Level2 => mRNA; level3 => exon,cds,utrs
+If you get warning from the Omniscient parser that a feature relationship is not defined, you can provide information about it within the exposed json files.
+Indeed, if the json files exists in your working directory, they will be used by default.
 
+=item B<--ml> or B<--merge_loci>
+
+Merge loci parameter, default deactivated. You turn on the parameter if you want to merge loci into one locus when they overlap.
+(at CDS level for mRNA, at exon level for other level2 features. Strand has to be the same). Prokaryote can have overlaping loci so it should not use it for prokaryote annotation.
+In eukaryote, loci rarely overlap. Overlaps could be due to error in the file, mRNA can be merged under the same parent gene if you acticate the option.
 
 =item B<-v>
 
-Verbose option to see the warning messages when parsing the gff file.
+Verbose option. To modify vefbosity. Default 1. 0 is quiet, 2 and 3 are increasing verbosity.
+
+=item B<--nc> or B<--no_check>
+
+To deacticate all check that can be performed by the parser (e.g fixing UTR, exon, coordinates etc...)
 
 =item B<-o> or B<--output>
 

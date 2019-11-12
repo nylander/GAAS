@@ -6,8 +6,10 @@ use strict;
 use warnings;
 use Try::Tiny;
 use JSON;
+use Cwd qw(cwd);
 use Bio::Tools::GFF;
 use File::Basename;
+use File::Copy;
 use Sort::Naturally;
 use LWP::UserAgent;
 use Bio::OntologyIO::obo;
@@ -19,7 +21,7 @@ our @ISA = qw(Exporter);
 our @EXPORT = qw(get_level select_gff_format check_mrna_positions
               modelate_utr_and_cds_features_from_exon_features_and_cds_start_stop
               slurp_gff3_file_JD _check_all_level1_positions _check_all_level2_positions
-              load_levels_from_json);
+              load_levels);
 sub import {
   NBIS::GFF3::Omniscient::OmniscientI->export_to_level(1, @_); # to be able to load the EXPORT functions by calling NBIS::GFF3::Omniscient::OmniscientI; (normal case)
   NBIS::GFF3::Omniscient::OmniscientI->export_to_level(2, @_); # to be able to load the EXPORT functions by calling NBIS::GFF3::Omniscient;
@@ -74,8 +76,8 @@ my @COMONTAG = ('locus_tag','gene_id');
 # $locus_tag => tag to consider for gathering features (in top of the default one)
 # $gff_version => Int (if is used, force the parser to use this gff parser instead of guessing)
 # $verbose =>define the deepth of verbosity
-# $nocheck is to deactivate sanity check. We can tune the deactivation of check steps using nocheck_skip.
-# $nocheck_skip [list] is to avoid the deactivation of all check with the $nocheck parameter. Check steps listed here will not be deactivated.
+# $no_check is to deactivate sanity check. We can tune the deactivation of check steps using no_check_skip.
+# $no_check_skip [list] is to avoid the deactivation of all check with the $no_check parameter. Check steps listed here will not be deactivated.
 sub slurp_gff3_file_JD {
 
 	my $start_run = time();
@@ -90,31 +92,22 @@ sub slurp_gff3_file_JD {
 	if(ref($args) ne 'HASH'){ print "Hash Arguments expected for slurp_gff3_file_JD. Please check the call.\n";exit;	}
 
 	# Declare all variables and fill them
-	my ($file, $gff_version, $locus_tag, $verbose, $nocheck, $quiet, $kingdom, $nocheck_skip);
-	if( defined($args->{input})) {$file = $args->{input};} 		 else{ print "Input data --input is mandatory when using slurp_gff3_file_JD!"; exit;}
-	if( ! defined($args->{gff_version})) {$gff_version = undef;} else{ $gff_version = $args->{gff_version}; }
-	if( ! defined($args->{locus_tag})) {$locus_tag = undef;}     else{ push @COMONTAG, $args->{locus_tag}; } #add a new comon tag to the list if provided.}
-	if( ! defined($args->{verbose}) ) {$verbose = 0;}    		 else{ $verbose = $args->{verbose}; }
-	if( ! defined($args->{nocheck})) {$nocheck = undef;} 		 else{ $nocheck = $args->{nocheck}; }
-  if( ! defined($args->{nocheck_skip})) {$nocheck_skip = undef;} 		 else{ $nocheck_skip = $args->{nocheck_skip}; } # list of check to skip
-	if( ! defined($args->{quiet})) {$quiet = undef;}     		 else{ $quiet = $args->{quiet}; $verbose=0; }
-	# $kingdom => Default eukaryote. In eukaryote mode, when features overlap at level3 and come from two different level 2 features of the same type, they will be merged under the same level 1 feature. In prokaryote case they don't because genes can overlap.
-	if( defined($args->{kingdom}) and (($args->{kingdom} =~ 'prok') or ($args->{kingdom} eq 'p') ) ){
-		$kingdom="proka";
-		print "prokaryote mode\n";
-	}
-	else {
-		if( defined($args->{kingdom}) and ($args->{kingdom} !~ 'euk') ){
-			print "WARNING we don't understand the kingdom defined, has to be <prokaryote> or <eukaryote>! <$args->{kingdom}> is not a correct value! We will use <eukaryote> by default.\n";
-		}
-		$kingdom ='euka';
-		print "eukaryote mode\n";
-	}
-
-#	+-----------------------------------------+
-#	|			HANDLE json level			  |
-#	+-----------------------------------------+
-	($LEVEL1, $LEVEL2, $LEVEL3) = load_levels_from_json($verbose);
+	my ($file, $gff_version, $locus_tag, $verbose, $no_check, $merge_loci, $no_check_skip, $expose_feature_levels);
+  #first define verbosity
+  if( ! defined($args->{verbose}) ) {$verbose = 0;}    		         else{ $verbose = $args->{verbose}; }
+  print "=> parse option and metadata:\n" if ($verbose > 0);
+  #Secondly check if expose_feature_levels option
+  if( ! defined($args->{expose_feature_levels})) {$expose_feature_levels = undef;}
+                    else{ $expose_feature_levels = $args->{expose_feature_levels};
+                    print "   expose json feature level files\n" if ($verbose > 0);} # list of check to skip
+                    load_levels($verbose, $expose_feature_levels); # 	HANDLE feature level
+	if( defined($args->{input})) {$file = $args->{input};} 		       else{ print "Input data --input is mandatory when using slurp_gff3_file_JD!"; exit;}
+	if( ! defined($args->{gff_version})) {$gff_version = undef;}     else{ $gff_version = $args->{gff_version}; } # force using gff parser version
+	if( ! defined($args->{locus_tag})) {$locus_tag = undef;}         else{ push @COMONTAG, $args->{locus_tag}; } #add a new comon tag to the list if provided.}
+	if( ! defined($args->{no_check})) {$no_check = undef;} 		       else{ $no_check = $args->{no_check}; print "   no_check option activated\n" if ($verbose > 0); } # skip checks
+  if( ! defined($args->{no_check_skip})) {$no_check_skip = [];} 	 else{ $no_check_skip = $args->{no_check_skip}; } # list of check to skip
+  if( ! defined($args->{merge_loci})) { $merge_loci = undef;  print "   merge_locus option deactivated\n" if ($verbose > 0);}
+                                                                   else{ $merge_loci = $args->{merge_loci}; print "   merge_locus option activated\n" if ($verbose > 0);} # activat merge locus option
 
 #	+-----------------------------------------+
 #	|	HANDLE GFF HEADER					  |
@@ -125,12 +118,12 @@ sub slurp_gff3_file_JD {
 #	|	HANDLE SOFA (feature-ontology)		  |
 #	+-----------------------------------------+
 	my $ontology = {};
-	my $ontology_obj = _handle_ontology($gff3headerInfo, $verbose, $quiet);
+	my $ontology_obj = _handle_ontology($gff3headerInfo, $verbose);
 	if($ontology_obj){
 		$ontology = create_term_and_id_hash($ontology_obj);
 	}
 	if(! keys %{$ontology} ){ #hash is empty
-		print "No data retrieved among the feature-ontology.\n" unless $quiet;
+		print "   No data retrieved among the feature-ontology.\n" if ($verbose > 0);
 	}
 
 #	+-----------------------------------------+
@@ -148,7 +141,7 @@ sub slurp_gff3_file_JD {
     }
     else{
 	    $WARNS{$thematic[0]}++;
-		    if($verbose >= 1){
+		    if($verbose > 0){
 		    	if ($WARNS{$thematic[0]} <= $nbWarnLimit){
 					print $message;
 				}
@@ -176,6 +169,8 @@ sub slurp_gff3_file_JD {
 	my $last_l3_f=undef;
 	my $last_f=undef;# last feature handled
 	my $lastL1_new =undef; # Bolean to check if last l1 feature is a newly created one. Important to deal with strict sequential
+
+  if($verbose  > 0) { print "=> start parsing:\n";}
 
 	# ============================> ARRAY CASE <============================
 	if(ref($file) eq 'ARRAY'){
@@ -217,7 +212,7 @@ sub slurp_gff3_file_JD {
 		if($gff_version){$format = $gff_version;}
 		else{ $format = select_gff_format($file);}
 
-		print "=>GFF version parser used: $format\n";
+		print "   GFF version parser used: $format\n" if ($verbose > 0) ;
 		my $gffio = Bio::Tools::GFF->new(-file => $file, -gff_version => $format);
 
 		#read every lines
@@ -241,91 +236,92 @@ sub slurp_gff3_file_JD {
   	delete $globalWARNS{$_} for (keys %globalWARNS); # re-initialize the hash
   	delete $WARNS{$_} for (keys %WARNS); # re-initialize the hash
 
-  	if($verbose  >= 1) {_printSurrounded("parsing done in ".(time() - $start_run)." seconds",30,".","\n"); $previous_time = time();}
+    # Parsing time
+    if($verbose  > 0) { print "   done in ", time() - $start_run," seconds\n"; $previous_time = time(); }
 
-#	+-----------------------------------------+
-#	|			CHECK OMNISCIENT			  |
-#	+-----------------------------------------+
-    _printSurrounded("Start extra check",50,"#","\n") if $verbose;
-    _printSurrounded("Check0: _check_duplicates",30,"*","\n") if ($verbose >= 1) ;
-
-    #Check if duplicate detected:
+    #report detected duplicates
+    print "=> report duplicates:\n" if ($verbose > 0) ;
     _check_duplicates(\%duplicate, \%omniscient, $verbose);
-    if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
+    if( $verbose > 0 ) {print "   done in ",time() - $previous_time," seconds\n\n" ; $previous_time = time(); }
 
-
-	if(! $nocheck or  grep( /^_check_sequential/, $nocheck_skip ) ) {
+#	+-----------------------------------------+
+#	|		       	 CHECK OMNISCIENT		     	    |
+#	+-----------------------------------------+
+  if(! $no_check ){
+    _printSurrounded("- Start extra check -",50,"*","\n") if ($verbose > 0) ;
+  }
+	if(! $no_check or  grep( /^_check_sequential/, $no_check_skip ) ) {
 	  #Check sequential if we can fix cases. Hash to be done first, else is risky that we remove orphan L1 feature ... that are not yet linked to a sequential bucket
-    _printSurrounded("Check1: _check_sequential",30,"*") if ($verbose >= 1) ;
+    _printSurrounded("Check1: _check_sequential",30,"*") if ($verbose > 0) ;
     if( keys %infoSequential ){ #hash is not empty
 	    	_check_sequential(\%infoSequential, \%omniscient, \%miscCount, \%uniqID, \%uniqIDtoType, \%locusTAG, \%mRNAGeneLink, $verbose);
 	    	undef %infoSequential;
 	    }
-	    else{ print "Nothing to check as sequential !\n" if($verbose >= 1) }
-		if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n"; $previous_time = time();}
+	    else{ print "   Nothing to check as sequential !\n" if($verbose > 0) }
+		if($verbose > 0) {print "   done in ",time() - $previous_time," seconds\n\n"; $previous_time = time();}
   }
 
-  if(! $nocheck or  grep( /^_check_l2_linked_to_l3/, $nocheck_skip ) ) {
+  if(! $no_check or  grep( /^_check_l2_linked_to_l3/, $no_check_skip ) ) {
 	    #Check relationship between l3 and l2
-      _printSurrounded("Check2: _check_l2_linked_to_l3",30,"*") if($verbose >= 1) ;
+      _printSurrounded("Check2: _check_l2_linked_to_l3",30,"*") if($verbose > 0 ) ;
 	    _check_l2_linked_to_l3(\%omniscient, \%mRNAGeneLink, \%miscCount, \%uniqID, \%uniqIDtoType, $verbose); # When creating L2 missing we create as well L1 if missing too
-		if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
+		if($verbose > 0) {print "   done in ",time() - $previous_time," seconds\n\n" ; $previous_time = time();}
   }
 
-  if(! $nocheck or  grep( /^_check_l1_linked_to_l2/, $nocheck_skip ) ) {
+  if(! $no_check or  grep( /^_check_l1_linked_to_l2/, $no_check_skip ) ) {
 	    #Check relationship between mRNA and gene.  / gene position are checked! If No Level1 we create it !
-      _printSurrounded("Check3: _check_l1_linked_to_l2",30,"*") if ($verbose >= 1) ;
+      _printSurrounded("Check3: _check_l1_linked_to_l2",30,"*") if ($verbose > 0 ) ;
 	    _check_l1_linked_to_l2(\%omniscient, $verbose);
-		if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
+		if($verbose > 0) {print "   done in ",time() - $previous_time," seconds\n\n" ; $previous_time = time();}
 	}
 
-  if(! $nocheck or  grep( /^_remove_orphan_l1$/, $nocheck_skip ) ) {
+  if(! $no_check or  grep( /^_remove_orphan_l1$/, $no_check_skip ) ) {
 	    #check level1 has subfeature else we remove it
-      _printSurrounded("Check4: _remove_orphan_l1",30,"*") if ($verbose >= 1) ;
+      _printSurrounded("Check4: _remove_orphan_l1",30,"*") if ($verbose > 0 ) ;
 	  	_remove_orphan_l1(\%omniscient, \%miscCount, \%uniqID, \%uniqIDtoType, \%mRNAGeneLink, $verbose); #or fix if level2 is missing (refseq case)
-		if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
+		if($verbose > 0) {print "   done in ",time() - $previous_time," seconds\n\n" ; $previous_time = time();}
   }
 
-	if(! $nocheck or  grep( /^_check_exons/, $nocheck_skip ) ) {
+	if(! $no_check or  grep( /^_check_exons/, $no_check_skip ) ) {
 	    #Check relationship L3 feature, exons have to be defined... / mRNA position are checked!
-      _printSurrounded("Check5: _check_exons",30,"*") if ($verbose >= 1) ;
+      _printSurrounded("Check5: _check_exons",30,"*") if ($verbose > 0 ) ;
 	    _check_exons(\%omniscient, \%mRNAGeneLink, \%miscCount, \%uniqID,  \%uniqIDtoType, $verbose);
-		if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n"; $previous_time = time();}
+		if($verbose > 0) {print "   done in ",time() - $previous_time," seconds\n\n"; $previous_time = time();}
   }
 
-  if(! $nocheck or  grep( /^_check_utrs/, $nocheck_skip ) ) {
+  if(! $no_check or  grep( /^_check_utrs/, $no_check_skip ) ) {
 		#Check relationship L3 feature, exons have to be defined... / mRNA position are checked!
-    _printSurrounded("Check6: _check_utrs",30,"*") if ($verbose >= 1) ;
+    _printSurrounded("Check6: _check_utrs",30,"*") if ($verbose > 0 ) ;
 	    _check_utrs(\%omniscient, \%mRNAGeneLink, \%miscCount, \%uniqID,  \%uniqIDtoType, $verbose);
-		if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n"; $previous_time = time();}
+		if($verbose > 0) {print "   done in ",time() - $previous_time," seconds\n\n"; $previous_time = time();}
 	}
 
-  if(! $nocheck or  grep( /^_check_all_level2_positions/, $nocheck_skip ) ) {
+  if(! $no_check or  grep( /^_check_all_level2_positions/, $no_check_skip ) ) {
 		# Check rna positions compared to its l2 features
-    _printSurrounded("Check7: _check_all_level2_positions",30,"*") if ($verbose >= 1) ;
+    _printSurrounded("Check7: _check_all_level2_positions",30,"*") if ($verbose > 0 ) ;
 		_check_all_level2_positions(\%omniscient, $verbose);
-		if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
+		if($verbose > 0) {print "   done in ",time() - $previous_time," seconds\n\n" ; $previous_time = time();}
 	}
 
-  if(! $nocheck or  grep( /^_check_all_level1_positions/, $nocheck_skip ) ) {
+  if(! $no_check or  grep( /^_check_all_level1_positions/, $no_check_skip ) ) {
 		# Check gene positions compared to its l2 features
-    _printSurrounded("Check8: _check_all_level1_positions",30,"*") if ($verbose >= 1) ;
+    _printSurrounded("Check8: _check_all_level1_positions",30,"*") if ($verbose > 0 ) ;
 		_check_all_level1_positions(\%omniscient, $verbose);
-		if($verbose >= 1) {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
+		if($verbose > 0) {print "   done in ",time() - $previous_time," seconds\n\n" ; $previous_time = time();}
   }
 
-		#check loci names (when overlap should be the same if type is the same)
-		if ($kingdom eq "euka"){
-			_printSurrounded("Check9: _merge_overlap_features",30,"*") if ($verbose >= 1) ;
-			_merge_overlap_features(\%omniscient, \%mRNAGeneLink, $verbose);
-		    if($verbose >= 1)  {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
-		}
+	#check loci names (when overlap should be the same if type is the same)
+	if ( $merge_loci ){
+		_printSurrounded("merge overlaping features into \nsame locus",30,"-") if ($verbose > 0 ) ; # ancien check9. Better probably to keep it before check 10 anyway
+		_merge_overlap_features(\%omniscient, \%mRNAGeneLink, $verbose);
+	    if($verbose > 0)  {print "   done in ",time() - $previous_time," seconds\n\n" ; $previous_time = time();}
+	}
 
-  if(! $nocheck or  grep( /^_check_identical_isoforms/, $nocheck_skip ) ) {
+  if(! $no_check or  grep( /^_check_identical_isoforms/, $no_check_skip ) ) {
 		#check identical isoforms
-		_printSurrounded("Check10: _check_identical_isoforms",30,"*") if ($verbose >= 1) ;
+		_printSurrounded("Check10: _check_identical_isoforms",30,"*") if ($verbose > 0 ) ;
 		_check_identical_isoforms(\%omniscient, \%mRNAGeneLink, $verbose);
-		 if($verbose >= 1)  {print "      done in ",time() - $previous_time," seconds\n\n\n" ; $previous_time = time();}
+		 if($verbose > 0)  {print "   done in ",time() - $previous_time," seconds\n\n" ; $previous_time = time();}
 	}
 
 	#------- Inform user about warnings encountered during checking ---------------
@@ -337,9 +333,13 @@ sub slurp_gff3_file_JD {
   	}
   	_handle_globalWARNS(\%globalWARNS, $ontology);
 
-	print "Parsing and check done in ", time() - $start_run," seconds\n\n\n" if ($verbose >= 1);
+  if(! $no_check ){
+    _printSurrounded("- End extra check -\ndone in ".(time() - $previous_time)." seconds",50,"*","\n") if ($verbose > 0);
+  }
 
-    #return
+ print "=> OmniscientI total time: ",(time() - $start_run)," seconds\n" if ($verbose > 0);
+
+  #return
 	return \%omniscient, \%mRNAGeneLink	;
 }
 
@@ -375,7 +375,7 @@ sub slurp_gff3_file_JD {
 # 		example: scaffold625	maker	mRNA	341518	341628	.	+	.	ID=CLUHART00000008717;Parent=CLUHARG00000008717
 # $last_l3_f => String: Last L3 feature that has been met when parsing the file
 # 		example: scaffold625	maker	exon	341518	341628	.	+	.	ID=CLUHART00000008717:exon:1406;Parent=CLUHART00000008717
-# $verbose => INT: Verbose level. Bigger the value is, deeper the information sould be.
+# $verbose => INT: Verbose level. Bigger the value is, deeper the information sould be. 0 = quiet
 # 		example: 2
 # ====== OUTPUT======= : Omniscient Hash
 sub manage_one_feature{
@@ -422,7 +422,7 @@ sub manage_one_feature{
 	    		################
 	    		# Save feature #
 	    		$last_l1_f = $feature;
-	    		print "Push-L1-omniscient level1 || $primary_tag || $id = ".$feature->gff_string()."\n" if ($verbose >=2);
+	    		print "Push-L1-omniscient level1 || $primary_tag || $id = ".$feature->gff_string()."\n" if ($verbose > 1);
     			$omniscient->{"level1"}{$primary_tag}{$id}=$feature;
  	       		$locusTAG_uniq->{'level1'}{$id}=$id;
 
@@ -431,7 +431,7 @@ sub manage_one_feature{
 		        $locusTAGvalue =_get_comon_tag_value($feature, $locusTAG_uniq, 'level1');
 
 				if($locusTAGvalue){
-					print "Push-L1-sequential $locusTAGvalue || level1 == $id\n" if ($verbose >=2);
+					print "Push-L1-sequential $locusTAGvalue || level1 == $id\n" if ($verbose > 1);
 					$locusTAG_uniq->{'level1'}{$locusTAGvalue}=$id;
 		    		$infoSequential->{$id}{'level1'}=$id;
 		    	}
@@ -490,7 +490,7 @@ sub manage_one_feature{
 				# If we have comon tag, we check we are changing from the previous one before to create a new level1 feature.
 				# It's to deal with potential level2 (like mRNA isoforms).
 				if(! $last_l1_f or ($locusTAGvalue and ($locusTAGvalue ne $last_locusTAGvalue) ) ){
-					print "create L1 feature\n" if ($verbose >=3);
+					print "create L1 feature\n" if ($verbose > 2);
 					$l1_ID = _create_ID($miscCount, $uniqID, $uniqIDtoType, $primary_tag, $id, "nbis_noL1id");
 					$last_l1_f = clone($feature);
 					create_or_replace_tag($last_l1_f,'ID',$l1_ID); #modify Parent To keep only one
@@ -500,7 +500,7 @@ sub manage_one_feature{
 				else{ # case where previous level1 exists
 					# Stricly sequential at level2 feature. We create a new L1 at every L2 met except if two L2 are in a row
 					if ( ($lastL1_new and not exists($LEVEL2->{$last_f->primary_tag}) ) and (!$locusTAGvalue or ($locusTAGvalue ne $last_locusTAGvalue) ) ){ # if previous L1 newly created and last feature is not f2 (if several f2 in a row we attach them to the same newly created l1 feature)
-						print "create L1 feature stritcly\n" if ($verbose >=3);
+						print "create L1 feature stritcly\n" if ($verbose > 2);
 						$l1_ID = _create_ID($miscCount, $uniqID, $uniqIDtoType, $primary_tag, $id, "nbis_noL1id");
 						$last_l1_f = clone($feature);
 						create_or_replace_tag($last_l1_f,'ID',$l1_ID); #modify Parent To keep only one
@@ -509,7 +509,7 @@ sub manage_one_feature{
 						$lastL1_new = 1;
 					}
 					else{
-						print "take last L1 feature\n" if ($verbose >=3);
+						print "take last L1 feature\n" if ($verbose > 2);
 						$l1_ID=$last_l1_f->_tag_value('ID');
 						$lastL1_new = undef;
 					}
@@ -519,14 +519,14 @@ sub manage_one_feature{
 				#################
  	       		# COMON TAG PART2
 				if($locusTAGvalue){ #Previous Level up feature had a comon tag
-					print "Push-L2-Sequential-1 $locusTAGvalue || ".lc($id)." || level2 == ".$feature->gff_string."\n" if ($verbose >=2);
+					print "Push-L2-Sequential-1 $locusTAGvalue || ".lc($id)." || level2 == ".$feature->gff_string."\n" if ($verbose > 1);
 		    		$infoSequential->{$locusTAGvalue}{lc($id)}{'level2'} = $feature ;
 
 			    	return $locusTAGvalue, $last_l1_f, $feature, $last_l3_f, $feature, $lastL1_new;								#### STOP HERE AND RETURN
 				}
 				else{
 
-					print "Push-L2-omniscient-2: level2 || ".$primary_tag." || ".lc($l1_ID)." == ".$feature->gff_string."\n" if ($verbose >=2);
+					print "Push-L2-omniscient-2: level2 || ".$primary_tag." || ".lc($l1_ID)." == ".$feature->gff_string."\n" if ($verbose > 1);
 					push (@{$omniscient->{"level2"}{$primary_tag}{lc($l1_ID)}}, $feature);
 
 					# keep track of link between level2->leve1 #
@@ -550,7 +550,7 @@ sub manage_one_feature{
 
 		 		####################
 		 		# SAVE THE FEATURE #
-		 		print "Push-L2-omniscient-3 level2 || $primary_tag || $parent == feature\n" if ($verbose >=2);
+		 		print "Push-L2-omniscient-3 level2 || $primary_tag || $parent == feature\n" if ($verbose > 1);
 	      		push (@{$omniscient->{"level2"}{$primary_tag}{lc($parent)}}, $feature);
 	      	}
 	      	return $last_locusTAGvalue, $last_l1_f, $feature, $last_l3_f, $feature, $lastL1_new;
@@ -610,7 +610,7 @@ sub manage_one_feature{
 				# case where No level2 feature defined yet - I will need a bucketL2
 				# OR comon tag changed (= level1/level2 different) so we have to create a new level2 tag - but only if the last_comon tag is different as the parent of the last_l2_f (In that case we can use the last L2 feature. It was missing the comon tag in it).
 				if(! $last_l2_f or ($locusTAGvalue and ($locusTAGvalue ne $last_locusTAGvalue) and $last_locusTAGvalue ne $parent_of_last_l2 or $skip_last_l2)  ){
-					print "Create L2 feature $locusTAGvalue ne $last_locusTAGvalue !\n" if ($verbose >=3);
+					print "Create L2 feature $locusTAGvalue ne $last_locusTAGvalue !\n" if ($verbose > 2);
 
 					#######################
 					# Change referenrtiel => based on the last L2 link to this locus
@@ -642,7 +642,7 @@ sub manage_one_feature{
 				#############
  	       		# COMON TAG  Part2
 				if($locusTAGvalue){ #Previous Level up feature had a comon tag
-					print "Push-L3-sequential-1 $locusTAGvalue || ".lc($l2_id)." || level3 == ".$feature->gff_string."\n" if ($verbose >=2);
+					print "Push-L3-sequential-1 $locusTAGvalue || ".lc($l2_id)." || level3 == ".$feature->gff_string."\n" if ($verbose > 1);
 					### TAKE LAST L2 of the locus tag iF exist !
 		    		push( @{$infoSequential->{$locusTAGvalue}{lc($l2_id)}{'level3'}}, $feature );
 			    	return $locusTAGvalue, $last_l1_f, $last_l2_f, $feature, $feature, $lastL1_new;								#### STOP HERE AND RETURN
@@ -651,7 +651,7 @@ sub manage_one_feature{
 					######################
 					# NEED THE LEVEL1 ID #
 					if(!$last_l1_f and $last_l3_f){ #particular case : Two l3 that follow each other, but first one has locus_tag but not the second
-						print "Push-L3-sequential-2 $last_locusTAGvalue || ".lc($l2_id)." || level3 == ".$feature->gff_string."\n" if ($verbose >=2);
+						print "Push-L3-sequential-2 $last_locusTAGvalue || ".lc($l2_id)." || level3 == ".$feature->gff_string."\n" if ($verbose > 1);
 						push( @{$infoSequential->{$last_locusTAGvalue}{lc($l2_id)}{'level3'}}, $feature );
 						return $last_locusTAGvalue, $last_l1_f, $last_l2_f, $feature, $feature, $lastL1_new;
 					}
@@ -668,7 +668,7 @@ sub manage_one_feature{
 						}
 
 						#push( @{$infoSequential->{lc($l1_id)}{lc($l2_id)}{'level3'}}, $feature );
-						print "Push-L3-omiscient-3: level3 ".$primary_tag." || ".lc($l2_id)." == ".$feature->gff_string."\n" if ($verbose >=2);
+						print "Push-L3-omiscient-3: level3 ".$primary_tag." || ".lc($l2_id)." == ".$feature->gff_string."\n" if ($verbose > 1);
 						push (@{$omniscient->{"level3"}{$primary_tag}{lc($l2_id)}}, $feature);
 						return $l2_id, $last_l1_f, $last_l2_f, $feature, $feature, $lastL1_new;								#### STOP HERE AND RETURN
 					}
@@ -695,19 +695,19 @@ sub manage_one_feature{
 							create_or_replace_tag($feature_clone,'Parent',$parent); #modify Parent To keep only one
 							_check_uniq_id($omniscient, $miscCount, $uniqID, $uniqIDtoType, $feature_clone); #Will change the ID if needed
 
-							print "Push-L3-omniscient-4 level3 || $primary_tag || ".lc($parent)." == feature_clone\n" if ($verbose >=2);
+							print "Push-L3-omniscient-4 level3 || $primary_tag || ".lc($parent)." == feature_clone\n" if ($verbose > 1);
 							push (@{$omniscient->{"level3"}{$primary_tag}{lc($parent)}}, $feature_clone);
 						}
 
 						# It is the first parent. Do not clone the feature
 						else{
 							create_or_replace_tag($feature,'Parent',$parent); #modify Parent To keep only one
-							print "Push-L3-omniscient-5 level3 || $primary_tag || ".lc($parent)." == feature\n" if ($verbose >=2);
+							print "Push-L3-omniscient-5 level3 || $primary_tag || ".lc($parent)." == feature\n" if ($verbose > 1);
 							push (@{$omniscient->{"level3"}{$primary_tag}{lc($parent)}}, $feature);
 						}
 					}
 					else{ #the simpliest case. One parent only
-						print "Push-L3-omniscient-6 level3 || $primary_tag || ".lc($parent)." == feature\n".$feature->gff_string."\n" if ($verbose >=2);
+						print "Push-L3-omniscient-6 level3 || $primary_tag || ".lc($parent)." == feature\n".$feature->gff_string."\n" if ($verbose > 1);
 						push (@{$omniscient->{"level3"}{$primary_tag}{lc($parent)}}, $feature);
 					}
 				}
@@ -723,7 +723,7 @@ sub manage_one_feature{
 						_check_uniq_id($omniscient, $miscCount, $uniqID, $uniqIDtoType, $feature_clone); #Will change the ID if needed
 
 						if( ! _it_is_duplication($duplicate, $omniscient, $uniqID, $feature_clone) ){
-							print "Push-L3-omniscient-8 level3 || $primary_tag || ".lc($parent)." == feature_clone\n" if ($verbose >=2);
+							print "Push-L3-omniscient-8 level3 || $primary_tag || ".lc($parent)." == feature_clone\n" if ($verbose > 1);
 							push (@{$omniscient->{"level3"}{$primary_tag}{lc($parent)}}, $feature_clone);
 						}
 
@@ -733,7 +733,7 @@ sub manage_one_feature{
 						# It is the first parent. Do not clone the feature
 						create_or_replace_tag($feature,'Parent',$parent); #modify Parent To keep only one
 						if( ! _it_is_duplication($duplicate, $omniscient, $uniqID, $feature) ){
-							print "Push-L3-omniscient-9 level3 || $primary_tag || ".lc($parent)." == feature\n" if ($verbose >=2);
+							print "Push-L3-omniscient-9 level3 || $primary_tag || ".lc($parent)." == feature\n" if ($verbose > 1);
 							push (@{$omniscient->{"level3"}{$primary_tag}{lc($parent)}}, $feature);
 						}
 
@@ -741,7 +741,7 @@ sub manage_one_feature{
 					#It is not a duplicated feature => save it in omniscient
 					elsif( ! _it_is_duplication($duplicate, $omniscient, $uniqID, $feature) ){
  						#the simpliest case. One parent only
-						print "Push-L3-omniscient-10 level3 || $primary_tag || ".lc($parent)." == feature\n".$feature->gff_string."\n" if ($verbose >=2);
+						print "Push-L3-omniscient-10 level3 || $primary_tag || ".lc($parent)." == feature\n".$feature->gff_string."\n" if ($verbose > 1);
 						push (@{$omniscient->{"level3"}{$primary_tag}{lc($parent)}}, $feature);
 					}
 				}
@@ -2295,7 +2295,12 @@ sub _merge_overlap_features{
 	 		}
 	 	}
 	}
-	print "We fixed $resume_case case where feature has been merged within the same locus\n" if($verbose >= 1 and $resume_case);
+	if($verbose >= 1 and $resume_case){
+    print "We fixed $resume_case case where feature has been merged within the same locus\n";
+  }
+  elsif($verbose >= 1){
+    print "None found\n" ;
+  }
 }
 
 
@@ -2570,13 +2575,16 @@ return \@utr5_features_sorted, \@cds_features_sorted, \@utr3_features_sorted; #r
 sub _check_duplicates{
 	my ($duplicate, $omniscient, $verbose) = @_  ;
 
-	my $keyExist = keys %{$duplicate};
+	  my $keyExist = keys %{$duplicate};
     if($keyExist){#print result
     	_printSurrounded("Achthung /\\ Attention /\\ Be carefull => Duplicates removed !\n(Same chr/contig/scaffold, same position, same ID)",75, "#");
 
       	my $gffout= Bio::Tools::GFF->new( -fh => \*STDOUT );
       	my $info = _print_duplicates($duplicate, $omniscient, $gffout, $verbose);
-    	print "$info\n" if($verbose >= 1);
+    	  print "$info\n" if($verbose > 0);
+    }
+    else{
+      print "   none found.\n" if($verbose > 0);
     }
 }
 
@@ -2846,7 +2854,7 @@ sub fetcher_JD {
 # @output: 1 => Object Ontology
 # @Remark: Do not deal if multiple ontologies (we will use the first one meet)
 sub _handle_ontology{
-	my ($gff3headerInfo, $verbose, $quiet) = @_ ;
+	my ($gff3headerInfo, $verbose) = @_ ;
 
 	my $ontology_obj=undef;
 	my $internalO=1;
@@ -2910,7 +2918,7 @@ sub _handle_ontology{
 		    my @sorted_list = sort { $a cmp $b } @list_file;
 		    my $recent_file = pop @sorted_list;
 		    my $sofa_file_path = $correct_path."/".$recent_file;
-		    print "We will use the most recent SOFA feature-ontology we have localy: $recent_file\n" if $verbose;
+		    print "   We will use the most recent SOFA feature-ontology we have localy: $recent_file\n" if $verbose;
 
 			#parse the ontology
 			my $parser = Bio::OntologyIO->new(-format => "obo",
@@ -2929,7 +2937,7 @@ sub _handle_ontology{
 				foreach my $term ($ontology_obj->get_leaf_terms) {
 					$nbleaf_terms++;
 				}
-				print "read ontology $recent_file with ",
+				print "   read ontology $recent_file with ",
              	"$nbroot_terms root terms, and ",
              	"$nbterms total terms, and ",
              	"$nbleaf_terms leaf terms\n";
@@ -2937,7 +2945,7 @@ sub _handle_ontology{
 		}
 		catch{
 			print "error: $_\n" if ( $verbose >= 1);
- 			print "Let's continue without feature-ontology information.\n" unless $quiet;
+ 			print "Let's continue without feature-ontology information.\n" if( $verbose > 0);
 		};
 	}
 	return $ontology_obj;
@@ -2962,7 +2970,7 @@ sub _handle_globalWARNS{
 			"- it must be a level2 feature if it has a parent and this parent is from level1.\n".
 			"- it must be a level3 feature if it has a parent and this parent has also a parent.\n\n".
 			"Currently the tool just ignore them, So if they where Level1,level2, a gene or RNA feature will be created accordingly.";
-			_printSurrounded($string,150,"*") ;
+			_printSurrounded($string,150,"-") ;
 		}
 		if(exists($globalWARNS->{"ontology1"}) ) {
 			if( keys %{$ontology} ){
@@ -2974,43 +2982,80 @@ sub _handle_globalWARNS{
 				"https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md\n".
 				"They provide tools to check the gff3 format.\n".
 				"Even if you have this warning, you should be able to use the gff3 output in most of gff3 tools.";
-				_printSurrounded($string,150,"*") ;
+				_printSurrounded($string,150,"-") ;
 			}
 			else{
 				my $string = "No feature-ontology was available, we haven't checked that the feature types (3rd column) correspond to the gff3 specifactions.";
-				_printSurrounded($string,150,"*") ;
+				_printSurrounded($string,150,"-") ;
 			}
 		}
 	}
 }
 
-# @Purpose: load all parameter (about level of the features i.e. gene = level1, mRNA=level2, exon=level3 (and if they are spread or not like cds,utr) stored in json file
-# @input: 3 =>  integer, bolean
-# @output: 1 => none (because it load information in variable accessible from everywhere in this file)
+# @Purpose: set path to look at the json feature level files (If present locally we take them otherwise look at standard path). If expose option is activated, we copy the json files localy and exit
+# @input: 2 =>  string (path), integer
+# @output: 3 => hash, hash, hash
 # @Remark: none
-sub load_levels_from_json{
+sub load_levels{
+  my ($verbose, $expose_feature_levels) = @_ ;
 
-	my ($verbose) = @_ ;
+  #set run directory
+  my $run_dir = cwd;
+
+  #set original path to json files
+  my $original_path = `perldoc -lm NBIS::GFF3::Omniscient`;
+  my $index = index($original_path, "NBIS/GFF3/");
+  $index+=10; #To not shrinck NBIS/Handler/ part of the path
+  my $json_path =  substr $original_path, 0, $index;
+  $json_path = $json_path."Feature_levels/";
+
+  # Check if it is asked to copy the json files locally
+  if ($expose_feature_levels){
+    my @files = glob("$json_path/*.json");
+
+    foreach my $file (@files) {
+        copy($file, $run_dir) or die "Copy failed: $!";
+    }
+    print "   All json feature level files copied in your working directory\n" if ($verbose);
+    exit;
+  }
+  # Load the json files
+  else{
+    #check first if exist locally
+    if (-e $run_dir."/features_level1.json") {
+      print "   Using local json level feature files\n" if($verbose > 0);
+      ($LEVEL1, $LEVEL2, $LEVEL3) = load_levels_from_json_local($run_dir."/", $verbose);
+    }
+    else{ #otherwise use the standard location ones
+      print "   Using standard json level feature files\n" if($verbose > 0);
+      ($LEVEL1, $LEVEL2, $LEVEL3) = load_levels_from_json_local($json_path, $verbose);
+    }
+  }
+}
+
+# @Purpose: load all parameter (about level of the features i.e. gene = level1, mRNA=level2, exon=level3 (and if they are spread or not like cds,utr) stored in json files
+# @input: 2 =>  string (path), integer
+# @output: 3 => hash, hash, hash
+# @Remark: none
+sub load_levels_from_json_local{
+
+	my ($json_path, $verbose) = @_ ;
   my $level1 = undef;
   my $level2 = undef;
   my $level3 = undef;
 
 	try{
-		my $full_path = `perldoc -lm NBIS::GFF3::Omniscient`;
-		my $index = index($full_path, "NBIS/GFF3/");
-		$index+=10; #To not shrinck NBIS/Handler/ part of the path
-		my $path_begin =  substr $full_path, 0, $index;
 		# --Deal with feature L1--
-		my $correct_path_level = $path_begin."Feature_levels/features_level1.json";
+		my $correct_path_level = $json_path."features_level1.json";
 		$level1 = load_json($correct_path_level);
 		# --Deal with feature L2--
-		$correct_path_level = $path_begin."Feature_levels/features_level2.json";
+		$correct_path_level = $json_path."features_level2.json";
 		$level2 = load_json($correct_path_level);
 		# --Deal with feature L3--
-		$correct_path_level = $path_begin."Feature_levels/features_level3.json";
+		$correct_path_level = $json_path."features_level3.json";
 		$level3 = load_json($correct_path_level);
 		# --Deal feature spread--
-		$correct_path_level = $path_begin."Feature_levels/features_spread.json";
+		$correct_path_level = $json_path."features_spread.json";
 		$SPREADFEATURE = load_json($correct_path_level);
 	}
 	catch{

@@ -22,7 +22,7 @@ my $gff = undef;
 my $help= 0;
 my $primaryTag=undef;
 my $attributes=undef;
-my $opt_kingdom = undef;
+my $opt_merge = undef;
 my $opt_comonTag=undef;
 my $opt_output=undef;
 my $add = undef;
@@ -32,7 +32,7 @@ if ( !GetOptions(
     "help|h" => \$help,
     'c|ct=s'          => \$opt_comonTag,
     "gff|f=s" => \$gff,
-    'kingdom|k=s'     => \$opt_kingdom,
+    'ml|merge_loci!'     => \$opt_merge,
     "output|outfile|out|o=s" => \$opt_output))
 
 {
@@ -82,7 +82,7 @@ my $content;
 my ($hash_omniscient, $hash_mRNAGeneLink) = slurp_gff3_file_JD({
                                                                input => $gff,
                                                                locus_tag => $opt_comonTag,
-                                                               kingdom => $opt_kingdom
+                                                               merge_loci => $opt_merge
                                                                });
 print ("GFF3 file parsed\n");
 
@@ -141,7 +141,6 @@ print $ostream "\n".$content;
 
 sub  manage_attributes{
   my  ($feature)=@_;
-
   $content .= $feature->seq_id."\t".$feature->source_tag."\t".$feature->primary_tag."\t".$feature->start."\t".$feature->end."\t".$feature->score."\t".$feature->strand."\t".$feature->frame;
   my @tag_list = $feature->get_all_tags();
   my %tag_hash;
@@ -196,9 +195,11 @@ Input GFF3 file that will be read (and sorted)
 
 When the gff file provided is not correcly formated and features are linked to each other by a comon tag (by default locus_tag), this tag can be provided to parse the file correctly.
 
-=item B<-k> or B<--kingdom>
+=item B<--ml> or B<--merge_loci>
 
-Default eukaryote. You can set it to prokaryote (p/prok/proka/prokaryote). In eukaryote mode, when features overlap at level3 and come from two different level 2 features of the same type, they will be merged under the same level 1 feature. In prokaryote case they don't because genes can overlap.
+Merge loci parameter, default deactivated. You turn on the parameter if you want to merge loci into one locus when they overlap.
+(at CDS level for mRNA, at exon level for other level2 features. Strand has to be the same). Prokaryote can have overlaping loci so it should not use it for prokaryote annotation.
+In eukaryote, loci rarely overlap. Overlaps could be due to error in the file, mRNA can be merged under the same parent gene if you acticate the option.
 
 =item B<-o> , B<--output> , B<--out> or B<--outfile>
 

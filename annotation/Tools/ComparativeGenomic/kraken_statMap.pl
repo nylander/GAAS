@@ -119,11 +119,11 @@ if ($outfile) {
 
 ######################
 ### Parse GFF input #
-# 1 is to put on the nocheck option
+# checks are deactivated except _remove_orphan_l1 
 my ($hash_omniscient, $hash_mRNAGeneLink) =  slurp_gff3_file_JD({
                                                                input => $gff,
-                                                               nocheck => 1,
-                                                               nocheck_skip => qw(_remove_orphan_l1)
+                                                               no_check => 1,
+                                                               no_check_skip => qw(_remove_orphan_l1)
                                                                });
 
 #track stats

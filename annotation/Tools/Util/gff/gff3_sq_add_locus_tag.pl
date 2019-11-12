@@ -85,7 +85,7 @@ if(! $locus_tag){
 
 # Manage $primaryTag
 my @ptagList;
-my ($LEVEL1, $LEVEL2, $LEVEL3) = load_levels_from_json();
+my ($LEVEL1, $LEVEL2, $LEVEL3) = load_levels();
 if(! $primaryTag){
   print "We will work on attributes from all Level1 features.\n";
   push(@ptagList, "all");
