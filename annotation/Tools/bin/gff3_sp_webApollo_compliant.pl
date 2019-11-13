@@ -1,1 +1,1 @@
-../../WebApollo/gff3_sp_webApollo_compliant.pl
+../../Tools/Util/gff/gff3_sp_webApollo_compliant.pl

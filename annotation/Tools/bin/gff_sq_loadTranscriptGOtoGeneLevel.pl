@@ -1,1 +1,0 @@
-../../Tools/Util/gff/gff_sq_loadTranscriptGOtoGeneLevel.pl

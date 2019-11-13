@@ -1,1 +1,1 @@
-../../Tools/Dev/gff3_plotGO_mapTree.pl
+../../Tools/Dev/perl/gff3_plotGO_mapTree.pl
