@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 use strict;
-use warning;
+use warnings;
 use Carp;
 use POSIX qw(strftime);
 use Getopt::Long;
