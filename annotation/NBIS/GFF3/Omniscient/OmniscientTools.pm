@@ -857,18 +857,18 @@ sub create_omniscient_from_idlevel2list{
 	my %omniscient_new;
 
 	foreach my $id_l2 (@$list_id_l2){
-		my  $id_l1 = $hash_mRNAGeneLink->{$id_l2};
+		my  $id_l1 = lc($hash_mRNAGeneLink->{$id_l2});
 
 		# ADD LEVEL1
 		foreach my $tag_l1 (keys %{$omniscientref->{'level1'}}){
-			if( exists ($omniscientref->{'level1'}{$tag_l1}{$id_l1}) ){
+			if( exists_keys($omniscientref,('level1',$tag_l1,$id_l1) ) ){
 				$omniscient_new{'level1'}{$tag_l1}{$id_l1}=$omniscientref->{'level1'}{$tag_l1}{$id_l1};
 				last;
 			}
 		}
 		# ADD LEVEL2
 		foreach my $tag_l2 (keys %{$omniscientref->{'level2'}}){
-			if( exists ($omniscientref->{'level2'}{$tag_l2}{$id_l1}) ){
+			if( exists_keys($omniscientref,('level2',$tag_l2,$id_l1) ) ){
 				foreach my $feature_l2 ( @{$omniscientref->{'level2'}{$tag_l2}{$id_l1}}){
 					if(lc($feature_l2->_tag_value('ID')) eq $id_l2 ){
 						push (@{$omniscient_new{'level2'}{$tag_l2}{$id_l1}}, $feature_l2);
@@ -879,7 +879,7 @@ sub create_omniscient_from_idlevel2list{
 		}
 		# ADD LEVEL3
 		foreach my $tag_l3 (keys %{$omniscientref->{'level3'}}){
-			if( exists ($omniscientref->{'level3'}{$tag_l3}{$id_l2}) ){
+		  if( exists_keys($omniscientref,('level3',$tag_l3,$id_l2) ) ){
 				foreach my $feature_l3 ( @{$omniscientref->{'level3'}{$tag_l3}{$id_l2}}){
 					push (@{$omniscient_new{'level3'}{$tag_l3}{$id_l2}}, $feature_l3);
 				}
