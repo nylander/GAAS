@@ -14,17 +14,17 @@ for i in {0..50}_*;do
 		if [[ ! $i =~ ^[[:digit:]]+_correct ]];then
 			echo -e "\nTest of $i";
 			testperfect="no"
-			
+
 			#case with comon locus needed and prokaryote!!
 			nb=${i%"_test.gff"}
 			if (( $nb == 28 ));then
-				~/git/NBIS/GAAS/annotation/Tools/Converter/gxf_to_gff3.pl --gff $i -o test.gff3 -c Name -k p  &> /dev/null 
+				~/git/NBIS/GAAS/annotation/Tools/Converter/gxf_to_gff3.pl --gff $i -o test.gff3 -c Name  &> /dev/null
 			#case with prokaryote mode needed
 			elif (( $nb == 8  ));then
-				~/git/NBIS/GAAS/annotation/Tools/Converter/gxf_to_gff3.pl --gff $i -o test.gff3 -k p  &> /dev/null 
+				~/git/NBIS/GAAS/annotation/Tools/Converter/gxf_to_gff3.pl --gff $i -o test.gff3   &> /dev/null
 			#others
 			else
-				~/git/NBIS/GAAS/annotation/Tools/Converter/gxf_to_gff3.pl --gff $i -o test.gff3  &> /dev/null  
+				~/git/NBIS/GAAS/annotation/Tools/Converter/gxf_to_gff3.pl --gff $i -o test.gff3 --merge_loci &> /dev/null
 			fi
 
 			#get the expected name of the correct output file we will have to check against
@@ -48,9 +48,9 @@ for i in {0..50}_*;do
 			#case with prokaryote!!
 			nb=${i%"_test.gff"}
 			if (( $nb == 8 || $nb == 28 ));then
-				~/git/NBIS/GAAS/annotation/Tools/Converter/gxf_to_gff3.pl --gff test.gff3 -o test2.gff3 -k p  &> /dev/null 
+				~/git/NBIS/GAAS/annotation/Tools/Converter/gxf_to_gff3.pl --gff test.gff3 -o test2.gff3  &> /dev/null
 			else
-				~/git/NBIS/GAAS/annotation/Tools/Converter/gxf_to_gff3.pl --gff test.gff3 -o test2.gff3  &> /dev/null  
+				~/git/NBIS/GAAS/annotation/Tools/Converter/gxf_to_gff3.pl --gff test.gff3 -o test2.gff3  --merge_loci &> /dev/null
 			fi
 			resu=$(diff test2.gff3 $fileok)
 			if [[ $resu != "" ]];then
@@ -61,7 +61,7 @@ for i in {0..50}_*;do
 						echo "All test perfect !"
 					fi
 			fi
-			
+
 		fi
 	fi
 done
@@ -71,4 +71,3 @@ if [[ $cleanIntermediateFile == "yes" ]];then
 	rm test.gff3
 	rm test2.gff3
 fi
-
