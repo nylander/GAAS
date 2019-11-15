@@ -33,7 +33,8 @@ Launch the tester.sh script to check the parser and all these files.
 28: Mitos output. Only one line by record, no ID, no locus tag. We have to use the option '-c Name' to specify that we will use the Name attribute as a locus_tag as they are uniq identifiers.
 29: Gnomom output. Two isoforms do not have CDS described but only exons. (was raising error at some point. See issue #9, fixed now)
 30: Level1 and level3 linked by common tag ... but level2 missing ...
-31: interleaved parent(transcript_id)/locus parsing approach with only Level3 features
+31: interleaved feature with parent( here transcript_id) and other with locus only Level3 features. (locus shared with feature having parent attribute)
+32: Same as 31 except, the first feature of a record do not have parent attribute (tl will be saved into the sequential before to be fish out and put with the features in omniscient sharing the same locus tag) 
 
 /!\ If only level3 features are defined, and no locus tag present (see test 26), the tool cannot deal with it. I will create by default one umbrella level1, or if you on attribute as uniq locus ID, It will create a l1 for each feature => If only exon or only CDS features so the result will be fine, but if there are two different features that has to be linked together (two CDS or a CDS and a signal peptide as in the test case 26) , the tool will not perform properly.
 
