@@ -24,21 +24,18 @@ my $header = qq{
 ########################################################
 };
 
-
-my $grid_computing_module = "BilsGridRunner";
-
 my $outdir = transposonPSI_output;
 my $fastaFile;
 my @cmds = ();				# Stores the commands to send to farm
 my $quiet;
 my $help;
-my $nogrid=undef;
+my $grid="Slurm";
 my $chunk=10;
 
 if ( !GetOptions(
     "help" => \$help,
     "fasta|f=s" => \$fastaFile,
-    "nogrid!"  => \$nogrid,
+    "grid=s"  => \$grid,
     "chunk=i"  => \$chunk,
     "outdir|o=s" => \$outdir))
 
@@ -70,7 +67,7 @@ if (! -e $fastaFile){
 my @tools = ("transposonPSI.pl" );	# List of tools to check for!
 foreach my $exe (@tools) { check_bin($exe) == 1 or die "Missing executable $exe in PATH"; }
 
-# .. Create output directory 
+# .. Create output directory
 
 if (-d $outdir ) {
 	die "Output directory $outdir exists. Please remove and try again";
@@ -85,17 +82,6 @@ my $logfile = "$outdir/transposonPSI.log";
 msg("Writing log to: $logfile");
 open LOG, '>', $logfile or err("Can't open logfile");
 
-# .. load grid module (courtesy of Brian Haas)
-my $grid_computing_method;
-if(! $nogrid){
-
-	my $perl_lib_repo = "$FindBin::Bin/../PerlLibAdaptors";
-	msg("-importing module: $grid_computing_module\n");
-	require "$grid_computing_module.pm" or die "Error, could not import perl module at run-time: $grid_computing_module";
-
-	$grid_computing_method = $grid_computing_module . "::run_on_grid" or die "Failed to initialize GRID module\n";
-}
-
 # .. Read genome fasta file.
 my $inseq = Bio::SeqIO->new(-file   => "<$fastaFile", -format => 'fasta');
 
@@ -103,7 +89,6 @@ my $inseq = Bio::SeqIO->new(-file   => "<$fastaFile", -format => 'fasta');
 msg("Creating chunks\n");
 
 my $seq;
-
 
 my $seq_counter = 0;
 my $nbLine=`grep -c ">" $fastaFile`;
@@ -114,7 +99,7 @@ my $chunk_file ;
 
 while( $seq = $inseq->next_seq() ) {
 	if ($chunk_counter == 0){
-		$seq_counter += 1;		
+		$seq_counter += 1;
 		$chunk_file = $outdir."/".$fastaFile. "_chunck" . $seq_counter . ".fasta" ; # We could also use the display_id, but this can cause trouble with special characters
 		$seq_out = Bio::SeqIO->new(-file => ">$chunk_file" , -format => 'fasta');
 	}
@@ -130,18 +115,25 @@ while( $seq = $inseq->next_seq() ) {
 }
 # last round
 if ($chunk_counter != $chunk_size){
-	my $command = "transposonPSI.pl ".$chunk_file." prot > /dev/null" ; 
+	my $command = "transposonPSI.pl ".$chunk_file." prot > /dev/null" ;
         push(@cmds,$command);
 }
 
 
 msg("submitting chunks\n");
 
-if( ! $nogrid){
-	# Submit job chunks to grid
-	msg("Sending $seq_counter jobs to LSF grid\n");
-	chomp(@cmds); # Remove empty indices
-	&$grid_computing_method(@cmds);
+if( $grid){
+  msg("Sending $seq_counter jobs to the grid\n");
+  chomp(@cmds); # Remove empty indices
+  # Submit job chunks to grid
+  my $grid_runner;
+  if ( $grid eq 'lsf'){
+    $grid_runner = Bsub->new( cmds_list => \@cmds);
+  }
+  elsif( $grid eq 'slurm'){
+    $grid_runner = Sbatch->new( cmds_list => \@cmds);
+  }
+  $grid_runner->run();
 }
 else{
  	foreach my $command (@cmds){
@@ -161,7 +153,7 @@ else{
  	}
 }
 
-# ..Postprocessing here, merging of output and printing 
+# ..Postprocessing here, merging of output and printing
 
 msg("Merging outputS");
 
@@ -175,10 +167,10 @@ foreach my $file (@files_allHits) {
 	open (my $IN, '<', $file) or die "FATAL: Can't open file: $file for reading.\n$!\n";
 
 	while (<$IN>) {
-		my $line = $_; 
+		my $line = $_;
 		next if ($line =~ /^\/\/.*$/); # Skipping comment lines
-		print $OUT $line; 
-	}		
+		print $OUT $line;
+	}
 }
 close($OUT);
 my $command = "mv *.TPSI.allHits $outdir";
@@ -196,7 +188,7 @@ foreach my $file (@files_topHits) {
         while (<$IN>) {
                 my $line = $_;
                 next if ($line =~ /^\/\/.*$/); # Skipping comment lines
-		print $OUT $line; 
+		print $OUT $line;
         }
 }
 close($OUT);
@@ -254,19 +246,19 @@ We transposonPSI against protein fasta sequences
 
 =item B<--fasta> or B<-f>
 
-The name of the protein fasta file to read. 
+The name of the protein fasta file to read.
 
-=item B<--chunk> 
+=item B<--chunk>
 
 By default 10. We slice the fasta input file in many chunk to distribute more efficiently small tasks to each cpu.
 
-=item B<--nogrid> 
+=item B<--grid>
 
-Do not use the script in grid version.
+Define which grid to use, Slurm, Lsf or None. Default = Slurm.
 
 =item B<--outdir> or B<-o>
 
-The name of the output directory. 
+The name of the output directory.
 
 =item B<-h> or B<--help>
 
