@@ -9,7 +9,6 @@ use Pod::Usage;
 use Scalar::Util qw(openhandle);
 use Time::Piece;
 use Time::Seconds;
-use FindBin;
 use NBIS::Grid::Bsub;
 use NBIS::Grid::Sbatch;
 use File::Basename;
@@ -65,6 +64,7 @@ if ( ! (defined($fasta) and defined($outdir) ) ){
            -exitval => 2 } );
 }
 
+# set grid option properly
 my @grid_choice=('slurm','lsf','none');
 $grid=lc($grid);
 if (! grep( /^$grid/, @grid_choice ) ) {
