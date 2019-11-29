@@ -13,7 +13,8 @@ Annotation directory contains development related to annotation side of the serv
 
    - [Genome annotation workshop](https://nbisweden.github.io/workshop-genome_annotation/)
 
-   - [Tools](annotation/Tools/bin/) 
+   - [Tools](annotation/Tools/bin/)  
+     => All gff related work have been transplanted into [AGAT](https://github.com/NBISweden/AGAT) (11/2019)
 
    - [Pipelines](https://github.com/NBISweden/pipelines/tree/master/bpipe)
 
