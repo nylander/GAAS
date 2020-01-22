@@ -105,16 +105,17 @@ The ensembl page describe the CIGAR string from exonerate like that:
 `The cigar string describes the edit path throught the alignment. These contain a M,I,D or N corresponding to a Match, Insert, Delete or iNtron, followed by the length.`
 I don't know where that N is coming from, I havn't find any ressource using/talking about the N (iNtron) operator. It seems to be used by D systemtically. Any information about it is very welcome.
 
-## 1st Update of the Exonerate CIGAR string - Gap attribute in GFF3(~2004)
- 
-The GFF3 format integrated a Gap attribute in the 9th column of the gff" files to describe alignements. [Here is a full description.](http://rice.bio.indiana.edu:7082/annot/gff3.html)  
+## 1st Update of the Exonerate CIGAR string - Gap attribute in GFF3(2004)
+
+The GFF3 format integrated a Gap attribute in the 9th column of the gff" files to describe alignements. [Here is a full description.](https://web.archive.org/web/20040804181956/http://song.sourceforge.net:80/gff3.shtml)  
 
 Here the essentail we have to retain:
 
     Gap   The alignment of the feature to the target if the two are
           not colinear (e.g. contain gaps).  The alignment format is
 	  taken from the CIGAR format described in the 
-	  Exonerate documentation.See "THE GAP ATTRIBUTE" for a description
+	  Exonerate documentation.http://cvsweb.sanger.ac.uk/cgi-bin/cvsweb.cgi/exonerate
+           ?cvsroot=Ensembl).See "THE GAP ATTRIBUTE" for a description
 	   of this format.
 	[...]
 	THE GAP ATTRIBUTE
@@ -122,10 +123,10 @@ Here the essentail we have to retain:
 	[...]
 	GFF3 recommends representing gapped alignments
 	explicitly with the "Gap" attribute.  The Gap attribute's format
-	consists of a series of (operation,length) pairs separated by spac
-	characters, for example "M8 D3 M6".  Each operation is a single-letter code.
+	consists of a series of (operation,length) pairs separated by "+"
+	signs, for example M8+D3+M6.  Each operation is a single-letter code.
 
-Here is the different operators:
+Here are the different operators:
 
 Operator/Code | Description/Operation
 -- | --
@@ -136,6 +137,72 @@ F     |   frameshift forward in the reference sequence
 R     |   frameshift reverse in the reference sequence
 
 Compare to the original CIGAR string there is no more whitespace between the letter code and the length.  
+
+**Here an example of this type of CIGAR string DNA/DNA:**  
+
+        Chr3  (reference)  1 CAAGACCTAAACTGGAT-TCCAAT  23
+        EST23 (target)     1 CAAGACCT---CTGGATATCCAAT  21
+
+	In the alignment between EST23 and Chr3 shown above, Chr3 is the
+	reference sequence referred to in the first column of the GFF3 file,
+	and EST23 is the sequence referred to by the Target attribute.  This
+	gives a Gap string of "M8 D3 M6 I1 M6". The full GFF match line will
+	read:
+
+	   Chr23 . Match 1 23 . . . ID=Match1;Target=EST23+1+21;Gap=M8+D3+M6+I1+M6
+
+	>Gap=M8+D3+M6+I1+M6
+
+**Here an example of this type of CIGAR string AA/DNA:** 
+
+	For protein to nucleotide matches, the M, I and D operations apply to
+	amino acid residues in the target and nucleotide base pairs in the
+	reference in a 1:3 residue.  That is, "M2" means to match two amino
+	residues in the target to six base pairs in the reference.  Hence this
+	alignment:
+
+	 100 atgaaggag---gttattgcgaatgtcggcggt
+	   1 M..K..E..V..V..I..-..N..V..G..G..
+
+	Corresponds to this GFF3 Line:
+
+	 ctg123 . nucleotide_to_protein 100 129 . + . ID=match008;Target=p101+1+10;Gap=M3+I1+M2+D1+M4
+
+/!\ They apprarently also mix-up abilities from the **CIGAR** string format and those from the [**VULGAR** string format](vulgar.md). Indeed they added the **F** and **R** operators, and the **F** was by the [VULGAR format](vulgar.md).
+
+Here the explanation about the **F** and **R** operators:  
+
+	In addition, the Gap attribute provides orward and everse
+	frameshift operators to allow for frameshifts in the alignment.  These
+	are in nucleotide coordinates: a forward frameshift skips forward the
+	indicated number of base pairs, while a reverse frameshift moves
+	backwards.  Examples:
+
+
+	 100 atgaaggag---gttattgaatgtcggcggt     Gap=M3+I1+M2+F1+M4
+	   1 M..K..E..V..V..I...
+				N..V..G..G
+
+
+	 100 atgaaggag---gttataatgtcggcggt        Gap=M3+I1+M2+R1+M4
+	   1 M..K..E..V..V..I.
+			      N..V..G..G
+			      
+## 2nd Update of the Exonerate CIGAR string - Gap attribute in GFF3(2005)
+
+The main difference lies in the replacement of the + character by a space.  
+
+Here the essentail we have to retain:
+
+	THE GAP ATTRIBUTE
+	-----------------
+	[...]
+	GFF3 recommends representing gapped alignments
+	explicitly with the "Gap" attribute.  The Gap attribute's format
+	consists of a series of (operation,length) pairs separated by spac
+	characters, for example "M8 D3 M6".  Each operation is a single-letter code.
+
+
 
 **Here an example of this type of CIGAR string DNA/DNA:**  
 
@@ -167,10 +234,6 @@ Compare to the original CIGAR string there is no more whitespace between the let
 
 	 ctg123 . nucleotide_to_protein 100 129 . + . ID=match008;Target=p101 1 10;Gap=M3 I1 M2 D1 M4
 
-/!\ They apprarently also mix-up abilities from the **CIGAR** string format and those from the [**VULGAR** string format](vulgar.md). Indeed they added the **F** and **R** operators, and the **F** was by the [VULGAR format](vulgar.md).
-
-Here the explanation about the **F** and **R** operators:  
-
 	In addition, the Gap attribute provides <F>orward and <R>everse
 	frameshift operators to allow for frameshifts in the alignment.  These
 	are in nucleotide coordinates: a forward frameshift skips forward the
@@ -187,7 +250,7 @@ Here the explanation about the **F** and **R** operators:
 	   1 M..K..E..V..V..I.
 			      N..V..G..G
 
-## 2nd Update of the Exonerate CIGAR string - Gap attribute in GFF3
+## 3rd Update of the Exonerate CIGAR string - Gap attribute in GFF3
 
 I don't know when this update occured. 
 They decide to mix up the Exonerate specification with the BaseAlignFormat format used by Ensembl. In this specification the numbers and letters are switched, they remove space between pairs and decided that for segments of length 1 the number can be omitted, so "8M1D6M" is equal to "8MD6M". 
@@ -245,8 +308,9 @@ Flavor | Year| Operator | Example | Description |
 -- | -- | -- | -- | --
 Original CIGAR | ~2002 | D,I,M			| M 37 D 1 M 164 I 1 M 12 D 898 M 16 I 1 M 12 I 1 M 21 D 1 M 10 | Series of <operation,whitespace, length> pairs/runs, and the length describes the number of times this operation is repeated. Multiple pairs/runs are separated by whitespace.
  Ensembl CIGAR | 2004 | D,I,M			| 37M1D164M1I12M<br/> 16M1I12M1I21M1D10M | The numbers and letters are switched, and there are no gaps in the string. If there is a gap it will become a new line in the output.
-GFF3 CIGAR v1 | 2004? | D,F,I,M,R		| M8 D1 M6 | As the original CIGAR except new operators and no more whitespace between the letter code and the length
-GFF3 CIGAR v2 | ? |  D,F,I,M,R		| 8MD6M | remove space between pairs and decided that for segments of length 1 the number can be omitted
+GFF3 CIGAR v1 | 2004 | D,F,I,M,R		| M8+D1+M6 | As the original CIGAR except new operators and no more whitespace between the letter code and the length. Pairs separated by "+" signs
+GFF3 CIGAR v2 | 2005 | D,F,I,M,R		| M8 D1 M6 | As the original CIGAR except new operators and no more whitespace between the letter code and the length. Pairs separated by space characters
+GFF3 CIGAR v3 | ? |  D,F,I,M,R		| 8MD6M | remove space between pairs and decided that for segments of length 1 the number can be omitted
 Samtools CIGAR v1 | 2008 | D,H,I,M,N,P,S	| 24M3I7M2D19M | In this variant, whitespace is removed and the order of the letter code and length are reversed (length appears before letter code) compared to the Exonerate CIGAR string. It looks like GFF3 CIGAR v2, but with more operators.
 Samtools CIGAR v2 | July 2009 | D,H,I,M,N,P,S,X,= 	| 16=X7=3I7=2DX18= | Compare to Samtools CIGAR v1, add X and = to differentiate Match (M)
 
