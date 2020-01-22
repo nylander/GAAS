@@ -1,18 +1,25 @@
-# CIGAR format overview
+# The CIGAR string
 
-The CIGAR format is quite diverce and it is sometimes hard to understand it. Here is an overview of the format and its history.
+The CIGAR format is quite diverce and it is sometimes hard to understand it. Here is a review of the CIGAR string and its history.
 
-### Important resources that has been used to write this overview:
+## Table of Contents
 
->[http://lh3.github.io/2018/03/27/the-history-the-cigar-x-operator-and-the-md-tag](http://lh3.github.io/2018/03/27/the-history-the-cigar-x-operator-and-the-md-tag)  
->[https://github.com/vsbuffalo/devnotes/wiki/The-MD-Tag-in-BAM-Files](https://github.com/vsbuffalo/devnotes/wiki/The-MD-Tag-in-BAM-Files)  
->[EnsemblDocs Wiki](snapshots/ensembl_cigar.md)  
->[LASTZ manual](http://www.bx.psu.edu/~rsharris/lastz/newer/README.lastz-1.02.40.html#ex_cigar)  
->[http://rice.bio.indiana.edu:7082/annot/gff3.html](http://rice.bio.indiana.edu:7082/annot/gff3.html)  
->[http://wiki.wormbase.org/index.php/GFF3specProposal](http://wiki.wormbase.org/index.php/GFF3specProposal)  
->[exonerate manual web page](https://www.ebi.ac.uk/about/vertebrate-genomics/software/exonerate-manual)  
+   * [Forewords](#forewords)
+   * [Evolution of the CIGAR string](#evolution-of-the-cigar-string)
+      * [Original Exonerate CIGAR (From 2001)](#original-exonerate-cigar-from-2001)
+      * [Ensembl CIGAR](#ensembl-cigar)
+      * [1st Update of the Exonerate CIGAR string - Gap attribute in GFF3(2004)](#1st-update-of-the-exonerate-cigar-string---gap-attribute-in-gff32004)
+      * [2nd Update of the Exonerate CIGAR string - Gap attribute in GFF3(2005)](#2nd-update-of-the-exonerate-cigar-string---gap-attribute-in-gff32005)
+      * [3rd Update of the Exonerate CIGAR string - Gap attribute in GFF3](#3rd-update-of-the-exonerate-cigar-string---gap-attribute-in-gff3)
+      * [1st Samtools CIGAR specification (~2009)](#1st-samtools-cigar-specification-2009)
+      * [2nd Samtools CIGAR (Extended CIGAR)](#2nd-samtools-cigar-extended-cigar)
+   * [In sum](#in-sum)
+      * [Quick comparison between the different CIGAR string flavors](#quick-comparison-between-the-different-cigar-string-flavors)
+      * [All CIGAR operators gathered in one table](#all-cigar-operators-gathered-in-one-table)
+   * [Important resources used to write the review](#important-resources-used-to-write-the-review)
 
-### Forewords:
+
+## Forewords:
 
 CIGAR is an acronym for **C**oncise **I**diosyncratic **G**apped **A**lignment **R**eport and has been originally defined by the **Exonerate** alignment program. 
 The CIGAR format is designed to contain the minimal information necessary for the reconstruction of an alignment. One alignment is described per line, to allow easy manipulation with UNIX tools.**Exonerate CIGAR format does not include nucleotides**.  
@@ -53,8 +60,9 @@ Below is the idiodyncracies/conventions describefd in the man page of exonerate-
               scores used in the dynamic programming.  For example, in the case  of  a  Smith-Waterman  alignment,
               this will be the sum of the substitution matrix scores and the gap penalties.
 
+## Evolution of the CIGAR string
 
-## Original Exonerate CIGAR (From 2001)
+### Original Exonerate CIGAR (From 2001)
 
 We cannot talk about the CIGAR format without talking first about the [**SUGAR** format](sugar.md). Sugar is Simple UnGapped Alignment Report, which displays ungapped alignments one-per-line. The sugar line starts with the string "sugar:" for easy extraction from the output, and is followed by the following 9 fields in the order below:
 
@@ -300,9 +308,9 @@ So it could looks like that:
 >16=X7=3I7=2DX18=
 
 
-# In sum
+## In sum
 
-### quick comparison between each flavor of the format:
+### Quick comparison between the different CIGAR string flavors
 
 Flavor | Year| Operator | Example | Description | 
 -- | -- | -- | -- | --
@@ -332,3 +340,13 @@ S | Soft Clipping;  the clipped nucleotides are present in the read
 X | Read Mismatch; the nucleotide is present in the reference
 = | Read Match; the nucleotide is present in the reference
 
+
+## Important resources used to write the review
+
+>[http://lh3.github.io/2018/03/27/the-history-the-cigar-x-operator-and-the-md-tag](http://lh3.github.io/2018/03/27/the-history-the-cigar-x-operator-and-the-md-tag)  
+>[https://github.com/vsbuffalo/devnotes/wiki/The-MD-Tag-in-BAM-Files](https://github.com/vsbuffalo/devnotes/wiki/The-MD-Tag-in-BAM-Files)  
+>[EnsemblDocs Wiki](snapshots/ensembl_cigar.md)  
+>[LASTZ manual](http://www.bx.psu.edu/~rsharris/lastz/newer/README.lastz-1.02.40.html#ex_cigar)  
+>[http://rice.bio.indiana.edu:7082/annot/gff3.html](http://rice.bio.indiana.edu:7082/annot/gff3.html)  
+>[http://wiki.wormbase.org/index.php/GFF3specProposal](http://wiki.wormbase.org/index.php/GFF3specProposal)  
+>[exonerate manual web page](https://www.ebi.ac.uk/about/vertebrate-genomics/software/exonerate-manual)  
