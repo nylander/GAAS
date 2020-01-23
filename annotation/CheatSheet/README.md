@@ -31,6 +31,7 @@ Collection of Cheat Sheets / overview / summaries
     * [Schedulers: LSF,Torque,SGE,Slurm,etc](#schedulers-lsftorquesgeslurmetc)
     * [Taxonomic classification](taxonomic-classification)
  * [Blogs](#blogs)
+ * [Knowledge bank](#knowledge-bank)
  * [Statistics](#statistics)
  * [Data visualisation](#data-visualisation )
  
@@ -119,6 +120,10 @@ Collection of Cheat Sheets / overview / summaries
    From Aiden lab  
  * [NBIS](https://nbis.se/blog/)
  * [List from biostars](https://www.biostars.org/p/243961/)
+
+# Knowledge bank
+ * [ecSeq Bioinformatics](https://www.ecseq.com/support/)  
+
 
 # Statistics  
  * [seeing-theory](https://seeing-theory.brown.edu)
