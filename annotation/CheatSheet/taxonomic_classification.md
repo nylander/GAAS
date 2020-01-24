@@ -5,7 +5,7 @@ List of tools to perform Taxonomic classification
 | year	| Name | Publication | method | Reads | Contigs | branch of life | comment |
 | --- | --- | --- |  --- | --- |  --- | --- | --- |
 | | kraken | | | x | x | |
-| | Kaiju | | | x | x | |
+| 2016 | Kaiju | | kmer based | x | x | depend DB used | give a txt file, that can be used in KronaChart / Krona tool
 | | QIIME2 | | | x | ? | |
 | | MetaPhlAn | | | ? | ? | |
 | | Clark | | method based on a supervised sequence classification using discriminative k-mers. | x | x | | http://clark.cs.ucr.edu
