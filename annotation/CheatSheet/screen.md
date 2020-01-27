@@ -125,3 +125,6 @@ An example:
     # stuff 'exit\n' to exit bash session
     screen -S bash_shell -X stuff $'ex
 
+### Screenrc
+
+[https://gist.github.com/mosquito/d109e44a2c6884c34f9c](https://gist.github.com/mosquito/d109e44a2c6884c34f9c)
