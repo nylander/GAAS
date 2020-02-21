@@ -1,1 +1,0 @@
-../../Tools/Converter/b2go2gff.pl

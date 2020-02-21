@@ -1,1 +1,0 @@
-../../Tools/Converter/jgi2gff3.pl

@@ -1,1 +1,0 @@
-../../Tools/Grid/pfam2grid.pl

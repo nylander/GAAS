@@ -1,1 +1,0 @@
-../../Tools/ComparativeGenomic/synplot/synplot.R

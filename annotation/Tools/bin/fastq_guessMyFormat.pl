@@ -1,1 +1,0 @@
-../../Tools/Util/fastq/fastq_guessMyFormat.pl

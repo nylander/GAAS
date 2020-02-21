@@ -1,1 +1,0 @@
-../../Tools/Maker/maker_getRidOfContig_v2.pl

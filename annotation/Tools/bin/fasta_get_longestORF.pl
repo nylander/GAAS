@@ -1,1 +1,0 @@
-../../Tools/Util/fasta/fasta_get_longestORF.pl

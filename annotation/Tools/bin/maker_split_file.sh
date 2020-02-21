@@ -1,1 +1,0 @@
-../../Tools/Maker/maker_split_file.sh

@@ -1,1 +1,0 @@
-../../Tools/Grid/blat2grid.pl

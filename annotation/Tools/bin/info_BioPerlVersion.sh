@@ -1,1 +1,0 @@
-../../Tools/System/info_BioPerlVersion.sh

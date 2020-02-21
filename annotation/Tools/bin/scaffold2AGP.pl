@@ -1,1 +1,0 @@
-../../Tools/Util/scaffold2AGP.pl

@@ -1,1 +1,0 @@
-../../Tools/Grid/exonerate2grid.pl

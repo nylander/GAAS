@@ -1,1 +1,0 @@
-../../Tools/Converter/ips2genomic.pl

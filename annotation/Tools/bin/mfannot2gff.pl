@@ -1,1 +1,0 @@
-../../Tools/Converter/mfannot2gff.pl

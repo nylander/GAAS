@@ -1,1 +1,0 @@
-../../Tools/Util/fasta/fasta-splitter.pl

@@ -1,1 +1,0 @@
-../../Tools/Maker/maker_merge_outputs_from_index.pl

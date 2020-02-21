@@ -1,1 +1,0 @@
-../..//Tools/Util/gff/gff3_sp_fix_small_exon_from_extremities.pl

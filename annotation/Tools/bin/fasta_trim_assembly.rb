@@ -1,1 +1,0 @@
-../..//Tools/Util/fasta/fasta_trim_assembly.rb

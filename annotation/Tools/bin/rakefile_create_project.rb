@@ -1,1 +1,0 @@
-../..//Tools/EnsEMBL/rakefile_create_project.rb
