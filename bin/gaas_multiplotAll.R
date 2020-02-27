@@ -1,4 +1,4 @@
-#!/anaconda3/envs/agat/bin/Rscript
+#!/usr/bin/Rscript
 
 tiff(filename="multiplotAll.tif", width = 800, height = 800, units = "px", pointsize = 26, compression="lzw")
 tab=as.matrix(read.table("MatriceNbSeqAliLengthByAli.csv"))

@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 ##########################
-# Jacques Dainat 11/2015 # 
+# Jacques Dainat 11/2015 #
 ###########################
 
 #libraries
@@ -19,7 +19,9 @@ use Bio::SeqIO;
 use List::MoreUtils qw(uniq);
 use Storable 'dclone';
 use Clone 'clone';
+use GAAS::GAAS;
 
+my $header = get_gaas_header();
 # END libraries
 # PARAMETERS - OPTION
 my $opt_position;
@@ -53,12 +55,14 @@ if ( !GetOptions( 'position|p=s' => \$opt_position,
                  -exitval => 1 } );
 }
 
+# Print Help and exit
 if ($opt_help) {
-    pod2usage( { -verbose => 2,
-                 -exitval => 0 } );
+    pod2usage( { -verbose => 99,
+                 -exitval => 0,
+                 -message => "$header\n" } );
 }
 
-if ((!$opt_position or !$opt_aliDir or !$opt_tsv)){ 
+if ((!$opt_position or !$opt_aliDir or !$opt_tsv)){
     pod2usage( {
            -message => "\nIf you want to merge sequence by window, at least 3 parameter is mandatory: position file, tsv file, and directory containing alignments\n".
           "Many optional parameters are available. Look at the help documentation to know more.\n",
@@ -89,7 +93,7 @@ if($opt_cons ){
 my %consensListOk;
 if($opt_consList){
   print "Moreover You decided to make consensus between species. Here is the detail:\n";
-  # Mange consensus list given 
+  # Mange consensus list given
   my @consensListPair;
 
   @consensListPair= split(/,/, $opt_consList);
@@ -104,7 +108,7 @@ if($opt_consList){
       push(@{$consensListOk{$consensList[1]}}, $consensList[0]);
     }
   }
-  foreach my $key (keys %consensListOk){ 
+  foreach my $key (keys %consensListOk){
     print "You dicided to make a consensus of (inter)species <@{$consensListOk{$key}}> and call this new sequence <$key>\n";
   }
 }
@@ -197,9 +201,9 @@ my %hash_HordeumName2Aliname;
       if($count >=4){ # SequenceNamesList
 
         if ($el =~ "H_vulgare"){ # H_vulgare sequence => shoud contain EPlHVUG or MLOC that will be used to retrieve position information
-         
+
           if($el =~ "EPlHVUG"){
-            
+
             $el =~ /.*_(EPlHVUG[^|]*)\|.*/;
             $hordeumName = $1;
           }
@@ -208,7 +212,7 @@ my %hash_HordeumName2Aliname;
             $hordeumName = $1;
             last;
           }
-          
+
         }
       }
     $count++;
@@ -255,13 +259,13 @@ foreach my $chr (keys %hash_chr2name){
   # need to know the highest value
   my $highvalue=get_highest_value(\%hash_chr2name, $chr);
 
-  
+
   # Go through all the chromosome window by window
   my $stop=0;
-  while ($stop != 2){ 
+  while ($stop != 2){
 
     if( (1000000*$currentLimit) > $highvalue){$stop++};
-    
+
     my $nbPrintedVal=0;
     $currentLimit = $currentLimit + $opt_windowsSize;
     $currentCenter=$currentLimit-($opt_windowsSize/2);
@@ -277,7 +281,7 @@ foreach my $chr (keys %hash_chr2name){
       if($position > (1000000*($currentLimit-$opt_windowsSize)) and $position < (1000000*$currentLimit) ){ #kb to nucleotide : * 1000000
 
         if(exists ($hash_HordeumName2Aliname{$hash_chr2name{$chr}{$position}})){
-          
+
          if (fill_for_ali($tmpAli, $hash_HordeumName2Aliname{$hash_chr2name{$chr}{$position}}, $nbPrintedVal)){ # save sequence of the alignement to create supermatrice
           $nbPrintedVal++;
          }
@@ -285,12 +289,12 @@ foreach my $chr (keys %hash_chr2name){
         else{
           #print "Hordeum Name: $hash_chr2name{$chr}{$position} doesn't exists among the Hordeum names of alignments we are working with.\n";
         }
-          
+
       }
       # We are over the chromosome size, consequently we stop
       elsif($position > (1000000*($currentLimit-$opt_windowsSize))){last;}
     }
-    
+
     #report
     print $report_stream $currentCenter."Mb\t".$nbPrintedVal."\n";
 
@@ -315,14 +319,14 @@ foreach my $chr (keys %hash_chr2name){
           $key =~ /(.*_[^_]*)_/;
           my $nameRough = $1;
           $hashNum{$nameRough}++;
-          push(@{$hashNames{$nameRough}}, $key); 
+          push(@{$hashNames{$nameRough}}, $key);
         }
 
         #
         foreach my $nameRough (keys %hashNum ){
-          if($hashNum{$nameRough} > 1){          
+          if($hashNum{$nameRough} > 1){
             # create a small alignementof only same species
-            my $aln = new Bio::SimpleAlign();     
+            my $aln = new Bio::SimpleAlign();
             foreach my $nameComplete (@{$hashNames{$nameRough}}){
               my $seq = new Bio::LocatableSeq(-seq => $tmpAli->{$nameComplete} , -id  => "$nameComplete");
               $aln->add_seq($seq);
@@ -338,7 +342,7 @@ foreach my $chr (keys %hash_chr2name){
 
       if($opt_consList){
         foreach my $ConsensName (keys %consensListOk ){
-          
+
           my $SuperAln = undef;
           foreach my $nameCons (@{$consensListOk{$ConsensName}} ){
             #print "Does it start by ? $nameCons\n";
@@ -377,7 +381,7 @@ foreach my $chr (keys %hash_chr2name){
                   }
                   print "We put $key in $ConsensName \n";
                   delete $listOfAli{$key}; #REMOVE THAT KEY-VALUE pair
-                } 
+                }
               }
             }
           }
@@ -388,7 +392,7 @@ foreach my $chr (keys %hash_chr2name){
       }
 
       #create a consensus from each ali if asked
-      foreach my $consensName (keys %listOfAli){ 
+      foreach my $consensName (keys %listOfAli){
         my $aln=$listOfAli{$consensName};
         my $consensus = $aln->consensus_string($opt_consThreshold);
         $consensus=~ s/\?/-/g; #  quand il y a que des gap il remplace par ? .Donc ici on remplace ? par -
@@ -424,7 +428,7 @@ $position_stream->close();
 print("Parsing Finished\n\n");
 
 
-      ######################### 
+      #########################
       ######### END ###########
       #########################
 #######################################################################################################################
@@ -437,12 +441,12 @@ print("Parsing Finished\n\n");
               ########
                ######
                 ####
-                 ## 
+                 ##
 
 sub fill_for_ali{
   my ($hash,$name,$nbPrintedVal)=@_;
 
-  ### get file name !! 
+  ### get file name !!
   my @matches = grep { /$name/ } @listFile;
   if (@matches >= 2){
     print "several file start with the name $name whithin the directory $opt_aliDir. We don't know which one take. We stop. \n";
@@ -454,7 +458,7 @@ sub fill_for_ali{
   }
   else{
     $name=$matches[0];
-    
+
     if(-f "$opt_aliDir/$name"){
 
       #print "$opt_aliDir/$name\n";
@@ -477,10 +481,10 @@ sub fill_for_ali{
         my @ids= split /_/,$id_original ;
         my $newID=$ids[0]."_".$ids[1]."_".$ids[2];
         #print "newID $newID\n";
-        
+
         if(! exists($hash->{$newID})){ # If Id is a new one
-          if(! $nbPrintedVal == 0){ # if not the first alignment read we have to add empty seq in front 
-            
+          if(! $nbPrintedVal == 0){ # if not the first alignment read we have to add empty seq in front
+
             # If it's new but some other were already existing we add empty seq in front
             my $emptySeq = "";
             $emptySeq =~ s/^(.*)/'-' x $sizeAlAli . $1/mge; # create a string of gap for the sequence to add in front of the ali
@@ -566,7 +570,7 @@ GeneName@ChromosomeName@PositionInNucleotide
 
 =item B<--tsv>
 This option define the tsv file that contain information needed to link the position to the alignments. Format like this:
-Nom marqueur (sequence untiliser pour construire le cluster) \t nombre sp \t nombre individu \t nombre sequences \t Toutes les entetes des sequences de l'alignement seaparer par une tabulation 
+Nom marqueur (sequence untiliser pour construire le cluster) \t nombre sp \t nombre individu \t nombre sequences \t Toutes les entetes des sequences de l'alignement seaparer par une tabulation
 
 =item B<--ad>
 
@@ -594,7 +598,7 @@ In this example Species1 and Species2 will create a consensus called A, and spec
 Optional treshold ranging from 0 to 100. The consensus residue has to appear at least threshold % of the sequences at a given location, otherwise a '?' character will be placed at that location.
 Default value=0;
 
-=item B<-o> or B<--output> 
+=item B<-o> or B<--output>
 
 Output name of the directory that will contain results
 

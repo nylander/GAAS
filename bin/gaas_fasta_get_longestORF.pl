@@ -13,7 +13,7 @@ my $start_run = time();
 
 my $header = qq{
 ########################################################
-# NBIS 2017 - Sweden                                   #  
+# NBIS 2017 - Sweden                                   #
 # jacques.dainat\@nbis.se                               #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
@@ -54,7 +54,7 @@ if ($help) {
                  -exitval => 2,
                  -message => "$header\n" } );
 }
- 
+
 if ( !(defined($file_fasta)) ){
     pod2usage( {
            -message => "$header\nAt least 1 parameter is mandatory:\n Input fasta file (--fasta)\n\n",
@@ -103,22 +103,22 @@ while( my $seqObj = $inseq->next_seq() ) {
   @orf_structs = reverse sort {$a->{length}<=>$b->{length}} @orf_structs;
   my $acc = $seqObj->id();
   print "looking at sequence $acc \n" if $verbose;
-  
-  my %candidates;        
+
+  my %candidates;
   while (@orf_structs) {
       my $orf = shift @orf_structs;
-      
+
       my $start = $orf->{start};
       my $stop = $orf->{stop};
-      
-      my $length = int((abs($start-$stop)+1)/3); 
+
+      my $length = int((abs($start-$stop)+1)/3);
       my $orient = $orf->{orient};
-      my $protein = $orf->{protein};            
-      
+      my $protein = $orf->{protein};
+
       ##################################
       # adjust for boundary conditions, since starts and stops run off the ends of the sequences at partial codons
       #################################
-      
+
       # adjust at 3' end
       if ($stop > length($seq)) {
           $stop -= 3;
@@ -126,7 +126,7 @@ while( my $seqObj = $inseq->next_seq() ) {
       if ($start > length($seq)) {
           $start -= 3;
       }
-      
+
       # adjust at 5' end
       if ($stop < 1) {
           $stop += 3;
@@ -135,15 +135,15 @@ while( my $seqObj = $inseq->next_seq() ) {
           $start += 3;
       }
 
-      
+
       if ($length < $MIN_PROT_LENGTH) { next; }
       if ($force_complete and (substr($orf->{protein},0,1) ne 'M'  or substr($orf->{protein},-1) ne '*' ) ) {next;}
       if ($force_start_codon and substr($orf->{protein},0,1) ne 'M' ) {next;}
-      
+
 
       print "Candidate (len $length): ".Dumper($orf) if $verbose;
       push (@{$canditates{$acc}}, $orf);
-      
+
     }
 
     if($keep_all_orf){
@@ -157,7 +157,7 @@ while( my $seqObj = $inseq->next_seq() ) {
         $cpt++;
       }
     }
-    else{ # let's keep only the longest 
+    else{ # let's keep only the longest
       my $orf = @{$canditates{$acc}}[0];
       $seqObj->seq($orf->{protein}); #changing the DNA sequence by the corresponding AA sequence is enough
       $fasta_out->write_seq($seqObj);

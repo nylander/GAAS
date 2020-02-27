@@ -8,16 +8,9 @@ use strict;
 use Pod::Usage;
 use Getopt::Long;
 use Bio::Tools::GFF;
-use Data::Dumper;
+use GAAS::GAAS;
 
-my $usage = qq{
-########################################################
-# NBIS 2015 - Sweden                                   #
-# jacques.dainat\@nbis.se                               #
-# Please cite NBIS (www.nbis.se) when using this tool. #
-########################################################
-/!\\Only first 6 column inplemented... if your bed file contains more columns and you need their information... you need to finish the implementation };
-
+my $header = get_gaas_header();
 my $outfile = undef;
 my $bed = undef;
 my $help;
@@ -33,9 +26,10 @@ if( !GetOptions(
 }
 
 # Print Help and exit
-if ($help) {-message => "$header",
-            -verbose => 2,
-            -exitval => 2 } );
+if ($help) {
+	pod2usage( {-message => "$header\n",
+	            -verbose => 99,
+	            -exitval => 0 } );
 }
 
 if ( ! (defined($bed)) ){

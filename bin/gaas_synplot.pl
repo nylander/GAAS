@@ -1,4 +1,4 @@
-#!//anaconda3/envs/agat/bin/perl
+#!/usr/bin/perl
 
 =head1 NAME
 synplot.pl - Make synteny plots for small genomes

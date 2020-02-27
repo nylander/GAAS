@@ -1,4 +1,4 @@
-#!/usr/bin/ruby 
+#!/usr/bin/ruby
 # Loads a genome assembly into a new EnsEMBL database
 # = PREREQS:
 # - contig2chromosome AGP file (.contigs.agp)

@@ -1,4 +1,4 @@
-#!/anaconda3/envs/agat/bin/Rscript
+#!/sw/R/3.0.2/bin/Rscript
 
 # usage: script.R gtf file1.gtf
 # You can use one or many gff or gtf files (should be well formatted)

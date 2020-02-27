@@ -17,7 +17,7 @@ my $opt_help;
 
 my $header = qq{
 ########################################################
-# NBIS 2018 - Sweden                                   #  
+# NBIS 2018 - Sweden                                   #
 # jacques.dainat\@nbis.se                              #
 # Please cite NBIS (www.nbis.se) when using this tool. #
 ########################################################
@@ -41,7 +41,7 @@ if ($opt_help) {
                  -exitval => 2,
                  -message => "$header \n" } );
 }
- 
+
 if ( (! (defined($opt_agpfile)) ) or (! (defined($opt_fastafile)) ) ){
     pod2usage( {
            -message => "\nAt least 2 parametes are mandatory:\nInput agp file (-g);  Input fasta file (-f)\n\n".
@@ -73,9 +73,9 @@ print "Reading file $opt_agpfile\n";
 if (open(my $fh, '<:encoding(UTF-8)', $opt_agpfile)) {
   while (my $row = <$fh>) {
     chomp $row;
-    my ($object, $object_beg, $object_end, $part_number, $component_type, $component_id_or_gap_length, 
+    my ($object, $object_beg, $object_end, $part_number, $component_type, $component_id_or_gap_length,
         $component_beg_or_gap_type, $component_end_or_linkage, $orientation_or_linkage_evidence ) = split(/\t/, $row);
-    push (@{$hash_agp{$object}{$part_number}}, ($object, $object_beg, $object_end, $part_number, $component_type, $component_id_or_gap_length, 
+    push (@{$hash_agp{$object}{$part_number}}, ($object, $object_beg, $object_end, $part_number, $component_type, $component_id_or_gap_length,
         $component_beg_or_gap_type, $component_end_or_linkage, $orientation_or_linkage_evidence));
   }
 } else {
@@ -146,7 +146,7 @@ print "Job done in $run_time seconds\n";
               ########
                ######
                 ####
-                 ##   
+                 ##
 
 #check if reference exists in hash. Deep infinite : hash{a} or hash{a}{b} or hash{a}{b}{c}, etc.
 # usage example: exists_keys($hash_omniscient,('level3','cds',$level2_ID)
@@ -168,7 +168,7 @@ sub  get_sequence{
   my $sequence="";
   my $seq_id_correct = undef;
   if( exists_keys($allIDs,(lc($seq_id)) ) ){
-      
+
     $seq_id_correct = $allIDs{lc($seq_id)};
 
     $sequence = $db->subseq($seq_id_correct, $start, $end);
@@ -179,23 +179,23 @@ sub  get_sequence{
     if(length($sequence) != ($end-$start+1)){
       my $wholeSeq = $db->subseq($seq_id_correct);
       $wholeSeq = length($wholeSeq);
-      warn "Problem ! The size of the sequence extracted ".length($sequence)." is different than the specified span: ".($end-$start+1).".\nThat often occurs when the fasta file does not correspond to the annotation file. Or the index file comes from another fasta file which had the same name and haven't been removed.\n". 
+      warn "Problem ! The size of the sequence extracted ".length($sequence)." is different than the specified span: ".($end-$start+1).".\nThat often occurs when the fasta file does not correspond to the annotation file. Or the index file comes from another fasta file which had the same name and haven't been removed.\n".
            "As last possibility your gff contains location errors (Already encountered for a Maker annotation)\nSupplement information: seq_id=$seq_id ; seq_id_correct=$seq_id_correct ; start=$start ; end=$end ; $seq_id sequence length: $wholeSeq )\n";
     }
   }
   else{
     warn "Problem ! ID $seq_id not found !\n";
-  }  
+  }
 
   return $sequence;
-}                        
+}
 
 __END__
 
 =head1 NAME
 
 AGP2chromosome.pl -
-The script aims to combine contigs from the fasta file in chromosome as described into the AGP file. 
+The script aims to combine contigs from the fasta file in chromosome as described into the AGP file.
 AGP version 2 is expected. See https://www.ncbi.nlm.nih.gov/assembly/agp/AGP_Specification/ for specification of this format. If you are unsure about the AGP file you are using,
 you could check its sanity using the agp validator provided by the NCBI at this address: https://www.ncbi.nlm.nih.gov/projects/genome/assembly/agp/agp_validate.cgi
 The result is written to the specified output file, or to STDOUT.
@@ -214,7 +214,7 @@ The result is written to the specified output file, or to STDOUT.
 
 Input AGP file
 
-=item B<--fasta>, B<--fa>  or B<-f> 
+=item B<--fasta>, B<--fa>  or B<-f>
 
 Input fasta file.
 

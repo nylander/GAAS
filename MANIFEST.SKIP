@@ -40,7 +40,7 @@
 \B\._
 
 # Avoid archives of this distribution
-\bAGAT-v[\d\.\_]+
+\bGAAS-v[\d\.\_]+
 ^MYMETA.yml
 ^MYMETA.json
 

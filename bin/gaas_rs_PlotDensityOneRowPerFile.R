@@ -1,4 +1,4 @@
-#!/anaconda3/envs/agat/bin/Rscript
+#!/opt/local/bin/Rscript
 
 # To prepare data do:
 #awk '{print $18}' maker_a1_p0_c0.gtf | sed s/[\",\;]//g >> AED_a1p0c0.csv

@@ -1,17 +1,10 @@
 #!/usr/bin/perl -w
 
-package AGAT::Omniscient;
+package GAAS::GAAS;
 
 use strict;
 use warnings;
 use Exporter;
-
-use AGAT::OmniscientI;
-use AGAT::OmniscientO;
-use AGAT::OmniscientTool;
-use AGAT::OmniscientStat;
-use AGAT::Utilities;
-use AGAT::PlotR;
 
 our $VERSION     = "v0.0.1";
 our @ISA         = qw(Exporter);

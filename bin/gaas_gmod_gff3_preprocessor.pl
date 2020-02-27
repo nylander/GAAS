@@ -1,4 +1,4 @@
-#!//anaconda3/envs/agat/bin/perl -w
+#!/usr/bin/perl -w
 use strict;
 
 use Bio::FeatureIO;

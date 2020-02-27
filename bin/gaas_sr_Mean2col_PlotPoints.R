@@ -1,4 +1,4 @@
-#!/anaconda3/envs/agat/bin/Rscript
+#!/usr/bin/Rscript
 
 args <- commandArgs(TRUE)
 cat("Il y a",length(args),"arguments:",paste(args,collapse=" - "),"\n");

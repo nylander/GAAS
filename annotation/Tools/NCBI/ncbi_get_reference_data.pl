@@ -34,7 +34,7 @@ if ( !GetOptions(
 	"l|list" => \$list,
 	"outdir=s" => \$outdir,
 	"f|format=s" => \$format,
-	"o|organisms=s" => \$organisms,
+	"organisms=s" => \$organisms,
 	"db|dbs=s"	=> \$dbs,
     "o|output|outfile=s" => \$outfile))
 {
@@ -61,7 +61,7 @@ if ($list) {
 if (! defined($organisms) ){
     pod2usage( {
            -message => "$header\nAt least 1 parameter is mandatory:\nInput organisms (-o species1:species2:species3).\n\n".
-           "Ouptut is optional. Look at the help documentation to know more.\n",
+           "Output is optional. Look at the help documentation to know more.\n",
            -verbose => 0,
            -exitval => 1 } );
 }
@@ -180,7 +180,7 @@ The result is written to the specified output file, or to STDOUT.
 
 List of all available databases
 
-=item B<-o> or B<--organisms>
+=item B<--organisms>
 
 The names of the species to query data from. Species name format: Genus_species (e.g. Gallus_gallus). When querying several organisms please follow this nomenclature: species1:species2:species3
 

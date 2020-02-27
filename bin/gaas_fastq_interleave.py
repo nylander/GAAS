@@ -1,4 +1,4 @@
-#!/anaconda3/envs/agat/bin/python
+#!/usr/bin/python
 # encoding:utf8
 # authors: Erik Garrison, Sébastien Boisvert
 """This script takes two fastq or fastq.gz files and interleaves them

@@ -8,8 +8,9 @@ use strict;
 use warnings;
 use Getopt::Long;
 use Pod::Usage;
-use Data::Dumper;
+use GAAS::GAAS;
 
+my $header = get_gaas_header();
 my $mfannot_file;
 my $gff_file;
 my %startend_hash;     # Stores start and end positions of each feature reported
@@ -20,13 +21,14 @@ my %gencode_hash;
 GetOptions(
     'mfannot|m|i=s' => \$mfannot_file,
     'gff|g|o=s' => \$gff_file,
-    'help|h' => sub { pod2usage( -exitstatus=>2, -verbose=>2 ); },
+    'help|h' => sub { pod2usage( -exitstatus=>0, -verbose=>99, -message => "$header\n" ); },
     'man' => sub { pod2usage(-exitstatus=>0, -verbose=>2); }
 ) or pod2usage ( -exitstatus=>2, -verbose=>2 );
 
 if (!defined $mfannot_file) {
     pod2usage( -message=>"Insufficient options supplied", -exitstatus=>2 );
 }
+
 
 ## MAIN ##############################################################
 
@@ -75,17 +77,17 @@ sub read_mfannot {
             my @splitline = split /\s/, $1;
             #push (@{$contig_hash{$current_contig}}, substr($splitline[0],2));
             $contig_hash{$current_contig}{$splitline[0]} = 1;
-            
+
 
             if ($splitline[1] eq "<==" && $splitline[2] eq "start" ) {
                 if (defined $startend_hash{$splitline[0]}{"start"}) {
-                    
+
                     if ($previousSplit1 eq $splitline[1] and $previousSplit2 eq $splitline[2]){ #keep the first key and the second value
                         my $i = keys %{$startend_hash{$splitline[0]}{"start"}};
                         $startend_hash{$splitline[0]}{"start"}{$i-1} = $current_pos;
                         print STDERR "11 - Feature ". $splitline[0]. " already defined. Please manually verify in $mfannot_file\n";
                         next;
-                    } 
+                    }
 
                     my $i = keys %{$startend_hash{$splitline[0]}{"start"}};
                     $startend_hash{$splitline[0]}{"start"}{$i} = $current_pos;
@@ -95,29 +97,29 @@ sub read_mfannot {
             }
             elsif ($splitline[1] eq "==>" && $splitline[2] eq "end" ) {
                 if (defined $startend_hash{$splitline[0]}{"end"}{0}) {
-                    
+
                     if ($previousSplit1 eq $splitline[1] and $previousSplit2 eq $splitline[2]){ #keep the first key and the second value
                         my $i = keys %{$startend_hash{$splitline[0]}{"end"}};
                          $startend_hash{$splitline[0]}{"end"}{$i-1} = $current_pos;
                          print STDERR "22 - Feature ". $splitline[0]. " already defined. Please manually verify in $mfannot_file\n";
                          next;
-                    } 
+                    }
 
                     my $i = keys %{$startend_hash{$splitline[0]}{"end"}};
                     $startend_hash{$splitline[0]}{"end"}{$i} = $current_pos;
                     print STDERR "2 - Feature ". $splitline[0]. " already defined. Please manually verify in $mfannot_file\n";
                 }
                 else { $startend_hash{$splitline[0]}{"end"}{0} = $current_pos; }
-                
+
             }
             elsif ($splitline[1] eq "==>" && $splitline[2] eq "start") {
                 if (defined $startend_hash{$splitline[0]}{"start"}{0}) {
-                    
+
                     if ($previousSplit1 eq $splitline[1] and $previousSplit2 eq $splitline[2]){
                         print STDERR "3 - Feature ". $splitline[0]. " already defined. Please manually verify in $mfannot_file\n";
                         next;
                     } #keep the first key and the first value
-                    
+
                     my $i = keys %{$startend_hash{$splitline[0]}{"start"}};
                     $startend_hash{$splitline[0]}{"start"}{$i} = $current_pos + 1;
                     print STDERR "3 - Feature ". $splitline[0]. " already defined. Please manually verify in $mfannot_file\n";
@@ -126,7 +128,7 @@ sub read_mfannot {
             }
             elsif ($splitline[1] eq "<==" && $splitline[2] eq "end") {
                 if (defined $startend_hash{$splitline[0]}{"end"}{0}) {
-                    
+
                     if ($previousSplit1 eq $splitline[1] and $previousSplit2 eq $splitline[2]){
                     print STDERR "44 - Feature ". $splitline[0]. " already defined. Please manually verify in $mfannot_file\n";
                     next;
@@ -151,7 +153,7 @@ sub write_gff {
     print GFF "##gff-version 3\n";  # header line
     foreach my $thecontig (keys %contig_hash) {
         foreach my $thefeature (keys %{$contig_hash{$thecontig}}) {
-            
+
             foreach my $featureNB (keys %{$startend_hash{$thefeature}{"start"}}) {
                 my $featuretype;
                 if ($thefeature =~ /^rnl/ | $thefeature =~ /^rns/) { $featuretype="rRNA"; }

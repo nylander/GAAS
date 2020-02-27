@@ -1,4 +1,4 @@
-#!//anaconda3/envs/agat/bin/perl
+#!/usr/bin/perl
 #split_fasta.pl version 1.0
 #This script accepts a file consisting of multiple FASTA formatted sequence records.
 #It splits the file into multiple new files, each consisting of a subset of the original records.

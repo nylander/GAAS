@@ -1,4 +1,4 @@
-#!//anaconda3/envs/agat/bin/perl
+#!/usr/bin/perl
 
 use strict;
 use warnings;

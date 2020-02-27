@@ -69,7 +69,7 @@ if (defined($opt_output) ) {
   if (-f $opt_output){
       print "Cannot create a directory with the name $opt_output because a file with this name already exists.\n";exit();
   }
- $outputPDF=$opt_output."pdf";   
+ $outputPDF=$opt_output."pdf";
 }
 else{
   $outputPDF="outputPlot.pdf";
@@ -108,10 +108,10 @@ my %hashOfList;
 foreach my $file (@opt_files){
 
   my $gffio = Bio::Tools::GFF->new(-file => $file, -gff_version => 3);
-  
+
   # parse file name te remove extension
   my ($file1,$dir1,$ext1) = fileparse($file, qr/\.[^.]*/);
-  
+
   #Parse GFF to get AED information for each mRNA
   my $listRef=parseGFF($gffio);
 
@@ -136,7 +136,7 @@ foreach my $fileName (keys %hashOfList){
   $ostreamAED->open( $pathAED, 'w' ) or
         croak(
           sprintf( "Can not open '%s' for writing %s", $pathAED, $! )
-        );  
+        );
   foreach  my $AEDvalue (@{$hashOfList{$fileName}}){
     print $ostreamAED "$AEDvalue\n";
   }
@@ -147,15 +147,15 @@ foreach my $fileName (keys %hashOfList){
 
   #R command
   $R->run(qq`
-        
+
         listValues1=as.matrix(read.table("$pathAED", sep="\t", he=F))
-        
+
         # create a break point list formated correctly in purpose
         a<-seq(0,0.9999,$opt_breaks)
         a[length(a)+1]<-0.99999
         a[length(a)+1]<-1
         breakingPointList<-c(0,a)
-        
+
         hist1<-hist(listValues1, breaks=breakingPointList, plot=F)
         plot(hist1\$mids,hist1\$counts)
         #par(new=TRUE)
@@ -195,12 +195,12 @@ foreach my $fileName (keys %hashOfList){
     $R_command.=write_first_R_command($pathAED, $fileName, $highestYaxis, $nbFile, $outputPDF);
   }
 }
-  
+
 
 ####################################
 # Surround main part of R command  #
 ####################################
-  
+
   #add header
   my $final_R_command='#create output
                   pdf("'.$outputPDF.'")
@@ -223,7 +223,7 @@ plotR($final_R_command);
 # remove temporary files
 unlink @listTmpFile;
 
-      ######################### 
+      #########################
       ######### END ###########
       #########################
 #######################################################################################################################
@@ -236,23 +236,23 @@ unlink @listTmpFile;
               ########
                ######
                 ####
-                 ## 
+                 ##
 
 sub write_first_R_command{
   my ($pathIn1,$name1,$yAxisValue,$colorNb,$outputPDF)=@_;
 
   my $command='
-      
+
       listValues1=as.matrix(read.table("'.$pathIn1.'", sep="\t", he=F))
       legendInfo=paste("'.$name1.'","(",length(listValues1),"mRNAs )")
       listlegend<-c(listlegend,legendInfo)
-      
+
       # create a break point list formated correctly in purpose
       a<-seq(0,0.9999,'.$opt_breaks.')
       a[length(a)+1]<-0.99999
       a[length(a)+1]<-1
       breakingPointList<-c(0,a)
-      
+
       hist1<-hist(listValues1, breaks=breakingPointList, plot=F)
       plot(hist1$mids,hist1$counts, type="l", ylim=c(0,'.$yAxisValue.'), col='.$colorNb.', main="", xlab="AED score", ylab="Number of mRNA")
       ';
@@ -265,17 +265,17 @@ sub write_R_command{
   my ($pathIn1,$name1,$yAxisValue,$colorNb,$outputPDF)=@_;
 
   my $command='
-      
+
       listValues1=as.matrix(read.table("'.$pathIn1.'", sep="\t", he=F))
       legendInfo=paste("'.$name1.'","(",length(listValues1),"mRNAs )")
       listlegend<-c(listlegend,legendInfo)
-      
+
       # create a break point list formated correctly in purpose
       a<-seq(0,0.9999,'.$opt_breaks.')
       a[length(a)+1]<-0.99999
       a[length(a)+1]<-1
       breakingPointList<-c(0,a)
-      
+
       hist1<-hist(listValues1, breaks=breakingPointList, plot=F)
       plot(hist1$mids,hist1$counts, type="l", ylim=c(0,'.$yAxisValue.'), col='.$colorNb.', main="", yaxt="n", xaxt="n", xlab="", ylab="")
       ';
@@ -314,9 +314,9 @@ sub parseGFF {
   print( "Reading features from $file_in...\n");
   # read file and decompose it
   while (my $feature = $file_in->next_feature() ) {
-    
+
         my $type = $feature->primary_tag();
-  
+
         if (lc($type) eq 'mrna'){
 
           if(! $feature->has_tag('_AED')){

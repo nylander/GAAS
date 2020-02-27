@@ -11,14 +11,9 @@ use Bio::Tree::TreeFunctionsI;
 use Getopt::Long;
 use IO::File;
 use Pod::Usage;
+use GAAS::GAAS;
 
-my $header = qq{
-########################################################
-# NBIS 2015 - Sweden                                   #  
-# jacques.dainat\@nbis.se                               #
-# Please cite NBIS (www.nbis.se) when using this tool. #
-########################################################
-};
+my $header = get_gaas_header();
 
 #VARIABLE DECLARATION
 my $orthoMCL_file;
@@ -29,7 +24,7 @@ my $opt_tree;
 my $nbProt=0;
 my $speciesTreeString;
 my $species_opt; my $focusThisTaxid="";
-my $taxid_opt; my @TAXID_LIST; 
+my $taxid_opt; my @TAXID_LIST;
 
 my $message = "command line: orthomcl_analyzeOG.pl @ARGV\n\n";
 
@@ -49,11 +44,11 @@ if ( !GetOptions( 'cog|kog|og=s'    => \$orthoMCL_file,
 
 # Print Help and exit
 if ($opt_help) {
-    pod2usage( { -message => "$header", 
-                 -verbose => 2,
-                 -exitval => 2 } );
+    pod2usage( { -verbose => 99,
+                 -exitval => 0,
+                 -message => "$header\n" } );
 }
- 
+
 if ( ! (defined($orthoMCL_file) ) ){
     pod2usage( {
            -message => "$header\nAt least 1 parameter is mandatory:\nInput reference KOG/COG file (--cog).\n\n",
@@ -79,7 +74,7 @@ my %taxonList;
 #### Manage others otpion:
 my $focusThisSpecies;
 if ( defined($species_opt) ){
-   
+
     $focusThisTaxid="$species_opt";
     # get taxid
     if (! looks_like_number($focusThisTaxid)){ # try to retrive taxid from name
@@ -139,7 +134,7 @@ if ( ! (defined($taxid_opt) ) ){
     @TAXID_LIST=@$taxidListFromOG;
 }
 else{ @TAXID_LIST=split(/[:,_\-\s\/]+/,$taxid_opt); }
- 
+
 $message = "\nList of taxid: \n";
 print $message; if ( $opt_output ){print $outReport $message;}
 
@@ -183,7 +178,7 @@ else{
         push(@species_names, $spName);
     }
     $speciesTreeReady = $db->get_tree(@species_names);
-#    print $speciesTreeReady, "\n"; 
+#    print $speciesTreeReady, "\n";
     ## Clean Tree
     $speciesTreeReady->contract_linear_paths();
 }
@@ -195,23 +190,23 @@ print $message; if ( $opt_output ){print $outReport $message;}
 print $screenDisplayTree->write_tree($speciesTreeReady), "\n";
 if ( $opt_output ){
     $outSpTree->write_tree($speciesTreeReady);
-    
+
     #print species tree within the report file
     open F, "<$outSpTreeName" or die "Could not open file '$outSpTreeName' $!";;
         while (<F>) {
             print $outReport $_;
-        }       
+        }
     close F;
 }
 
-# create hash taxid => nodes (Leaves) 
+# create hash taxid => nodes (Leaves)
 $message = "\n\nClean Taxid List according to tree provide:\n";
 print $message; if ( $opt_output ){print $outReport $message;}
 
 if (defined($opt_tree)){#Clean hashAbbTaxid to remove Taxid not existing in species Tree. Only useful when tree is no performed using taxid but comes as external file.
     my @copy_TAXID_LIST=@TAXID_LIST;
     foreach my $taxid (@copy_TAXID_LIST){
-        my @nodes = $speciesTreeReady->find_node(-id => $taxid); 
+        my @nodes = $speciesTreeReady->find_node(-id => $taxid);
         if ($#nodes == -1){
 
             $message = "Species $taxid not present in Species Tree. We remove it from analyse.\n";
@@ -226,7 +221,7 @@ if (defined($opt_tree)){#Clean hashAbbTaxid to remove Taxid not existing in spec
 ## Create hast taxid/node whole Tree
 my %hashTaxidNode;
 foreach my $taxid (@TAXID_LIST){
-    my @nodes = $speciesTreeReady->find_node(-id => $taxid); 
+    my @nodes = $speciesTreeReady->find_node(-id => $taxid);
     $hashTaxidNode{$taxid}=$nodes[0];
 }
 
@@ -239,7 +234,7 @@ $message = "\nStep: sort GO by species present \n";
 print $message; if ( $opt_output ){print $outReport $message;}
 
 my $hashOGsorted = sortOGforFlatDisplay($hashOGFiltered);
-foreach my $key ( sort { $hashOGsorted->{$a} <=> $hashOGsorted->{$b}} keys %$hashOGsorted){ 
+foreach my $key ( sort { $hashOGsorted->{$a} <=> $hashOGsorted->{$b}} keys %$hashOGsorted){
     $message = sizedPrint($key,100)."$hashOGsorted->{$key}\n";
     print $message;
     if ( $opt_output ){print $outReport $message;}
@@ -275,16 +270,16 @@ foreach my $taxID (keys %$hashAppearance){
 
         ## Create list of leaves
         my @original_ListLeavesId; my %original_hashNodeAllDescendant; my %original_hashTaxidAllDescendant;
-        
+
         #print "\nAmong the $nbAppearance gene appeared at taxid $taxID ($sci_name) we have:\n";
-        my @cladeNodes = $node[0]->get_all_Descendents(); ## I know all the descendent of Node of appearance 
+        my @cladeNodes = $node[0]->get_all_Descendents(); ## I know all the descendent of Node of appearance
         foreach my $NodeFromDesc (@cladeNodes){ #get List leaves
             my $NodeFromDescTaxid = $NodeFromDesc->id();
             $original_hashNodeAllDescendant{$NodeFromDesc}=$NodeFromDescTaxid;
             $original_hashTaxidAllDescendant{$NodeFromDescTaxid}=$NodeFromDesc;
             if( $NodeFromDesc->is_Leaf ){
                 push( @original_ListLeavesId, $NodeFromDescTaxid);
-            }    
+            }
         }
         ## Create the corresponding hash of leaves
         my %original_hashLeavesId = map { $_ => 1 } @original_ListLeavesId;
@@ -297,15 +292,15 @@ foreach my $taxID (keys %$hashAppearance){
 
 
         #### loop each list of present taxid
-        my @ListsTaxidPresent = @{$hashAppearance->{$taxID}}; # all list of Leaves Present    
+        my @ListsTaxidPresent = @{$hashAppearance->{$taxID}}; # all list of Leaves Present
         foreach my $oneList (@ListsTaxidPresent){
             my @ListTaxidPresent=@$oneList; # List of taxid that have the gene
             my %hashTaxidPresent = map { $_ => 1 } @ListTaxidPresent; # Hash of taxid that have the gene
 #            print "ListTaxidPresent $#ListTaxidPresent @ListTaxidPresent  5555555555 sizeList $#original_ListLeavesId @original_ListLeavesId\n";
-            
+
 
             ### Case No loss
-            if($#ListTaxidPresent  == $#original_ListLeavesId){ 
+            if($#ListTaxidPresent  == $#original_ListLeavesId){
                 next;
             }
 
@@ -320,14 +315,14 @@ foreach my $taxID (keys %$hashAppearance){
             }
 
             ### Case several Lost or only one ancestral lost
-            else{ 
+            else{
                 ## Create list of Taxid Absent
                 my @ListTaxidAbsent;
-                my %hashNodePresent; my %hashNodeAbsent; 
+                my %hashNodePresent; my %hashNodeAbsent;
                 foreach my $taxid (@original_ListLeavesId){
                     my @node = $speciesTreeReady->find_node(-id => $taxid);
                     if(! exists($hashTaxidPresent{$taxid})){
-                        push(@ListTaxidAbsent, $taxid); 
+                        push(@ListTaxidAbsent, $taxid);
                         $hashNodeAbsent{$node[0]}=$taxid;
                     }
                     else{$hashNodePresent{$node[0]}=$taxid;}
@@ -352,14 +347,14 @@ foreach my $taxID (keys %$hashAppearance){
                     #    if(exists(clNodeTaxid))
                     #
                         if(exists($hashNodePresent{$anc_clNode})){
-                            $presentGeneFound="yes"; 
-                            $LossId{$OneTaxid}++; 
+                            $presentGeneFound="yes";
+                            $LossId{$OneTaxid}++;
 #                           print "oui existe save child $OneTaxid\n";
                             last;
                         }
                     }
                     if($presentGeneFound eq "no"){
-                        my $taxidFocused = $original_hashNodeAllDescendant{$parentNode};                 
+                        my $taxidFocused = $original_hashNodeAllDescendant{$parentNode};
                         if(! exists($hashTaxidAdded{$taxidFocused})) {
                             push ( @copy_listTaxidAbsent, $taxidFocused); # Push new ancestrak taxid to test if absent if before
                             $hashTaxidAdded{$taxidFocused}++;
@@ -449,7 +444,7 @@ if ( $opt_output ){
     open F, "<$outTreeName" or die "Could not open file '$outSpTreeName' $!";;
         while (<F>) {
             print $outReport $_;
-        }       
+        }
     close F;
 }
 
@@ -463,7 +458,7 @@ if ( $opt_output ){ print $outReport $finalMessage; }
 ################################################################## FUNCTIONS #####################################
 sub deduceAppearance{
     my ($hashOGFiltered, $speciesTreeReady, $hashTaxidNode)=@_;
-    
+
     my %hashAppearance;
     my $nbOGstudied=0;
     foreach my $key (keys %$hashOGFiltered){
@@ -475,7 +470,7 @@ sub deduceAppearance{
         else{
             my @nodesList;
             foreach my $taxid (@speciesList){
-                    push (@nodesList, $hashTaxidNode{$taxid});    
+                    push (@nodesList, $hashTaxidNode{$taxid});
             }
             my $nbNodes=scalar @nodesList;
     #       print "nbNodes $nbNodes\n";
@@ -520,12 +515,12 @@ sub sizedPrint{
 
 sub sortOGforFlatDisplay{
 my ($hashOGref)=@_;
-my %hashOGidSentence;   
-    foreach my $OGkey (keys %$hashOGref){ 
+my %hashOGidSentence;
+    foreach my $OGkey (keys %$hashOGref){
         my @ListSpeciesOG=@{$hashOGref->{$OGkey}};
         my @ListSpeciesOGSorted =  ( sort ({ $a <=> $b } @ListSpeciesOG));
         my $IDsentence; my $cpt=0;
-        foreach my $key (@ListSpeciesOGSorted){ 
+        foreach my $key (@ListSpeciesOGSorted){
             if ($cpt == 0){$IDsentence.="$key";}
             else{$IDsentence.="_$key";}
             $cpt++;
@@ -538,7 +533,7 @@ my %hashOGidSentence;
 sub filterOGfileByTaxid{
 my ($hashOGref, $ListTaxidToTest)=@_;
 my $OGnotKept=0;
-my $OGKept;   
+my $OGKept;
 my %hashOGrefCleaned;
 my %taxidAnalyzed;
 
@@ -584,7 +579,7 @@ my %HashSpeciesByOG;
             chomp($line) ;
             my @splitedLine = split(" ",$line);
             my %hashOGspecies; my %hashOGspeciesWithThisSpecies; my $OGcontainsThisSpecies="no";
-                
+
             my $OGname=shift @splitedLine;
             $OGname=~s/://g ; # remove ":"
             foreach my $prot (@splitedLine ){
@@ -658,7 +653,7 @@ __END__
 =head1 NAME
 
 analyzeOG.pl -
-The script computes some statistics of a COG/KOG file from OrthoMCL output - 
+The script computes some statistics of a COG/KOG file from OrthoMCL output -
 Statistics as : - number of OG by number of species
                 - number of OG by number of species that includes a specifc species (if specified by -s option)
                 - gene appearances
@@ -681,16 +676,16 @@ OG00001: 10090|ENSMUSP0000001 9606|ENSP0000001
 
 =over 8
 
-=item B<--cog>,  B<--og> or B<--kog> 
+=item B<--cog>,  B<--og> or B<--kog>
 
 Orthomcl file containg Ortholog groups (COG) from OrthoMCL.
 
-=item B<--taxid> 
+=item B<--taxid>
 
-Taxid list. If provided the analyse will use only these species. If a tree is also provided, the taxid will be filtered according to the tree to keep only taxid present in the tree. 
+Taxid list. If provided the analyse will use only these species. If a tree is also provided, the taxid will be filtered according to the tree to keep only taxid present in the tree.
 If no taxid is provided, but a tree is, only species from the tree will be analyzed. If no tree and no taxid are provided, only taxid among OG will be use.
 
-=item B<-t> or B<--tree> 
+=item B<-t> or B<--tree>
 
 Tree file in nhx format. If provided the analyse will focuse only on species present in the tree.
 When no tree is provided, a species tree will be created on the fly using the NCBI taxonomy database online according to the species present among the OG.

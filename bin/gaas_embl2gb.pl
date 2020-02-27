@@ -1,4 +1,4 @@
-#!//anaconda3/envs/agat/bin/perl -w
+#!/usr/local/bin/perl -w
 
 ## NBIS 2015
 ## jacques.dainat@nbis.se

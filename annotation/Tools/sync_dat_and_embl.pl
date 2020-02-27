@@ -6,7 +6,9 @@ use IO::File;
 use File::Basename;
 use Getopt::Long;
 use Pod::Usage;
+use GAAS::GAAS;
 
+my $header = get_gaas_header();
 my @copyARGV=@ARGV;
 
 my $opt_output = undef;
@@ -14,15 +16,6 @@ my $datfile = undef;
 my $emblfile = undef;
 my $bac = undef; #believe in AC
 my $help= undef;
-
-
-my $header = qq{
-########################################################
-# NBIS 2016 - Sweden                                   #  
-# jacques.dainat\@nbis.se                               #
-# Please cite NBIS (www.nbis.se) when using this tool. #
-########################################################
-};
 
 if ( !GetOptions("dat=s"		  => \$datfile,
 				"embl=s"		  => \$emblfile,
@@ -36,8 +29,8 @@ if ( !GetOptions("dat=s"		  => \$datfile,
 }
 
 if ($help) {
-    pod2usage( { -verbose => 2,
-                 -exitval => 2,
+    pod2usage( { -verbose => 99,
+                 -exitval => 0,
                  -message => "$header\n" } );
 }
 
@@ -48,7 +41,7 @@ if ( ! defined( $datfile) or ! defined( $emblfile)) {
            -exitval => 1 } );
 }
 
-##### Stream in 1 
+##### Stream in 1
 my $fh1;
 if ($datfile) {
   open($fh1, '<', $datfile) or die "Could not open file '$datfile' $!";
@@ -72,8 +65,8 @@ my %headers;
 my $ID = undef;
 my $sourceSeen=undef;
 my $ACline=0;
-while( my $line = <$fh1>)  {   
-   
+while( my $line = <$fh1>)  {
+
     if( $line =~ m/^ID/){
     	#
     	my @list = split(/\s/,$line);
@@ -84,7 +77,7 @@ while( my $line = <$fh1>)  {
         #print $ID."\n";
 		$sourceSeen=undef;
     }
- 
+
     ################## Look for signal to stop save the information #############################
     # #we keep all until source and the few next lines related to source. (Stop at another FT than source or XX if no other source available.)
     #
@@ -106,10 +99,10 @@ while( my $line = <$fh1>)  {
     	$sourceSeen=1;
     }
 
-    if( $line =~ m/^FT   [^source|^\s]/){ 
+    if( $line =~ m/^FT   [^source|^\s]/){
     	$ID=undef;
     }
- 	
+
  	if( $sourceSeen){
  		 if( $line =~ m/^XX/){
  		 	$ID=undef;
@@ -142,13 +135,13 @@ if ($uniq){
 #		print $headers{$key};
 #}
 
-# print $fh2 but part (ID line until source and few next lines) are replaced by those saved from the dat file. (We do that if an comon identifier is found: here the size in bp fron the ID line is the ioentifier) 
+# print $fh2 but part (ID line until source and few next lines) are replaced by those saved from the dat file. (We do that if an comon identifier is found: here the size in bp fron the ID line is the ioentifier)
 my $printNext=1;
 my $nbIDfound=0;
 my $nbIDTotal=0;
 $ACline=0;
 my $saved_line=undef;
-while( my $line = <$fh2>)  {   
+while( my $line = <$fh2>)  {
     my $skip_line=undef;
 
 	if($saved_line){
@@ -164,7 +157,7 @@ while( my $line = <$fh2>)  {
     	$ID = $list[10];
         #print "ID= $ID\n";
 		$sourceSeen=undef;
-    
+
     	if ( exists($headers{$ID}) and ! $bac){
             $nbIDfound++;
     		print $emblout $headers{$ID};
@@ -208,7 +201,7 @@ while( my $line = <$fh2>)  {
     	if( $line =~ m/^FT   [^source|^\s]/){ #we keep all wat is related tosource as well and then we stop.
     		$printNext=1;
     	}
- 	
+
  		if( $sourceSeen){
  			if( $line =~ m/^XX/){
  		 		$printNext=1;
@@ -227,15 +220,15 @@ __END__
 
 
 =head1 NAME
- 
+
 sync_dat_and_embl.pl - This script allow to update the record "headers" of an EMBL file by those from a dat file provided by ENA.
-It is useful when an assembly/annotation has been submitted using AGP file while the annotation has been done directly on the chromosomes. 
+It is useful when an assembly/annotation has been submitted using AGP file while the annotation has been done directly on the chromosomes.
 (Passing by an AGP file happens only if the chromosome and unplaced (not related at all to any chromosome) contigs are part of the same assembly).
 
 
 =head1 SYNOPSIS
 
-    ./sync_dat_and_embl.pl --dat=infile --embl=infile2 -o=outFile 
+    ./sync_dat_and_embl.pl --dat=infile --embl=infile2 -o=outFile
     ./sync_dat_and_embl.pl --help
 
 =head1 OPTIONS

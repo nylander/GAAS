@@ -11,7 +11,6 @@ use Cwd;
 use Pod::Usage;
 use URI::Escape;
 use Getopt::Long qw(:config no_ignore_case bundling);
-use GAAS::GFF3::Omniscient;
 use Bio::Tools::GFF;
 use IO::File;
 use File::Basename;
@@ -201,9 +200,9 @@ foreach my $makerDir (@inDir){
 	}
 	else{
 		print "Now performing the statistics of the annotation file $annotation...\n";
-		my $full_path = can_run('gff3_sp_statistics.pl') or print "Cannot launch statistics. gff3_sp_statistics.pl script not available\n";
+		my $full_path = can_run('agat_sp_statistics.pl') or print "Cannot launch statistics. agat_sp_statistics.pl script not available\n";
 		if ($full_path) {
-		        system "gff3_sp_statistics.pl --gff $annotation -o $annotation_stat > $outfolder/maker_annotation_parsing.log";
+		        system "agat_sp_statistics.pl --gff $annotation -o $annotation_stat > $outfolder/maker_annotation_parsing.log";
 		}
 	}
 	print "All done!\n";
@@ -314,12 +313,12 @@ __END__
 
 =head1 NAME
 
-maker_merge_outputs_from datastore.pl - The script will look over the datastore folder and subfolders to gather all outputs.
+maker_merge_outputs_from_datastore.pl - The script will look over the datastore folder and subfolders to gather all outputs.
 
 =head1 SYNOPSIS
 
-    ./maker_merge_outputs_from.pl
-    ./maker_merge_outputs_from.pl --help
+    ./maker_merge_outputs_from_datastore.pl
+    ./maker_merge_outputs_from_datastore.pl --help
 
 =head1 OPTIONS
 

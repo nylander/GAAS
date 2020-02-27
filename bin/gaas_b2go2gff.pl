@@ -12,14 +12,14 @@ perl my_script.pl
 
   Input:
     [--gff filename]
-		The name of the gff file to read. 
-		
+		The name of the gff file to read.
+
 	[--b2go filename]
 		The name of the Blast2Go annotation file to read
-		
-  Ouput:    
+
+  Ouput:
     [--outfile filename]
-        The name of the output file. 
+        The name of the output file.
 };
 
 my $outfile = undef;
@@ -58,26 +58,26 @@ my $gffout = Bio::Tools::GFF->new(-fh => $outfile, -gff_version => 3);
 
 
 while( my $feature = $gffio->next_feature()) {
-	
-	if ($feature->primary_tag =~ /mRNA/) { 
-	
+
+	if ($feature->primary_tag =~ /mRNA/) {
+
 		my @values = $feature->get_tag_values('ID');
 		my $id = shift @values;
-	
+
 		my $annotation = $lookup{$id} ;
-	
+
 		if (defined $annotation) {
 			$feature->remove_tag('Description') if ($feature->has_tag('Description'));
 			$feature->add_tag_value('Description','Predicted: ' . $annotation);
-			print $feature->gff_string($gffout) , "\n";	
-		} else { 
+			print $feature->gff_string($gffout) , "\n";
+		} else {
 			print $feature->gff_string($gffout) , "\n";
 		}
-	
+
 	} else {
 		print $feature->gff_string($gffout) , "\n";
 	}
-	
+
 }
 
 $gffio->close();
@@ -85,25 +85,22 @@ $gffio->close();
 
 
 sub read_annotation_file(file) {
-	
+
 	my $file = shift;
 	my %lookup = {};
-		
+
 	open (my $IN, '<', $file) or die "FATAL: Can't open file: $file for reading.\n$!\n";
 
 	while (<$IN>) {
-		chomp; 
-		my $line = $_; 
+		chomp;
+		my $line = $_;
 
 		my ($id,$go,$name) = split("\t", $line);
-		$lookup{$id} = $name ;	
+		$lookup{$id} = $name ;
 	}
 
 	close ($IN);
-	
+
 	return %lookup;
-	
+
 }
-
-
-

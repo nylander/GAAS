@@ -6,9 +6,10 @@ use Getopt::Long;
 use Pod::Usage;
 use Scalar::Util qw(openhandle);
 use Time::Piece;
+use POSIX;
 use Time::Seconds;
-use FindBin;
-use lib ("$FindBin::Bin/PerlLib", "$FindBin::Bin/PerlLibAdaptors");
+use NBIS::Grid::Bsub;
+use NBIS::Grid::Sbatch;
 use File::Basename;
 use Bio::SeqIO;
 use Cwd;
@@ -30,6 +31,7 @@ my @cmds = ();				# Stores the commands to send to farm
 my $quiet;
 my $help;
 my $grid="Slurm";
+my $queue=undef;
 my $chunk=10;
 
 if ( !GetOptions(
@@ -37,6 +39,7 @@ if ( !GetOptions(
     "fasta|f=s" => \$fastaFile,
     "grid=s"  => \$grid,
     "chunk=i"  => \$chunk,
+    "queue=s"  => \$queue,
     "outdir|o=s" => \$outdir))
 
 {
@@ -62,6 +65,14 @@ if ( ! defined($fastaFile) ){
 if (! -e $fastaFile){
 	print "The fasta file ".$fastaFile." does not exist.\n";exit;
 }
+
+# set grid
+my @grid_choice=('slurm','lsf','none');
+$grid=lc($grid);
+if (! grep( /^$grid/, @grid_choice ) ) {
+  print "$grid is not a value accepted for grid parameter.";exit;
+}
+$grid= undef if lc($grid) eq 'none';
 
 # .. Check that all binaries are available in $PATH
 my @tools = ("transposonPSI.pl" );	# List of tools to check for!
@@ -92,19 +103,16 @@ my $seq;
 
 my $seq_counter = 0;
 my $nbLine=`grep -c ">" $fastaFile`;
-my $chunk_size= int($nbLine/$chunk);
-my $chunk_counter=1;
+my $chunk_size= ceil($nbLine/$chunk);
+my $chunk_counter=0;
 my $seq_out;
 my $chunk_file ;
-
-# frist chunch
-$chunk_file = $outdir."/".$fastaFile. "_chunck" . $seq_counter . ".fasta" ; # We could also use the display_id, but this can cause trouble with special characters
-$seq_out = Bio::SeqIO->new(-file => ">$chunk_file" , -format => 'fasta');
 
 while( $seq = $inseq->next_seq() ) {
 	if ($chunk_counter == 0){
 		$seq_counter += 1;
-
+		$chunk_file = $outdir."/".$fastaFile. "_chunck" . $seq_counter . ".fasta" ; # We could also use the display_id, but this can cause trouble with special characters
+		$seq_out = Bio::SeqIO->new(-file => ">$chunk_file" , -format => 'fasta');
 	}
 
 	$seq_out->write_seq($seq);
@@ -116,12 +124,6 @@ while( $seq = $inseq->next_seq() ) {
 		$chunk_counter = 0;
 	}
 }
-# last round
-if ($chunk_counter != $chunk_size){
-	my $command = "transposonPSI.pl ".$chunk_file." prot > /dev/null" ;
-        push(@cmds,$command);
-}
-
 
 msg("submitting chunks\n");
 
@@ -136,6 +138,7 @@ if( $grid){
   elsif( $grid eq 'slurm'){
     $grid_runner = Sbatch->new( cmds_list => \@cmds);
   }
+  if($queue){$grid_runner->queue($queue)}
   $grid_runner->run();
 }
 else{
@@ -254,6 +257,10 @@ The name of the protein fasta file to read.
 =item B<--chunk>
 
 By default 10. We slice the fasta input file in many chunk to distribute more efficiently small tasks to each cpu.
+
+=item B<--queue>
+
+If you want to define a particular queue to run the jobs
 
 =item B<--grid>
 
