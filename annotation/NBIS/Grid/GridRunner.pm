@@ -67,7 +67,7 @@ sub BUILD {
     # --------- write commands listing ------------
     open (my $fh, ">$log_dir/cmds_list.txt") or die $!;
     my $index = 0;
-    foreach my $cmd ($self->cmds_list) {
+    foreach my $cmd (@{$self->cmds_list}) {
         print $fh "index($index)\t$cmd\n";
         $index++;
     }
