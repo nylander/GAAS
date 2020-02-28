@@ -2,34 +2,27 @@
 
 use strict;
 use warnings;
-use Data::Dumper;
 use Carp;
 use Getopt::Long;
 use Pod::Usage;
 use Scalar::Util qw(openhandle);
 use Time::Piece;
 use Time::Seconds;
-use GAAS::Grid::Bsub;
-use GAAS::Grid::Sbatch;
 use File::Basename;
 use Bio::SeqIO;
 use Cwd;
 use Bio::SeqFeature::Generic;
 use Bio::Tools::GFF;
 no strict qw(subs refs);
+use GAAS::Grid::Bsub;
+use GAAS::Grid::Sbatch;
+use GAAS::GAAS;
 
-my $header = qq{
-########################################################
-# NBIS - Sweden                                        #
-#                                                      #
-# Please cite NBIS (www.NBIS.se) when using this tool. #
-########################################################
-};
-
+my $header = get_gaas_header();
 my $rfam_cm_file = "/projects/references/databases/rfam/14.1/Rfam.cm"; #cm models to be annotated by tRNAscan
 my $gff_formatter = Bio::Tools::GFF->new(-gff_version => 3);
-
-my $outdir = undef;
+my $queue=undef;
+my $outdir = "rfam_output";
 my $fasta = undef;
 my @cmds = ();				# Stores the commands to send to farm
 my $quiet;
@@ -38,10 +31,12 @@ my $help;
 my $grid="Slurm";
 
 if ( !GetOptions(
-    "help" => \$help,
+    "h|help!" => \$help,
     "fasta|f=s" => \$fasta,
     "cm=s"  => \$rfam_cm_file,
     "grid=s"  => \$grid,
+		"queue=s"  => \$queue,
+		"quiet|q!"  => \$quiet,
     "outdir|o=s" => \$outdir))
 
 {
@@ -52,12 +47,12 @@ if ( !GetOptions(
 
 # Print Help and exit
 if ($help) {
-        pod2usage( { -verbose => 1,
+        pod2usage( { -verbose => 99,
                  -exitval => 0,
                  -message => "$header \n" } );
 }
 
-if ( ! (defined($fasta) and defined($outdir) ) ){
+if ( ! defined( $fasta ) ){
     pod2usage( {
            -message => "$header\nAt least 2 parameter are mandatory:\nInput fasta file and output directory \n\n",
            -verbose => 0,
@@ -120,7 +115,7 @@ while( $seq = $inseq->next_seq() ) {
 msg("submitting chunks\n");
 
 if( $grid){
-  msg("Sending $seq_counter jobs to the grid\n");
+	msg("Sending $#cmds jobs to the grid\n");
   chomp(@cmds); # Remove empty indices
   # Submit job chunks to grid
   my $grid_runner;
@@ -130,6 +125,7 @@ if( $grid){
   elsif( $grid eq 'slurm'){
     $grid_runner = Sbatch->new( cmds_list => \@cmds);
   }
+	if($queue){$grid_runner->queue($queue)}
   $grid_runner->run();
 }
 else{
@@ -252,14 +248,18 @@ __END__
 
 =head1 NAME
 
-rfam2grid.pl -
+gaas_rfam2grid.pl
+
+=head1 DESCRIPTION
+
+Chunk input data to run multiple rfam jobs in parallel
 We currently run infernal (cmsearch) searches directly on the contigs – rather than using the Rfam pipeline with it’s two-step search approach (blast to limit candidates, infernal to refine and verify).
 Infernal ("INFERence of RNA ALignment") is for searching DNA sequence databases for RNA structure and sequence similarities. It is an implementation of a special case of profile stochastic context-free grammars called covariance models (CMs). A CM is like a sequence profile, but it scores a combination of sequence consensus and RNA secondary structure consensus, so in many cases, it is more capable of identifying RNA homologs that conserve their secondary structure more than their primary sequence.
 
 =head1 SYNOPSIS
 
-    ./rfam2grid.pl -f genome.fasta -o outdir
-    ./rfam2grid.pl --help
+    gaas_rfam2grid.pl -f genome.fasta -o outdir
+    gaas_rfam2grid.pl --help
 
 =head1 OPTIONS
 
@@ -277,6 +277,14 @@ File containing the covariance models (cm) used by rfam
 
 Define which grid to use, Slurm, Lsf or None. Default = Slurm.
 
+=item B<--queue>
+
+If you want to define a particular queue to run the jobs
+
+=item B<--quiet> or B<-q>
+
+Quiet mode
+
 =item B<--outdir> or B<-o>
 
 The name of the output directory.
@@ -287,4 +295,30 @@ Display this helpful text.
 
 =back
 
+=head1 FEEDBACK
+
+=head2 Did you find a bug?
+
+Do not hesitate to report bugs to help us keep track of the bugs and their
+resolution. Please use the GitHub issue tracking system available at this
+address:
+
+            https://github.com/NBISweden/GAAS/issues
+
+ Ensure that the bug was not already reported by searching under Issues.
+ If you're unable to find an (open) issue addressing the problem, open a new one.
+ Try as much as possible to include in the issue when relevant:
+ - a clear description,
+ - as much relevant information as possible,
+ - the command used,
+ - a data sample,
+ - an explanation of the expected behaviour that is not occurring.
+
+=head2 Do you want to contribute?
+
+You are very welcome, visit this address for the Contributing guidelines:
+https://github.com/NBISweden/GAAS/blob/master/CONTRIBUTING.md
+
 =cut
+
+AUTHOR - Jacques Dainat

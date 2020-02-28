@@ -1,21 +1,13 @@
-#!/usr/local/bin/perl -w
-
-## NBIS 2015
-## jacques.dainat@nbis.se
+#!/usr/bin/env perl
 
 use strict;
+use warnings;
 use Pod::Usage;
 use Getopt::Long;
 use Bio::SeqIO;
+use GAAS::GAAS;
 
-my $header = qq{
-########################################################
-# NBIS 2015 - Sweden                                   #  
-# jacques.dainat\@nbis.se                               #
-# Please cite NBIS (www.nbis.se) when using this tool. #
-########################################################
-};
-
+my $header = get_gaas_header();
 my $outfile = undef;
 my $embl = undef;
 my $help;
@@ -25,15 +17,15 @@ if( !GetOptions(
     "embl=s" => \$embl,
     "outfile|output|o|out|gb=s" => \$outfile))
 {
-    pod2usage( { -message => "Failed to parse command line\n$header",
+    pod2usage( { -message => "$header\nFailed to parse command line",
                  -verbose => 1,
                  -exitval => 1 } );
 }
 
 # Print Help and exit
 if ($help) {
-    pod2usage( { -verbose => 2,
-                 -exitval => 2,
+    pod2usage( { -verbose => 99,
+                 -exitval => 0,
                  -message => "$header\n" } );
 }
 
@@ -54,7 +46,7 @@ else{
   $gb_out = Bio::SeqIO->new(-fh => \*STDOUT, -format => 'genbank');
 }
 
-### Read gb input file. 
+### Read gb input file.
 my $embl_in = Bio::SeqIO->new(-file => $embl, -format => 'embl');
 
 
@@ -68,12 +60,15 @@ __END__
 
 =head1 NAME
 
-gb2embl.pl -
+gaas_embl2gb.pl
+
+=head1 DESCRIPTION
+
 The script take a EMBL file as input, and will translate it in Genbank format.
 
 =head1 SYNOPSIS
 
-    ./embl2gb.pl --embl=infile.gff [ -o outfile ]
+    gaas_embl2gb.pl --embl=infile.gff [ -o outfile ]
 
 =head1 OPTIONS
 
@@ -81,7 +76,7 @@ The script take a EMBL file as input, and will translate it in Genbank format.
 
 =item B<-embl>
 
-Input EMBL file that will be read 
+Input EMBL file that will be read
 
 =item B<-o> , B<--output> , B<--out> , B<--outfile> or B<--gb>
 
@@ -94,4 +89,30 @@ Display this helpful text.
 
 =back
 
+=head1 FEEDBACK
+
+=head2 Did you find a bug?
+
+Do not hesitate to report bugs to help us keep track of the bugs and their
+resolution. Please use the GitHub issue tracking system available at this
+address:
+
+            https://github.com/NBISweden/GAAS/issues
+
+ Ensure that the bug was not already reported by searching under Issues.
+ If you're unable to find an (open) issue addressing the problem, open a new one.
+ Try as much as possible to include in the issue when relevant:
+ - a clear description,
+ - as much relevant information as possible,
+ - the command used,
+ - a data sample,
+ - an explanation of the expected behaviour that is not occurring.
+
+=head2 Do you want to contribute?
+
+You are very welcome, visit this address for the Contributing guidelines:
+https://github.com/NBISweden/GAAS/blob/master/CONTRIBUTING.md
+
 =cut
+
+AUTHOR - Jacques Dainat

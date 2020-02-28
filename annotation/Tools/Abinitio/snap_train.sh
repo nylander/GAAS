@@ -7,8 +7,7 @@ then
 	echo "Must provide a name!"
 else
 	fathom -categorize 1000 genome.ann genome.dna
-        fathom -export 1000 -plus uni.ann uni.dna
-        forge export.ann export.dna
-        hmm-assembler.pl $NAME . > $NAME.hmm
+	fathom -export 1000 -plus uni.ann uni.dna
+	forge export.ann export.dna
+	hmm-assembler.pl $NAME . > $NAME.hmm
 fi
-	

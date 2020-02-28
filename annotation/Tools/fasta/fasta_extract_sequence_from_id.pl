@@ -8,8 +8,9 @@ use Pod::Usage;
 use Getopt::Long;
 use Bio::SeqIO ;
 use Bio::DB::Fasta;
-use Data::Dumper;
+use GAAS::GAAS;
 
+my $header = get_gaas_header();
 my $start_run = time();
 
 my $col = undef;
@@ -18,22 +19,14 @@ my $separator=undef;
 my $opt_fastafile;
 my $opt_output;
 my $opt_help = 0;
-my $opt_name = undef; 
-
-my $header = qq{
-########################################################
-# NBIS 2018 - Sweden                                   #  
-# jacques.dainat\@nbis.se                               #
-# Please cite NBIS (www.nbis.se) when using this tool. #
-########################################################
-};
+my $opt_name = undef;
 
 # OPTION MANAGMENT
 my @copyARGV=@ARGV;
 if ( !GetOptions( 'f|fa|fasta=s' => \$opt_fastafile,
                   "line=i" => \$lineToAvoid,
                   "col=i" => \$col,
-                  "s=s" =>\$separator, 
+                  "s=s" =>\$separator,
                   'n|name=s' => \$opt_name,
                   'o|output=s'      => \$opt_output,
                   'h|help!'         => \$opt_help ) )
@@ -45,11 +38,11 @@ if ( !GetOptions( 'f|fa|fasta=s' => \$opt_fastafile,
 
 # Print Help and exit
 if ($opt_help) {
-    pod2usage( { -verbose => 2,
-                 -exitval => 2,
-                 -message => "$header \n" } );
+    pod2usage( { -verbose => 99,
+                 -exitval => 0,
+                 -message => "$header\n" } );
 }
- 
+
 if ( (! (defined($opt_name)) ) or (! (defined($opt_fastafile)) ) ){
     pod2usage( {
            -message => "\nAt least 2 parametes are mandatory:\nInput reference gff file (-g);  Input reference fasta file (-f)\n\n".
@@ -114,7 +107,7 @@ if (-f $opt_name){
       }
       else{
         @cols = split /$separator/, $_;
-      }   
+      }
         my $id = $cols[$col];
         $id =~ s/[^[:print:]]+//g;
         #print $id."\n";
@@ -159,7 +152,7 @@ if (! @list_seq_result){
 }
 else{
   foreach my $seq_obj (@list_seq_result){
-    $ostream->write_seq($seq_obj);  
+    $ostream->write_seq($seq_obj);
   }
 }
 
@@ -179,7 +172,7 @@ print "Job done in $run_time seconds\n";
               ########
                ######
                 ####
-                 ##          
+                 ##
 
 
 
@@ -188,19 +181,22 @@ __END__
 
 =head1 NAME
 
-fasta_extract_sequence_from_id.pl -
+gaas_fasta_extract_sequence_from_id.pl
+
+=head1 DESCRIPTION
+
 This script extract sequence in fasta format from a fasta file. You can extract one fasta sequence providing a sequence name or the name of a file containing a list of sequence name (one by line)
 
 =head1 SYNOPSIS
 
-    ./fasta_extract_sequence_from_id.pl -f=infile.fasta -n sequenceID [ -o outfile ]
-    ./fasta_extract_sequence_from_id.pl --help
+    gaas_fasta_extract_sequence_from_id.pl -f=infile.fasta -n sequenceID [ -o outfile ]
+    gaas_fasta_extract_sequence_from_id.pl --help
 
 =head1 OPTIONS
 
 =over 8
 
-=item B<-f> or B<--fasta> 
+=item B<-f> or B<--fasta>
 
 Input fasta file.
 
@@ -231,4 +227,30 @@ Display this helpful text.
 
 =back
 
+=head1 FEEDBACK
+
+=head2 Did you find a bug?
+
+Do not hesitate to report bugs to help us keep track of the bugs and their
+resolution. Please use the GitHub issue tracking system available at this
+address:
+
+            https://github.com/NBISweden/GAAS/issues
+
+ Ensure that the bug was not already reported by searching under Issues.
+ If you're unable to find an (open) issue addressing the problem, open a new one.
+ Try as much as possible to include in the issue when relevant:
+ - a clear description,
+ - as much relevant information as possible,
+ - the command used,
+ - a data sample,
+ - an explanation of the expected behaviour that is not occurring.
+
+=head2 Do you want to contribute?
+
+You are very welcome, visit this address for the Contributing guidelines:
+https://github.com/NBISweden/GAAS/blob/master/CONTRIBUTING.md
+
 =cut
+
+AUTHOR - Jacques Dainat

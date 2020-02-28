@@ -2,10 +2,7 @@
 
 use strict;
 use warnings;
-
 use Getopt::Long;
-use Bio::DB::EUtilities;
-use Bio::SeqIO;
 use Scalar::Util qw(openhandle);
 use Time::Piece;
 use Time::Seconds;
@@ -16,20 +13,15 @@ use LWP::Simple;
 use LWP::UserAgent;
 use HTTP::Request::Common;
 use Try::Tiny;
-
 use Bio::DB::Taxonomy;
 use Bio::TreeIO;
 use Bio::Tree::Tree;
 use Bio::Tree::TreeFunctionsI;
+use Bio::DB::EUtilities;
+use Bio::SeqIO;
+use GAAS::GAAS;
 
-my $header = qq{
-########################################################
-# NBIS 2015 - Sweden                                   #
-# Marc Hoeppner / Jacques Dainat                        #
-# Please cite NBIS (www.nbis.se) when using this tool. #
-########################################################
-};
-
+my $header = get_gaas_header();
 my $outfile = undef;
 my $quiet = undef;
 my $message="";
@@ -53,8 +45,8 @@ if ( !GetOptions(
 
 # Print Help and exit
 if ($help) {
-    pod2usage( { -verbose => 2,
-                 -exitval => 2,
+    pod2usage( { -verbose => 99,
+                 -exitval => 0,
                  -message => "$header\n" } );
 }
 
@@ -304,17 +296,20 @@ sub key_exits{
 
 }
 
-
+__END__
 =head1 NAME
 
-ncbi_get_genome_tree.pl -
+gaas_ncbi_get_genome_tree.pl
+
+=head1 DESCRIPTION
+
 The script creates a tree that covers only whole genomes from the genome NCBI database.
 The result is written to the specified output file, or to STDOUT.
 
 =head1 SYNOPSIS
 
-    ./ncbi_get_genome_tree.pl [ -o outfile ]
-    ./ncbi_get_genome_tree.pl --help
+    gaas_ncbi_get_genome_tree.pl [ -o outfile ]
+    gaas_ncbi_get_genome_tree.pl --help
 
 =head1 OPTIONS
 
@@ -342,4 +337,30 @@ Display this helpful text.
 
 =back
 
+=head1 FEEDBACK
+
+=head2 Did you find a bug?
+
+Do not hesitate to report bugs to help us keep track of the bugs and their
+resolution. Please use the GitHub issue tracking system available at this
+address:
+
+            https://github.com/NBISweden/GAAS/issues
+
+ Ensure that the bug was not already reported by searching under Issues.
+ If you're unable to find an (open) issue addressing the problem, open a new one.
+ Try as much as possible to include in the issue when relevant:
+ - a clear description,
+ - as much relevant information as possible,
+ - the command used,
+ - a data sample,
+ - an explanation of the expected behaviour that is not occurring.
+
+=head2 Do you want to contribute?
+
+You are very welcome, visit this address for the Contributing guidelines:
+https://github.com/NBISweden/GAAS/blob/master/CONTRIBUTING.md
+
 =cut
+
+AUTHOR - Jacques Dainat

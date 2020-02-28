@@ -7,22 +7,16 @@ use strict;
 use Pod::Usage;
 use Getopt::Long;
 use Bio::SeqIO ;
+use GAAS::GAAS;
 
+my $header = get_gaas_header();
 my $start_run = time();
 
 my $opt_fastafile;
 my $opt_output;
 my $opt_help = 0;
 my $opt_chunck_size = undef;
-my $opt_overlap = 0; 
-
-my $header = qq{
-########################################################
-# NBIS 2018 - Sweden                                   #  
-# jacques.dainat\@nbis.se                               #
-# Please cite NBIS (www.nbis.se) when using this tool. #
-########################################################
-};
+my $opt_overlap = 0;
 
 # OPTION MANAGMENT
 my @copyARGV=@ARGV;
@@ -39,11 +33,11 @@ if ( !GetOptions( 'f|fa|fasta=s' => \$opt_fastafile,
 
 # Print Help and exit
 if ($opt_help) {
-    pod2usage( { -verbose => 2,
-                 -exitval => 2,
-                 -message => "$header \n" } );
-} 
- 
+    pod2usage( { -verbose => 99,
+                 -exitval => 0,
+                 -message => "$header\n" } );
+}
+
 if (! defined($opt_fastafile) or ! defined($opt_chunck_size) ) {
     pod2usage( {
            -message => "\nAt least 2 parameter is mandatory:\nInput reference fasta file (-f)\nChunck_size (-c)\n".
@@ -78,15 +72,15 @@ my $fasta1  = Bio::SeqIO->new(-file => $opt_fastafile , -format => 'Fasta');
 while ( my $seq = $fasta1->next_seq() ) {
   my $start = 1;
   my $end = $opt_chunck_size;
-  
+
   while ( $end < $seq->length() ) {
 
       my $sequence = undef;
       my $seqObj = undef;
       my $id_seq = undef;
     	if($seq->length() > ($end+$opt_chunck_size) ){
-        
-        
+
+
         $sequence = $seq->subseq($start, $end);
 	$seqObj = Bio::Seq->new( '-format' => 'fasta' , -seq => $sequence);
         $id_seq = $seq->id."_".$start."_".$end;
@@ -123,7 +117,7 @@ print "Job done in $run_time seconds\n";
               ########
                ######
                 ####
-                 ##          
+                 ##
 
 
 
@@ -132,19 +126,22 @@ __END__
 
 =head1 NAME
 
-fasta_spliter_overlap.pl -
+gaas_fasta_spliter_overlap.pl
+
+=head1 DESCRIPTION
+
 This script split sequences by size with an overlaped part.
 
 =head1 SYNOPSIS
 
-    ./fasta_filer_by_size.pl -f=infile.fasta [ -o outfile ]
-    ./fasta_filer_by_size.pl --help
+    gaas_fasta_spliter_overlap.pl -f=infile.fasta [ -o outfile ]
+    gaas_fasta_spliter_overlap.pl --help
 
 =head1 OPTIONS
 
 =over 8
 
-=item B<-f> or B<--fasta> 
+=item B<-f> or B<--fasta>
 
 Input fasta file.
 
@@ -163,4 +160,30 @@ Display this helpful text.
 
 =back
 
+=head1 FEEDBACK
+
+=head2 Did you find a bug?
+
+Do not hesitate to report bugs to help us keep track of the bugs and their
+resolution. Please use the GitHub issue tracking system available at this
+address:
+
+            https://github.com/NBISweden/GAAS/issues
+
+ Ensure that the bug was not already reported by searching under Issues.
+ If you're unable to find an (open) issue addressing the problem, open a new one.
+ Try as much as possible to include in the issue when relevant:
+ - a clear description,
+ - as much relevant information as possible,
+ - the command used,
+ - a data sample,
+ - an explanation of the expected behaviour that is not occurring.
+
+=head2 Do you want to contribute?
+
+You are very welcome, visit this address for the Contributing guidelines:
+https://github.com/NBISweden/GAAS/blob/master/CONTRIBUTING.md
+
 =cut
+
+AUTHOR - Jacques Dainat

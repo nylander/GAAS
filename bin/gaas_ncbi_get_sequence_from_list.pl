@@ -2,7 +2,7 @@
 
 
 #
-# NCBI recommends that users post no more than three URL requests per second 
+# NCBI recommends that users post no more than three URL requests per second
 #
 
 use strict;
@@ -16,18 +16,9 @@ use Time::Piece;
 use Time::Seconds;
 use Pod::Usage;
 use XML::LibXML;
-use Data::Dumper;
+use GAAS::GAAS;
 
-#use Bio::DB::Taxonomy;
-
-my $header = qq{
-########################################################
-# NBIS 2017 - Sweden                                   #  
-# Jacques Dainat  				                       #
-# Please cite NBIS (www.nbis.se) when using this tool. #
-########################################################
-};
-
+my $header = get_gaas_header();
 my $opt_output = undef;
 my $col = undef;
 my $message="";
@@ -38,12 +29,12 @@ my $help;
 my $quiet = undef;
 
 if ( !GetOptions(
-    "help|h" => \$help,
-	"list|l=s" => \$list,
-	"line=i" => \$lineToAvoid,
-	"col=i" => \$col,
-	"s=s"	=>\$separator, 
-	"q" => \$quiet,
+    "help|h" 							=> \$help,
+		"list|l=s" 						=> \$list,
+		"line=i" 							=> \$lineToAvoid,
+		"col=i" 							=> \$col,
+		"s=s"									=>\$separator,
+		"q" 									=> \$quiet,
     "o|output|outfile=s" => \$opt_output))
 {
     pod2usage( { -message => 'Failed to parse command line',
@@ -53,14 +44,14 @@ if ( !GetOptions(
 
 # Print Help and exit
 if ($help) {
-    pod2usage( { -verbose => 2,
-                 -exitval => 2,
+    pod2usage( { -verbose => 99,
+                 -exitval => 0,
                  -message => "$header\n" } );
 }
 
 if ( ! (defined($list)) ){
     pod2usage( {
-           -message => "$header\nAt least 1 parameters is mandatory.\n",
+           -message => "$header\nAt least 1 parameters is mandatory (--list).\n",
            -verbose => 0,
            -exitval => 1 } );
 }
@@ -127,8 +118,8 @@ if (-f $list){
 		 	}
 		 	else{
 		 		@cols = split /$separator/, $_;
-		 	} 	
-	
+		 	}
+
 	        my $id = $cols[$col];
 	        $id =~ s/[^[:print:]]+//g;
 	        print $id."\n";
@@ -157,7 +148,7 @@ foreach my $ID (keys %list_of_ID){
 											   -term  => $ID);
 		my $count = 0;
 		$count = $factory->get_count;
-		
+
 		if ($count == 0){ # Skip if nothing was found
 			if ($opt_output) {
 				print $error "a - No identifier found for $ID\n"; ## => print to log error
@@ -168,18 +159,18 @@ foreach my $ID (keys %list_of_ID){
 			next;
 		}
 		else{
-			#msg("We found $count ID for $ID  in database 'protein db' \n"); 
+			#msg("We found $count ID for $ID  in database 'protein db' \n");
 		}
 
-		# Go trough the XML response to extract the ids 
+		# Go trough the XML response to extract the ids
 		my $xml_data;
 		$factory->get_Response(-cb => sub { ($xml_data) = @_; } );
 
 		my $xmldoc = XML::LibXML->load_xml(string => $xml_data);
 
 		my @nodes = $xmldoc->getElementsByLocalName('Id');
-		
-		
+
+
 		foreach my $node (@nodes){
 			$idcorrect = $node->textContent;
 			last;
@@ -227,7 +218,7 @@ if ($opt_output) {
               ########
                ######
                 ####
-                 ##   
+                 ##
 
 sub msg {
   my $t = localtime;
@@ -243,7 +234,7 @@ sub runcmd {
 
 sub key_exits{
 	my ($resu_kingdom, %HASH)=@_;
-	
+
 	while ($resu_kingdom){
 		foreach my $key (keys %HASH){
 			if($resu_kingdom == $key){
@@ -260,15 +251,19 @@ sub key_exits{
 
 =head1 NAME
 
-ncbi_get_sequence_from_list.pl -
-The script allow to retrieve the sequences from the NCBI ID list. 
+gaas_ncbi_get_sequence_from_list.pl
+
+=head1 DESCRIPTION
+
+
+The script allow to retrieve the sequences from the NCBI ID list.
 The list should be a column in a file containing one ID per line.
 The result is written to the specified output file, or to STDOUT in fasta format.
 
 =head1 SYNOPSIS
 
-    ./ncbi_get_sequence_from_list.pl [ -o outfile ]
-    ./ncbi_get_sequence_from_list.pl --help
+    gaas_ncbi_get_sequence_from_list.pl --list file.txt [ -o outfile ]
+    gaas_ncbi_get_sequence_from_list.pl --help
 
 =head1 OPTIONS
 

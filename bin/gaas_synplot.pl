@@ -81,7 +81,7 @@ my $gencode=4;              # Genetic code
 my $outfix="test";          # Output prefix
 my $cdstype="color";        # How to indicate CDS direction
 my $colmax="red";           # Color for maximum %ID in color scale
-my $colcds1="darkblue";     # Color for CDS 
+my $colcds1="darkblue";     # Color for CDS
 my $colcds2="darkgreen";
 my @valid_cds = qw(color arrow); # List of valid CDS drawing types
 my %contig_length_hash;     # Hash of hash of contig lengths
@@ -106,7 +106,7 @@ GetOptions (
     'color_cds_f=s' =>\$colcds1,
     'color_cds_r=s' =>\$colcds2,
     'bidir' => \$bidir,             # Bidirectional best hits only
-    'help|h' => sub { pod2usage(-exitstatus=>2, verbose=>2); },
+    'help|h' => sub { pod2usage(-exitstatus=>0, verbose=>99); },
     'man|m' => sub { pod2usage(-exitstatus=>0, verbose=>2); },
 );
 
@@ -135,7 +135,7 @@ if (!$plotonly) {
     open(OUTPUT3, ">", "$output_tab_3") or die ("$!\n");
     print OUTPUT3 join ("\t", qw (genome1 gene1 genome2 gene2 g1x0 g1x1 g2x1 g2x0 g1x0 g1y0 g1y1 g2y1 g2y0 g1y0 pid))."\n";
     close(OUTPUT3);
-    
+
     # Run functions
     parse_fasta_gff();
     if ($bidir) {
@@ -155,7 +155,7 @@ sub parse_fasta_gff {
     ## Record contig lengths for each Fasta file
     my %contig_zero_position;
     my %running_total;
-    
+
     for my $i (0 .. scalar(@input_fasta_list)-1) {
         my $the_fasta = $input_fasta_list[$i];
         $the_fasta =~ /(.*)\.fasta/;
@@ -165,7 +165,7 @@ sub parse_fasta_gff {
         close(OUTPUT0);
         $running_total{$the_fasta} = 0;
         ## Predict ORFs with Prodigal if not already supplied in GFF file
-        # system ("prodigal -m -c -g 4 -a $the_fasta.prodigal.pep -q -p single -f gff -o $the_fasta.prodigal.gff");  
+        # system ("prodigal -m -c -g 4 -a $the_fasta.prodigal.pep -q -p single -f gff -o $the_fasta.prodigal.gff");
         my $the_fasta_object = Bio::SeqIO->new(-file => $the_fasta);
         my $seq_object;
         open(OUTPUT1, ">>", "$output_tab_1") or die ("$!\n");
@@ -182,7 +182,7 @@ sub parse_fasta_gff {
                                 $contig_zero_position{$the_fasta}{$seq_object->display_id},
                                 $running_total{$the_fasta},
                                 $i
-                               )."\n"; 
+                               )."\n";
         }
         #print $the_fasta."\t".$total_length_hash{$the_fasta}."\n";
         close (OUTPUT1);
@@ -191,7 +191,7 @@ sub parse_fasta_gff {
         my $db = Bio::DB::Fasta->new($the_fasta);
         #my %CDS;
         # Output file for translated CDS sequences
-        my $outfile_pep = Bio::SeqIO->new(-format=>'fasta', -file=> ">$the_fasta.pep"); 
+        my $outfile_pep = Bio::SeqIO->new(-format=>'fasta', -file=> ">$the_fasta.pep");
         # Open GFF file
         open(GFF, "<", $input_gff_list[$i]) or die ("$!\n");
         open (OUTPUT2, ">>", "$output_tab_2") or die ("$!\n");
@@ -204,9 +204,9 @@ sub parse_fasta_gff {
                 my @array = split("\t",$_);
                 # Split notes field into elements
                 my @attrs = split(";",$array[8]);
-                $attrs[0] =~ s/ID=//; 
+                $attrs[0] =~ s/ID=//;
                 # Gene name parsed from ID field
-                my $gene_name = $attrs[0];            
+                my $gene_name = $attrs[0];
                 my $start;
                 my $stop;
                 # What type of feature
@@ -216,7 +216,7 @@ sub parse_fasta_gff {
                 my $gene_seq = $db->seq($array[0],
                                         $array[3],
                                         $array[4]
-                                        ); 
+                                        );
                 #print $db->seq($array[0],$array[3],$array[4])."\n";
                 # Output sequence object
                 my $output_gene = Bio::Seq->new(
@@ -233,17 +233,17 @@ sub parse_fasta_gff {
                     $output_gene=$output_gene->revcom();
                     $start = $array[4];
                     $stop=$array[3];
-                } 
+                }
                 if ($type eq "CDS") {
                     # If CDS, write translation to file
                     # Translation table 4 (protozoan mitochondrial)
-                    my $output_pep = $output_gene->translate(-codontable_id=>$gencode);    
+                    my $output_pep = $output_gene->translate(-codontable_id=>$gencode);
                     $outfile_pep->write_seq($output_pep);
                 }
                 my $zerostart = $start + $contig_zero_position{$the_fasta}{$current_contig};
                 my $zerostop = $stop + $contig_zero_position{$the_fasta}{$current_contig};
                 # Define color for CDS depending on transcription direction
-                my $cds_color;  
+                my $cds_color;
                 if ($zerostart < $zerostop) {
                     $cds_color=$colcds1;
                 }

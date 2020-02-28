@@ -4,24 +4,19 @@
 # Implement case insensitive
 ###
 use strict;
+use warnings;
 use Pod::Usage;
 use Getopt::Long;
 use Bio::SeqIO ;
+use GAAS::GAAS;
 
+my $header = get_gaas_header();
 my $start_run = time();
 
 my $opt_fastafile;
 my $opt_output;
-my $opt_help = 0;
-my $opt_size = 1000; 
-
-my $header = qq{
-########################################################
-# NBIS 2018 - Sweden                                   #  
-# jacques.dainat\@nbis.se                               #
-# Please cite NBIS (www.nbis.se) when using this tool. #
-########################################################
-};
+my $opt_help = undef;
+my $opt_size = 1000;
 
 # OPTION MANAGMENT
 my @copyARGV=@ARGV;
@@ -37,11 +32,11 @@ if ( !GetOptions( 'f|fa|fasta=s' => \$opt_fastafile,
 
 # Print Help and exit
 if ($opt_help) {
-    pod2usage( { -verbose => 2,
-                 -exitval => 2,
-                 -message => "$header \n" } );
-} 
- 
+    pod2usage( { -verbose => 99,
+                 -exitval => 0,
+                 -message => "$header\n" } );
+}
+
 if (! (defined($opt_fastafile)) ) {
     pod2usage( {
            -message => "\nAt least 1 parameter is mandatory:\nInput reference fasta file (-f)\n\n".
@@ -93,7 +88,7 @@ print "Job done in $run_time seconds\n";
               ########
                ######
                 ####
-                 ##          
+                 ##
 
 
 
@@ -102,20 +97,23 @@ __END__
 
 =head1 NAME
 
-fasta_filer_by_size.pl -
-This script filter sequences by size. It will remove from the output all sequences under a certain size (1000 bp/aa by default) 
+gaas_fasta_filer_by_size.pl
+
+=head1 DESCRIPTION
+
+This script filter sequences by size. It will remove from the output all sequences under a certain size (1000 bp/aa by default)
 We keep all sequences >= --size
 
 =head1 SYNOPSIS
 
-    ./fasta_filer_by_size.pl -f=infile.fasta [ -o outfile ]
-    ./fasta_filer_by_size.pl --help
+    gaas_fasta_filer_by_size.pl -f infile.fasta [ -o outfile ]
+    gaas_fasta_filer_by_size.pl --help
 
 =head1 OPTIONS
 
 =over 8
 
-=item B<-f> or B<--fasta> 
+=item B<-f> or B<--fasta>
 
 Input fasta file.
 
@@ -134,4 +132,30 @@ Display this helpful text.
 
 =back
 
+=head1 FEEDBACK
+
+=head2 Did you find a bug?
+
+Do not hesitate to report bugs to help us keep track of the bugs and their
+resolution. Please use the GitHub issue tracking system available at this
+address:
+
+            https://github.com/NBISweden/GAAS/issues
+
+ Ensure that the bug was not already reported by searching under Issues.
+ If you're unable to find an (open) issue addressing the problem, open a new one.
+ Try as much as possible to include in the issue when relevant:
+ - a clear description,
+ - as much relevant information as possible,
+ - the command used,
+ - a data sample,
+ - an explanation of the expected behaviour that is not occurring.
+
+=head2 Do you want to contribute?
+
+You are very welcome, visit this address for the Contributing guidelines:
+https://github.com/NBISweden/GAAS/blob/master/CONTRIBUTING.md
+
 =cut
+
+AUTHOR - Jacques Dainat

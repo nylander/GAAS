@@ -16,21 +16,21 @@ my $rread;      # file of forward reads for 'splitpairs', 'makepairs' and 'joinp
 my $fpread;     # file of paired forward reads for 'makepairs' method
 my $rpread;     # file of paired reverse reads for 'makepairs' method
 my $fsread;     # file of unpaired forward reads for 'makepairs' method
-my $rsread;     # file of unpaired reverse reads for 'makepairs' method 
+my $rsread;     # file of unpaired reverse reads for 'makepairs' method
 my $pairnum;    # for the 'addinfo' method
 my $uppercase;  # for 'addinfo' method
 my $stats;      # currently, for 'makepairs' option only
 
-my $version; 
+my $version;
 my $help;
 my $man;
 my $script = basename($0, ());
 $script = "pairfq_lite" if $script =~ /^-$|stdin/i;
 
-GetOptions(
+if ( !GetOptions(
 	   'i|infile=s'         => \$infile,
 	   'o|outfile=s'        => \$outfile,
-	   'p|pairnum=i'        => \$pairnum, 
+	   'p|pairnum=i'        => \$pairnum,
 	   'f|forward=s'        => \$fread,
 	   'r|reverse=s'        => \$rread,
 	   'fp|forw_paired=s'   => \$fpread,
@@ -40,15 +40,21 @@ GetOptions(
 	   'uc|uppercase'       => \$uppercase,
 	   's|stats'            => \$stats,
 	   'version'            => \$version,
-	   'h|help'             => \$help,
-	   'm|man'              => \$man,
-	  ) or pod2usage( "Try '$0 --man' for more information." );
+	   'h|help'             => \$help ) )
+{
+	pod2usage( { 	   -message => 'Failed to parse command line',
+	                 -verbose => 1,
+	                 -exitval => 1 } );
+}
 
+# Print Help and exit
+if ($help) {
+    pod2usage( { -verbose => 99,
+                 -exitval => 0 } );
+}
 #
 # Check @ARGV
 #
-usage($script) and exit(0) if $help;
-pod2usage( -verbose => 2 ) if $man;
 print $VERSION and exit(0) if $version;
 
 my $method = shift;
@@ -165,7 +171,7 @@ sub make_pairs_and_singles {
 		"Please see https://github.com/sestaton/Pairfq or the README for supported formats. Exiting.\n\n";
 	    exit(1);
 	}
-	
+
 	if ($fname =~ /\|\|/) {
 	    my ($name, $comm);
 	    ($name, $comm) = mk_vec($fname);
@@ -176,45 +182,45 @@ sub make_pairs_and_singles {
 	}
 
 	if (exists $rseqpairs->{$fname}) {
-	    $fpct++; 
+	    $fpct++;
 	    $rpct++;
 	    if (defined $fqual) {
 		my ($rread, $rqual) = mk_vec($rseqpairs->{$fname});
 		if ($fname =~ /\|\|/) {
 		    print $fp join "\n", "@".$forw_id, $fseq, "+", "$fqual\n";
 		    print $rp join "\n", "@".$rev_id, $rread, "+", "$rqual\n";
-		} 
+		}
 		else {
 		    print $fp join "\n", "@".$fname."/1", $fseq, "+", "$fqual\n";
 		    print $rp join "\n", "@".$fname."/2", $rread, "+", "$rqual\n";
 		}
-	    } 
+	    }
 	    else {
 		if ($fname =~ /\|\|/) {
 		    print $fp join "\n", ">".$forw_id, "$fseq\n";
 		    print $rp join "\n", ">".$rev_id, "$rseqpairs->{$fname}\n";
-		} 
+		}
 		else {
 		    print $fp join "\n", ">".$fname."/1", "$fseq\n";
 		    print $rp join "\n", ">".$fname."/2", "$rseqpairs->{$fname}\n";
 		}
 	    }
 	    delete $rseqpairs->{$fname};
-	} 
+	}
 	else {
 	    $fsct++;
 	    if (defined $fqual) {
 		if ($fname =~ /\|\|/) {
 		    print $fs join "\n", "@".$forw_id, $fseq, "+", "$fqual\n";
-		} 
+		}
 		else {
 		    print $fs join "\n", "@".$fname."/1", $fseq, "+", "$fqual\n";
 		}
-	    } 
+	    }
 	    else {
 		if ($fname =~ /\|\|/) {
 		    print $fs join "\n", ">".$forw_id, "$fseq\n";
-		} 
+		}
 		else {
 		    print $fs join "\n", ">".$fname."/1", "$fseq\n";
 		}
@@ -236,13 +242,13 @@ sub make_pairs_and_singles {
 	my ($rseq_up, $rqual_up)  = mk_vec($rseq_up_unenc);
 
 	my $rev_id_up .= $rname_up." 2".$rcomm_up if defined $rcomm_up;
-    
+
 	if (defined $rcomm_up && defined $rqual_up) {
 	    print $rs join "\n", "@".$rev_id_up, $rseq_up, "+", "$rqual_up\n";
-	} 
+	}
 	elsif (defined $rcomm_up && !defined $rqual_up) {
 	    print $rs join "\n", ">".$rev_id_up, "$rseq_up_unenc\n";
-	} 
+	}
 	elsif (!defined $rcomm_up && defined $rqual_up) {
 	    print $rs join "\n", "@".$rname_up."/2", $rseq_up, "+", "$rqual_up\n";
 	}
@@ -320,22 +326,22 @@ sub interleaved_to_pairs_and_singles {
         if ($fpairname eq $rpairname) {
             $fpct++;
             $rpct++;
-            say $fp join "\n", ">".$fname, $fseq 
+            say $fp join "\n", ">".$fname, $fseq
                   if !defined $fqual && !defined $fcomm;
-            say $fp join "\n", ">".$fname." ".$fcomm, $fseq 
+            say $fp join "\n", ">".$fname." ".$fcomm, $fseq
                 if !defined $fqual && defined $fcomm;
-            say $fp join "\n", "@".$fname, $fseq, "+", $fqual 
+            say $fp join "\n", "@".$fname, $fseq, "+", $fqual
                 if defined $fqual && !defined $fcomm;
-            say $fp join "\n", "@".$fname." ".$fcomm, $fseq, "+", $fqual 
+            say $fp join "\n", "@".$fname." ".$fcomm, $fseq, "+", $fqual
                 if defined $fqual && defined $fcomm;
-            
-            say $rp join "\n", ">".$rname, $rseq 
+
+            say $rp join "\n", ">".$rname, $rseq
                 if !defined $rqual && !defined $rcomm;
-            say $rp join "\n", ">".$rname." ".$rcomm, $rseq 
+            say $rp join "\n", ">".$rname." ".$rcomm, $rseq
                 if !defined $rqual && defined $rcomm;
-            say $rp join "\n", "@".$rname, $rseq, "+", $rqual 
+            say $rp join "\n", "@".$rname, $rseq, "+", $rqual
                 if defined $rqual && !defined $rcomm;
-            say $rp join "\n", "@".$rname." ".$rcomm, $rseq, "+", $rqual 
+            say $rp join "\n", "@".$rname." ".$rcomm, $rseq, "+", $rqual
                 if defined $rqual && defined $rcomm;
             delete $singles{$fname};
             delete $singles{$rname};
@@ -357,13 +363,13 @@ sub interleaved_to_pairs_and_singles {
             $sfh = $rs;
         }
 
-	say $sfh join "\n", ">".$singles{$id}->{'name'}, $singles{$id}->{'seq'} 
+	say $sfh join "\n", ">".$singles{$id}->{'name'}, $singles{$id}->{'seq'}
             if !defined $singles{$id}->{'qual'} && !defined $singles{$id}->{'comm'};
-        say $sfh join "\n", ">".$singles{$id}->{'name'}." ".$singles{$id}->{'comm'}, $singles{$id}->{'seq'} 
+        say $sfh join "\n", ">".$singles{$id}->{'name'}." ".$singles{$id}->{'comm'}, $singles{$id}->{'seq'}
             if !defined $singles{$id}->{'qual'} && defined $singles{$id}->{'comm'};
-        say $sfh join "\n", "@".$singles{$id}->{'name'}, $singles{$id}->{'seq'}, "+", $singles{$id}->{'qual'} 
+        say $sfh join "\n", "@".$singles{$id}->{'name'}, $singles{$id}->{'seq'}, "+", $singles{$id}->{'qual'}
             if defined $singles{$id}->{'qual'} && !defined $singles{$id}->{'comm'};
-        say $sfh join "\n", "@".$singles{$id}->{'name'}." ".$singles{$id}->{'comm'}, $singles{$id}->{'seq'}, "+", $singles{$id}->{'qual'} 
+        say $sfh join "\n", "@".$singles{$id}->{'name'}." ".$singles{$id}->{'comm'}, $singles{$id}->{'seq'}, "+", $singles{$id}->{'qual'}
             if defined $singles{$id}->{'qual'} && defined $singles{$id}->{'comm'};
     }
     close $fs;
@@ -441,7 +447,7 @@ sub pairs_to_interleaved {
 		}
 		else {
 		    print $out join "\n", ">".$rname."/1", "$pairs->{$rname}\n";
-		    print $out join "\n", ">".$rname."/2", "$rseq\n";                                               
+		    print $out join "\n", ">".$rname."/2", "$rseq\n";
 		}
 	    }
 	}
@@ -457,7 +463,7 @@ sub interleaved_to_pairs {
 
     my $fh = get_fh($infile);
     open my $f, '>', $forward or die "\nERROR: Could not open file: $forward\n";
-    open my $r, '>', $reverse or die "\nERROR: Could not open file: $reverse\n"; 
+    open my $r, '>', $reverse or die "\nERROR: Could not open file: $reverse\n";
 
     my @aux = undef;
     my ($name, $comm, $seq, $qual);
@@ -531,7 +537,7 @@ sub store_pair {
     my $rct = 0;
     my %rseqpairs;
     my $cwd = getcwd();
-    
+
     my @raux = undef;
     my ($rname, $rcomm, $rseq, $rqual);
 
@@ -551,7 +557,7 @@ sub store_pair {
 		"Please see https://github.com/sestaton/Pairfq or the README for supported formats. Exiting.\n\n";
 	    exit(1);
 	}
-	
+
 	$rseqpairs{$rname} = mk_key($rseq, $rqual) if defined $rqual;
 	$rseqpairs{$rname} = $rseq if !defined $rqual;
     }
@@ -578,7 +584,7 @@ sub readfq {
     }
     my ($name, $comm);
     defined $_ && do {
-        ($name, $comm) = /^.(\S+)(?:\s+)(\S+)/ ? ($1, $2) : 
+        ($name, $comm) = /^.(\S+)(?:\s+)(\S+)/ ? ($1, $2) :
 	                 /^.(\S+)/ ? ($1, '') : ('', '');
     };
     my $seq = '';
@@ -623,10 +629,10 @@ USAGE: $script [-h] [-m] [--version]
 
 Required:
     addinfo           :      Add the pair info back to the FASTA/Q header.
-    makepairs         :      Pair the forward and reverse reads and write singletons 
+    makepairs         :      Pair the forward and reverse reads and write singletons
                              for both forward and reverse reads to separate files.
     joinpairs         :      Interleave the paired forward and reverse files.
-    splitpairs        :      Split the interleaved file into separate files for the 
+    splitpairs        :      Split the interleaved file into separate files for the
                              forward and reverse reads.
 
 Options:
@@ -715,11 +721,11 @@ EOF
 
 __END__
 
-=head1 NAME 
-                                                                       
+=head1 NAME
+
 pairfq_lite.pl - Sync paired-end sequences from separate FASTA/Q files
 
-=head1 SYNOPSIS    
+=head1 SYNOPSIS
 
 ## Add pair information back to the reads
 
@@ -743,26 +749,43 @@ pairfq_lite.pl joinpairs -f s_1_1_trim_paired.fq -r s_1_2_trim_paired.fq -o s_1_
 pairfq_lite.pl splitpairs -i s_1_interl.fq -f s_1_1_trim_p.fq -r s_1_2_trim_p.fq
 
 =head1 DESCRIPTION
-     
+
 Re-pair paired-end sequences that may have been separated by quality trimming.
-This script also writes the unpaired forward and reverse sequences to separate 
+This script also writes the unpaired forward and reverse sequences to separate
 files so that they may be used for assembly or mapping. The input may be FastA
 or FastQ format in either Illumina 1.3+ or Illumina 1.8 format. The input files
 may be compressed with gzip or bzip2. Optionally, the script can interleave paired
-files, separate interleaved files into separate forward and reverse files, and 
-fix paired-end files which have lost the pair information. 
+files, separate interleaved files into separate forward and reverse files, and
+fix paired-end files which have lost the pair information.
 
 =head1 DEPENDENCIES
 
-There are no external dependencies with the 'pairfq_lite.pl' script. See below for 
+There are no external dependencies with the 'pairfq_lite.pl' script. See below for
 information on which Perls have been tested.
 
 =head1 LICENSE
- 
-The MIT License should included with the project. If not, it can be found at: http://opensource.org/licenses/mit-license.php
+
+The MIT License can be found at: http://opensource.org/licenses/mit-license.php
 
 Copyright (C) 2013-2016 S. Evan Staton
- 
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
 =head1 TESTED WITH:
 
 =over
@@ -790,12 +813,12 @@ Perl 5.20.1 (Red Hat Enterprise Linux Server release 5.9 (Tikanga))
 
 =back
 
-=head1 AUTHOR 
+=head1 AUTHOR
 
-S. Evan Staton                                                
+S. Evan Staton
 
 =head1 CONTACT
- 
+
 statonse at gmail dot com
 
 =head1 REQUIRED ARGUMENTS
@@ -840,15 +863,15 @@ statonse at gmail dot com
 
 =item -rp, --rev_paired
 
-  The output file to place the paired reverse reads. 
+  The output file to place the paired reverse reads.
 
 =item -fs, --forw_unpaired
 
-  The output file to place the unpaired forward reads. 
+  The output file to place the unpaired forward reads.
 
 =item -rs, --rev_unpaired
 
-  The output file to place the unpaired reverse reads. 
+  The output file to place the unpaired reverse reads.
 
 =item -p, --pairnum
 
@@ -871,11 +894,7 @@ statonse at gmail dot com
 
 =item -h, --help
 
-  Print a usage statement. 
-
-=item -m, --man
-  
-  Print the full documentation.
+  Print a usage statement.
 
 =back
 

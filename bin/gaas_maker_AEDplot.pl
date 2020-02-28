@@ -1,23 +1,19 @@
 #!/usr/bin/env perl
 
-#############################################
-# Jacques Dainat 11/2014 # This version use the GFF.pm from Andreas code
-#############################################
-
-#libraries
+use strict;
+use warnings;
 use Statistics::R;
 use File::Basename;
 use strict;
-use warnings;
-use Data::Dumper;
 use Carp;
 use Getopt::Long;
 use IO::File;
 use Pod::Usage;
 use List::MoreUtils qw(uniq);
 use Bio::Tools::GFF;
-use GAAS::CheckModule qw(:Ok);
-# END libraries
+use GAAS::GAAS;
+
+my $header = get_gaas_header();
 
 # PARAMETERS - OPTION
 my @opt_files;
@@ -52,6 +48,16 @@ if ( ! ($#opt_files >= 0)){
            -exitval => 2 } );
 }
 
+# Check R is available. If not we try to load it through Module software
+
+if ( system("R --version 1>/dev/null 2>/dev/null") == 0 ) {
+	print "R is available. We can continue\n";
+}
+else {
+	die "R no available. We cannot perform any plot\n";
+}
+
+
 #############################
 ####### Manage options #######
 #############################
@@ -74,21 +80,6 @@ if (defined($opt_output) ) {
 else{
   $outputPDF="outputPlot.pdf";
 }
-
-# Check R is available. If not we try to load it through Module software
-if ( system("R --version 1>/dev/null 2>/dev/null") == 0 ) {
-  print "R is available. We can continue\n";
-}
-else {
-  print "R is not loaded. We try to load it.\n";
-  if(module_software_installed){
-    module_load("R");
-  }
-  else{
-    print "Module tool doesn't exists. We cannot load R through it.";
-  }
-}
-
 
 #######################
 #        MAIN         #
@@ -335,12 +326,15 @@ __END__
 
 =head1 NAME
 
-AEDplot.pl -
+gaas_maker_AEDplot.pl
+
+=head1 DESCRIPTION
+
 The script take one or several gff file(s) as input from Maker and create a Plot of their AED score (Attributes used: "_AED"). -
 =head1 SYNOPSIS
 
-    ./maker_AEDplot.pl -f infile1.gff[ --output outfile ]
-    ./maker_AEDplot.pl --help
+    gaas_maker_AEDplot.pl -f infile1.gff[ --output outfile ]
+    gaas_maker_AEDplot.pl --help
 
 =head1 OPTIONS
 
@@ -363,4 +357,30 @@ Display this helpful text.
 
 =back
 
+=head1 FEEDBACK
+
+=head2 Did you find a bug?
+
+Do not hesitate to report bugs to help us keep track of the bugs and their
+resolution. Please use the GitHub issue tracking system available at this
+address:
+
+            https://github.com/NBISweden/GAAS/issues
+
+ Ensure that the bug was not already reported by searching under Issues.
+ If you're unable to find an (open) issue addressing the problem, open a new one.
+ Try as much as possible to include in the issue when relevant:
+ - a clear description,
+ - as much relevant information as possible,
+ - the command used,
+ - a data sample,
+ - an explanation of the expected behaviour that is not occurring.
+
+=head2 Do you want to contribute?
+
+You are very welcome, visit this address for the Contributing guidelines:
+https://github.com/NBISweden/GAAS/blob/master/CONTRIBUTING.md
+
 =cut
+
+AUTHOR - Jacques Dainat

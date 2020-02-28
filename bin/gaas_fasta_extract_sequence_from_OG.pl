@@ -4,14 +4,15 @@
 # Implement case insensitive
 ###
 use strict;
+use warnings;
 use Pod::Usage;
 use Getopt::Long;
 use Bio::SeqIO ;
 use Bio::DB::Fasta;
-use Data::Dumper;
 use IO::File;
-use warnings;
+use GAAS::GAAS;
 
+my $header = get_gaas_header();
 my $start_run = time();
 my $opt_fastafile;
 my $opt_help = 0;
@@ -22,14 +23,6 @@ my %OG_seqID=();
 my %OG_count=();
 my @tab_seqID;
 my $path;
-
-my $header = qq{
-########################################################
-# NBIS 2018 - Sweden                                   #
-# lucile.soler\@nbis.se                               #
-# Please cite NBIS (www.nbis.se) when using this tool. #
-########################################################
-};
 
 # OPTION MANAGMENT
 my @copyARGV=@ARGV;
@@ -45,9 +38,9 @@ if ( !GetOptions( 'f|fa|fasta=s' => \$opt_fastafile,
 
 # Print Help and exit
 if ($opt_help) {
-    pod2usage( { -verbose => 2,
-                 -exitval => 2,
-                 -message => "$header \n" } );
+    pod2usage( { -verbose => 99,
+                 -exitval => 0,
+                 -message => "$header\n" } );
 }
 
 if ( (! (defined($opt_OGfile)) ) or (! (defined($opt_fastafile)) ) ){
@@ -171,14 +164,17 @@ __END__
 
 =head1 NAME
 
-fasta_extract_sequence_from_OG.pl -
-This script extract sequence in fasta format from a fasta file. You can extract one fasta sequence providing the name of a file created by the in-house orthoMCL pipeline.
+gaas_fasta_extract_sequence_from_OG.pl
+
+=head1 DESCRIPTION
+
+This script extracts sequence in fasta format from a fasta file. You can extract one fasta sequence providing the name of a file created by the in-house orthoMCL pipeline.
 The OG file contains all the orthoMCL groups and the ID of the sequences in each group.
 
 =head1 SYNOPSIS
 
-    ./fasta_extract_sequence_from_OG.pl -f infile.fasta -og OGfile.txt
-    ./fasta_extract_sequence_from_OG.pl --help
+    gaas_fasta_extract_sequence_from_OG.pl -f infile.fasta -og OGfile.txt
+    gaas_fasta_extract_sequence_from_OG.pl --help
 
 =head1 OPTIONS
 
@@ -208,4 +204,30 @@ Display this helpful text.
 
 =back
 
+=head1 FEEDBACK
+
+=head2 Did you find a bug?
+
+Do not hesitate to report bugs to help us keep track of the bugs and their
+resolution. Please use the GitHub issue tracking system available at this
+address:
+
+            https://github.com/NBISweden/GAAS/issues
+
+ Ensure that the bug was not already reported by searching under Issues.
+ If you're unable to find an (open) issue addressing the problem, open a new one.
+ Try as much as possible to include in the issue when relevant:
+ - a clear description,
+ - as much relevant information as possible,
+ - the command used,
+ - a data sample,
+ - an explanation of the expected behaviour that is not occurring.
+
+=head2 Do you want to contribute?
+
+You are very welcome, visit this address for the Contributing guidelines:
+https://github.com/NBISweden/GAAS/blob/master/CONTRIBUTING.md
+
 =cut
+
+AUTHOR - Jacques Dainat

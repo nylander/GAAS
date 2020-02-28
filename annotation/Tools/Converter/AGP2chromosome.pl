@@ -2,26 +2,19 @@
 
 use strict;
 use Pod::Usage;
-use Data::Dumper;
 use Getopt::Long;
 use Bio::SeqIO ;
 use Bio::DB::Fasta;
 use Bio::Tools::GFF;
+use GAAS::GAAS;
 
+my $header = get_gaas_header();
 my $start_run = time();
 
 my $opt_agpfile;
 my $opt_fastafile;
 my $opt_output;
 my $opt_help;
-
-my $header = qq{
-########################################################
-# NBIS 2018 - Sweden                                   #
-# jacques.dainat\@nbis.se                              #
-# Please cite NBIS (www.nbis.se) when using this tool. #
-########################################################
-};
 
 # OPTION MANAGMENT
 my @copyARGV=@ARGV;
@@ -37,8 +30,8 @@ if ( !GetOptions( 'a|agp=s' => \$opt_agpfile,
 
 # Print Help and exit
 if ($opt_help) {
-    pod2usage( { -verbose => 2,
-                 -exitval => 2,
+    pod2usage( { -verbose => 99,
+                 -exitval => 0,
                  -message => "$header \n" } );
 }
 
@@ -194,7 +187,11 @@ __END__
 
 =head1 NAME
 
-AGP2chromosome.pl -
+AGP2chromosome.pl
+
+
+=head1 DESCRIPTION
+
 The script aims to combine contigs from the fasta file in chromosome as described into the AGP file.
 AGP version 2 is expected. See https://www.ncbi.nlm.nih.gov/assembly/agp/AGP_Specification/ for specification of this format. If you are unsure about the AGP file you are using,
 you could check its sanity using the agp validator provided by the NCBI at this address: https://www.ncbi.nlm.nih.gov/projects/genome/assembly/agp/agp_validate.cgi
@@ -203,8 +200,8 @@ The result is written to the specified output file, or to STDOUT.
 
 =head1 SYNOPSIS
 
-    ./AGP2chromosome.pl -g=infile.gff -f=infile.fasta  [ -o outfile ]
-    ./AGP2chromosome.pl --help
+    gaas_AGP2chromosome.pl -g=infile.gff -f=infile.fasta  [ -o outfile ]
+    gaas_AGP2chromosome.pl --help
 
 =head1 OPTIONS
 
@@ -229,4 +226,30 @@ Display this helpful text.
 
 =back
 
+=head1 FEEDBACK
+
+=head2 Did you find a bug?
+
+Do not hesitate to report bugs to help us keep track of the bugs and their
+resolution. Please use the GitHub issue tracking system available at this
+address:
+
+            https://github.com/NBISweden/GAAS/issues
+
+ Ensure that the bug was not already reported by searching under Issues.
+ If you're unable to find an (open) issue addressing the problem, open a new one.
+ Try as much as possible to include in the issue when relevant:
+ - a clear description,
+ - as much relevant information as possible,
+ - the command used,
+ - a data sample,
+ - an explanation of the expected behaviour that is not occurring.
+
+=head2 Do you want to contribute?
+
+You are very welcome, visit this address for the Contributing guidelines:
+https://github.com/NBISweden/GAAS/blob/master/CONTRIBUTING.md
+
 =cut
+
+AUTHOR - Jacques Dainat

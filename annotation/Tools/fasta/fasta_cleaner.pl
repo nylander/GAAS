@@ -1,12 +1,5 @@
 #!/usr/bin/env perl
 
-# A filter for Uniprot and RefSeq fasta files that makes the fasta
-# headers a bit more terse.  Reads from STDIN, writes to STDOUT.
-#
-## Note: Will pass any other fasta file unchanged.
-## Note: For Uniprot, will also change any 'O' in the protein sequence
-##       into 'K'.
-
 use strict;
 use warnings;
 use Pod::Usage;
@@ -18,14 +11,9 @@ my $file_fasta;
 my $outfile;
 my $help = 0;
 my $verbose = 0;
-my $header = qq{
-########################################################
-# NBIS 2018 - Sweden                                   #  
-# jacques.dainat\@nbis.se                               #
-# Please cite NBIS (www.nbis.se) when using this tool. #
-########################################################
-};
+use GAAS::GAAS;
 
+my $header = get_gaas_header();
 my @copyARGV=@ARGV;
 Getopt::Long::Configure ('bundling');
 
@@ -43,11 +31,11 @@ if ( !GetOptions(
 
 # Print Help and exit
 if ($help) {
-    pod2usage( { -verbose => 2,
-                 -exitval => 2,
+    pod2usage( { -verbose => 99,
+                 -exitval => 0,
                  -message => "$header\n" } );
 }
- 
+
 if ( !(defined($file_fasta)) ){
     pod2usage( {
            -message => "$header\nAt least 1 parameter is mandatory:\n Input fasta file (--fasta)\n\n",
@@ -141,3 +129,75 @@ print "usage: $0 @copyARGV\n";
 my $end_run = time();
 my $run_time = $end_run - $start_run;
 print "Job done in $run_time seconds\n";
+
+__END__
+
+
+=head1 NAME
+
+gaas_fasta_cleaner.pl
+
+=head1 DESCRIPTION
+
+A filter for Uniprot and RefSeq fasta files that makes the fasta
+headers a bit more terse.  Reads from STDIN, writes to STDOUT.
+
+Note: Will pass any other fasta file unchanged.
+Note: For Uniprot, will also change any 'O' in the protein sequence
+     into 'K'.
+
+=head1 SYNOPSIS
+
+    gaas_fasta_cleaner.pl -f infile.fasta [ -o outfile ]
+    gaas_fasta_cleaner.pl --help
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<-f>, B<--fa> or B<--fasta>
+
+Input fasta file.
+
+=item B<-v>
+
+Add verbosity
+
+=item B<-o>, B<--output>, B<--outfile> or B<--out>
+
+Output fasta file.  If no output file is specified, the output will be
+written to STDOUT.
+
+=item B<-h> or B<--help>
+
+Display this helpful text.
+
+=back
+
+=head1 FEEDBACK
+
+=head2 Did you find a bug?
+
+Do not hesitate to report bugs to help us keep track of the bugs and their
+resolution. Please use the GitHub issue tracking system available at this
+address:
+
+            https://github.com/NBISweden/GAAS/issues
+
+ Ensure that the bug was not already reported by searching under Issues.
+ If you're unable to find an (open) issue addressing the problem, open a new one.
+ Try as much as possible to include in the issue when relevant:
+ - a clear description,
+ - as much relevant information as possible,
+ - the command used,
+ - a data sample,
+ - an explanation of the expected behaviour that is not occurring.
+
+=head2 Do you want to contribute?
+
+You are very welcome, visit this address for the Contributing guidelines:
+https://github.com/NBISweden/GAAS/blob/master/CONTRIBUTING.md
+
+=cut
+
+AUTHOR - Jacques Dainat

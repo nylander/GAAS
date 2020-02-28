@@ -13,8 +13,10 @@ use IO::File;
 use Pod::Usage;
 use Carp;
 use Bio::FeatureIO;
+use GAAS::GAAS;
 
 # PARAMETERS - OPTION
+my $header = get_gaas_header();
 my $opt_genome;
 my $opt_sizeGenome;
 my $opt_sizeGeneMAx;
@@ -37,10 +39,11 @@ if ( !GetOptions( 'g|genome|fa=s' => \$opt_genome,
 }
 
 if ($opt_help) {
-    pod2usage( { -verbose => 2,
-                 -exitval => 0 } );
+    pod2usage( { -verbose => 99,
+                 -exitval => 0,
+								 -message => "$header\n" } );
 }
- 
+
 if ( ! (defined($opt_genome)) and ! (defined($opt_sizeGenome)) ){
     pod2usage( {
            -message => "\nAt least 1 parameter is mandatory:\nInput reference gff file (--f)\n\n".
@@ -86,7 +89,7 @@ for (my $i=0; $i <= $opt_nb; $i++) {
     my $start=int(rand($opt_sizeGenome-$opt_sizeGeneMAx));
     my $end=$start+$opt_sizeGeneMAx;
 
-    my $primary_tag="gene_invent".$i; 
+    my $primary_tag="gene_invent".$i;
 
     my $random_strand = int(rand(2));
 
@@ -100,13 +103,16 @@ __END__
 
 =head1 NAME
 
-gffRepeat_analyzer.pl -
+gaas_create_random_feature.pl
+
+=head1 DESCRIPTION
+
 The script aims to create a fake bed file.
 
 =head1 SYNOPSIS
 
-    script.pl -g name -s 10000 -o <output file>
-    script.pl --help
+    gaas_create_random_feature.pl -g name -s 10000 -o <output file>
+    gaas_create_random_feature.pl --help
 
 =head1 OPTIONS
 
@@ -118,7 +124,7 @@ STRING: Name to use for writing in first column of the bed file. default chr_unk
 
 =item B<-s>, B<--size>
 
-INTEGER: Genome size. It define the range where features will be created. 
+INTEGER: Genome size. It define the range where features will be created.
 
 =item B<--nbg>, B<--number_gene>
 
@@ -128,7 +134,7 @@ INTEGER: Number of gene. It define the number of gene features to be created.
 
 INTEGER: Size of genes. It define the size oft the gene features to be created.
 
-=item B<-o> or B<--output> 
+=item B<-o> or B<--output>
 
 STRING: Output file.  If no output file is specified, the output will be written to STDOUT. The result is in tabulate format.
 
@@ -138,4 +144,30 @@ Display this helpful text.
 
 =back
 
+=head1 FEEDBACK
+
+=head2 Did you find a bug?
+
+Do not hesitate to report bugs to help us keep track of the bugs and their
+resolution. Please use the GitHub issue tracking system available at this
+address:
+
+            https://github.com/NBISweden/GAAS/issues
+
+ Ensure that the bug was not already reported by searching under Issues.
+ If you're unable to find an (open) issue addressing the problem, open a new one.
+ Try as much as possible to include in the issue when relevant:
+ - a clear description,
+ - as much relevant information as possible,
+ - the command used,
+ - a data sample,
+ - an explanation of the expected behaviour that is not occurring.
+
+=head2 Do you want to contribute?
+
+You are very welcome, visit this address for the Contributing guidelines:
+https://github.com/NBISweden/GAAS/blob/master/CONTRIBUTING.md
+
 =cut
+
+AUTHOR - Jacques Dainat

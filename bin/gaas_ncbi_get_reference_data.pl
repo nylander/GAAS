@@ -8,16 +8,9 @@ use Scalar::Util qw(openhandle);
 use Time::Piece;
 use Time::Seconds;
 use Pod::Usage;
+use GAAS::GAAS;
 
-
-my $header = qq{
-########################################################
-# NBIS 2015 - Sweden                                   #
-# Marc Hoeppner / Jacques Dainat                        #
-# Please cite NBIS (www.nbis.se) when using this tool. #
-########################################################
-};
-
+my $header = get_gaas_header();
 my $outfile = undef;
 my $format = "fasta";
 my $quiet;
@@ -45,8 +38,8 @@ if ( !GetOptions(
 
 # Print Help and exit
 if ($help) {
-    pod2usage( { -verbose => 2,
-                 -exitval => 2,
+    pod2usage( { -verbose => 99,
+                 -exitval => 0,
                  -message => "$header\n" } );
 }
 

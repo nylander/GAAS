@@ -7,7 +7,9 @@ use Bio::DB::Fasta;
 use File::Basename;
 use Getopt::Long;
 use Pod::Usage;
+use GAAS::GAAS;
 
+my $header = get_gaas_header();
 my @copyARGV=@ARGV;
 
 my $opt_output = undef;
@@ -15,18 +17,11 @@ my $tabfile = undef;
 my $opt_genome= undef;
 my $help= undef;
 
-my $header = qq{
-########################################################
-# NBIS 2018 - Sweden                                   #  
-# jacques.dainat\@nbis.se                              #
-# Please cite NBIS (www.nbis.se) when using this tool. #
-########################################################
-};
 
 if ( !GetOptions("tab=s"		  => \$tabfile,
-		    	"o|out=s" 	  => \$opt_output,
-                "g|genome=s"  => \$opt_genome,
-		    	"h|help"	  => \$help) )
+		    				 "o|out=s" 	  => \$opt_output,
+                 "g|genome=s" => \$opt_genome,
+		    				 "h|help"	  	=> \$help) )
 {
     pod2usage( { -message => 'Failed to parse command line',
                  -verbose => 1,
@@ -34,8 +29,8 @@ if ( !GetOptions("tab=s"		  => \$tabfile,
 }
 
 if ($help) {
-    pod2usage( { -verbose => 2,
-                 -exitval => 2,
+    pod2usage( { -verbose => 99,
+                 -exitval => 0,
                  -message => "$header\n" } );
 }
 
@@ -73,7 +68,7 @@ if ($opt_genome){
     foreach my $id (@ids ){$allIDs{lc($id)}=$id;}
 }
 
-##### Stream in 1 
+##### Stream in 1
 my $fh1;
 if ($tabfile) {
   open($fh1, '<', $tabfile) or die "Could not open file '$tabfile' $!";
@@ -101,11 +96,11 @@ while( my $line = <$fh1>)  {
         else{
             $start = $list[9];
             $end = $list[8];
-        }       
+        }
          #print $start." ".$end."\n";
         push (@{$info{$ID}}, [$start, $end, $mito_gene]);
 }
-    
+
 my %omni;
 my %nbMitoGeneByContig;
 
@@ -124,7 +119,7 @@ foreach my $contig (keys %info){
 
         $nbMitoGeneByContig{$contig}{$tuple->[2]}++;
         #print $tuple->[2];exit;
-       
+
         $start = @$tuple[0];
         $end = @$tuple[1];
 
@@ -132,15 +127,15 @@ foreach my $contig (keys %info){
             #print "it overlaps\n";
             if ($end > $prev_end){
                 $prev_end = $end;
-            }  
-        } 
+            }
+        }
         elsif($start > $prev_end){
             if($prev_start != -1){
                 push (@uniq_list, [$prev_start,$prev_end]);
                 #print "I push the tuple [$prev_start,$prev_end]\n";
             }
             $prev_start = $start ;
-            $prev_end = $end ;                
+            $prev_end = $end ;
         }
 
     }
@@ -150,7 +145,7 @@ foreach my $contig (keys %info){
 
     push (@{$omni{$contig}}, @uniq_list)
 }
-    
+
     #calculate bp incremented non-overlaping hit size
     my %size;
     foreach my $contig (keys %omni){
@@ -163,20 +158,20 @@ foreach my $contig (keys %info){
         print $ostream "SequenceID\tNumber_of_non_ovelaping_Hit\tNb_mito_gene\tTotal_hit_size\tSize_sequence\t%_Sequence_covered_by_hit\tGene_names\n";
         # sort by number of non-overlaping hits
         foreach my $contig (sort { @{$omni{$a}} <=> @{$omni{$b}} } keys %omni){
-            
+
             #compute length of the contig
             my $seq_id_correct = $allIDs{lc($contig)};
             my $seq     = $db->get_Seq_by_id($seq_id_correct);
             my $length  = $seq->length;
-            
+
             #compute % of seq covered by mito hits
             my $goodxGenome=sprintf("%0.2f",($size{$contig}*100)/$length);
-            
+
             my $nbMitoGene = keys %{$nbMitoGeneByContig{$contig}};
-            
+
             my @geneList=();
             foreach my $key (sort keys %{$nbMitoGeneByContig{$contig}}){
-             push @geneList, $key   
+             push @geneList, $key
             }
             print $ostream $contig."\t".@{$omni{$contig}}."\t".$nbMitoGene."\t".$size{$contig}."\t".$length."\t".$goodxGenome."\t".join(",", @geneList)."\n";
         }
@@ -187,12 +182,12 @@ foreach my $contig (keys %info){
         # sort by number of non-overlaping hits
         foreach my $contig (sort { @{$omni{$a}} <=> @{$omni{$b}} } keys %omni){
             my $nbMitoGene = keys %{$nbMitoGeneByContig{$contig}};
-            
+
             my @geneList=();
             foreach my $key (sort keys %{$nbMitoGeneByContig{$contig}}){
              push @geneList, $key
             }
-            
+
             print $ostream $contig."\t".@{$omni{$contig}}."\t".$nbMitoGene."\t".$size{$contig}."\t".join(",", @geneList)."\n";
         }
     }
@@ -201,17 +196,21 @@ __END__
 
 
 =head1 NAME
- 
-Based on a default blast tabulated  output ( -outfmt 6 => qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore) the script aims to tell you 
-for each sequence of your assembly, how many non-overlaping mito hits have been found, the number of mito genes that have a hit and the total size in bp of those hits 
-(overlaping part counted only once). When the assembly is provided, 2 new columns are displayed, the sie of the Sequence and the % part covered by mito hits. 
+
+screen_mito_tblastn.pl
+
+=head1 DESCRIPTION
+
+Based on a default blast tabulated  output ( -outfmt 6 => qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore) the script aims to tell you
+for each sequence of your assembly, how many non-overlaping mito hits have been found, the number of mito genes that have a hit and the total size in bp of those hits
+(overlaping part counted only once). When the assembly is provided, 2 new columns are displayed, the sie of the Sequence and the % part covered by mito hits.
 The script aims to help determining the contigs from an assembly which are mitochondrial. An assembly graph could be helpful to check if the suspicious (those that might be mitochondrial) contigs sounds to be circular
 as expected for a mitochondrial genome.
 
 =head1 SYNOPSIS
 
-    ./screen_mito.pl --tab=infile -o=outFile 
-    ./screen_mito.pl --help
+    screen_mito_tblastn.pl --tab=infile -o=outFile
+    screen_mito_tblastn.pl --help
 
 Mitochondrial genome size (from wikipedia)
 
@@ -247,4 +246,30 @@ Display this helpful text.
 
 =back
 
+=head1 FEEDBACK
+
+=head2 Did you find a bug?
+
+Do not hesitate to report bugs to help us keep track of the bugs and their
+resolution. Please use the GitHub issue tracking system available at this
+address:
+
+            https://github.com/NBISweden/GAAS/issues
+
+ Ensure that the bug was not already reported by searching under Issues.
+ If you're unable to find an (open) issue addressing the problem, open a new one.
+ Try as much as possible to include in the issue when relevant:
+ - a clear description,
+ - as much relevant information as possible,
+ - the command used,
+ - a data sample,
+ - an explanation of the expected behaviour that is not occurring.
+
+=head2 Do you want to contribute?
+
+You are very welcome, visit this address for the Contributing guidelines:
+https://github.com/NBISweden/GAAS/blob/master/CONTRIBUTING.md
+
 =cut
+
+AUTHOR - Jacques Dainat

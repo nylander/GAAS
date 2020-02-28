@@ -1,18 +1,14 @@
 #!/usr/bin/env perl
 
-###################################################
-# Jacques Dainat 01/2018                          #
-# jacques.dainat@nbis.se                          #
-###################################################
-
 use strict;
 use warnings;
 use Pod::Usage;
 use Getopt::Long;
 use Data::Dumper;
+use GAAS::GAAS;
 
+my $header = get_gaas_header();
 my $start_run = time();
-
 my @inputFile;
 my $check_complete;
 my $gzip_input;
@@ -32,7 +28,7 @@ if ( !GetOptions (
 }
 
 if ($opt_help) {
-    pod2usage( { -verbose => 2,
+    pod2usage( { -verbose => 99,
                  -exitval => 0 } );
 }
 
@@ -66,8 +62,8 @@ while (!eof($in1) and !eof($in2)) {
   $count++;
   my $id1 = <$in1>;
   my $id2 = <$in2>;
-  # skip all line that are not header 
-  next unless ($count % 4 == 1 ); 
+  # skip all line that are not header
+  next unless ($count % 4 == 1 );
 
   #extract header
   chomp $id1;
@@ -78,11 +74,11 @@ while (!eof($in1) and !eof($in2)) {
     if ($id1 =~ /^@\S+\/[12]$/) { # @ at the start of the line followed by non-whitespace, a /, a 1 or 2, the end of the line
       $header_type = 1;
       print STDOUT "Read Id looks like Casava 1.7 style\n"; # TESTING
-    } 
+    }
     elsif ($id1 =~ /^@\S+\W[12]\S+$/) { # @ at the start of the line followed by non-whitspace, a space, a 1 or 2, non-whitespace
       $header_type = 2;
-      print STDOUT "Read Id looks like Casava 1.8 style\n"; 
-    } 
+      print STDOUT "Read Id looks like Casava 1.8 style\n";
+    }
     else {
       print STDOUT "Unknwon id style (Not Casava 1.7 or 1.8): $id1\n";
       exit 1;
@@ -136,7 +132,7 @@ print "Check successfully passed in $run_time seconds. $read_cpt reads read.\n";
               ########
                ######
                 ####
-                 ##          
+                 ##
 
 
 sub concat_list_from_left{
@@ -145,7 +141,7 @@ sub concat_list_from_left{
 
   my $result="";
   foreach my $element (@{$list}){
-    $result = $result.$element;  
+    $result = $result.$element;
   }
 
   return $result;
@@ -165,27 +161,26 @@ sub split_keep_delimiter{
       push @result, $element;
     }
     $cpt++;
-  } 
+  }
   return \@result;
 }
 
 __END__
 
-      'c|complete!' => \$check_complete,
-      'h|help!'         => \$opt_help )  
-
 =head1 NAME
 
-fastq_check_sync_pair1_pair2.pl
+gaas_fastq_check_sync_pair1_pair2.pl
+
+=head1 DESCRIPTION
+
+The aim of this script is to check that paired reads from 2 fastq files are still synchronized.
+Read1 and the read2, that come from a paired sequencing, are in the same position in the two fastq files.
+But the order of read in R1/R2 files can get out of sync if you e.g scan/trim the two files independently. So it is a good thing always to check.
 
 =head1 SYNOPSIS
 
-The aim of this script is to check that paired reads from 2 fastq files are still synchronized. 
-Read1 and the read2, that come from a paired sequencing, are in the same position in the two fastq files. 
-But the order of read in R1/R2 files can get out of sync if you e.g scan/trim the two files independently. So it is a good thing always to check.
-
-    fastq_check_sync_pair1_pair2.pl -i input_R1.fastq -i input_R2.fastq
-    fastq_check_sync_pair1_pair2.pl --help
+    gaas_fastq_check_sync_pair1_pair2.pl -i input_R1.fastq -i input_R2.fastq
+    gaas_fastq_check_sync_pair1_pair2.pl --help
 
 =head1 OPTIONS
 
@@ -209,4 +204,30 @@ Display this helpful text.
 
 =back
 
+=head1 FEEDBACK
+
+=head2 Did you find a bug?
+
+Do not hesitate to report bugs to help us keep track of the bugs and their
+resolution. Please use the GitHub issue tracking system available at this
+address:
+
+            https://github.com/NBISweden/GAAS/issues
+
+ Ensure that the bug was not already reported by searching under Issues.
+ If you're unable to find an (open) issue addressing the problem, open a new one.
+ Try as much as possible to include in the issue when relevant:
+ - a clear description,
+ - as much relevant information as possible,
+ - the command used,
+ - a data sample,
+ - an explanation of the expected behaviour that is not occurring.
+
+=head2 Do you want to contribute?
+
+You are very welcome, visit this address for the Contributing guidelines:
+https://github.com/NBISweden/GAAS/blob/master/CONTRIBUTING.md
+
 =cut
+
+AUTHOR - Jacques Dainat

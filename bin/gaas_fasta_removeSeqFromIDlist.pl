@@ -3,19 +3,14 @@
 
 use Carp;
 use strict;
+use warnings;
 use Getopt::Long;
 use Pod::Usage;
 use Bio::SeqIO;
 use IO::File;
+use GAAS::GAAS;
 
-my $header = qq{
-########################################################
-# NBIS 2015 - Sweden                                   #  
-# jacques.dainat\@nbis.se                               #
-# Please cite NBIS (www.nbis.se) when using this tool. #
-########################################################
-};
-
+my $header = get_gaas_header();
 my $outfile = undef;
 my $file1 = undef;
 my $file2 = undef;
@@ -35,12 +30,12 @@ if ( !GetOptions(
 
 # Print Help and exit
 if ($help) {
-    pod2usage( { -message => "$header",
-                 -verbose => 2,
-                 -exitval => 2
+    pod2usage( { -message => "$header\n",
+                 -verbose => 99,
+                 -exitval => 0
                 } );
 }
- 
+
 if ( ! ((defined($file1)) and (defined($file2)))){
     pod2usage( {
            -message => "$header\nAt least 2 parameters are mandatory.\n",
@@ -113,13 +108,17 @@ __END__
 
 =head1 NAME
 
+gaas_fasta_removeSeqFromIDlist
+
+=head1 DESCRIPTION
+
 Compare a fasta file to a list of ID in order to remove the matching name from file 1.
 The whole header must be identical to be consider as identic.
 
 =head1 SYNOPSIS
 
-    perl my_script.pl --fasta1 file1 --list file2 [--out outfile]
-    perl my_script.pl --help
+    gaas_fasta_removeSeqFromIDlist.pl --fasta1 file1 --list file2 [--out outfile]
+    gaas_fasta_removeSeqFromIDlist.pl --help
 
 =head1 OPTIONS
 
@@ -131,7 +130,7 @@ Fasta file 1. The headers of sequences of this file will be used to compare agai
 
 =item B<--fasta2>, B<--file2> or B<-f2>
 
-This is a file containing the headers of sequence to be removed. Only one ID per line. Header should be identical at 100% to be removed. 
+This is a file containing the headers of sequence to be removed. Only one ID per line. Header should be identical at 100% to be removed.
 
 =item B<-o> , B<--output> , B<--out> or B<--outfile>
 
@@ -145,4 +144,30 @@ Display the full information.
 
 =back
 
+=head1 FEEDBACK
+
+=head2 Did you find a bug?
+
+Do not hesitate to report bugs to help us keep track of the bugs and their
+resolution. Please use the GitHub issue tracking system available at this
+address:
+
+            https://github.com/NBISweden/GAAS/issues
+
+ Ensure that the bug was not already reported by searching under Issues.
+ If you're unable to find an (open) issue addressing the problem, open a new one.
+ Try as much as possible to include in the issue when relevant:
+ - a clear description,
+ - as much relevant information as possible,
+ - the command used,
+ - a data sample,
+ - an explanation of the expected behaviour that is not occurring.
+
+=head2 Do you want to contribute?
+
+You are very welcome, visit this address for the Contributing guidelines:
+https://github.com/NBISweden/GAAS/blob/master/CONTRIBUTING.md
+
 =cut
+
+AUTHOR - Jacques Dainat

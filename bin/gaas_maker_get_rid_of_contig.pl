@@ -3,12 +3,12 @@
 #LIBRARIES
 use strict;
 use warnings;
-use Data::Dumper;
-use YAML::XS 'LoadFile';
 use Getopt::Long;
 use Pod::Usage;
 use IO::File;
+use GAAS::GAAS;
 
+my $header = get_gaas_header();
 #PARAMETERS
 my $input_listcontigWrong;
 my $input_datastorelog;
@@ -17,16 +17,14 @@ my $delete_contig;
 my %contigs;
 my %datastores;
 
-
 #get arg and PARAMETERS
 {
   my ($input_listcontigWrong, $input_datastorelog, $output_file, $delete_contig);
 
   # Define script options
   GetOptions(
-  'help|h'                => sub { pod2usage( -verbose => 2 ), -exitval => 0 },
-  'man'                   => sub { pod2usage( -verbose => 2 )},
-  'output-name|o=s'       => \$output_file,
+  'help|h'                => sub { pod2usage( -verbose => 99 , -exitval => 0, -message => "$header\n" )},
+  'output|o=s'       => \$output_file,
   'contig-name|f=s'       => \$input_listcontigWrong,
   'datastore-name|d=s'    => \$input_datastorelog,
   'delete-contig|c=s'    => \$delete_contig,
@@ -105,46 +103,7 @@ __END__;
 
 =head1 NAME
 
-Get rid of contigs not processed properly by maker in the log file and in the output folders of maker.
-Create a new log file that will need to be renamed as genome_master_datastore_index.log to replace the old one.
-Then maker can be rerun with this new log file.
-
-=head1 AUTHOR
-
-Lucile SOLER NBIS 18/07/2016
-
-=head1 SYNOPSIS
-
-Get rid of contigs not processed properly by maker in the log file and in the output folders of maker.
-Create a new log file that will need to be renamed as genome_master_datastore_index.log to replace the old one.
-Then maker can be rerun with this new log file.
-
-getRidOfContig.pl --help
-
-getRidOfContig.pl --contig-name|-f
-
-getRidOfContig.pl --output-name|-o
-
-getRidOfContig.pl --datastore-name|-d
-
-getRidOfContig.pl --delete-contig|-c log/all
-
-    log option will only delete contigs in the log file
-    all option will delete contigs in the log file and contigs' folders
-
-=head1 OPTIONS
-
-=over
-
-=item B<--help>
-
-Display a brief usage message.
-
-=item B<--man>
-
-Display the manual page.
-
-=back
+gaas_maker_get_rid_of_contig.pl
 
 =head1 DESCRIPTION
 
@@ -152,4 +111,73 @@ Get rid of contigs not processed properly by maker in the log file and in the ou
 Create a new log file that will need to be renamed as genome_master_datastore_index.log to replace the old one.
 Then maker can be rerun with this new log file.
 
+=head1 SYNOPSIS
+
+Get rid of contigs not processed properly by maker in the log file and in the output folders of maker.
+Create a new log file that will need to be renamed as genome_master_datastore_index.log to replace the old one.
+Then maker can be rerun with this new log file.
+
+gaas_maker_get_rid_of_contig.pl --help
+
+gaas_maker_get_rid_of_contig.pl --contig-name|-f
+
+gaas_maker_get_rid_of_contig.pl --output-name|-o
+
+gaas_maker_get_rid_of_contig.pl --datastore-name|-d
+
+gaas_maker_get_rid_of_contig.pl --delete-contig|-c log/all
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--datastore-name> or B<-d>
+
+Input datastore log file
+
+=item B<--contig-name> or B<-f>
+
+Input file containing the list of wrong contig
+
+=item B<--delete-contig> or B<-c>
+
+<log> option will only delete contigs in the log file
+<all> option will delete contigs in the log file and contigs' folders
+
+=item B<--output> or B<-o>
+
+File output name
+
+=item B<--help>
+
+Display the manual page.
+
+=back
+
+=head1 FEEDBACK
+
+=head2 Did you find a bug?
+
+Do not hesitate to report bugs to help us keep track of the bugs and their
+resolution. Please use the GitHub issue tracking system available at this
+address:
+
+            https://github.com/NBISweden/GAAS/issues
+
+ Ensure that the bug was not already reported by searching under Issues.
+ If you're unable to find an (open) issue addressing the problem, open a new one.
+ Try as much as possible to include in the issue when relevant:
+ - a clear description,
+ - as much relevant information as possible,
+ - the command used,
+ - a data sample,
+ - an explanation of the expected behaviour that is not occurring.
+
+=head2 Do you want to contribute?
+
+You are very welcome, visit this address for the Contributing guidelines:
+https://github.com/NBISweden/GAAS/blob/master/CONTRIBUTING.md
+
 =cut
+
+AUTHOR - Lucile Soler / Jacques Dainat

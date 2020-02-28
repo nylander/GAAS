@@ -2,37 +2,20 @@
 
 use strict;
 use warnings;
+use Pod::Usage;
 use Getopt::Long;
 use Scalar::Util qw(openhandle);
 use Time::Piece;
 use Time::Seconds;
-use FindBin;
-use lib ("$FindBin::Bin/PerlLib", "$FindBin::Bin/PerlLibAdaptors");
 use File::Basename;
 use Cwd;
 use Carp;
 no strict qw(subs refs);
+use GAAS::Grid::Bsub;
+use GAAS::Grid::Sbatch;
+use GAAS::GAAS;
 
-
-my $usage = qq{
-perl my_script.pl
-  Getting help:
-    [--help]
-
-  Input:
-    [--query filename]
-	The name of the query genome file.
-    [--target filename]
-	The name of the target genome file. 
-
-  Ouput:    
-    [--outdir name]
-        The name of the output directory. 
-		
-};
-
-my $grid_computing_module = "BilsGridRunner";
-
+my $header = get_gaas_header();
 my $outdir = undef;
 my $query = undef;
 my $target = undef;
@@ -42,19 +25,46 @@ my @target_seqs = ();			# List of sequences from the target genome
 my @lav_files = ();
 my $job_limit = 500;			# Maximum number of jobs to allow before aborting
 my $quiet;
+my $grid="Slurm";
+my $queue=undef;
 my $help;
 
-GetOptions(
-    "help" => \$help,
-    "query=s" => \$query,
-    "target=s" => \$target,
-    "outdir=s" => \$outdir);
+if ( ! GetOptions(
+						"query=s" 			=> \$query,
+						"target=s" 			=> \$target,
+						"grid=s"  			=> \$grid,
+						"quiet|q!" 			=> \$quiet,
+						"queue=s"  			=> \$queue,
+				    "outdir=s" 			=> \$outdir,
+						"help|h!"				=> \$help ) )
+
+{
+    pod2usage( { -message => "Failed to parse command line",
+                 -verbose => 1,
+                 -exitval => 1 } );
+}
 
 # Print Help and exit
 if ($help) {
-    print $usage;
-    exit(0);
+        pod2usage( { -verbose => 99,
+		                 -exitval => 0,
+		                 -message => "$header\n" } );
 }
+
+if ( ! defined($query) or ! defined($target)){
+    pod2usage( {
+           -message => "$header\nAt least 2 parameters are mandatory:\n a query genome file (--query) and a target genome file (--target)\n\n",
+           -verbose => 0,
+           -exitval => 2 } );
+}
+
+# set grid option properly
+my @grid_choice=('slurm','lsf','none');
+$grid=lc($grid);
+if (! grep( /^$grid/, @grid_choice ) ) {
+  print "$grid is not a value accepted for grid parameter.";exit;
+}
+$grid= undef if lc($grid) eq 'none';
 
 # .. Check that all binaries are available in $PATH
 
@@ -65,12 +75,12 @@ my $working_dir = getcwd;
 
 my $query_base = basename($query) ;
 my $target_base = basename($target) ;
- 
+
 my $query_dir = $outdir . "/" . $query_base ;
 my $target_dir = $outdir . "/" . $target_base ;
 
 
-# .. Create output directory 
+# .. Create output directory
 
 if (-d $outdir ) {
 	die "Output directory $outdir exists. Please remove and try again";
@@ -90,18 +100,10 @@ my $logfile = "$outdir/lastz.log";
 msg("Writing log to: $logfile");
 open LOG, '>', $logfile or err("Can't open logfile");
 
-# .. load grid module (courtesy of Brian Haas)
-
-my $perl_lib_repo = "$FindBin::Bin/../PerlLibAdaptors";
-msg("-importing module: $grid_computing_module\n");
-require "$grid_computing_module.pm" or die "Error, could not import perl module at run-time: $grid_computing_module";
-
-my $grid_computing_method = $grid_computing_module . "::run_on_grid" or die "Failed to initialize GRID module\n";
-
 msg("Generating size indices for genomes");
 
 my $query_size = $outdir . "/" . basename($query) . ".sizes" ;
-my $target_size = $outdir . "/" . basename($target) . ".sizes" ; 
+my $target_size = $outdir . "/" . basename($target) . ".sizes" ;
 
 runcmd("faSize $query -detailed > $query_size");
 runcmd("faSize $target -detailed > $target_size");
@@ -153,27 +155,53 @@ foreach my $query_seq(@query_seqs) {
 
 	foreach my $target_seq(@target_seqs) {
 		my $lav_file = $query_seq . "-" . $target_seq . ".lav" ;
-		push @lav_files , $lav_file ; 
+		push @lav_files , $lav_file ;
 		push @cmds , "lastz $query_dir/$query_seq $target_dir/$target_seq > $outdir/lav/$lav_file" ;
-	}	
+	}
 
 }
 
-
 # Submit job chunks to grid
+msg("submitting chunks\n");
 
-msg("Sending jobs to LSF grid\n");
+if( $grid){
+	msg("Sending $#cmds jobs to the grid\n");
+  chomp(@cmds); # Remove empty indices
+  # Submit job chunks to grid
+  my $grid_runner;
+  if ( $grid eq 'lsf'){
+    $grid_runner = Bsub->new( cmds_list => \@cmds);
+  }
+  elsif( $grid eq 'slurm'){
+    $grid_runner = Sbatch->new( cmds_list => \@cmds);
+  }
+	if($queue){$grid_runner->queue($queue)}
+  $grid_runner->run();
+}
+else{
+ 	foreach my $command (@cmds){
 
-chomp(@cmds); # Remove empty indices
+ 		system($command);
 
-&$grid_computing_method(@cmds);
+ 		if ($? == -1) {
+    			 print "failed to execute: $!\n";
+		}
+ 		elsif ($? & 127) {
+ 		    printf "child died with signal %d, %s coredump\n",
+ 		    ($? & 127),  ($? & 128) ? 'with' : 'without';
+ 		}
+ 		else {
+ 		    printf "child exited with value %d\n", $? >> 8;
+ 		}
+ 	}
+}
 
 msg("### Converting LAV files to PSL ###");
 
 foreach my $lav_file (@lav_files) {
 
 	my $psl_file = $lav_file ;
-	$psl_file =~ s/lav$/psl/ ;  
+	$psl_file =~ s/lav$/psl/ ;
 	runcmd("lavToPsl $outdir/lav/$lav_file $outdir/psl/$psl_file");
 }
 
@@ -238,3 +266,80 @@ sub err {
   msg(@_);
   exit(2);
 }
+
+__END__
+
+=head1 NAME
+
+gaas_blat2grid.pl
+
+=head1 DESCRIPTION
+
+Chunk input data to run multiple blat jobs in parallel to grid
+
+=head1 SYNOPSIS
+
+    gaas_blat2grid.pl -f fasta_file --db db_name
+    gaas_blat2grid.pl --help
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--query>
+
+The name of the query genome file.
+
+=item B<--target>
+
+The name of the target genome file.
+
+=item B<--queue>
+
+If you want to define a particular queue to run the jobs
+
+=item B<--grid>
+
+Define which grid to use, Slurm, Lsf or None. Default = Slurm.
+
+=item B<--quiet> or B<-q>
+
+Quiet mode
+
+=item B<--outdir> or B<-o>
+
+The name of the output directory.
+
+=item B<-h> or B<--help>
+
+Display this helpful text.
+
+=back
+
+=head1 FEEDBACK
+
+=head2 Did you find a bug?
+
+Do not hesitate to report bugs to help us keep track of the bugs and their
+resolution. Please use the GitHub issue tracking system available at this
+address:
+
+            https://github.com/NBISweden/GAAS/issues
+
+ Ensure that the bug was not already reported by searching under Issues.
+ If you're unable to find an (open) issue addressing the problem, open a new one.
+ Try as much as possible to include in the issue when relevant:
+ - a clear description,
+ - as much relevant information as possible,
+ - the command used,
+ - a data sample,
+ - an explanation of the expected behaviour that is not occurring.
+
+=head2 Do you want to contribute?
+
+You are very welcome, visit this address for the Contributing guidelines:
+https://github.com/NBISweden/GAAS/blob/master/CONTRIBUTING.md
+
+=cut
+
+AUTHOR - Jacques Dainat

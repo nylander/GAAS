@@ -1,6 +1,5 @@
 #!/usr/bin/env perl
 
-
 use Carp;
 use strict;
 use warnings;
@@ -8,15 +7,9 @@ use Getopt::Long;
 use Pod::Usage;
 use Bio::SeqIO;
 use IO::File;
+use GAAS::GAAS;
 
-my $header = qq{
-########################################################
-# NBIS 2018 - Sweden                                   #  
-# jacques.dainat\@nbis.se                               #
-# Please cite NBIS (www.nbis.se) when using this tool. #
-########################################################
-};
-
+my $header = get_gaas_header();
 my $outfile = undef;
 my $file1 = undef;
 my $agp = undef;
@@ -37,12 +30,11 @@ if ( !GetOptions(
 
 # Print Help and exit
 if ($help) {
-    pod2usage( { -message => "$header",
-                 -verbose => 2,
-                 -exitval => 2
-                } );
+    pod2usage( { -message => "$header\n",
+                 -verbose => 99,
+                 -exitval => 0 } );
 }
- 
+
 if ( ! ((defined($file1)) and (defined($agp)))){
     pod2usage( {
            -message => "$header\nAt least 2 parameters are mandatory.\n",
@@ -76,7 +68,7 @@ if (open(my $fh, '<:encoding(UTF-8)', $agp)) {
   while (my $row = <$fh>) {
     if($row =~ /^#/){next;}
     chomp $row;
-    my ($object, $object_beg, $object_end, $part_number, $component_type, $component_id_or_gap_length, 
+    my ($object, $object_beg, $object_end, $part_number, $component_type, $component_id_or_gap_length,
         $component_beg_or_gap_type, $component_end_or_linkage, $orientation_or_linkage_evidence ) = split(/\t/, $row);
     if($component_type ne "N" and $component_type ne "U"){
       if ($object =~ /^Super-Scaffold/ ){
@@ -95,7 +87,7 @@ print "Parsing Finished\n";
 #########################
 
 # primary contig header: >004069F|arrow|arrow_obj
-# alternative contig header: >000019F-023-01|arrow|arrow_obj 
+# alternative contig header: >000019F-023-01|arrow|arrow_obj
 # If piece used not all contig: >000838F|arrow|arrow_subseq_300884:420004 => To keep
 
 
@@ -124,7 +116,7 @@ while ( my $seq = $fasta1->next_seq() ) {
           print "subseq of alternative contigs $header has to be included into the final assembly. Indeed the primary version of this one has not been included\n";
           $fastaout->write_seq($seq);
         }
-      } 
+      }
     }
   }
   else{ #its from primary
@@ -147,7 +139,7 @@ while ( my $seq = $fasta1->next_seq() ) {
         }
         else{
            $fastaout->write_seq($seq);
-        } 
+        }
       }
       else{
         print "not match for <_obj> at the end of the string\n";
@@ -162,6 +154,10 @@ __END__
 
 =head1 NAME
 
+gaas_fasta_bionano_filter_not_scaffolded_part.pl
+
+=head1 DESCRIPTION
+
 This script aims to filter the NOT_SCAFFOLDED.fasta file from bionano output in order to remove redundant part from secondary assembly. Indeed the NOT_SCAFFOLDED.fasta file is a mixup of the primary and the secondary assembly.
 
 Is not included in the output:
@@ -171,8 +167,8 @@ Is not included in the output:
 
 =head1 SYNOPSIS
 
-    perl my_script.pl --fasta1 file1 -a agp [--out outfile]
-    perl my_script.pl --help
+    gaas_fasta_bionano_filter_not_scaffolded_part.pl my_script.pl --fasta1 file1 -a agp [--out outfile]
+    gaas_fasta_bionano_filter_not_scaffolded_part.pl my_script.pl --help
 
 =head1 OPTIONS
 
@@ -184,7 +180,7 @@ Fasta file 1. The headers of sequences of this file will be used to compare agai
 
 =item B<-a>, B<--agp> or B<-f2>
 
-This is a file containing the headers of sequence to be removed. Only one ID per line. Header should be identical at 100% to be removed. 
+This is a file containing the headers of sequence to be removed. Only one ID per line. Header should be identical at 100% to be removed.
 
 =item B<-o> , B<--output> , B<--out> or B<--outfile>
 
@@ -198,4 +194,30 @@ Display the full information.
 
 =back
 
+=head1 FEEDBACK
+
+=head2 Did you find a bug?
+
+Do not hesitate to report bugs to help us keep track of the bugs and their
+resolution. Please use the GitHub issue tracking system available at this
+address:
+
+            https://github.com/NBISweden/GAAS/issues
+
+ Ensure that the bug was not already reported by searching under Issues.
+ If you're unable to find an (open) issue addressing the problem, open a new one.
+ Try as much as possible to include in the issue when relevant:
+ - a clear description,
+ - as much relevant information as possible,
+ - the command used,
+ - a data sample,
+ - an explanation of the expected behaviour that is not occurring.
+
+=head2 Do you want to contribute?
+
+You are very welcome, visit this address for the Contributing guidelines:
+https://github.com/NBISweden/GAAS/blob/master/CONTRIBUTING.md
+
 =cut
+
+AUTHOR - Jacques Dainat

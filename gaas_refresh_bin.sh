@@ -1,5 +1,14 @@
 #!/bin/bash
 
+cd bin
+
+if [[ ! ${PWD##*/} == "bin" ]];then
+	echo "The script must be run in GAAS/bin folder"
+	echo "currently here `pwd`"
+	exit
+fi
+
+
 #remove scripts
 for j in *;do
         name=$(basename $j)

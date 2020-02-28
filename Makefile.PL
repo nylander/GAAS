@@ -47,6 +47,7 @@ my %prereq_hash = ( "Bio::DB::Fasta" => 0,
                     "Getopt::Long" => 0,
                     "IO::File" => 0,
                     "IPC::Open2" => 0,
+										"IPC::Cmd" => 0,
                     "JSON" => 0,
                     "LWP::UserAgent" => 0,
                     "List::MoreUtils" => 0,
@@ -60,7 +61,8 @@ my %prereq_hash = ( "Bio::DB::Fasta" => 0,
                     "Try::Tiny" => 0,
                     "URI::Escape" => 0,
                     "strict" => 0,
-                    "warnings" => 0
+                    "warnings" => 0,
+										"YAML::XS" => 0
                   );
 
 # ------------------- CREATE the WriteMakefile hash ----------------------------

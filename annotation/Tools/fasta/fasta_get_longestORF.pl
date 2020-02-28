@@ -2,23 +2,17 @@
 
 use Carp;
 use strict;
+use warnings;
 use POSIX qw(strftime);
 use Getopt::Long;
-use GAAS::FASTA::Longest_orf;
 use Pod::Usage;
 use Bio::Seq;
 use Bio::SeqIO;
+use GAAS::FASTA::Longest_orf;
+use GAAS::GAAS;
 
+my $header = get_gaas_header();
 my $start_run = time();
-
-my $header = qq{
-########################################################
-# NBIS 2017 - Sweden                                   #
-# jacques.dainat\@nbis.se                               #
-# Please cite NBIS (www.nbis.se) when using this tool. #
-########################################################
-};
-
 my $codonTableId=1;
 my $MIN_PROT_LENGTH = 100;
 my $force_start_codon = undef;
@@ -50,8 +44,8 @@ if ( !GetOptions(
 
 # Print Help and exit
 if ($help) {
-    pod2usage( { -verbose => 2,
-                 -exitval => 2,
+    pod2usage( { -verbose => 99,
+                 -exitval => 0,
                  -message => "$header\n" } );
 }
 
@@ -198,7 +192,10 @@ __END__
 
 =head1 NAME
 
-fasta_get_longestORF.pl -
+gaas_fasta_get_longestORF.pl
+
+=head1 DESCRIPTION
+
 The script take a nucleotide fasta file as input and will extract the longest ORF(s) and translate it(them) in AA.
 By default it extracts only the longest ORF even incomplete (missing start or/and stop codon) >= 100 AA.
 This script is an adpatation of the TransDecoder.LongestORF tool, adapted to use bioperl.
@@ -206,8 +203,8 @@ This script is an adpatation of the TransDecoder.LongestORF tool, adapted to use
 
 =head1 SYNOPSIS
 
-    ./fasta_get_longestORF.pl -f infile.fasta [ -o outfile ]
-    ./fasta_get_longestORF.pl -h
+    gaas_fasta_get_longestORF.pl -f infile.fasta [ -o outfile ]
+    gaas_fasta_get_longestORF.pl -h
 
 =head1 OPTIONS
 
@@ -252,4 +249,30 @@ Display this helpful text.
 
 =back
 
+=head1 FEEDBACK
+
+=head2 Did you find a bug?
+
+Do not hesitate to report bugs to help us keep track of the bugs and their
+resolution. Please use the GitHub issue tracking system available at this
+address:
+
+            https://github.com/NBISweden/GAAS/issues
+
+ Ensure that the bug was not already reported by searching under Issues.
+ If you're unable to find an (open) issue addressing the problem, open a new one.
+ Try as much as possible to include in the issue when relevant:
+ - a clear description,
+ - as much relevant information as possible,
+ - the command used,
+ - a data sample,
+ - an explanation of the expected behaviour that is not occurring.
+
+=head2 Do you want to contribute?
+
+You are very welcome, visit this address for the Contributing guidelines:
+https://github.com/NBISweden/GAAS/blob/master/CONTRIBUTING.md
+
 =cut
+
+AUTHOR - Jacques Dainat

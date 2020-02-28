@@ -1,9 +1,5 @@
 #!/usr/bin/env perl
 
-##########################
-# Jacques Dainat 11/2015 #
-###########################
-
 #libraries
 use File::Basename;
 use strict;
@@ -276,11 +272,11 @@ foreach my $chr (keys %hash_chr2name){
     %$tmpAli = (); # empty the hash
 
     # we go through the chromosome positions by increasing order
-    foreach my $position (sort {$a<=>$b} keys $hash_chr2name{$chr}){
+    foreach my $position (sort {$a<=>$b} keys %{$hash_chr2name{$chr} } ) {
       #print "study of $hash_chr2name{$chr}{$position} $position\n";
       if($position > (1000000*($currentLimit-$opt_windowsSize)) and $position < (1000000*$currentLimit) ){ #kb to nucleotide : * 1000000
 
-        if(exists ($hash_HordeumName2Aliname{$hash_chr2name{$chr}{$position}})){
+        if(exists ($hash_HordeumName2Aliname{$hash_chr2name{$chr}{$position} } ) ) {
 
          if (fill_for_ali($tmpAli, $hash_HordeumName2Aliname{$hash_chr2name{$chr}{$position}}, $nbPrintedVal)){ # save sequence of the alignement to create supermatrice
           $nbPrintedVal++;
@@ -527,7 +523,7 @@ sub get_highest_value{
   my ($hash,$chr) = @_;
   my $high=0;
 
-  foreach my $position (keys $hash->{$chr}){
+  foreach my $position (keys %{$hash->{$chr} } ) {
     if($position > $high){
       $high=$position ;
     }
@@ -545,19 +541,22 @@ __END__
 
 =head1 NAME
 
-script.pl -
+gaas_prepare_matrice_by_window.pl
+
+=head1 DESCRIPTION
+
 The script take a position file as input and a directory containing the alignments. It will concatenates files to create mini-superMatrices corresponding to the size of window size choosen.
-The aim is to check if ther is a clear phylogeny pattern by portion of the chromosome. If hte pattern is different in different location of hte chromosome it could be a hint of recombination.
+The aim is to check if ther is a clear phylogeny pattern by portion of the chromosome. If hte pattern is different in different location of the chromosome it could be a hint of recombination.
 
 =head1 SYNOPSIS
 
-    ./script.pl -p positionFile --ad directoryWithAlignments [ --output outfile ]
-    ./script.pl --help
+    gaas_prepare_matrice_by_window.pl -p positionFile --ad directoryWithAlignments [ --output outfile ]
+    gaas_prepare_matrice_by_window.pl --help
 
-    ./prepare_matrice_by_window.pl -p Hordeum_position.txt -tsv clusters_1L_7speIN_1speOUT_noDup_withHordeum6235.tsv -ad ALIGNMENTS -c -o out_consens
+    gaas_prepare_matrice_by_window.pl -p Hordeum_position.txt -tsv clusters_1L_7speIN_1speOUT_noDup_withHordeum6235.tsv -ad ALIGNMENTS -c -o out_consens
 
     example with -cl option
-    ./prepare_matrice_by_window.pl -p Hordeum_position.txt -tsv clusters_1L_7speIN_1speOUT_noDup_withHordeum6235.tsv -ad aliTest/ -c -cl Ae_longissima/D,Ae_sharonensis/D,Ae_bicornis/D,Ae_searsii/D,Ae_tauschii/D,Ae_comosa/D,Ae_uniaristata/D,Ae_umbellulata/D,Ae_caudata/D,T_urartu/A,T_boeoticum/A,Ae_speltoides/B,Ae_mutica/B
+    gaas_prepare_matrice_by_window.pl -p Hordeum_position.txt -tsv clusters_1L_7speIN_1speOUT_noDup_withHordeum6235.tsv -ad aliTest/ -c -cl Ae_longissima/D,Ae_sharonensis/D,Ae_bicornis/D,Ae_searsii/D,Ae_tauschii/D,Ae_comosa/D,Ae_uniaristata/D,Ae_umbellulata/D,Ae_caudata/D,T_urartu/A,T_boeoticum/A,Ae_speltoides/B,Ae_mutica/B
 
 =head1 OPTIONS
 
@@ -608,4 +607,30 @@ Display this helpful text.
 
 =back
 
+=head1 FEEDBACK
+
+=head2 Did you find a bug?
+
+Do not hesitate to report bugs to help us keep track of the bugs and their
+resolution. Please use the GitHub issue tracking system available at this
+address:
+
+            https://github.com/NBISweden/GAAS/issues
+
+ Ensure that the bug was not already reported by searching under Issues.
+ If you're unable to find an (open) issue addressing the problem, open a new one.
+ Try as much as possible to include in the issue when relevant:
+ - a clear description,
+ - as much relevant information as possible,
+ - the command used,
+ - a data sample,
+ - an explanation of the expected behaviour that is not occurring.
+
+=head2 Do you want to contribute?
+
+You are very welcome, visit this address for the Contributing guidelines:
+https://github.com/NBISweden/GAAS/blob/master/CONTRIBUTING.md
+
 =cut
+
+AUTHOR - Jacques Dainat

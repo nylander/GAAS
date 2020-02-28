@@ -1,16 +1,12 @@
 #!/usr/bin/env perl
 
-###################################################
-# Jacques Dainat 01/2018     #
-# jacques.dainat@nbis.se                          #
-###################################################
-
 use strict;
 use warnings;
 use Pod::Usage;
 use Getopt::Long;
-use Data::Dumper;
+use GAAS::GAAS;
 
+my $header = get_gaas_header();
 my $start_run = time();
 
 my $inputFile;
@@ -36,12 +32,12 @@ if ( !GetOptions (
 }
 
 if ($opt_help) {
-    pod2usage( { -verbose => 2,
+    pod2usage( { -verbose => 99,
                  -exitval => 0 } );
 }
 
 if (! $inputFile ){
-   pod2usage( { -message => 'at least 1 input file is mandatory',
+   pod2usage( { -message => 'At least 1 input file is mandatory',
                  -verbose => 1,
                  -exitval => 1 } );
 }
@@ -56,11 +52,11 @@ my $filename;
 if ($suffix eq ".gzip" or $suffix eq ".gz") {
   $gzip_input=1;
   $fq_ext = pop(@pieces);
-  $filename = concat_list_from_left(\@pieces); 
+  $filename = concat_list_from_left(\@pieces);
 }
 else{
   $fq_ext = $suffix;
-  $filename = concat_list_from_left(\@pieces); 
+  $filename = concat_list_from_left(\@pieces);
 }
 
 if ($gzip_input) {#unzip input case
@@ -72,7 +68,7 @@ if ($gzip_input) {#unzip input case
 	}
 	else{
     print "command2\n";
-    my $command = 'gzip -dc '.$inputFile.' | paste - - - - - - - -  | tee >(cut -f 1-4 | tr "\t" "\n" > '.$filename."_".$output_suffix1.$fq_ext.') | cut -f 5-8 | tr "\t" "\n" > '.$filename."_".$output_suffix2.$fq_ext;      
+    my $command = 'gzip -dc '.$inputFile.' | paste - - - - - - - -  | tee >(cut -f 1-4 | tr "\t" "\n" > '.$filename."_".$output_suffix1.$fq_ext.') | cut -f 5-8 | tr "\t" "\n" > '.$filename."_".$output_suffix2.$fq_ext;
     print "Command launched:\n".$command."\n";
     system ("/bin/bash -c '$command'");
 	}
@@ -86,7 +82,7 @@ else{
         }
         else{
           print "command4\n";
-          my $command = 'cat '.$inputFile.' | paste - - - - - - - -  | tee >(cut -f 1-4 | tr "\t" "\n" > '.$filename."_".$output_suffix1.$fq_ext.') | cut -f 5-8 | tr "\t" "\n" > '.$filename."_".$output_suffix2.$fq_ext;      
+          my $command = 'cat '.$inputFile.' | paste - - - - - - - -  | tee >(cut -f 1-4 | tr "\t" "\n" > '.$filename."_".$output_suffix1.$fq_ext.') | cut -f 5-8 | tr "\t" "\n" > '.$filename."_".$output_suffix2.$fq_ext;
           print "Command launched:\n".$command."\n";
           system ("/bin/bash -c '$command'");
         }
@@ -107,7 +103,7 @@ print "Job done in $run_time seconds\n";
               ########
                ######
                 ####
-                 ##          
+                 ##
 
 
 sub concat_list_from_left{
@@ -116,7 +112,7 @@ sub concat_list_from_left{
 
   my $result="";
   foreach my $element (@{$list}){
-    $result = $result.$element;  
+    $result = $result.$element;
   }
 
   return $result;
@@ -136,7 +132,7 @@ sub split_keep_delimiter{
       push @result, $element;
     }
     $cpt++;
-  } 
+  }
   return \@result;
 }
 
@@ -153,7 +149,7 @@ Optionally GZip compresses the output FASTQ files using pigz.
 
 Can deinterleave 100 million paired reads (200 million total
 reads; a 43Gbyte file), in memory (/dev/shm), in 4m15s (255s)
- 
+
 Script inspired by a pure bash code from the nathanhaigh repository: https://gist.github.com/3521724
 Also see the interleaving script: https://gist.github.com/4544979
 
@@ -183,7 +179,7 @@ STRING: Suffix to add to the output file 1. By default 1
 
 STRING: Suffix to add to the output file 2. By default 2.
 
-=item B<-gz> or B<--gzip> 
+=item B<-gz> or B<--gzip>
 
 Bolean: The output will be compressed using pigz.
 
@@ -197,4 +193,30 @@ Display this helpful text.
 
 =back
 
+=head1 FEEDBACK
+
+=head2 Did you find a bug?
+
+Do not hesitate to report bugs to help us keep track of the bugs and their
+resolution. Please use the GitHub issue tracking system available at this
+address:
+
+            https://github.com/NBISweden/GAAS/issues
+
+ Ensure that the bug was not already reported by searching under Issues.
+ If you're unable to find an (open) issue addressing the problem, open a new one.
+ Try as much as possible to include in the issue when relevant:
+ - a clear description,
+ - as much relevant information as possible,
+ - the command used,
+ - a data sample,
+ - an explanation of the expected behaviour that is not occurring.
+
+=head2 Do you want to contribute?
+
+You are very welcome, visit this address for the Contributing guidelines:
+https://github.com/NBISweden/GAAS/blob/master/CONTRIBUTING.md
+
 =cut
+
+AUTHOR - Jacques Dainat

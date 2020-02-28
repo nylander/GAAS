@@ -8,24 +8,18 @@ use Scalar::Util qw(openhandle);
 use Time::Piece;
 use POSIX;
 use Time::Seconds;
-use NBIS::Grid::Bsub;
-use NBIS::Grid::Sbatch;
 use File::Basename;
 use Bio::SeqIO;
 use Cwd;
 use Carp;
 use Bio::SeqFeature::Generic;
 no strict qw(subs refs);
+use GAAS::Grid::Bsub;
+use GAAS::Grid::Sbatch;
+use GAAS::GAAS;
 
-my $header = qq{
-########################################################
-# NBIS - Sweden                                        #
-#                                                      #
-# Please cite NBIS (www.NBIS.se) when using this tool. #
-########################################################
-};
-
-my $outdir = transposonPSI_output;
+my $header = get_gaas_header();
+my $outdir = "transposonPSI_output";
 my $fastaFile;
 my @cmds = ();				# Stores the commands to send to farm
 my $quiet;
@@ -35,12 +29,13 @@ my $queue=undef;
 my $chunk=10;
 
 if ( !GetOptions(
-    "help" => \$help,
+    "h|help!" => \$help,
     "fasta|f=s" => \$fastaFile,
     "grid=s"  => \$grid,
+		"quiet|q!"  => \$quiet,
     "chunk=i"  => \$chunk,
     "queue=s"  => \$queue,
-    "outdir|o=s" => \$outdir))
+    "outdir|o=s" => \$outdir ) )
 
 {
     pod2usage( { -message => "Failed to parse command line",
@@ -50,14 +45,14 @@ if ( !GetOptions(
 
 # Print Help and exit
 if ($help) {
-        pod2usage( { -verbose => 1,
+        pod2usage( { -verbose => 99,
                  -exitval => 0,
-                 -message => "$header \n" } );
+                 -message => "$header\n" } );
 }
 
 if ( ! defined($fastaFile) ){
     pod2usage( {
-           -message => "$header\nAt least 2 parameter are mandatory:\nInput fasta file and output directory \n\n",
+           -message => "$header\nAt least 1 parameter is mandatory:\nInput fasta file\n\n",
            -verbose => 0,
            -exitval => 2 } );
 }
@@ -128,7 +123,7 @@ while( $seq = $inseq->next_seq() ) {
 msg("submitting chunks\n");
 
 if( $grid){
-  msg("Sending $seq_counter jobs to the grid\n");
+  msg("Sending $#cmds jobs to the grid\n");
   chomp(@cmds); # Remove empty indices
   # Submit job chunks to grid
   my $grid_runner;
@@ -237,14 +232,16 @@ __END__
 
 =head1 NAME
 
-transposonPSI2grid.pl -
+gaas_transposonPSI2grid.pl -
+
+=head1 DESCRIPTION
+
+Chunk input data to run multiple transposonPSI jobs in parallel
 
 =head1 SYNOPSIS
 
-We transposonPSI against protein fasta sequences
-
-    ./transposonPSI2grid.pl -f fasta_file -o outdir
-    ./transposonPSI2grid.pl --help
+    gaas_transposonPSI2grid.pl -f fasta_file -o outdir
+    gaas_transposonPSI2grid.pl --help
 
 =head1 OPTIONS
 
@@ -266,6 +263,10 @@ If you want to define a particular queue to run the jobs
 
 Define which grid to use, Slurm, Lsf or None. Default = Slurm.
 
+=item B<--quiet> or B<-q>
+
+Quiet mode
+
 =item B<--outdir> or B<-o>
 
 The name of the output directory.
@@ -276,4 +277,30 @@ Display this helpful text.
 
 =back
 
+=head1 FEEDBACK
+
+=head2 Did you find a bug?
+
+Do not hesitate to report bugs to help us keep track of the bugs and their
+resolution. Please use the GitHub issue tracking system available at this
+address:
+
+            https://github.com/NBISweden/GAAS/issues
+
+ Ensure that the bug was not already reported by searching under Issues.
+ If you're unable to find an (open) issue addressing the problem, open a new one.
+ Try as much as possible to include in the issue when relevant:
+ - a clear description,
+ - as much relevant information as possible,
+ - the command used,
+ - a data sample,
+ - an explanation of the expected behaviour that is not occurring.
+
+=head2 Do you want to contribute?
+
+You are very welcome, visit this address for the Contributing guidelines:
+https://github.com/NBISweden/GAAS/blob/master/CONTRIBUTING.md
+
 =cut
+
+AUTHOR - Jacques Dainat
