@@ -1,25 +1,13 @@
 #!/usr/bin/env perl
 
-###################################################
-# domainExtractor.pl - Jacques Dainat 01/2015     #
-# Bioinformatics Infrastructure for Life Sciences #
-# jacques.dainat@nbis.se			  #
-###################################################
-
-
 use strict;
 use warnings;
 use Pod::Usage;
 use Getopt::Long;
 use IO::File;
-my $header_nbis = qq{
-########################################################
-# NBIS 2018 - Sweden                                   #  
-# jacques.dainat\@nbis.se                               #
-# Please cite NBIS (www.nbis.se) when using this tool. #
-########################################################
-};
+use GAAS::GAAS;
 
+my $header_nbis = get_gaas_header();
 my $inputFile;
 my $outputFile;
 my $nameSeq;
@@ -115,7 +103,7 @@ if($headerFound eq "no"){
 
 if( ($nbSeq > 1) && (defined($nameSeq)) && ($headerFound eq "no") ){
 		print "The header you specified >$nameSeq< doesn't exist in this MultiFasta file.\nPlease check it.\n";exit;
-} 
+}
 
 print "Name studied sequence: $header\n";
 #print "sequence: $seq\n";
@@ -152,7 +140,7 @@ NOTE: The script expect the use of 1-based coordinate system. So, -s 1 -e 1 extr
 Rule of coordinate system
 	1-based coordinate system = Numbers nucleotides directly
     0-based coordinate system = Numbers between nucleotides
-    
+
 =head1 SYNOPSIS
 
     fasta_domain_extractor.pl -i <input file> -s <start_coordinate> -e <end_coordinate> [-o <output file> -n <sequence name>]
@@ -166,19 +154,19 @@ Rule of coordinate system
 
 Input fasta file that will be read.
 
-=item B<-s> or B<--start> 
+=item B<-s> or B<--start>
 
 Start coordinate of the region that will be extract
 
-=item B<-e> or B<--end> 
+=item B<-e> or B<--end>
 
 End coordinate of the region that will be extract
 
-=item B<-n> or B<--name> 
+=item B<-n> or B<--name>
 
 In Multifasta file case, the name allows to specify which sequence you are interested in.
 
-=item B<-o> or B<--output> 
+=item B<-o> or B<--output>
 
 Output file.  If no output file is specified, the output will be
 written to STDOUT.

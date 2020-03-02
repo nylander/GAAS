@@ -4,6 +4,7 @@
 # Implement case insensitive
 ###
 use strict;
+use warnings;
 use Pod::Usage;
 use Getopt::Long;
 use Bio::SeqIO ;
