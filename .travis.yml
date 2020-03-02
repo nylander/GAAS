@@ -1,0 +1,9 @@
+language: perl
+perl:
+  - "5.30"
+  - "5.28"
+  - "5.26"
+
+before_install:
+  - sudo apt-get -y install libdb-dev
+  - sudo apt-get -y install r-base
