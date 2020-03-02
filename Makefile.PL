@@ -61,8 +61,7 @@ my %prereq_hash = ( "Bio::DB::Fasta" => 0,
                     "Try::Tiny" => 0,
                     "URI::Escape" => 0,
                     "strict" => 0,
-                    "warnings" => 0,
-										"YAML::XS" => 0
+                    "warnings" => 0
                   );
 
 # ------------------- CREATE the WriteMakefile hash ----------------------------
