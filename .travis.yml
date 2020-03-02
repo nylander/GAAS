@@ -7,3 +7,4 @@ perl:
 before_install:
   - sudo apt-get -y install libdb-dev
   - sudo apt-get -y install r-base
+  - cpanm --notest
