@@ -1,4 +1,8 @@
-[![Build Status](https://travis-ci.org/NBISweden/AGAT.svg?branch=master)](https://travis-ci.org/NBISweden/AGAT)  
+[![Build Status](https://travis-ci.org/NBISweden/AGAT.svg?branch=master)](https://travis-ci.org/NBISweden/AGAT)
+[![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](http://bioconda.github.io/recipes/gaas/README.html)
+[![DOI](https://zenodo.org/badge/53501201.svg)](https://zenodo.org/badge/latestdoi/53501201)
+[<img alt="docker_agat" src="https://quay.io/repository/biocontainers/agat/status">](https://quay.io/repository/biocontainers/agat)
+[![Anaconda-Server Badge](https://anaconda.org/bioconda/gaas/badges/license.svg)](https://anaconda.org/bioconda/agat)   
 GAAS 
 =========================================
 <h2><em>G</em>enome <em>A</em>ssembly <em>A</em>nnotation <i>S</i>ervice (GAAS)</h2>  
