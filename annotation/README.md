@@ -7,21 +7,14 @@
 # The NBIS annotation toolkit.</br>
 ### (c) The NBIS Genome Annotation Platform
 
-#### [NBIS](NBIS)
-Perl library
-
-#### [LsfTemplates](LsfTemplates)
+#### [lsf_templates](lsf_templates)
 It contains batch scripts to launch different job on lsf scheduler.
 
 #### [Tools](Tools)
 The most important. All convenient tools.  
-[>>All the scripts are gathered here<<](Tools/bin/)  
-[Prerequisite installation information](https://github.com/NBISweden/GAAS/tree/master/annotation/Tools/Util/gff)
-
-#### [WebApollo](WebApollo)
-All the development related to webapollo
+[>>All the scripts are gathered here<<](../bin/)  
 
 #### [data_test](data_test)
 Contains data used to test the different development
 
-#### [CheatSheet](CheatSheet)
+#### [knowledge](knowledge)
