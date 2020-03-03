@@ -1,76 +1,11 @@
 #!/usr/bin/perl
 
-=head1 NAME
-synplot.pl - Make synteny plots for small genomes
-=head1 SYNOPSIS
-    perl synplot.pl -f <fasta1>,<fasta2>,<fasta3> \
-                    -g <gff1>,<gff2>,<gff3> \
-                    -o <output_prefix>
-    perl synplot.pl --help
-=head1 DESCRIPTION
-Make synteny plots for a set of contigs or small genomes. Given a set of Fasta
-files, each representing a single genome, and GFF3 feature tables with CDS
-features for those Fasta files, perform Blastp between each adjacent pair of
-genomes, and make synteny plots.
-Requires the accompanying R script synplot.R in the same folder as the perl
-script, and command Rscript in path.
-=head1 ARGUMENTS
-=over 8
-=item --fasta|-f <file>,<file>,<file>
-List of file names separated by commas; nucleotide fasta files containing
-contigs to be compared, in order that they will appear on synteny plot.
-=item --gff|-g <file>,<file>,<file>
-List of file names separated by commas; GFF files containing predicted CDS to
-be compared by Blastp against each other. Must be in same order as the list of
-Fasta files given to -f parameter (above).
-=item --out|-o <string>
-Prefix for output file names. (Default: test)
-=item --bidir
-Flag: Take bidirectional reciprocal best blast hits only. (Default: Off)
-=item --plotonly
-Flag: Draw plot only. Requires precomputed intermediate files with same file
-name prefix as supplied to -o parameter above.
-=item --gencode <integer>
-Genetic code for a.a. sequence translation. (Default: 4)
-=item --help
-This help message.
-=item --cds|-c <string>
-How to depict CDS direction. Allowed values: color, arrow. No quotation marks.
-(Default: color)
-=item --color_id <string>
-Color corresponding to max value in color scale, used to show percentage ID for
-two CDSs connected by a stripe in the synteny plot.
-=item --color_cds_f <string>
-Color for forward-directed CDSs (if "--cds color" specified), or color of arrow
-(if "--cds arrow" specified).
-=item --color_cds_r <string>
-Color for reverse-directed CDSs (if "--cds color" specified, otherwise ignored)
-=back
-=head1 OUTPUT
-All output files have output prefix as given to --out.
-Synteny plot is in PDF format at <output_prefix>.synteny.pdf.
-Intermediate files: Blastp output in tabular format (outfmt 6), and tables
-containing coordinates of features and connecting polygons for plotting (suffix
-.tab).
-=head1 COPYRIGHT AND LICENSE
-Copyright 2016, Brandon Seah (kbseah@mpi-bremen.de)
-LICENSE
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-=cut
-
 use warnings;
 use strict;
 use Getopt::Long;
+use Bio::Seq;
 use Bio::SeqIO;
+use Cwd;
 use Bio::DB::Fasta;
 use FindBin qw($Bin $Script);
 use Pod::Usage;
@@ -90,25 +25,44 @@ my %x1_hash; # Don't ask
 my %x0_hash;
 my $plotonly;               # Flag - do not run Blastp, only call synplot.R to draw plot
 my $bidir;                  # Flag - Bidrectional best hits only
+my $help;
+my $man;
+my $verbose = undef;
 
-if (! @ARGV) {
-    pod2usage (-message=>"No input parameters supplied", -exitstatus=>2);
+if( !GetOptions(     'fasta|f=s' => \$input_fasta,   # Input should be list of Fasta files, comma-separated
+									    'gff|g=s' => \$input_gff,       # Input should be list of GFF files, comma-separated
+									    'plotonly|p'=>\$plotonly,       #
+									    'out|o=s' =>\$outfix,           # Output prefix
+									    'gencode=i' =>\$gencode,        # Genetic code
+									    'cds|c=s' =>\$cdstype,          # How to indicate CDS direction
+									    'color_id=s' =>\$colmax,        # Color for maximum %id in synteny plot
+									    'color_cds_f=s' =>\$colcds1,
+									    'color_cds_r=s' =>\$colcds2,
+									    'bidir' => \$bidir,             # Bidirectional best hits only
+											'verbose|v!' => \$verbose,
+									    'help|h!' => \$help,
+									    'man|m!' => \$man ) )
+{
+    pod2usage( { -message => "Failed to parse command line.",
+                 -verbose => 1,
+                 -exitval => 2 } );
+}
+# Print Help and exit
+if ($help) {
+    pod2usage( { -verbose => 99,
+                 -exitval => 0 } );
 }
 
-GetOptions (
-    'fasta|f=s' => \$input_fasta,   # Input should be list of Fasta files, comma-separated
-    'gff|g=s' => \$input_gff,       # Input should be list of GFF files, comma-separated
-    'plotonly|p'=>\$plotonly,       #
-    'out|o=s' =>\$outfix,           # Output prefix
-    'gencode=i' =>\$gencode,      # Genetic code
-    'cds|c=s' =>\$cdstype,          # How to indicate CDS direction
-    'color_id=s' =>\$colmax,        # Color for maximum %id in synteny plot
-    'color_cds_f=s' =>\$colcds1,
-    'color_cds_r=s' =>\$colcds2,
-    'bidir' => \$bidir,             # Bidirectional best hits only
-    'help|h' => sub { pod2usage(-exitstatus=>0, verbose=>99); },
-    'man|m' => sub { pod2usage(-exitstatus=>0, verbose=>2); },
-);
+# Print Help and exit
+if ($man) {
+    pod2usage( { -verbose => 2,
+                 -exitval => 0 } );
+}
+
+my @tools = ("blastp");
+foreach my $exe (@tools) {
+    check_bin($exe) == 1 or die "Missing executable $exe in PATH";
+}
 
 ## MAIN #######################################################################
 
@@ -184,7 +138,7 @@ sub parse_fasta_gff {
                                 $i
                                )."\n";
         }
-        #print $the_fasta."\t".$total_length_hash{$the_fasta}."\n";
+        print $the_fasta."\t".$total_length_hash{$the_fasta}."\n" if ($verbose);
         close (OUTPUT1);
     ## Index Fasta files and parse corresponding GFF files
         # Load fasta sequences to memory
@@ -268,6 +222,7 @@ sub parse_fasta_gff {
 }
 
 sub run_blast_pairs {
+    print "run run_blast_pairs\n" if ($verbose);
     for my $i (0 .. scalar(@input_fasta_list)-2) {
         my $j = $i + 1;
         my $blastfile1 = "$input_fasta_list[$i].pep";
@@ -344,3 +299,113 @@ sub run_blast_pairs_bidir {
         close(OUTPUT3);
     }
 }
+
+sub check_bin
+{
+    length(`which @_`) > 0 ? return 1 : return 0;
+}
+
+
+__END__
+
+=head1 NAME
+
+synplot.pl - Make synteny plots for small genomes
+
+=head1 SYNOPSIS
+
+    perl synplot.pl -f <fasta1>,<fasta2>,<fasta3> \
+                    -g <gff1>,<gff2>,<gff3> \
+                    -o <output_prefix>
+    perl synplot.pl --help
+
+=head1 DESCRIPTION
+
+Make synteny plots for a set of contigs or small genomes. Given a set of Fasta
+files, each representing a single genome, and GFF3 feature tables with CDS
+features for those Fasta files, perform Blastp between each adjacent pair of
+genomes, and make synteny plots.
+Requires the accompanying R script synplot.R in the same folder as the perl
+script, and command Rscript in path.
+
+=head1 OPTIONS
+
+=over 8
+
+=item --fasta|-f <file>,<file>,<file>
+
+List of file names separated by commas; nucleotide fasta files containing
+contigs to be compared, in order that they will appear on synteny plot.
+
+=item --gff|-g <file>,<file>,<file>
+
+List of file names separated by commas; GFF files containing predicted CDS to
+be compared by Blastp against each other. Must be in same order as the list of
+Fasta files given to -f parameter (above).
+
+=item --out|-o <string>
+
+Prefix for output file names. (Default: test)
+
+=item --bidir
+
+Flag: Take bidirectional reciprocal best blast hits only. (Default: Off)
+
+=item --plotonly
+
+Flag: Draw plot only. Requires precomputed intermediate files with same file
+name prefix as supplied to -o parameter above.
+
+=item --gencode <integer>
+
+Genetic code for a.a. sequence translation. (Default: 4)
+
+=item --help
+
+This help message.
+
+=item --cds|-c <string>
+
+How to depict CDS direction. Allowed values: color, arrow. No quotation marks.
+(Default: color)
+
+=item --color_id <string>
+
+Color corresponding to max value in color scale, used to show percentage ID for
+two CDSs connected by a stripe in the synteny plot.
+
+=item --color_cds_f <string>
+
+Color for forward-directed CDSs (if "--cds color" specified), or color of arrow
+(if "--cds arrow" specified).
+
+=item --color_cds_r <string>
+
+Color for reverse-directed CDSs (if "--cds color" specified, otherwise ignored)
+
+=back
+
+=head1 OUTPUT
+
+All output files have output prefix as given to --out.
+Synteny plot is in PDF format at <output_prefix>.synteny.pdf.
+Intermediate files: Blastp output in tabular format (outfmt 6), and tables
+containing coordinates of features and connecting polygons for plotting (suffix
+.tab).
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2016, Brandon Seah (kbseah@mpi-bremen.de)
+LICENSE
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+=cut
