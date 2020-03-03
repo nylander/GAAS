@@ -1,9 +1,9 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
-use warnings;
 use strict;
+use warnings;
 use Getopt::Long;
-use Bio::Seq;
+use File::Basename;
 use Bio::SeqIO;
 use Cwd;
 use Bio::DB::Fasta;
@@ -99,9 +99,10 @@ if (!$plotonly) {
     }
 }
 
+print "Call Rscript\n" if ($verbose);
 # Call R script to generate plot
 system ("Rscript $Bin/synplot.R --args $output_tab_0 $output_tab_1 $output_tab_2 $output_tab_3 $outfix.synteny.pdf $cdstype $colmax");
-
+print "Result written to $outfix.synteny.pdf\nBye Bye\n";
 ## SUBROUTINES ################################################################
 
 sub parse_fasta_gff {
@@ -112,8 +113,7 @@ sub parse_fasta_gff {
 
     for my $i (0 .. scalar(@input_fasta_list)-1) {
         my $the_fasta = $input_fasta_list[$i];
-        $the_fasta =~ /(.*)\.fasta/;
-        my $label = $1;
+				my ($label,$path,$ext) = fileparse($the_fasta,qr/\.[^.]*/);
         open(OUTPUT0, ">>", "$output_tab_0") or die ("$!\n");;
         print OUTPUT0 $the_fasta."\t".$i."\t".$label."\n";
         close(OUTPUT0);
@@ -222,17 +222,24 @@ sub parse_fasta_gff {
 }
 
 sub run_blast_pairs {
+
     print "run run_blast_pairs\n" if ($verbose);
     for my $i (0 .. scalar(@input_fasta_list)-2) {
         my $j = $i + 1;
         my $blastfile1 = "$input_fasta_list[$i].pep";
         my $blastfile2 = "$input_fasta_list[$i+1].pep";
-        system ("blastp -subject $blastfile1 -query $blastfile2 -evalue 1e-3 -outfmt 6 -max_target_seqs 1 -out $outfix.blastout.$i.out6");
+        if (-f "$outfix.blastout.$i.out6"){
+					print "run_blast_pairs output already exists for $outfix.blastout.$i.out6, skipping this step\n";
+				}
+				else{
+        	system ("blastp -subject $blastfile1 -query $blastfile2 -evalue 1e-3 -outfmt 6 -max_target_seqs 1 -out $outfix.blastout.$i.out6");
+				}
         open(OUTPUT3, ">>", "$output_tab_3") or die ("$!\n");
         open(HITS, "<", "$outfix.blastout.$i.out6") or die ("$!\n");
         while (<HITS>) {
             # Convert Blast hit results (pairs of genes with best hits to each other) to polygons for drawing synteny diagrams
             chomp;
+						print "$_\n";
             my @splitline = split("\t",$_);
             my ($query,$subject,$pid) = ($splitline[0],$splitline[1],$splitline[2]);
             print OUTPUT3 $input_fasta_list[$i]."\t".$query."\t".$input_fasta_list[$i+1]."\t".$subject."\t";
