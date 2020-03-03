@@ -10,7 +10,7 @@
 #### [lsf_templates](lsf_templates)
 It contains batch scripts to launch different job on lsf scheduler.
 
-#### [Tools](Tools)
+#### [tools](tools)
 The most important. All convenient tools.  
 [>>All the scripts are gathered here<<](../bin/)  
 
