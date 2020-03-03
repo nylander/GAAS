@@ -1,31 +1,34 @@
-
-[<img align="center" src="NBIS.png" width="200" height="100" />](https://nbis.se)
+[![Build Status](https://travis-ci.org/NBISweden/AGAT.svg?branch=master)](https://travis-ci.org/NBISweden/AGAT)  
+GAAS 
+=========================================
 <h2><em>G</em>enome <em>A</em>ssembly <em>A</em>nnotation <i>S</i>ervice (GAAS)</h2>  
-Contains development done in the GAA (Genome Assembly Annotation) Service.
+Suite of tools related to Genome Assembly Annotation Service tasks.
+
+[<img align="right" src="NBIS.png" width="200" height="100" />](https://nbis.se)
 
 ---------------------------
 
-## [__annotation__](annotation)  
-Annotation directory contains development related to annotation side of the service.  
+## Table of Contents
 
-#### Shorcuts:  
-   - [Cheat Sheets](annotation/CheatSheet)
-
-   - [Genome annotation workshop](https://nbisweden.github.io/workshop-genome_annotation/)
-
-   - [Tools](annotation/Tools/bin/)  
-     => All gff related work have been transplanted into [GAAS](https://github.com/NBISweden/GAAS) (11/2019)
-
-   - [Pipelines](https://github.com/NBISweden/pipelines/tree/master/bpipe)
-
-## [__assembly__](assembly)  
-Assembly directory contains development related to assembly side of the service.  
-
-#### Shorcuts:  
-   - [Genome assembly workshop](https://nbisweden.github.io/workshop-genome_assembly/)
-   - [The Genome Assembly Workshop Knowledge Base](https://github.com/NBISweden/workshop-genome_assembly/wiki)
+   * [What can GAAS do for you?](#what-can-gaas-do-for-you)
+   * [Installation](#installation)  
+       * [Using bioconda](using-bioconda)
+          * [Install](#install)
+          * [Update](#update)
+          * [Uninstall](#uninstall)
+       * [Old school](#old-school)
+          * [Prerequisites](#prerequisites)
+          * [Install](#install-1)
+          * [Update](#update-1)
+          * [Uninstall](#uninstall-1)
+          * [Change to a specific version](#change-to-a-specific-version)
+   * [Usage](#usage)
 
 ---------------------------
+
+## What can GAAS do for you?  
+
+The repository contains mainly tools and knowledge related to bioinformatics and annotation the most often. To access and install the tools please follow the installation procedures below. For the knowledge you are invited to visit the [knowledge](annotation/knowledge) part of the repo or if you are looking specifically for genome assembly knowledge [The Genome Assembly Workshop Knowledge Base](https://github.com/NBISweden/workshop-genome_assembly/wiki).
 
 ## Installation
 
@@ -64,9 +67,9 @@ Assembly directory contains development related to assembly side of the service.
     cpanm Statistics::R
     cpanm Sort::Naturally
     cpanm File::Share
-		cpanm Moose
+    cpanm Moose
     cpanm File::ShareDir::Install
-		cpanm Bio::DB::EUtilities
+    cpanm Bio::DB::EUtilities
     ```
     * Install perl modules with conda
 
@@ -124,3 +127,28 @@ From the folder where the repository is located.
   ```
   script_name.pl -h
   ```    
+  
+---------------------------
+
+## Repository structure
+
+## [__annotation__](annotation)  
+Annotation directory contains evertything related to annotation side of the service.  
+
+#### Shorcuts:  
+   - [knowledge](annotation/knowledge)
+
+   - [Genome annotation workshop](https://nbisweden.github.io/workshop-genome_annotation/)
+
+   - [Tools](annotation/tools)  
+     => All gff related work have been transplanted into [AGAT](https://github.com/NBISweden/AGAT) (11/2019)
+
+   - [Pipelines](https://github.com/NBISweden/pipelines-nextflow)
+
+## [__assembly__](assembly)  
+Assembly directory contains development related to assembly side of the service.  
+
+#### Shorcuts:  
+   - [Genome assembly workshop](https://nbisweden.github.io/workshop-genome_assembly/)
+   - [The Genome Assembly Workshop Knowledge Base](https://github.com/NBISweden/workshop-genome_assembly/wiki)
+
