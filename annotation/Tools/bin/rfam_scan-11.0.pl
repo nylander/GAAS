@@ -1,1 +1,0 @@
-../../Tools/Util/rfam_scan-11.0.pl

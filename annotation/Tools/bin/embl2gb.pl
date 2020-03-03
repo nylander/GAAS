@@ -1,1 +1,0 @@
-../../Tools/Converter/embl2gb.pl

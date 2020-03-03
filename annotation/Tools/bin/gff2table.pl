@@ -1,1 +1,0 @@
-../../Tools/Converter/gff2table.pl

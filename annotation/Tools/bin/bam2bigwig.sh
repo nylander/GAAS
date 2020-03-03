@@ -1,1 +1,0 @@
-../../Tools/Converter/bam2bigwig.sh

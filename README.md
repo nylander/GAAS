@@ -1,22 +1,150 @@
-
-[<img align="center" src="NBIS.png" width="200" height="100" />](https://nbis.se) 
+[![Build Status](https://travis-ci.org/NBISweden/AGAT.svg?branch=master)](https://travis-ci.org/NBISweden/AGAT)  
+GAAS 
+=========================================
 <h2><em>G</em>enome <em>A</em>ssembly <em>A</em>nnotation <i>S</i>ervice (GAAS)</h2>  
-Contains development done in the GAA (Genome Assembly Annotation) Service.
+Suite of tools related to Genome Assembly Annotation Service tasks.
+
+[<img align="right" src="NBIS.png" width="200" height="100" />](https://nbis.se)
 
 ---------------------------
 
+## Table of Contents
+
+   * [What can GAAS do for you?](#what-can-gaas-do-for-you)
+   * [Installation](#installation)  
+       * [Using bioconda](using-bioconda)
+          * [Install](#install)
+          * [Update](#update)
+          * [Uninstall](#uninstall)
+       * [Old school](#old-school)
+          * [Prerequisites](#prerequisites)
+          * [Install](#install-1)
+          * [Update](#update-1)
+          * [Uninstall](#uninstall-1)
+          * [Change to a specific version](#change-to-a-specific-version)
+   * [Usage](#usage)
+   * [Repository structure](#repository-structure)
+
+---------------------------
+
+## What can GAAS do for you?  
+
+The repository contains mainly tools and knowledge related to bioinformatics and annotation the most often. To access and install the tools please follow the installation procedures below. For the knowledge you are invited to visit the [knowledge](annotation/knowledge) part of the repo or if you are looking specifically for genome assembly knowledge [The Genome Assembly Workshop Knowledge Base](https://github.com/NBISweden/workshop-genome_assembly/wiki).
+
+## Installation
+
+### Using conda
+
+#### Install
+
+  ```
+  conda install -c bioconda gaas
+  ```
+
+#### Update
+
+  ```
+  conda update gaas
+  ```
+
+#### Uninstall
+  ```
+  conda uninstall gaas  
+  ```
+
+### Old school
+
+#### Prerequisites
+  * R
+  * Perl
+    Perl >= 5.8, and a list of perl modules that can be installed using cpan, cpanm or conda:
+
+    * Install perl modules with cpanm
+    ```
+    cpanm install bioperl
+    cpanm install Clone
+    cpanm install Graph::Directed
+    cpanm install LWP::UserAgent
+    cpanm install Statistics::R
+    cpanm install Sort::Naturally
+    cpanm install File::Share
+    cpanm install Moose
+    cpanm install File::ShareDir::Install
+    cpanm install Bio::DB::EUtilities
+    ```
+    * Install perl modules with conda
+
+    ```
+    conda env create -f conda_environment_GAAS.yml
+    conda activate gaas
+    ```
+
+#### Install
+
+  ```
+  git clone https://github.com/NBISweden/GAAS.git # Clone GAAS
+  cd GAAS                                         # move into GAAS folder
+  perl Makefile.PL                                # Check all the dependencies*
+  make                                            # Compile
+  make test                                       # Test
+  make install                                    # Install
+  ```
+
+<sup>*</sup>If dependencies are missing you can install them using cpan/cpanm or use conda and load the environment conda_environment_GAAS.yml
+
+**Remark**: On MS Windows, instead of make you'd probably have to use dmake or nmake depending the toolchain you have.
+
+#### Update  
+From the folder where the repository is located.
+
+  ```
+  git pull                                        # Update to last GAAS
+  perl Makefile.PL                                # Check all the dependencies<sup>1</sup>
+  make                                            # Compile
+  make test                                       # Test
+  make install                                    # Install
+  ```
+
+#### Change to a specific version
+From the folder where the repository is located.  
+
+  ```
+  git pull                                        # Update the code
+  git checkout v0.1.1                             # use version v0.1 (See releases tab for a list of available versions)
+  perl Makefile.PL                                # Check all the dependencies<sup>1</sup>
+  make                                            # Compile
+  make test                                       # Test
+  make install                                    # Install
+  ```
+
+#### Uninstall
+
+  ```
+  perl uninstall_GAAS
+  ```
+
+## Usage
+
+  ```
+  script_name.pl -h
+  ```    
+  
+---------------------------
+
+## Repository structure
+
 ## [__annotation__](annotation)  
-Annotation directory contains development related to annotation side of the service.  
+Annotation directory contains evertything related to annotation side of the service.  
 
 #### Shorcuts:  
-   - [Cheat Sheets](annotation/CheatSheet)
+   - [knowledge](annotation/knowledge)
 
    - [Genome annotation workshop](https://nbisweden.github.io/workshop-genome_annotation/)
 
-   - [Tools](annotation/Tools/bin/)  
+   - [Tools](annotation/tools)  
      => All gff related work have been transplanted into [AGAT](https://github.com/NBISweden/AGAT) (11/2019)
 
-   - [Pipelines](https://github.com/NBISweden/pipelines/tree/master/bpipe)
+   - [Pipelines](https://github.com/NBISweden/pipelines-nextflow)
 
 ## [__assembly__](assembly)  
 Assembly directory contains development related to assembly side of the service.  
@@ -25,107 +153,3 @@ Assembly directory contains development related to assembly side of the service.
    - [Genome assembly workshop](https://nbisweden.github.io/workshop-genome_assembly/)
    - [The Genome Assembly Workshop Knowledge Base](https://github.com/NBISweden/workshop-genome_assembly/wiki)
 
----------------------------
-
-## Installation
-
-  * Clone and install GAAS
-  
-To use the tools in this repository, clone the directory and run `make install` to update some paths:
-```
-git clone https://github.com/NBISweden/GAAS.git
-cd GAAS
-```
-
-#### A) For the use through ***env***  
-
-   * A.1) Updates paths in the environment profiles to point to the correct GAAS repository location  
-   ```
-   make install   
-   ```
-
-   * A.2) Dependencies
-      *  You might check that all dependencies are filled up. Depending the scripts you want to use, all dependencies are not required.  
-      ```
-      make check
-      ```
-      * Install the missing perl dependencies
-      
-        * With cpanm
-           ```
-           cpanm bioperl
-           cpanm Clone
-           cpanm Moose 
-           cpanm Graph::Directed
-           cpanm LWP::UserAgent
-           cpanm Statistics::R
-           cpanm JSON
-           cpanm Sort::Naturally
-           cpanm Bio::DB::EUtilities
-           ```
-         
-         * With conda
-            ```
-            conda env create -f gaas_environment.yml
-            ```
-            
-   * A.3) Load the correct profiles (add NBIS libs and tools to the PATH)  
-    Three profiles are available to setup the necessary environment variables to use the scripts:
-
-      * By default:
-      ```
-      source profiles/activate_env
-      ```
-
-      * If you are on Rackham:
-      ```
-      source profiles/activate_rackham_env
-      ```
-
-      * If you are on NBIS's servers:
-      ```
-      source profiles/activate_nbis_env
-      ```
-   * A.4) To get out of the nbis environment and restore your previous environment type  
-  
-     ```
-     deactivate
-     ```
-
-#### B) For a permanent use  
-  
-   * B.1) Dependencies
-      
-      * You might check that all dependencies are filled up. Depending the scripts you want to use, all dependencies are not required.
-         ```
-         make check
-         ```
-      
-      * Install the missing perl dependencies
-
-        * With cpanm
-        ```
-        cpanm bioperl
-        cpanm Clone
-        cpanm Moose 
-        cpanm Graph::Directed
-        cpanm LWP::UserAgent
-        cpanm Statistics::R
-        cpanm JSON
-        cpanm Sort::Naturally
-        cpanm Bio::DB::EUtilities
-        ```
-        
-        * With conda
-        ```
-        conda env create -f conda_env.yml
-        ```
-
-
-   * B.2) Add the path to the NBIS perl library as well as the bin folder containing all tools. You can add in you *~/.bashrc* or *~/.profile* file.
-      ```
-      export PERL5LIB=$PERL5LIB:/pathTo/GAAS/annotation
-      export PATH=${PATH}:/pathTo/GAAS/annotation/Tools/bin
-      ```
-      
-      

@@ -1,1 +1,0 @@
-../../Tools/Dev/perl/gff2embl.pl

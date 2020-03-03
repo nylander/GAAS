@@ -1,1 +1,0 @@
-../../Tools/Util/fastq/fastq_check_sync_pair1_pair2.pl

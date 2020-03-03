@@ -1,1 +1,0 @@
-../../Tools/Wrapper/run_interproscan.pl

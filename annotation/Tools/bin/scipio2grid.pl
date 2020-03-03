@@ -1,1 +1,0 @@
-../../Tools/Grid/scipio2grid.pl

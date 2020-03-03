@@ -1,1 +1,0 @@
-../../Tools/Util/fasta/fasta_bionano_filter_not_scaffolded_part.pl

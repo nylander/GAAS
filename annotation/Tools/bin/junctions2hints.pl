@@ -1,1 +1,0 @@
-../../Tools/Abinitio/Augustus/junctions2hints.pl

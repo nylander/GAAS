@@ -1,1 +1,0 @@
-../..//WebApollo/apollo1/build_template_WA_1_0_X.rb

@@ -1,0 +1,21 @@
+# conda env create -f conda_environment_GAAS.yml
+name: gaas
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+
+dependencies:
+  - perl
+  - perl-bio-eutilities
+  - perl-bioperl
+  - perl-clone
+  - perl-graph
+  - perl-lwp-simple
+  - perl-moose
+  - perl-statistics-r
+  - perl-sort-naturally
+  - perl-file-share
+  - perl-file-sharedir-install
+  - r-base
+  - libdb

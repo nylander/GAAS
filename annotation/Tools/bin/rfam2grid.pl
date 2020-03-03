@@ -1,1 +1,0 @@
-../../Tools/Grid/rfam2grid.pl

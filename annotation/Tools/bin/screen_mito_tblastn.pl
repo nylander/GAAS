@@ -1,1 +1,0 @@
-../../Tools/Util/screen_mito_tblastn.pl

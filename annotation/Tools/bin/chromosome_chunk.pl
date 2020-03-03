@@ -1,1 +1,0 @@
-../../Tools/EnsEMBL/chromosome_chunk.pl

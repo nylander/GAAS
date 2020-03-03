@@ -1,1 +1,0 @@
-../..//Tools/Util/sync_dat_and_embl.pl

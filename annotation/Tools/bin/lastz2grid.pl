@@ -1,1 +1,0 @@
-../../Tools/Grid/lastz2grid.pl

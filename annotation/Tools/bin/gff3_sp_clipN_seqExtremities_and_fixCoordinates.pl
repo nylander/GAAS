@@ -1,1 +1,0 @@
-../../Tools/Util/gff/gff3_sp_clipN_seqExtremities_and_fixCoordinates.pl

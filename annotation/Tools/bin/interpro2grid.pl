@@ -1,1 +1,0 @@
-../../Tools/Grid/interpro2grid.pl

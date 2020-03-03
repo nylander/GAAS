@@ -1,1 +1,0 @@
-../../Tools/ComparativeGenomic/orthomcl_analyzeOG.pl

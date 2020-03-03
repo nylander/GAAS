@@ -1,1 +1,0 @@
-../../Tools/Manager/create_delivery_dir.sh

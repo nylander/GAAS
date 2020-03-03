@@ -1,1 +1,0 @@
-../../Tools/Grid/trnascan2grid.pl

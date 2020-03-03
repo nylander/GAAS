@@ -1,1 +1,0 @@
-../../NBIS/GFF3/test/test_gff_syntax/tester.sh

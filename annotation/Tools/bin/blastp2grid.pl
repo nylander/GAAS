@@ -1,1 +1,0 @@
-../../Tools/Grid/blastp2grid.pl
