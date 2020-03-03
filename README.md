@@ -23,6 +23,7 @@ Suite of tools related to Genome Assembly Annotation Service tasks.
           * [Uninstall](#uninstall-1)
           * [Change to a specific version](#change-to-a-specific-version)
    * [Usage](#usage)
+   * [Repository structure](#repository-structure)
 
 ---------------------------
 
