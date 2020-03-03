@@ -11,5 +11,8 @@ before_install:
   - sudo apt-get -y install r-base
   - cpanm --notest Devel::Cover::Report::Coveralls
 
+script:
+  - perl Makefile.PL && make test TEST_VERBOSE=1
+
 after_success:
   - cover -test -report coveralls
