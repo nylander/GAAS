@@ -61,16 +61,16 @@ The repository contains mainly tools and knowledge related to bioinformatics and
 
     * Install perl modules with cpanm
     ```
-    cpanm bioperl
-    cpanm Clone
-    cpanm Graph::Directed
-    cpanm LWP::UserAgent
-    cpanm Statistics::R
-    cpanm Sort::Naturally
-    cpanm File::Share
-    cpanm Moose
-    cpanm File::ShareDir::Install
-    cpanm Bio::DB::EUtilities
+    cpanm install bioperl
+    cpanm install Clone
+    cpanm install Graph::Directed
+    cpanm install LWP::UserAgent
+    cpanm install Statistics::R
+    cpanm install Sort::Naturally
+    cpanm install File::Share
+    cpanm install Moose
+    cpanm install File::ShareDir::Install
+    cpanm install Bio::DB::EUtilities
     ```
     * Install perl modules with conda
 
