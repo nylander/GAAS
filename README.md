@@ -138,7 +138,7 @@ From the folder where the repository is located.
 ## Repository structure
 
 ## [__annotation__](annotation)  
-Annotation directory contains evertything related to annotation side of the service.  
+Annotation directory contains everything related to annotation side of the service.  
 
 #### Shorcuts:  
    - [knowledge](annotation/knowledge)
