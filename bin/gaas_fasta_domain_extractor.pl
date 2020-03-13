@@ -18,8 +18,8 @@ my $opt_help = 0;
 Getopt::Long::Configure ('bundling');
 if ( !GetOptions (  'i|f|fasta|input_file=s' => \$inputFile,
 					'n|name=s' => \$nameSeq,
-				    'o|output=s' => \$outputFile,
-				    's|start=i' => \$start,
+					'o|output=s' => \$outputFile,
+					's|start=i' => \$start,
 					'e|end=i' => \$end,
 					'h|help!'         => \$opt_help )  )
 {
@@ -129,8 +129,11 @@ __END__
 
 =head1 NAME
 
-domainExtractor_JD.pl -
-The script allows to extract a part of a AA or nt sequence.
+gaas_domainExtractor.pl
+
+=head1 DESCRIPTION
+
+The script allows to extract region in a fasta file.
 The script takes as input a (multi)fasta file and coordinates of part that you want extract.
 If the Input file is a MultiFastaFile you have to specify to the script the header of the sequence you want to extract.
 NOTE: The script expect the use of 1-based coordinate system. So, -s 1 -e 1 extract the first AA/nt
@@ -139,7 +142,7 @@ NOTE: The script expect the use of 1-based coordinate system. So, -s 1 -e 1 extr
 /!\ Be aware of what kind of coordinate you are using as input.
 Rule of coordinate system
 	1-based coordinate system = Numbers nucleotides directly
-    0-based coordinate system = Numbers between nucleotides
+  0-based coordinate system = Numbers between nucleotides
 
 =head1 SYNOPSIS
 
@@ -171,8 +174,32 @@ In Multifasta file case, the name allows to specify which sequence you are inter
 Output file.  If no output file is specified, the output will be
 written to STDOUT.
 
-
-
 =back
 
+=head1 FEEDBACK
+
+=head2 Did you find a bug?
+
+Do not hesitate to report bugs to help us keep track of the bugs and their
+resolution. Please use the GitHub issue tracking system available at this
+address:
+
+            https://github.com/NBISweden/GAAS/issues
+
+ Ensure that the bug was not already reported by searching under Issues.
+ If you're unable to find an (open) issue addressing the problem, open a new one.
+ Try as much as possible to include in the issue when relevant:
+ - a clear description,
+ - as much relevant information as possible,
+ - the command used,
+ - a data sample,
+ - an explanation of the expected behaviour that is not occurring.
+
+=head2 Do you want to contribute?
+
+You are very welcome, visit this address for the Contributing guidelines:
+https://github.com/NBISweden/GAAS/blob/master/CONTRIBUTING.md
+
 =cut
+
+AUTHOR - Jacques Dainat
