@@ -7,9 +7,9 @@ to perform the conversion. We will try to see in this review the main difference
 
 # Table of Contents
 
+ * [Test resume](#test-resume)
  * [The GFF file to convert](#the-gff-file-to-convert)
  * [The converters](#the-converters)
-   * [Resume](#resume)
    * [AGAT](#agat)
    * [gffread](#gffread) 
    * [GenomeTools](#genometools)
@@ -17,7 +17,18 @@ to perform the conversion. We will try to see in this review the main difference
    * [TransDecoder](#transdecoder)
    * [Kent utils](#kent-utils)
  * [Feature types in GTF versions](feature-types-in-gtf-versions)
-      
+
+### Test resume
+
+tool | respect GTF format | UTR conserved | attribute conserved | Comment
+-- | -- | -- | -- |
+AGAT | Yes - All (default GTF3) | Yes it converts UTR terms to the appropriate ones according to the GTF version selected.| Yes - All | Can take any GTF GFF as input. Keep extra attributes (here Name). The only one keeping comments at the beginning of the file.
+gffread | No - They say GTF2.2 but it is not: transcript should be removed; start_codon and stop_codon should stay. | No | No  | 
+GenomeTools | No - only CDS and exon kept | No | No | gene_id and transcript_id get new identifiers.
+ea-utils |  No - only CDS and exon kept | No | No |
+TransDecoder |  No - start and stop codon removed | No | Yes - Name only | Needs the fasta file for the conversion. 
+Kent utils | No - gene is missing or transcript is superfluous to be compliant to one of the GTF format | No | No | Create a new attribute 'gene_name'
+
 ### The GFF file to convert
 
 The test file is a GFF3 file:
@@ -41,18 +52,6 @@ scaffold625	maker	exon	341964	343277	.	+	.	ID=CLUHART00000008717:exon4;Parent=CL
 scaffold625	maker	five_prime_utr	337818	337914	.	+	.	ID=CLUHART00000008717:five_prime_utr;Parent=CLUHART00000008717
 scaffold625	maker	three_prime_UTR	343034	343277	.	+	.	ID=CLUHART00000008717:three_prime_utr;Parent=CLUHART00000008717
 ```
-
-### Resume
-
-tool | respect GTF format | UTR conserved | Comment
--- | -- | -- |
-AGAT | Yes - All (default GTF3) | Yes it converts UTR terms to the appropriate ones according to the GTF version selected.| Can take any GTF GFF as input. Keep extra attributes (here Name).
-gffread | No - They say GTF2.2 but it is not: transcript should be removed; start_codon and stop_codon should stay. | No | Extra attribute (Name) removed.
-GenomeTools | No - only CDS and exon kept | No  | gene_id and transcript_id get new identifiers.
-ea-utils |  No - only CDS and exon kept |
-TransDecoder |  No - start and stop codon removed | No | Needs the fasta file for the conversion. Keep extra attributes ( here Name).
-Kent utils | No - gene is missing or transcript is superfluous to be compliant to one of the GTF format | No | Create a new attribute 'gene_name'
-
 
 ### AGAT
 
