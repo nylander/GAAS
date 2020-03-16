@@ -44,14 +44,14 @@ scaffold625	maker	three_prime_UTR	343034	343277	.	+	.	ID=CLUHART00000008717:thre
 
 ### Resume
 
-tool | GTF format | Comment
+tool | respect GTF format | UTR conserved | Comment
 -- | -- | -- |
-AGAT | All, GTF3 default | can take any GTF GFF as input
-gffread | GTF2  |
-GenomeTools |  |
-ea-utils |  |
-TransDecoder |  |
-Kent utils |  |
+AGAT | Yes - All (default GTF3) | Yes it converts UTR terms to the appropriate ones according to the GTF version selected.| Can take any GTF GFF as input. Keep extra attributes (here Name).
+gffread | No - They say GTF2.2 but it is not: transcript should be removed; start_codon and stop_codon should stay. | No | Extra attribute (Name) removed.
+GenomeTools | No - only CDS and exon kept | No  | gene_id and transcript_id get new identifiers.
+ea-utils |  No - only CDS and exon kept |
+TransDecoder |  No - start and stop codon removed | No | Needs the fasta file for the conversion. Keep extra attributes ( here Name).
+Kent utils | No - gene is missing or transcript is superfluous to be compliant to one of the GTF format | No | Create a new attribute 'gene_name'
 
 
 ### AGAT
