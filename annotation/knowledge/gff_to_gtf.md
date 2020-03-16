@@ -9,26 +9,31 @@ to perform the conversion. We will try to see in this review the main difference
 
  * [The GFF file to convert](#the-gff-file-to-convert)
  * [The converters](#the-converters)
-   * [AGAT](#agat-agat)
+   * [Resume](#resume)
+   * [AGAT](#agat)
    * [gffread](#gffread) 
    * [GenomeTools](#genometools)
    * [ea-utils](#ea-utils)
    * [TransDecoder](#transdecoder)
    * [Kent utils](#kent-utils)
+ * [Feature types in GTF versions](feature-types-in-gtf-versions)
       
 ### The GFF file to convert
 
 The test file is a GFF3 file:
+
 ```
 ##gff-version 3
 ##This is a test sample
 scaffold625	maker	gene	337818	343277	.	+	.	ID=CLUHARG00000005458;Name=TUBB3_2
 scaffold625	maker	mRNA	337818	343277	.	+	.	ID=CLUHART00000008717;Parent=CLUHARG00000005458
-scaffold625	maker	tss	337915	337918	.	+	.	ID=CLUHART00000008717:tss;Parent=CLUHART00000008717
+scaffold625	maker	tss	337916	337918	.	+	.	ID=CLUHART00000008717:tss;Parent=CLUHART00000008717
+scaffold625	maker	start_codon	337916	337918	.	+	.	ID=CLUHART00000008717:start;Parent=CLUHART00000008717
 scaffold625	maker	CDS	337915	337971	.	+	0	ID=CLUHART00000008717:cds;Parent=CLUHART00000008717
 scaffold625	maker	CDS	340733	340841	.	+	0	ID=CLUHART00000008717:cds;Parent=CLUHART00000008717
 scaffold625	maker	CDS	341518	341628	.	+	2	ID=CLUHART00000008717:cds;Parent=CLUHART00000008717
 scaffold625	maker	CDS	341964	343033	.	+	2	ID=CLUHART00000008717:cds;Parent=CLUHART00000008717
+scaffold625	maker	stop_codon	343031	343033	.	+	.	ID=CLUHART00000008717:stop;Parent=CLUHART00000008717
 scaffold625	maker	exon	337818	337971	.	+	.	ID=CLUHART00000008717:exon1;Parent=CLUHART00000008717
 scaffold625	maker	exon	340733	340841	.	+	.	ID=CLUHART00000008717:exon2;Parent=CLUHART00000008717
 scaffold625	maker	exon	341518	341628	.	+	.	ID=CLUHART00000008717:exon3;Parent=CLUHART00000008717
@@ -36,6 +41,19 @@ scaffold625	maker	exon	341964	343277	.	+	.	ID=CLUHART00000008717:exon4;Parent=CL
 scaffold625	maker	five_prime_utr	337818	337914	.	+	.	ID=CLUHART00000008717:five_prime_utr;Parent=CLUHART00000008717
 scaffold625	maker	three_prime_UTR	343034	343277	.	+	.	ID=CLUHART00000008717:three_prime_utr;Parent=CLUHART00000008717
 ```
+
+### Resume
+
+tool | GTF format | Comment
+-- | -- | -- |
+AGAT | All, GTF3 default | can take any GTF GFF as input
+gffread | GTF2  |
+GenomeTools |  |
+ea-utils |  |
+TransDecoder |  |
+Kent utils |  |
+
+
 ### AGAT
 
 AGAT v0.2.2  
@@ -56,8 +74,9 @@ scaffold625	maker	CDS	340733	340841	.	+	0	ID "CLUHART00000008717:cds"; Parent CL
 scaffold625	maker	CDS	341518	341628	.	+	2	ID "CLUHART00000008717:cds"; Parent CLUHART00000008717; gene_id CLUHARG00000005458; transcript_id CLUHART00000008717
 scaffold625	maker	CDS	341964	343033	.	+	2	ID "CLUHART00000008717:cds"; Parent CLUHART00000008717; gene_id CLUHARG00000005458; transcript_id CLUHART00000008717
 scaffold625	maker	five_prime_utr	337818	337914	.	+	.	ID "CLUHART00000008717:five_prime_utr"; Parent CLUHART00000008717; gene_id CLUHARG00000005458; transcript_id CLUHART00000008717
+scaffold625	maker	start_codon	337916	337918	.	+	.	ID "CLUHART00000008717:start"; Parent CLUHART00000008717; gene_id CLUHARG00000005458; transcript_id CLUHART00000008717
+scaffold625	maker	stop_codon	343031	343033	.	+	.	ID "CLUHART00000008717:stop"; Parent CLUHART00000008717; gene_id CLUHARG00000005458; transcript_id CLUHART00000008717
 scaffold625	maker	three_prime_utr	343034	343277	.	+	.	ID "CLUHART00000008717:three_prime_utr"; Parent CLUHART00000008717; gene_id CLUHARG00000005458; original_biotype three_prime_UTR; transcript_id CLUHART00000008717
-
 ```
 
 ### gffread
@@ -80,8 +99,86 @@ scaffold625	maker	CDS	341964	343033	.	+	2	transcript_id "CLUHART00000008717"; ge
 
 ### GenomeTools
 
+GenomeTools 1.6.1  
+The help says it convert into GTF2.2
+
+`gt gff3_to_gtf 1_test.gff > 1_test_genometools.gtf`
+
+```
+scaffold625	maker	exon	337818	337971	.	+	.	gene_id "1"; transcript_id "1.1";
+scaffold625	maker	exon	340733	340841	.	+	.	gene_id "1"; transcript_id "1.1";
+scaffold625	maker	exon	341518	341628	.	+	.	gene_id "1"; transcript_id "1.1";
+scaffold625	maker	exon	341964	343277	.	+	.	gene_id "1"; transcript_id "1.1";
+scaffold625	maker	CDS	337915	337971	.	+	0	gene_id "1"; transcript_id "1.1";
+scaffold625	maker	CDS	340733	340841	.	+	0	gene_id "1"; transcript_id "1.1";
+scaffold625	maker	CDS	341518	341628	.	+	2	gene_id "1"; transcript_id "1.1";
+scaffold625	maker	CDS	341964	343033	.	+	2	gene_id "1"; transcript_id "1.1";
+```
+
 ### ea-utils
+
+[ea-utils](https://github.com/ExpressionAnalysis/ea-utils) commit 2b3d8c5d148801c98a2b3f3d54009a72c5b99521
+
+`./gff2gtf-eautils test_1.gff >  1_test_ea-utils.gtf`
+
+```
+scaffold625	maker	exon	337818	337971	0	+	.	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717:CLUHARG00000005458";
+scaffold625	maker	CDS	337915	337971	0	+	0	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717:CLUHARG00000005458";
+scaffold625	maker	CDS	340733	340841	0	+	0	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717:CLUHARG00000005458";
+scaffold625	maker	exon	340733	340841	0	+	.	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717:CLUHARG00000005458";
+scaffold625	maker	CDS	341518	341628	0	+	2	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717:CLUHARG00000005458";
+scaffold625	maker	exon	341518	341628	0	+	.	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717:CLUHARG00000005458";
+scaffold625	maker	CDS	341964	343033	0	+	2	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717:CLUHARG00000005458";
+scaffold625	maker	exon	341964	343277	0	+	.	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717:CLUHARG00000005458";
+```
 
 ### TransDecoder
 
+Transdecoder  v5.5.0
+
+`gff3_gene_to_gtf_format.pl test_1.gff test_1.fa > 1_test_transdecoder.gtf`
+
+```
+scaffold625	maker	gene	337818	343277	0	+	.	gene_id "CLUHARG00000005458"; Name "TUBB3_2";
+scaffold625	maker	transcript	337818	343277	0	+	.	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; Name "TUBB3_2";
+scaffold625	maker	exon	337818	337971	0	+	.	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; Name "TUBB3_2";
+scaffold625	maker	CDS	337818	337971	0	+	.	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; Name "TUBB3_2";
+scaffold625	maker	exon	340733	340841	0	+	.	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; Name "TUBB3_2";
+scaffold625	maker	CDS	340733	340841	0	+	.	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; Name "TUBB3_2";
+scaffold625	maker	exon	341518	341628	0	+	.	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; Name "TUBB3_2";
+scaffold625	maker	CDS	341518	341628	0	+	.	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; Name "TUBB3_2";
+scaffold625	maker	exon	341964	343277	0	+	.	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; Name "TUBB3_2";
+scaffold625	maker	CDS	341964	343277	0	+	.	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; Name "TUBB3_2";
+```
+
 ### Kent utils
+
+version from 26-Feb-2020
+
+`./gff3ToGenePred.dms 1_test.gff temp.genePred`
+`./genePredToGtf.dms file temp.genePred 1_test_genePred.gtf`
+
+```
+scaffold625	temp.genePred	transcript	337818	343277	.	+	.	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717";  gene_name "CLUHARG00000005458";
+scaffold625	temp.genePred	exon	337818	337971	.	+	.	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; exon_number "1"; exon_id "CLUHART00000008717.1"; gene_name "CLUHARG00000005458";
+scaffold625	temp.genePred	CDS	337915	337971	.	+	0	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; exon_number "1"; exon_id "CLUHART00000008717.1"; gene_name "CLUHARG00000005458";
+scaffold625	temp.genePred	exon	340733	340841	.	+	.	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; exon_number "2"; exon_id "CLUHART00000008717.2"; gene_name "CLUHARG00000005458";
+scaffold625	temp.genePred	CDS	340733	340841	.	+	0	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; exon_number "2"; exon_id "CLUHART00000008717.2"; gene_name "CLUHARG00000005458";
+scaffold625	temp.genePred	exon	341518	341628	.	+	.	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; exon_number "3"; exon_id "CLUHART00000008717.3"; gene_name "CLUHARG00000005458";
+scaffold625	temp.genePred	CDS	341518	341628	.	+	2	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; exon_number "3"; exon_id "CLUHART00000008717.3"; gene_name "CLUHARG00000005458";
+scaffold625	temp.genePred	exon	341964	343277	.	+	.	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; exon_number "4"; exon_id "CLUHART00000008717.4"; gene_name "CLUHARG00000005458";
+scaffold625	temp.genePred	CDS	341964	343030	.	+	2	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; exon_number "4"; exon_id "CLUHART00000008717.4"; gene_name "CLUHARG00000005458";
+scaffold625	temp.genePred	start_codon	337915	337917	.	+	0	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; exon_number "1"; exon_id "CLUHART00000008717.1"; gene_name "CLUHARG00000005458";
+scaffold625	temp.genePred	stop_codon	343031	343033	.	+	0	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; exon_number "4"; exon_id "CLUHART00000008717.4"; gene_name "CLUHARG00000005458";
+```
+
+# Feature types in GTF versions
+
+GTF version | feature type accepted |
+-- | -- |
+GTF3 | gene,  transcript,  exon,  CDS,  Selenocysteine,  start_codon,  stop_codon,  three_prime_utr,  five_prime_utr 
+GTF2_5 | gene,  transcript,  exon,  CDS,  UTR,  start_codon,  stop_codon,  Selenocysteine 
+GTF2_2 | CDS,  start_codon,  stop_codon,  5UTR,  3UTR,  inter,  inter_CNS,  intron_CNS,  exon 
+GTF2_1 | CDS,  start_codon,  stop_codon,  exon,  5UTR,  3UTR 
+GTF2 | CDS,  start_codon,  stop_codon,  exon 
+GTF1 | CDS,  start_codon,  stop_codon,  exon,  intron 
