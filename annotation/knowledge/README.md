@@ -7,7 +7,7 @@ Collection of Cheat Sheets / overview / summaries
     * [Bash](#bash)
     * [Perl](#perl)
     * [Python](#python)
-* [Formats](#formats)
+* [Format](#format)
     * [BAM and SAM](#bam-and-sam)
     * [CIGAR](#cigar)
     * [GFF and GTF](#gff-and-gtf)
@@ -17,6 +17,9 @@ Collection of Cheat Sheets / overview / summaries
     * [VULGAR](#vulgar)
     * [Wiki syntax](#wiki-syntax)
     * [External ressource about many different formats](#external-ressource-about-many-different-formats)
+ * [Convertion](#convertion)
+    * [gff to gtf](#gff-to-gtf)
+    * [gff to bed](#gff-to-bed)
  * [Others](#others)
     * [Git](#git)
     * [MinHash](#minhash)
@@ -54,8 +57,7 @@ Collection of Cheat Sheets / overview / summaries
 ### Python
  * [Create a package on PyPI](pypi.md)
 
-# Formats
-
+# Format
 
 ### [BAM and SAM](https://samtools.github.io/hts-specs/SAMv1.pdf)
 ### [CIGAR](cigar.md)
@@ -77,6 +79,11 @@ Collection of Cheat Sheets / overview / summaries
  * [lastz README](http://www.bx.psu.edu/~rsharris/lastz/newer/README.lastz-1.02.40.html#ex_cigar)
  
  * [UCSC - University of California, Santa Cruz](https://genome.ucsc.edu/FAQ/FAQformat.html)
+
+# Convertion
+
+### [gff to gtf](gff_to_gtf.md)
+### [gff to bed](gff_to_bed.md)
 
 # Others
 
