@@ -27,7 +27,7 @@ tool | respect GTF format | UTR conserved | attribute conserved | Comment
 [GenomeTools](https://github.com/genometools/genometools) | No - only CDS and exon kept | No | No | gene_id and transcript_id get new identifiers.
 [ea-utils](https://github.com/ExpressionAnalysis/ea-utils) |  No - only CDS and exon kept | No | No |
 [TransDecoder](https://github.com/TransDecoder/TransDecoder) |  No - start and stop codon removed | No | Yes - Name only | Needs the fasta file for the conversion. 
-[Kent utils](http://hgdownload.cse.ucsc.edu/admin/exe/) | No - gene is missing or transcript is superfluous to be compliant to one of the GTF format | No | No | Create a new attribute 'gene_name'
+[Kent utils](http://hgdownload.cse.ucsc.edu/admin/exe/) | No - gene is missing or transcript is superfluous to be compliant to one of the GTF format | No | No | Create a new attribute 'gene_name'.
 
 ### The GFF file to convert
 
@@ -35,7 +35,7 @@ The test file is a GFF3 file:
 
 ```
 ##gff-version 3
-##This is a test sample
+# This is a test sample
 scaffold625	maker	gene	337818	343277	.	+	.	ID=CLUHARG00000005458;Name=TUBB3_2
 scaffold625	maker	mRNA	337818	343277	.	+	.	ID=CLUHART00000008717;Parent=CLUHARG00000005458
 scaffold625	maker	tss	337916	337918	.	+	.	ID=CLUHART00000008717:tss;Parent=CLUHART00000008717
