@@ -80,7 +80,7 @@ Collection of Cheat Sheets / overview / summaries
  
  * [UCSC - University of California, Santa Cruz](https://genome.ucsc.edu/FAQ/FAQformat.html)
 
-# Convertion
+# Conversion
 
 ### [gff to gtf](gff_to_gtf.md)
 ### [gff to bed](gff_to_bed.md)
