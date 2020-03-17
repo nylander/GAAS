@@ -14,7 +14,7 @@ to perform the conversion. We will try to see in this review the main difference
    * [PASA](#pasa)
    * [bedops](#bedops)
    * [Kent utils](#kent-utils)
- * [Feature types in GTF versions](feature-types-in-gtf-versions)
+ * [The bed format](#the-bed-format)
 
 ### Test resume
 
