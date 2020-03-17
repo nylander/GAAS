@@ -61,7 +61,7 @@ AGAT v0.2.2
 
 ```
 ##gtf-version 3
-##This is a test sample
+# This is a test sample
 scaffold625	maker	gene	337818	343277	.	+	.	ID CLUHARG00000005458; Name TUBB3_2; gene_id CLUHARG00000005458
 scaffold625	maker	transcript	337818	343277	.	+	.	ID CLUHART00000008717; Parent CLUHARG00000005458; gene_id CLUHARG00000005458; original_biotype mrna; transcript_id CLUHART00000008717
 scaffold625	maker	exon	337818	337971	.	+	.	ID "CLUHART00000008717:exon1"; Parent CLUHART00000008717; gene_id CLUHARG00000005458; transcript_id CLUHART00000008717
