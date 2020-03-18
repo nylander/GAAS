@@ -14,3 +14,5 @@ List of tools to perform Taxonomic classification
 | | BBSketch | | | x | x | | BBSketch does taxonomic classification of contigs or reads. However, it does not weight contigs by the number of reads used
  
  ? means it has to be checked.
+
+see [here](https://github.com/ACHG2018/metagenomics-classification-tools/wiki) for a nice review of few of these tools
