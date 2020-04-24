@@ -1,7 +1,9 @@
-Collection of Cheat Sheets / overview / summaries
+
+Knowledge: collection of cheat Sheets / overviews / summaries 
 ===========================
 
-# Table of Contents  
+
+## Table of Contents  
 
 * [Programming](#programming)  
     * [Bash](#bash)
