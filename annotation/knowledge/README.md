@@ -42,10 +42,10 @@ Collection of Cheat Sheets / overview / summaries
 
 ### BASH  
  * Cheat Sheets:  
-    * [Cheat Sheet Level1](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/Bash_cheat_%20sheet_level1.pdf)
-    * [Cheat Sheet Level2](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/Bash_cheat_%20sheet_level2.pdf) 
-    * [Cheat Sheet Level3](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/Bash_cheat_%20sheet_level3.pdf)   
- * [course](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/Bash_lecture.pdf)  
+    * [Cheat Sheet Level1](https://github.com/NBISweden/GAAS/blob/master/annotation/knowledge/Bash_cheat_sheet_level1.pdf)
+    * [Cheat Sheet Level2](https://github.com/NBISweden/GAAS/blob/master/annotation/knowledge/Bash_cheat_sheet_level2.pdf) 
+    * [Cheat Sheet Level3](https://github.com/NBISweden/GAAS/blob/master/annotation/knowledge/Bash_cheat_sheet_level3.pdf)   
+ * [course](https://github.com/NBISweden/GAAS/blob/master/annotation/knowledge/Bash_lecture.pdf)  
  * [others](bash_other.md)  
  * one-liners:  
     * [Stephen is Turner](https://github.com/stephenturner/oneliners)
@@ -96,10 +96,10 @@ Collection of Cheat Sheets / overview / summaries
  * [http://ivory.idyll.org/blog/2016-sourmash-sbt.html] (http://ivory.idyll.org/blog/2016-sourmash-sbt.html)
 
 ### Annotation tools
- * #### [Genome (Protein coding genes)](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/annotation_tools.md)
- * #### [Mitochondrion](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/annotation_tools_mito.md)
- * #### [Chloroplast](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/annotation_tools_chloro.md)
- * #### [Plasmid](https://github.com/NBISweden/GAAS/blob/master/annotation/CheatSheet/annotation_tools_plasmid.md)
+ * #### [Genome (Protein coding genes)](annotation_tools.md)
+ * #### [Mitochondrion](annotation_tools_mito.md)
+ * #### [Chloroplast](annotation_tools_chloro.md)
+ * #### [Plasmid](annotation_tools_plasmid.md)
 
 ### [Overview of RNA-seq library types](rnaseq_library_types.md)
 
