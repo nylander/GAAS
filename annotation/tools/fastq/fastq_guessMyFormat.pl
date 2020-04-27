@@ -42,7 +42,7 @@ perl scriptname.pl <infile> -a -t <max seconds to search>
 Ex.
 perl scriptname.pl myReads.fq -a -t 600
 
- 
+
 
 The output from the program reports the interval in which qualities were observed (raw ascii numbers, not adjusting for any offsets or phred etc), and the scoring systems matcing these values.
 
@@ -50,7 +50,7 @@ Ex.
 
 Time limit reached, observed qualities in range [37,67].
 Possible matches:
-Illumina 1.8+;Sanger 
+Illumina 1.8+;Sanger
 
 
 
@@ -61,21 +61,21 @@ Pseudo code
 * Open the fastq file
 * Look at each quality ASCII char and convert it to a number
 * Depending on if that number is above or below certain thresholds,
-  determine the format. 
+  determine the format.
 
 =cut
 
 
 # REMINDER
-my $remain="\n/!\\ We remain that ASCII code used by the differents score system overlap each other. We differentiate them only looking the part non-overlaping. So we assume that the reads analyzed should statistically contains at least one value of the non-overlapping part. 
+my $remain="\n/!\\ We remain that ASCII code used by the differents score system overlap each other. We differentiate them only looking the part non-overlaping. So we assume that the reads analyzed should statistically contains at least one value of the non-overlapping part.
 Indeed, fastq file are enough large to contains each value possible of the quality score system.\n(fastqc do the same assumption and never reported any error)
 ";
-# scoring system definitions, according to http://en.wikipedia.org/wiki/FASTQ_format#Encoding 
+# scoring system definitions, according to http://en.wikipedia.org/wiki/FASTQ_format#Encoding
 # Feel free to add more on your own, following the system of the ones already in here.
-my %systems = (	'Sanger', [33,126], 
-		'Solexa', [59,126], 
-		'Illumina 1.3+', [64,126], 
-		'Illumina 1.5+', [66,126], 
+my %systems = (	'Sanger', [33,126],
+		'Solexa', [59,126],
+		'Illumina 1.3+', [64,126],
+		'Illumina 1.5+', [66,126],
 		'Illumina 1.8+', [35,126]);
 
 my %infoDisplay = ( 'Sanger' => 'Phred+33 - It could be Sanger or Illumina 1.8+. Sorry this is the only case impossible to really differentiate !\nAnyway, you will be happy to learn that one or the other have exactly the same quality score system (Phred+33)'.
@@ -83,7 +83,7 @@ my %infoDisplay = ( 'Sanger' => 'Phred+33 - It could be Sanger or Illumina 1.8+.
                     	'Solexa' => 'Solexa+64 - It could be Solexa',
                     	'Illumina 1.3+' => 'Phred+64 - It could be Illumina 1.3+',
                     	'Illumina 1.5+' => 'Phred+64 - It could be Illumina 1.5+',
-			'Illumina 1.8+' => "Phred+33 - It could be Sanger or Illumina 1.8+. Sorry this is the only case impossible to really differentiate !\nAnyway, you will be happy to learn that one or the other have exactly the same quality score system (Phred+33)". 
+			'Illumina 1.8+' => "Phred+33 - It could be Sanger or Illumina 1.8+. Sorry this is the only case impossible to really differentiate !\nAnyway, you will be happy to learn that one or the other have exactly the same quality score system (Phred+33)".
                             "\nWe know that you really want to know exactly which Quality score it is... So, as the character <I> is present we could assume that is Illumina 1.8+ !",
 			'last' => "Phred+33 - It could be Sanger or Illumina 1.8+. Sorry this is the only case impossible to really differentiate !\nAnyway, you will be happy to learn that one or the other have exactly the same quality score system (Phred+33)".
                             "\nWe know that you really want to know exactly which Quality score it is... but there is ASCII value over 41 we absolutly cannot differentiate them abinitio.");
@@ -131,8 +131,8 @@ if(!$adv){
 	my @line;
 	my $l;
 	my $number;
-	 
-	 
+
+
 	# go thorugh the file
 	while(<$fh>){
 
@@ -181,7 +181,7 @@ if($adv){
 	my $nb_read = $nb_line/4;
 	my $startP=time;
 	print "Your file contains $nb_read reads. The analysis could take a while.\n";
-	my $nb_read_checked=0;	
+	my $nb_read_checked=0;
 
 	# go thorugh the file
 	while(<$fh>){
@@ -206,7 +206,7 @@ if($adv){
 
 				$number = ord($line[$i]); # get the number represented by the ascii char
 
-				# check if the new number is larger or smaller than the previous records  
+				# check if the new number is larger or smaller than the previous records
 				if($number < $min){
 
 					# update min and check how many systems are matching
@@ -275,17 +275,17 @@ sub check{
 	# If still not dtermined
         if($#matching >= 1){
 		@matching=();
-		
+
 
 			if($min >= $systems->{'Illumina 1.5+'}[0]){
 				my $messageToDisplay = $infoDisplay->{'Illumina 1.5+'};
                         	push(@matching, $messageToDisplay);
 			}
-			elsif($min >= $systems->{'Illumina 1.3+'}[0]){ 
+			elsif($min >= $systems->{'Illumina 1.3+'}[0]){
                                 my $messageToDisplay = $infoDisplay->{'Illumina 1.3+'};
                                 push(@matching, $messageToDisplay);
                         }
-			elsif($min >= $systems->{'Solexa'}[0]){ 
+			elsif($min >= $systems->{'Solexa'}[0]){
                                 my $messageToDisplay = $infoDisplay->{'Solexa'};
                                 push(@matching, $messageToDisplay);
                         }
@@ -303,7 +303,7 @@ sub check{
                                         push(@matching, $messageToDisplay);
 				}
 			}
-			
+
         }
 
 	# return all matching systems
@@ -313,18 +313,19 @@ sub check{
 __END__
 
 
--a		
--t		
+-a
+-t
 
 =head1 NAME
 
 Used to detect the format of a fastq file.
-Be aware that parse a fastq file could be very long, so think to set a maximum time, no need to check all the file to guess the format.
+Be aware that parse a fastq file could be very long, so think to set a maximum time,
+no need to check all the file to guess the format.
 
 =head1 SYNOPSIS
 
-    fastq_FormatDetect.pl -i <input file> [-a -t <max seconds to search>]
-    fastq_FormatDetect.pl --help
+    gaas_fastq_guessMyFormat.pl -i <input file> [-a -t <max seconds to search>]
+    gaas_fastq_guessMyFormat.pl --help
 
 =head1 OPTIONS
 
@@ -334,11 +335,11 @@ Be aware that parse a fastq file could be very long, so think to set a maximum t
 
 STRING: Input fastq file that will be read.
 
-=item B<-a> 
+=item B<-a>
 
 Advanced mode. Can be used to find exactly which scoring system it is.
 
-=item B<-t> 
+=item B<-t>
 
 Set the max search time in seconds to be used when using -a. Default is 60.
 
