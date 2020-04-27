@@ -142,7 +142,7 @@ __END__
 
 deinterleave_fastq.pl
 
-=head1 SYNOPSIS
+=head1 DESCRIPTION
 
 Deinterleaves a (compressed or not compressed) FASTQ file of paired reads into two FASTQ files.
 Optionally GZip compresses the output FASTQ files using pigz.
@@ -156,9 +156,11 @@ Also see the interleaving script: https://gist.github.com/4544979
 The nathanhaigh script was itself inspired by Torsten Seemann's blog post:
 http://thegenomefactory.blogspot.com.au/2012/05/cool-use-of-unix-paste-with-ngs.html
 
-    deinterleave_fastq.pl -i input.fastq
-    deinterleave_fastq.pl -i input.fastq --os R1 --os R2
-    deinterleave_fastq.pl --help
+=head1 SYNOPSIS
+
+    gaas_deinterleave_bash.pl -i input.fastq
+    gaas_deinterleave_bash.pl -i input.fastq --os R1 --os R2
+    gaas_deinterleave_bash.pl --help
 
 The first command will create input.1.fastq and input.2.fastq files.
 The second command will create input.R1.fastq and input.R2.fastq files.

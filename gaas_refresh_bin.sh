@@ -20,14 +20,14 @@ for i in $(find ../ -not \( -path */Deprecated -prune \) -not \( -path */bin -pr
 
         name=$(basename $i)
 
-				# skip gaas_refresh_list.sh because must not be in the bin to avoid to be distributed
-				if [ $name == "gaas_refresh_bin.sh"  ] ; then
-					continue
-				fi
+	# skip gaas_refresh_list.sh because must not be in the bin to avoid to be distributed
+	if [ $name == "gaas_refresh_bin.sh"  ] ; then
+		continue
+	fi
 
         #Populate scripts using hard link
-        if [[ ! -f gaas_${name} ]];then
-                ln $i gaas_${name}
+        if [[ ! -f ${name} ]];then
+                ln $i ${name}
         fi
 
 done
