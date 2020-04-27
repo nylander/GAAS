@@ -162,31 +162,6 @@ while( my $seqObj = $inseq->next_seq() ) {
 my $end_run = time();
 my $run_time = $end_run - $start_run;
 print "Job done in $run_time seconds\n";
-#######################################################################################################################
-        ####################
-         #     METHODS    #
-          ################
-           ##############
-            ############
-             ##########
-              ########
-               ######
-                ####
-                 ##
-
-#check if reference exists in hash. Deep infinite : hash{a} or hash{a}{b} or hash{a}{b}{c}, etc.
-# usage example: exists_keys($hash_omniscient,('level3','cds',$level2_ID)
-sub exists_keys {
-    my ($hash, $key, @keys) = @_;
-
-    if (ref $hash eq 'HASH' && exists $hash->{$key}) {
-        if (@keys) {
-            return exists_keys($hash->{$key}, @keys);
-        }
-        return 1;
-    }
-    return '';
-}
 
 __END__
 

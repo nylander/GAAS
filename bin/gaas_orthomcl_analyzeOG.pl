@@ -496,23 +496,6 @@ sub removeValueFromList{
     splice(@$array, $index, 1);
 }
 
-sub sizedPrint{
-  my ($term,$size) = @_;
-  my $result; my $sizeTerm=length($term);
-  if ($sizeTerm > $size ){
-    $result=substr($term, 0,$size);
-    return $result;
-  }
-  else{
-    my $nbBlanc=$size-$sizeTerm;
-    $result=$term;
-    for (my $i = 0; $i < $nbBlanc; $i++){
-      $result.=" ";
-    }
-    return $result;
-  }
-}
-
 sub sortOGforFlatDisplay{
 my ($hashOGref)=@_;
 my %hashOGidSentence;
