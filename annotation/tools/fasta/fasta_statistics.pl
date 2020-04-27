@@ -1,22 +1,24 @@
 #!/usr/bin/env perl
 # Takes a fasta-file (usually a genomic or transcriptomic assembly) and checks for
 # potential problems as well as calculates a few basic statistics.
-# 
+#
 # NBIS 2018
 # jacques.dainat@nbis.se
 
 use warnings;
 use strict;
+use Try::Tiny;
 use Statistics::R;
 use POSIX qw(strftime);
 use File::Basename;
 use Pod::Usage;
 use Getopt::Long;
-use Try::Tiny;
 use Carp;
 use IO::File;
 use Bio::SeqIO;
+use GAAS::GAAS;
 
+my $header = get_gaas_header();
 my $nb_seq = 0;
 my $problemcount=0;
 my $nbseq_withLowerCase=0;
@@ -28,6 +30,10 @@ my $totalcountOver1000=0;
 my $totalcountOver10000=0;
 my $gccount=0;
 my $total_noNs=0;
+my $nb_U =0;
+my $nb_seq_with_U = 0;
+my $nb_IUPAC = 0;
+my $nb_seq_with_IUPAC = 0;
 my @sequencelength=();
 my @sequencelengthOver1000=();
 my @sequencelengthOver10000=();
@@ -41,28 +47,28 @@ if ( !GetOptions( 'f|infile=s' => \$opt_infile,
                   'o|out|output=s' => \$opt_dirRes,
                   'h|help!'         => \$opt_help ) )
 {
-    pod2usage( { -message => 'Failed to parse command line',
+    pod2usage( { -message => "$header\nFailed to parse command line",
                  -verbose => 1,
                  -exitval => 1 } );
 }
 
+# Print Help and exit
 if ($opt_help) {
-    pod2usage( { -verbose => 2,
-                 -exitval => 0 } );
+    pod2usage( { -verbose => 99,
+                 -exitval => 0,
+                 -message => "$header\n" } );
 }
 
 if ( !( defined($opt_infile) ) ) {
     pod2usage( {
-           -message => "Must specify at leat one parameter:\nfasta_statisticsAndPlot.pl -f InputFastaFile [-o Ouput_directory] ",
+           -message => "$header\nMust specify at leat one parameter:\nfasta_statistics.pl -f input.fa [-o Ouput_directory] ",
            -verbose => 0,
-           -exitval => 2 } );
+           -exitval => 1 } );
 }
 
 
-
-my $outstream = IO::File->new();;
-my $outstreamFix;
-my $outstreamError;
+my ($ouputName,$path,$ext) = fileparse($opt_infile,qr/\.[^.]*/);
+my $outstream = IO::File->new();
 
 if ( defined($opt_dirRes) ) {
 	if (-d $opt_dirRes) {
@@ -70,19 +76,12 @@ if ( defined($opt_dirRes) ) {
 		}
 	mkdir $opt_dirRes;
 
-    $outstream->open( "$opt_dirRes/fasta_report.txt", 'w' ) or
-        croak(sprintf( "Can not open '%s' for writing %s", "$opt_dirRes/fasta_report.txt", $! ));
-
-    open(my $fh, '>', "$opt_dirRes/fix_sequences.fa") or die "Could not open file '$opt_dirRes/fix_sequences.txt' $!";
-    $outstreamFix = Bio::SeqIO->new(-fh => $fh , -format => 'fasta');
-
-    open(my $fhe, '>', "$opt_dirRes/problem_sequences.fa") or die "Could not open file '$opt_dirRes/problem_sequences.txt' $!";
-    $outstreamError = Bio::SeqIO->new(-fh => $fhe , -format => 'fasta');
+    $outstream->open( "$opt_dirRes/$ouputName"."_stat.txt", 'w' ) or
+        croak(sprintf( "Can not open '%s' for writing %s", "$opt_dirRes/$ouputName"."_stat.txt", $! ));
 }
 else {
     $outstream->fdopen( fileno(STDOUT), 'w' ) or
 	        croak( sprintf( "Can not open STDOUT for writing: %s", $! ) );
-    $outstreamError = Bio::SeqIO->new(-fh => \*STDOUT, -format => 'fasta');
 }
 
 # INPUT FILE
@@ -92,84 +91,80 @@ my $inseq = Bio::SeqIO->new(-file   => "<$opt_infile", -format => 'fasta');
 #Calculate the statistics from the entries in the hash
 my $cp1kb=0;
 my $cp10kb=0;
+my $size_internal_N = 10000;
+my $nb_long_internal_N = 0;
 while( my $seqObj = $inseq->next_seq() ) {
 
   my $sequence = $seqObj->seq();
   $nb_seq++;
-  my $problemNstart=undef;
-  my $problemNend =undef;
-  my $problem_lowerCase = undef;
 
   #save sequence length for N50 calculation
-  push @sequencelength, length $sequence; 
+  push @sequencelength, length $sequence;
 
-  #Check for Ns at the beginning or end of sequence  
+  #Check for Ns at the beginning or end of sequence
   if ($sequence =~ /^N/){
-    print $outstreamError->write_seq( $seqObj );
-    $problemNstart="yes";
     $problemcount++;
   }
   if ($sequence =~ /N$/){
-    print $outstreamError->write_seq( $seqObj );
-    $problemNend = "yes";
     $problemcount++;
   }
   if (length($sequence) > 1000){
-  	$cp1kb++;
-	#Count total size over 1000
-	$totalcountOver1000 += length $sequence;
- 	 #save sequence length for N50 calculation
-  	push @sequencelengthOver1000, length $sequence; 
+   	$cp1kb++;
+	 #Count total size over 1000
+	 $totalcountOver1000 += length $sequence;
+ 	  #save sequence length for N50 calculation
+   	push @sequencelengthOver1000, length $sequence;
 
-  	if (length($sequence) > 10000){
-  		$cp10kb++;
-		  #Count total size over 10000
-  		  $totalcountOver10000 += length $sequence;
-		  #save sequence length for N50 calculation
-  		  push @sequencelengthOver10000, length $sequence; 
-  	}
+   	if (length($sequence) > 10000){
+   		$cp10kb++;
+	 	  #Count total size over 10000
+   		  $totalcountOver10000 += length $sequence;
+	 	  #save sequence length for N50 calculation
+   		  push @sequencelengthOver10000, length $sequence;
+   	}
   }
-  
-  
-  #Count number of NNN regions
-  my $match=0;
-  $match++ while $sequence =~ /[ACGT]N+[ACGT]/g;
-  $Ncount += $match;
+
+	# Count long internal NNNNN
+  my @internal_ns = $sequence =~ /[ATGCURYSWKMBDHVatgcuryswkmbdhv]([Nn]+)[ATGCURYSWKMBDHVatgcuryswkmbdhv]/g;
+	foreach my $internal_n ( @internal_ns ){
+		$Ncount++;
+		if(length($internal_n) > $size_internal_N){
+			$nb_long_internal_N++;
+		}
+	}
+
   #Count GC
   $gccount += ($sequence =~ tr/gGcC/gGcC/);
   #Count size total
   $totalcount += length $sequence;
   #Count size with No Ns
   my $noNs=$sequence;
-  $noNs =~ s/N//g;
+  $noNs =~ s/[Nn]//g; # remove Ns and ns
   $total_noNs += length $noNs;
   if(length $noNs == 0){
   	$pureNseq++;
   }
   #Count lowercase outside Ns
-  my $lowerCaseCount += ($noNs =~ tr/atgc/atgc/);
+  my $lowerCaseCount += ($noNs =~ tr/atgcunryswkmbdhv/atgcunryswkmbdhv/);
   $total_lowerCaseCount += $lowerCaseCount;
   if($lowerCaseCount > 0){
 	$nbseq_withLowerCase++;
-	$problem_lowerCase="yes";	
   }
-  # Now we can print the fixed sequnece
-  if ($opt_dirRes){
-	
- 	#Fix the lowercase issue
-	if($problem_lowerCase){
-	  	$sequence =~ tr/atgcn/ATGCN/;
- 		$seqObj->seq($sequence);
+	#Count iupac
+	my $nb_IUPAC_here += ($noNs =~ tr/RYSWKMBDHVryswkmbdhv/RYSWKMBDHVryswkmbdhv/);
+	$nb_IUPAC += $nb_IUPAC_here;
+	if($nb_IUPAC_here > 0){
+		$nb_seq_with_IUPAC++;
 	}
-
-	#Fix starting N
-	if($problemNstart or $problemNend){
-		$sequence =~ s/^N+|N+$//g;
-		$seqObj->seq($sequence);
-        }
-	print $outstreamFix->write_seq( $seqObj );
-  }
+	#Count Uracile
+	my $nb_U_here += ($noNs =~ tr/Uu/Uu/);
+	$nb_U += $nb_U_here;
+	if($nb_U_here > 0){
+		$nb_seq_with_U++;
+	}
 }
+
+# ------------
 
 #Calculate some statistics
 my $GCpercentage = ($gccount/$totalcount*100);
@@ -185,27 +180,27 @@ my $entry;
 # copy of sequencelength to keep it intactfor R calculation purpose later
 my @sequencelengthForN50Calcul=@sequencelength;
 
-my $nbcontig=0;
-
+my $L50=0;
 while ($sum < $N50){
   $entry = shift @sequencelengthForN50Calcul;
   $sum += $entry;
-  $nbcontig+=1;
+  $L50++;
 }
 
 #################
 # Calculate N90 #
-# copy of sequencelength to keep it intactfor R calculation purpose later
+# copy of sequence length to keep it intact for R calculation purpose later
 my @sequencelengthForN90Calcul=@sequencelength;
 @sequencelengthForN90Calcul = reverse sort { $a <=> $b } @sequencelengthForN90Calcul;
 my $NinetyPercGenomeSize=( 90*$totalcount / 100);
 $sum=0;
 my $N90;
+my $L90=0;
 while ($sum < $NinetyPercGenomeSize){
   $N90 = shift @sequencelengthForN90Calcul;
+	$L90++;
   $sum += $N90;
-} 
-
+}
 
 ###########################
 # Calculate N50 over 1000 #
@@ -213,11 +208,12 @@ while ($sum < $NinetyPercGenomeSize){
 my $HalfGenomeSizeOver1000=$totalcountOver1000/2;
 $sum=0;
 my $N50over1000=0;
+my $L50over1000=0;
 while ($sum < $HalfGenomeSizeOver1000){
   $N50over1000 = shift @sequencelengthOver1000;
   $sum += $N50over1000;
-} 
-
+	$L50over1000++;
+}
 
 ############################
 # Calculate N50 over 10000 #
@@ -225,40 +221,54 @@ while ($sum < $HalfGenomeSizeOver1000){
 my $HalfGenomeSizeOver10000=$totalcountOver10000/2;
 $sum=0;
 my $N50over10000=0;
+my $L50over10000=0;
 while ($sum < $HalfGenomeSizeOver10000){
   $N50over10000 = shift @sequencelengthOver10000;
+	$L50over10000++;
   $sum += $N50over10000;
 }
 
 
 ###########################
 #print out the statistics #
+my $stingToPrint=undef;
 my $date = strftime "%m/%d/%Y at %Hh%Mm%Ss", localtime;
-my $StingToPrint;
-$StingToPrint .= "\n========================================\n";
-$StingToPrint .= "Fasta-statistics\ launched the $date:\n";
-$StingToPrint .= "There are $nb_seq sequences\n";
-$StingToPrint .= "There are $cp10kb sequences > 10kb \n";
-$StingToPrint .= "There are $cp1kb sequences > 1kb \n";
-$StingToPrint .= "There are $totalcount nucleotides, of which $totalNs are Ns\n";
-$StingToPrint .= "There are $Ncount N-regions (possibly links between contigs)\n";
-$StingToPrint .= "There are $pureNseq pure (only) N sequences. Assembler doing that must be notified ! \n";
-$StingToPrint .= "There are $problemcount sequences that begin or end with Ns (see problem_sequences.txt)\n";
-$StingToPrint .= sprintf("The GC-content is %.1f",$GCpercentage);
-$StingToPrint .= "\%";
-$StingToPrint .= sprintf(" (not counting Ns %.1f", $GCnoNs);
-$StingToPrint .= "\%)\n";
-$StingToPrint .= "There are $nbseq_withLowerCase sequences with lowercase nucleotides (Ns not considered)\n";
-$StingToPrint .= "There are $total_lowerCaseCount lowercase nucleotides (Ns not considered)\n";
-$StingToPrint .= "The N50 is $entry\n";
-$StingToPrint .= "The N90 is $N90\n";
-$StingToPrint .= "The N50 for sequences over 1000bp is $N50over1000\n";
-$StingToPrint .= "The N50 for sequeces over 10000bp is $N50over10000\n";
-$StingToPrint .= "========================================\n";
-if($opt_dirRes){
-	$StingToPrint .= "You will find corrected sequences in fix_sequences.txt (Extremities N trimed and lowercase nucleotides).\n";
-}
-print $outstream "$StingToPrint";
+my $lineA= "-" x 80;
+my $lineB= "-" x 78;
+$lineB = "|".$lineB."|\n";
+$stingToPrint .= $lineA."\n";
+$stingToPrint .= "|".sizedPrint(basename($opt_infile),78)."|\n";
+$stingToPrint .= "|".sizedPrint("Analysis launched the $date",78)."|\n$lineB";
+$stingToPrint .= "|".sizedPrint("Nb of sequences",57,"L")."|".sizedPrint("$nb_seq",20)."|\n$lineB";
+$stingToPrint .= "|".sizedPrint("Nb of sequences >1kb",57,"L")."|".sizedPrint("$cp1kb",20)."|\n$lineB";
+$stingToPrint .= "|".sizedPrint("Nb of sequences >10kb",57,"L")."|".sizedPrint("$cp10kb",20)."|\n$lineB";
+$stingToPrint .= "|".sizedPrint("Nb of nucleotides (counting Ns)",57,"L")."|".sizedPrint("$totalcount",20)."|\n$lineB";
+$stingToPrint .= "|".sizedPrint("Nb of nucleotides U",57,"L")."|".sizedPrint("$nb_U",20)."|\n$lineB";
+$stingToPrint .= "|".sizedPrint("Nb of sequences with U nucleotides",57,"L")."|".sizedPrint("$nb_seq_with_U",20)."|\n$lineB";
+$stingToPrint .= "|".sizedPrint("Nb of IUPAC nucleotides",57,"L")."|".sizedPrint("$nb_IUPAC",20)."|\n$lineB";
+$stingToPrint .= "|".sizedPrint("Nb of sequences with IUPAC nucleotides",57,"L")."|".sizedPrint("$nb_seq_with_IUPAC",20)."|\n$lineB";
+$stingToPrint .= "|".sizedPrint("Nb of Ns",57,"L")."|".sizedPrint("$totalNs",20)."|\n$lineB";
+$stingToPrint .= "|".sizedPrint("Nb of internal N-regions (possibly links between contigs)",58,"L")."|".sizedPrint("$Ncount",19)."|\n$lineB";
+$stingToPrint .= "|".sizedPrint("Nb of long internal N-regions >$size_internal_N",57,"L")."|".sizedPrint("",20)."|\n";
+$stingToPrint .= "|".sizedPrint("/!\\ This is problematic for Genemark",57,"L")."|".sizedPrint("$nb_long_internal_N",20)."|\n$lineB";
+$stingToPrint .= "|".sizedPrint("Nb of pure (only) N sequences",57,"L")."|".sizedPrint("$pureNseq",20)."|\n$lineB";
+$stingToPrint .= "|".sizedPrint("Nb of sequences that begin or end with Ns",57,"L")."|".sizedPrint("$problemcount",20)."|\n$lineB";
+my $GC_content = sprintf("%.1f",$GCpercentage);
+$stingToPrint .= "|".sizedPrint("GC-content (%)",57,"L")."|".sizedPrint("$GC_content",20)."|\n$lineB";
+my $GC_content2 = sprintf("%.1f",$GCnoNs);
+$stingToPrint .= "|".sizedPrint("GC-content not counting Ns(%)",57,"L")."|".sizedPrint("$GC_content2",20)."|\n$lineB";
+$stingToPrint .= "|".sizedPrint("Nb of sequences with lowercase nucleotides",57,"L")."|".sizedPrint("$nbseq_withLowerCase",20)."|\n$lineB";
+$stingToPrint .= "|".sizedPrint("Nb of lowercase nucleotides",57,"L")."|".sizedPrint("$total_lowerCaseCount",20)."|\n$lineB";
+$stingToPrint .= "|".sizedPrint("N50",57,"L")."|".sizedPrint("$entry",20)."|\n$lineB";
+$stingToPrint .= "|".sizedPrint("L50",57,"L")."|".sizedPrint("$L50",20)."|\n$lineB";
+$stingToPrint .= "|".sizedPrint("N90",57,"L")."|".sizedPrint("$N90",20)."|\n$lineB";
+$stingToPrint .= "|".sizedPrint("L50",57,"L")."|".sizedPrint("$L90",20)."|\n$lineB";
+#$stingToPrint .= "|".sizedPrint("N50 for sequences over 1000bp",57)."|".sizedPrint("$N50over1000",20)."|\n$lineB";
+#$stingToPrint .= "|".sizedPrint("L50 for sequences over 1000bp",57)."|".sizedPrint("$L50over1000",20)."|\n$lineB";
+#$stingToPrint .= "|".sizedPrint("N50 for sequeces over 10000bp",57)."|".sizedPrint("$N50over10000",20)."|\n$lineB";
+#$stingToPrint .= "|".sizedPrint("L50 for sequeces over 10000bp",57)."|".sizedPrint("$L50over10000",20)."|\n$lineB";
+
+print $outstream "$stingToPrint";
 
 #######
 #
@@ -266,14 +276,14 @@ print $outstream "$StingToPrint";
 #
 ######
 if($opt_dirRes){
-		print $StingToPrint;
+	print $stingToPrint;
 	if($nb_seq > 1){ #If only 1 seq we get error like: density.default(listValues) : need at least 2 points to select a bandwidth automatically
         # temporary file name
         my $tempFile1="dump.tmp";
 
 		try {
-			print $StingToPrint;
-			print "This result was saved in the $opt_dirRes directory.\nThe plots are in <pdf> format and available in the directory.\n";
+			print $stingToPrint;
+			print "This result is saved in the <$opt_dirRes> directory along with plots in <pdf> format.\n";
 
 			# write the data in temporary file
 			open(FILE, ">$tempFile1") || die "Erreur E/S:$!\n";
@@ -282,15 +292,10 @@ if($opt_dirRes){
 			}
 			close(FILE);
 
-
-
-			my $ouputName=basename($opt_infile);
 			my $ouputPlot=$opt_dirRes."/".$ouputName;
 
-
-
 			# Calcul percentage of contig right and left to N50
-			my $percentContigRightN50=($nbcontig*100)/($#sequencelength+1);
+			my $percentContigRightN50=($L50*100)/($#sequencelength+1);
 			my $percentContigLeftN50=100-$percentContigRightN50;
 			$percentContigRightN50=sprintf ("%0.2f",$percentContigRightN50)."%";
 			$percentContigLeftN50=sprintf ("%0.2f",$percentContigLeftN50)."%";
@@ -302,7 +307,7 @@ if($opt_dirRes){
 			my $biggestValue=shift @sequencelength;
 			my $positionright=(5*$biggestValue)/100+$entry;
 			my $positionleft=$entry-(5*$biggestValue)/100;
-			# Tab=as.matrix(read.table("$tempFile1", sep="\t", he=T)) 
+			# Tab=as.matrix(read.table("$tempFile1", sep="\t", he=T))
 			# R object Declaration
 			my $R = Statistics::R->new() or die "Problem with R : $!\n";
 
@@ -311,6 +316,8 @@ if($opt_dirRes){
 		#myhist$mids contient la valeur au milieu de chaque intervalle
 		#myhist$counts contient le nombre de valeurs situées dans cet intervalle
 		#myhist$density contient la proportion de valeurs situées dans cet intervalle (autrement dit, tec.hist$counts / length (tec)).
+		#print "tempFile1:$tempFile1 outputPlotLog:$outputPlotLog entry:$entry percentContigRightN50:$percentContigRightN50 percentContigLeftN50:$percentContigLeftN50\n";
+		#print "outputPlotDensity:$outputPlotDensity outputPlotHist:$outputPlotHist positionright:$positionright positionleft:$positionleft\n";
 
 			# R command
 			 $R->send(
@@ -340,10 +347,10 @@ if($opt_dirRes){
 			  ymax2=(axisValues[4]*85)/100
 			  text(x = $positionright, y = ymax2, paste("$percentContigRightN50"), cex = 1, col = "red")
 			  text(x = $positionleft, y = ymax2, paste("$percentContigLeftN50"), cex = 1, col = "red")
-			  text(x = $entry, y = ymax, paste("N50"), cex = 1, col = "red")  
+			  text(x = $entry, y = ymax, paste("N50"), cex = 1, col = "red")
 			  legend("topright", col=(1), lty=1, c(legendToDisplay))
 			  dev.off()
-			  
+
 			  pdf("$outputPlotHist")
 			  hist(listValues, xlab="Contig size",main="Size distribution of contigs")
 			  abline(v =$entry, col=2)
@@ -369,20 +376,29 @@ if($opt_dirRes){
 			unlink $tempFile1;
 		}
 	}
+	else{
+		print "Not enough sequence to perform any plot.\n";
+	}
 }
 
 __END__
 
 =head1 NAME
 
-fasta_statisticsAndPlot.pl - get some basic statistics about a nucleotide fasta file. (Number of sequence, Number of nucleotide, N50, GC-content,etc). It will also create R plots about contig size distribution. 
-The R output plot will be perform only if an output is given.
-This script is not yet designed for AA sequences or IUPAC Nucleotides.
+gaas_fasta_statistics.pl
+
+=head1 DESCRIPTION
+
+Get some basic statistics about a nucleotide fasta file.
+e.g Number of sequence, Number of nucleotide, N50, GC-content, etc.
+It can also create R plots about contig size distribution.
+The plots are performed only if an output is given.
+This script is not designed for AA/Protein sequences.
 
 =head1 SYNOPSIS
 
-    ./fasta_statisticsAndPlot.pl --f=infile [--output=Directory]
-    ./fasta_statisticsAndPlot.pl --help
+    ./gaas_fasta_statistics.pl --f=infile [--output=Directory]
+    ./gaas_fasta_statistics.pl --help
 
 =head1 OPTIONS
 
