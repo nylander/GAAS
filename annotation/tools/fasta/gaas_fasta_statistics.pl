@@ -262,7 +262,7 @@ $stingToPrint .= "|".sizedPrint("Nb of lowercase nucleotides",57,"L")."|".sizedP
 $stingToPrint .= "|".sizedPrint("N50",57,"L")."|".sizedPrint("$entry",20)."|\n$lineB";
 $stingToPrint .= "|".sizedPrint("L50",57,"L")."|".sizedPrint("$L50",20)."|\n$lineB";
 $stingToPrint .= "|".sizedPrint("N90",57,"L")."|".sizedPrint("$N90",20)."|\n$lineB";
-$stingToPrint .= "|".sizedPrint("L50",57,"L")."|".sizedPrint("$L90",20)."|\n$lineB";
+$stingToPrint .= "|".sizedPrint("L90",57,"L")."|".sizedPrint("$L90",20)."|\n$lineB";
 #$stingToPrint .= "|".sizedPrint("N50 for sequences over 1000bp",57)."|".sizedPrint("$N50over1000",20)."|\n$lineB";
 #$stingToPrint .= "|".sizedPrint("L50 for sequences over 1000bp",57)."|".sizedPrint("$L50over1000",20)."|\n$lineB";
 #$stingToPrint .= "|".sizedPrint("N50 for sequeces over 10000bp",57)."|".sizedPrint("$N50over10000",20)."|\n$lineB";
@@ -282,7 +282,6 @@ if($opt_dirRes){
         my $tempFile1="dump.tmp";
 
 		try {
-			print $stingToPrint;
 			print "This result is saved in the <$opt_dirRes> directory along with plots in <pdf> format.\n";
 
 			# write the data in temporary file
