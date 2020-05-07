@@ -129,6 +129,7 @@ Knowledge: collection of cheat Sheets / overviews / summaries
    From Aiden lab  
  * [NBIS](https://nbis.se/blog/)
  * [List from biostars](https://www.biostars.org/p/243961/)
+ * [Bioinformatics Workbook](https://bioinformaticsworkbook.org)
 
 # Knowledge bank
  * [ecSeq Bioinformatics](https://www.ecseq.com/support/)  
