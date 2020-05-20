@@ -13,7 +13,7 @@ my $header = get_gaas_header();
 my $start_run = time();
 
 my $opt_fastafile;
-my $opt_output;
+my $opt_output="split_result";
 my $opt_help = undef;
 my $opt_nb_chunk;
 my $opt_leftover="attach";
@@ -48,10 +48,10 @@ if ($opt_help) {
 }
 
 # ---- check options ----
-if (! ( $opt_fastafile or $opt_output ) ) {
+if (! ( $opt_fastafile and ($opt_nb_chunk or $opt_nb_seq_by_chunk)) ) {
     pod2usage( {
            -message => "\nAt least 2 parameters are mandatory:\nInput reference fasta file (-f)".
-					 "Output folder (-o)\n\n".
+					 "\nnumber of chuncks (--nb_chunks) or/and number of sequences by chunk (--nb_seq_by_chunk)\n\n".
            "Look at the help documentation to know more.\n",
            -verbose => 0,
            -exitval => 2 } );
@@ -91,6 +91,10 @@ if( $opt_size_seq ){
 	else{
 		print "=> <leftover> option is $opt_leftover\n";
 	}
+}
+
+if(! -f $opt_fastafile){
+	print "$opt_fastafile is not a file\n."; exit;
 }
 # ----- output -------
 
@@ -460,8 +464,7 @@ detach: The last chunck stay as it is. In the worse case it can be 1 nucleotide 
 
 =item B<-o> or B<--output>
 
-Output fasta file.  If no output file is specified, the output will be
-written to STDOUT.
+Output folder. Default split_result
 
 =item B<-h> or B<--help>
 
