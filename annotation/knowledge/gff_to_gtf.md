@@ -26,7 +26,7 @@ tool | respect GTF format | UTR conserved | attribute conserved | Comment
 [gffread](https://github.com/gpertea/gffread) | No - They say GTF2.2 but it is not: transcript should be removed; start_codon and stop_codon should stay. | No | No  | 
 [GenomeTools](https://github.com/genometools/genometools) | No - only CDS and exon kept | No | No | gene_id and transcript_id get new identifiers.
 [ea-utils](https://github.com/ExpressionAnalysis/ea-utils) |  No - only CDS and exon kept | No | No |
-[TransDecoder](https://github.com/TransDecoder/TransDecoder) |  No - start and stop codon removed | No | Yes - Name only | Needs the fasta file for the conversion. 
+[TransDecoder](https://github.com/TransDecoder/TransDecoder) |  No - start and stop codon removed | No | Name only | Needs the fasta file for the conversion. 
 [Kent utils](http://hgdownload.cse.ucsc.edu/admin/exe/) | No - gene is missing or transcript is superfluous to be compliant to one of the GTF format | No | No | Create a new attribute 'gene_name'.
 
 ### The GFF file to convert
@@ -55,27 +55,27 @@ scaffold625	maker	three_prime_UTR	343034	343277	.	+	.	ID=CLUHART00000008717:thre
 
 ### AGAT
 
-AGAT v0.2.2  
+AGAT v0.4.0  
 
 `agat_convert_sp_gff2gtf.pl --gff 1_test.gff -o 1_test_agat.gtf`
 
 ```
 ##gtf-version 3
-# This is a test sample
-scaffold625	maker	gene	337818	343277	.	+	.	ID CLUHARG00000005458; Name TUBB3_2; gene_id CLUHARG00000005458
-scaffold625	maker	transcript	337818	343277	.	+	.	ID CLUHART00000008717; Parent CLUHARG00000005458; gene_id CLUHARG00000005458; original_biotype mrna; transcript_id CLUHART00000008717
-scaffold625	maker	exon	337818	337971	.	+	.	ID "CLUHART00000008717:exon1"; Parent CLUHART00000008717; gene_id CLUHARG00000005458; transcript_id CLUHART00000008717
-scaffold625	maker	exon	340733	340841	.	+	.	ID "CLUHART00000008717:exon2"; Parent CLUHART00000008717; gene_id CLUHARG00000005458; transcript_id CLUHART00000008717
-scaffold625	maker	exon	341518	341628	.	+	.	ID "CLUHART00000008717:exon3"; Parent CLUHART00000008717; gene_id CLUHARG00000005458; transcript_id CLUHART00000008717
-scaffold625	maker	exon	341964	343277	.	+	.	ID "CLUHART00000008717:exon4"; Parent CLUHART00000008717; gene_id CLUHARG00000005458; transcript_id CLUHART00000008717
-scaffold625	maker	CDS	337915	337971	.	+	0	ID "CLUHART00000008717:cds"; Parent CLUHART00000008717; gene_id CLUHARG00000005458; transcript_id CLUHART00000008717
-scaffold625	maker	CDS	340733	340841	.	+	0	ID "CLUHART00000008717:cds"; Parent CLUHART00000008717; gene_id CLUHARG00000005458; transcript_id CLUHART00000008717
-scaffold625	maker	CDS	341518	341628	.	+	2	ID "CLUHART00000008717:cds"; Parent CLUHART00000008717; gene_id CLUHARG00000005458; transcript_id CLUHART00000008717
-scaffold625	maker	CDS	341964	343033	.	+	2	ID "CLUHART00000008717:cds"; Parent CLUHART00000008717; gene_id CLUHARG00000005458; transcript_id CLUHART00000008717
-scaffold625	maker	five_prime_utr	337818	337914	.	+	.	ID "CLUHART00000008717:five_prime_utr"; Parent CLUHART00000008717; gene_id CLUHARG00000005458; transcript_id CLUHART00000008717
-scaffold625	maker	start_codon	337916	337918	.	+	.	ID "CLUHART00000008717:start"; Parent CLUHART00000008717; gene_id CLUHARG00000005458; transcript_id CLUHART00000008717
-scaffold625	maker	stop_codon	343031	343033	.	+	.	ID "CLUHART00000008717:stop"; Parent CLUHART00000008717; gene_id CLUHARG00000005458; transcript_id CLUHART00000008717
-scaffold625	maker	three_prime_utr	343034	343277	.	+	.	ID "CLUHART00000008717:three_prime_utr"; Parent CLUHART00000008717; gene_id CLUHARG00000005458; original_biotype three_prime_UTR; transcript_id CLUHART00000008717
+##This is a test sample
+scaffold625	maker	gene	337818	343277	.	+	.	gene_id "CLUHARG00000005458"; ID "CLUHARG00000005458"; Name "TUBB3_2";
+scaffold625	maker	transcript	337818	343277	.	+	.	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; ID "CLUHART00000008717"; Parent "CLUHARG00000005458"; original_biotype "mrna";
+scaffold625	maker	exon	337818	337971	.	+	.	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; ID "CLUHART00000008717:exon1"; Parent "CLUHART00000008717";
+scaffold625	maker	exon	340733	340841	.	+	.	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; ID "CLUHART00000008717:exon2"; Parent "CLUHART00000008717";
+scaffold625	maker	exon	341518	341628	.	+	.	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; ID "CLUHART00000008717:exon3"; Parent "CLUHART00000008717";
+scaffold625	maker	exon	341964	343277	.	+	.	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; ID "CLUHART00000008717:exon4"; Parent "CLUHART00000008717";
+scaffold625	maker	CDS	337915	337971	.	+	0	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; ID "CLUHART00000008717:cds"; Parent "CLUHART00000008717";
+scaffold625	maker	CDS	340733	340841	.	+	0	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; ID "CLUHART00000008717:cds"; Parent "CLUHART00000008717";
+scaffold625	maker	CDS	341518	341628	.	+	2	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; ID "CLUHART00000008717:cds"; Parent "CLUHART00000008717";
+scaffold625	maker	CDS	341964	343033	.	+	2	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; ID "CLUHART00000008717:cds"; Parent "CLUHART00000008717";
+scaffold625	maker	five_prime_utr	337818	337914	.	+	.	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; ID "CLUHART00000008717:five_prime_utr"; Parent "CLUHART00000008717";
+scaffold625	maker	start_codon	337916	337918	.	+	.	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; ID "CLUHART00000008717:start"; Parent "CLUHART00000008717";
+scaffold625	maker	stop_codon	343031	343033	.	+	.	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; ID "CLUHART00000008717:stop"; Parent "CLUHART00000008717";
+scaffold625	maker	three_prime_utr	343034	343277	.	+	.	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; ID "CLUHART00000008717:three_prime_utr"; Parent "CLUHART00000008717"; original_biotype "three_prime_UTR";
 ```
 
 ### gffread
