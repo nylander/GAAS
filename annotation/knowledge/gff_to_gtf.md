@@ -7,7 +7,7 @@ to perform the conversion. We will try to see in this review the main difference
 
 # Table of Contents
 
- * [Test resume](#test-resume)
+ * [Test summary](#test-summary)
  * [The GFF file to convert](#the-gff-file-to-convert)
  * [The converters](#the-converters)
    * [AGAT](#agat)
@@ -18,7 +18,7 @@ to perform the conversion. We will try to see in this review the main difference
    * [Kent utils](#kent-utils)
  * [Feature types in GTF versions](#feature-types-in-gtf-versions)
 
-### Test resume
+## Test summary
 
 tool | respect GTF format | UTR conserved | attribute conserved | Comment
 -- | -- | -- | -- | -- |
@@ -29,7 +29,7 @@ tool | respect GTF format | UTR conserved | attribute conserved | Comment
 [TransDecoder](https://github.com/TransDecoder/TransDecoder) |  No - start and stop codon removed | No | Name only | Needs the fasta file for the conversion. 
 [Kent utils](http://hgdownload.cse.ucsc.edu/admin/exe/) | No - gene is missing or transcript is superfluous to be compliant to one of the GTF format | No | No | Create a new attribute 'gene_name'.
 
-### The GFF file to convert
+## The GFF file to convert
 
 The test file is a GFF3 file:
 
@@ -52,6 +52,8 @@ scaffold625	maker	exon	341964	343277	.	+	.	ID=CLUHART00000008717:exon4;Parent=CL
 scaffold625	maker	five_prime_utr	337818	337914	.	+	.	ID=CLUHART00000008717:five_prime_utr;Parent=CLUHART00000008717
 scaffold625	maker	three_prime_UTR	343034	343277	.	+	.	ID=CLUHART00000008717:three_prime_utr;Parent=CLUHART00000008717
 ```
+
+## The converters
 
 ### AGAT
 
