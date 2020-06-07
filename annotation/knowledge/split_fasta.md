@@ -3,12 +3,12 @@
 
 
 tool | language | One sequence per file | Can select chunck nb | Can select nb seq by chunck | Can select output file size | Overlap possible | Subsample possible | Example | Comment
--- | -- | -- | -- | -- | -- | -- | -- | -- |
-awk | awk | yes | probably | yes | no | probably | probably | | Not easy for novice 
-split | bash | yes | no | yes | yes | no | no | | Fasta must be single line fasta (one header + one single sequence line)
-[AGAT](https://github.com/NBISweden/AGAT) | Perl | yes | yes | yes | no | yes | yes | | /
-[PyFasta](https://pypi.org/project/pyfasta/#command-line-interface) | Python |  |  |  |  |  |  | | 
-[pyfaidx](https://github.com/mdshw5/pyfaidx) | Python |  |  |  |  |  |  | |
+-- | -- | -- | -- | -- | -- | -- | -- | -- | -- |
+awk | awk | yes | probably | yes | no | probably | probably | [example](awk) | Not easy for novice 
+split | bash | yes | no | yes | yes | no | no | [example](split) | Fasta must be single line fasta (one header + one single sequence line)
+[AGAT](https://github.com/NBISweden/AGAT) | Perl | yes | yes | yes | no | yes | yes | [example](agat) | /
+[PyFasta](https://pypi.org/project/pyfasta/#command-line-interface) | Python |  |  |  |  |  |  | [example](pyfasta) | 
+[pyfaidx](https://github.com/mdshw5/pyfaidx) | Python |  |  |  |  |  |  | [example](pyfaidx) |
 
 # Example
 
