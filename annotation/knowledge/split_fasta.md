@@ -1,5 +1,5 @@
 # Split a FASTA file
-## Review of the main way to split a FASTA file
+## Review of the main ways to split a FASTA file
 
 
 tool | language | One sequence per file | Can select chunck/file nb | Can select nb seq by chunck/file | Can select output file size | Overlap possible | Can cut sequence | Subsample possible | Example | Comment
