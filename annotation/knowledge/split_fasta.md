@@ -2,18 +2,19 @@
 ## Review of the main ways to split a FASTA file
 
 
-tool | language | One sequence per file | Can select chunck/file nb | Can select nb seq by chunck/file | Can select output file size | Overlap possible | Can cut sequence | Subsample possible | Example | Comment
+tool | language | One sequence per file | Can select nb of output files  | Can select nb seq by file | Can select size of output files | Overlap possible (when sequence cut) | Can cut sequences | Subsample possible | Example | Comment
 -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- |
-awk | awk | yes | no | yes | no | no | no | no | [example](awk) | 
-split | bash | yes | no | yes | yes | no | no | no | [example](split) | Fasta must be single line fasta (one header + one single sequence line)
-bash | bash | yes | no | no | no | no | no | no | [example](bash) |  Individual files will have the name of the corresponding sequence, without leading >
-gaas_fasta_splitter.pl from [GAAS](https://github.com/NBISweden/GAAS) | Perl | yes | yes | yes | no | yes | yes | yes | [example](agat) | 
-[PyFasta](https://pypi.org/project/pyfasta/#command-line-interface) | Python | yes | yes | no  | no | yes | yes | NA | [example](pyfasta) | 
-[pyfaidx](https://github.com/mdshw5/pyfaidx) | Python | yes | no | no | no | no | no | no | [example](pyfaidx) |
-[GenomeTools](https://github.com/genometools/genometools) |  Mostly C | yes | yes | no | yes | no | no | no | [example](GenomeTools) | 
-[seqretsplit](http://emboss.sourceforge.net/apps/release/6.6/emboss/apps/seqretsplit.html) from [EMBOSS](http://emboss.sourceforge.net/what/) |  C | yes | no | no | no | no | no | no | [example](EMBOSS) |
-bp_seqretsplit.pl from [Bioperl](https://github.com/bioperl/bioperl-live) |  perl | yes | no | no | no | no | no | no | [example](bp_seqretsplit) |
-faSplit from [Kent utils](http://hgdownload.cse.ucsc.edu/admin/exe/) | C | yes | yes | no | yes | yes | yes | no | [example](faSplit) |
+awk | awk | yes | no | yes | no | no | no | no | [example](#awk) | 
+split | bash | yes | no | yes | yes | no | no | no | [example](#split) | Fasta must be single line fasta (one header + one single sequence line)
+bash | bash | yes | no | no | no | no | no | no | [example](#bash) |  Individual files will have the name of the corresponding sequence, without leading >
+gaas_fasta_splitter.pl from [GAAS](https://github.com/NBISweden/GAAS) | Perl | yes | yes | yes | no | yes | yes | yes | [example](#agat) | 
+[PyFasta](https://pypi.org/project/pyfasta/#command-line-interface) | Python | yes | yes | no  | no | yes | yes | NA | [example](#pyfasta) | 
+[pyfaidx](https://github.com/mdshw5/pyfaidx) | Python | yes | no | no | no | no | no | no | [example](#pyfaidx) |
+[GenomeTools](https://github.com/genometools/genometools) |  Mostly C | yes | yes | no | yes | no | no | no | [example](#genometools) | 
+[seqretsplit](http://emboss.sourceforge.net/apps/release/6.6/emboss/apps/seqretsplit.html) from [EMBOSS](http://emboss.sourceforge.net/what/) |  C | yes | no | no | no | no | no | no | [example](#emboss) |
+bp_seqretsplit.pl from [Bioperl](https://github.com/bioperl/bioperl-live) |  perl | yes | no | no | no | no | no | no | [example](#bp_seqretsplit) |
+faSplit from [Kent utils](http://hgdownload.cse.ucsc.edu/admin/exe/) | C | yes | yes | no | yes | yes | yes | no | [example](#faSplit) |
+partition.sh from [BBMap](https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/bbmap-guide/) | Java | no | yes | no | no | no | no | no | [example](#bbmap)  | multithreaded 
 
 
 # Example
@@ -157,7 +158,11 @@ piece, if larger than 20000, will be all one piece:
 
 `faSplit gap chrN.fa 20000 outRoot`
 
+## BBMap
 
+
+
+`partition.sh in=file.fasta out=part%.fasta ways=5`
 
 ## Reference
 
