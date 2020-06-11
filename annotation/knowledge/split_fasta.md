@@ -2,17 +2,18 @@
 ## Review of the main way to split a FASTA file
 
 
-tool | language | One sequence per file | Can select chunck nb | Can select nb seq by chunck | Can select output file size | Overlap possible | Can cut sequence | Subsample possible | Example | Comment
+tool | language | One sequence per file | Can select chunck/file nb | Can select nb seq by chunck/file | Can select output file size | Overlap possible | Can cut sequence | Subsample possible | Example | Comment
 -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- |
 awk | awk | yes | no | yes | no | no | no | no | [example](awk) | Not easy for novice 
 split | bash | yes | no | yes | yes | no | no | no | [example](split) | Fasta must be single line fasta (one header + one single sequence line)
 bash | bash | yes | no | no | no | no | no | no | [example](bash) |  Individual files will have the name of the corresponding sequence, without leading >
 gaas_fasta_splitter.pl from [GAAS](https://github.com/NBISweden/GAAS) | Perl | yes | yes | yes | no | yes | yes | yes | [example](agat) | /
-[PyFasta](https://pypi.org/project/pyfasta/#command-line-interface) | Python |  |  |  |  |  |  |  | [example](pyfasta) | 
-[pyfaidx](https://github.com/mdshw5/pyfaidx) | Python |  |  |  |  |  |  |  | [example](pyfaidx) |
+[PyFasta](https://pypi.org/project/pyfasta/#command-line-interface) | Python | yes | yes | no  | no | yes | yes | NA | [example](pyfasta) | 
+[pyfaidx](https://github.com/mdshw5/pyfaidx) | Python | yes | no | no | no | no | no | no | [example](pyfaidx) |
 [GenomeTools](https://github.com/genometools/genometools) |  Mostly C | yes | yes | no | yes | no | no | no | [example](GenomeTools) | 
 [seqretsplit](http://emboss.sourceforge.net/apps/release/6.6/emboss/apps/seqretsplit.html) from [EMBOSS](http://emboss.sourceforge.net/what/) |  C | yes | no | no | no | no | no | no | [example](EMBOSS) |
 bp_seqretsplit.pl from [Bioperl](https://github.com/bioperl/bioperl-live) |  perl | yes | no | no | no | no | no | no | [example](bp_seqretsplit) |
+faSplit from [Kent utils](http://hgdownload.cse.ucsc.edu/admin/exe/) | C | yes | yes | no | yes | yes | yes | no | [example](faSplit) |
 
 
 # Example
@@ -51,13 +52,48 @@ done < myseq.fa
 
 ## GAAS
 
-`gaas_fasta_splitter.pl  --nb_chunks 10 --nb_seq_by_chunk 100 --overlap 50 --size_seq 1000000`
+split the fasta file into one file per sequence
+
+`gaas_fasta_splitter.pl -f input.fa --nb_seq_by_chunk 1`
+
+split the fasta file into files of 100 sequences
+
+`gaas_fasta_splitter.pl  --nb_seq_by_chunk 100`
+
+split the fasta file into 10 files
+
+`gaas_fasta_splitter.pl  --nb_chunks 10`
+
+split the fasta file into 10 files and cut the sequence in chunk of 1000000 bp
+
+`gaas_fasta_splitter.pl  --nb_chunks 10 --size_seq 1000000`
+
+split the fasta file into 10 files and cut the sequence in chunk of 1000000 bp with overlap of 2000 bp
+
+`gaas_fasta_splitter.pl  --nb_chunks 10 --size_seq 1000000 --overlap 2000`
+
+split the fasta file into 10 files of 20 sequences and the original sequences are cut in chunk of 1000000 bp with overlap of 2000 bp. If all the input data cannot be contained into the 10 files of 20 sequences, the output is actually a subsample of the input data.
+
+`gaas_fasta_splitter.pl  --nb_chunks 10 --nb_seq_by_chunk 20 --size_seq 1000000 --overlap 2000`
 
 ## PyFasta
 
 split a fasta file into 6 new files of relatively even size:
 
 `pyfasta split -n 6 original.fasta`
+
+split the fasta file into one new file per header with “%(seqid)s” being filled into each filename.:
+
+`pyfasta split –header “%(seqid)s.fasta” original.fasta`
+
+create 1 new fasta file with the sequence split into 10K-mers:
+
+`pyfasta split -n 1 -k 10000 original.fasta`
+
+2 new fasta files with the sequence split into 10K-mers with 2K overlap:
+
+`pyfasta split -n 2 -k 10000 -o 2000 original.fasta`
+
 
 ## pyfaidx
 
@@ -90,6 +126,38 @@ while( my $s = $in->next_seq ) {
                     -file   => ">".$id.".fasta")->write_seq($s);
 }
 ```
+## faSplit
+
+Break up scaffolds.fa using sequence names as file names (one sequence per file).
+Use the terminating / on the outRoot to get it to work correctly:
+
+`faSplit byname scaffolds.fa outRoot/`
+
+break up estAll.fa into 100 files
+(numbered est001.fa est002.fa, ... est100.fa
+Files will only be broken at fa record boundaries:
+
+`faSplit sequence estAll.fa 100 est`
+
+break up chr1.fa into 10 files:
+
+`faSplit base chr1.fa 10 1_`
+
+break up input.fa into 2000 base chunks:
+
+`faSplit size input.fa 2000 outRoot`
+
+break up est.fa into files of about 20000 bytes each by record:
+
+`faSplit about est.fa 20000 outRoot`
+
+Break up chrN.fa into files of at most 20000 bases each, 
+at gap boundaries if possible.  If the sequence ends in N's, the last
+piece, if larger than 20000, will be all one piece:
+
+`faSplit gap chrN.fa 20000 outRoot`
+
+
 
 ## Reference
 
