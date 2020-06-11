@@ -4,10 +4,10 @@
 
 tool | language | One sequence per file | Can select chunck/file nb | Can select nb seq by chunck/file | Can select output file size | Overlap possible | Can cut sequence | Subsample possible | Example | Comment
 -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- |
-awk | awk | yes | no | yes | no | no | no | no | [example](awk) | Not easy for novice 
+awk | awk | yes | no | yes | no | no | no | no | [example](awk) | 
 split | bash | yes | no | yes | yes | no | no | no | [example](split) | Fasta must be single line fasta (one header + one single sequence line)
 bash | bash | yes | no | no | no | no | no | no | [example](bash) |  Individual files will have the name of the corresponding sequence, without leading >
-gaas_fasta_splitter.pl from [GAAS](https://github.com/NBISweden/GAAS) | Perl | yes | yes | yes | no | yes | yes | yes | [example](agat) | /
+gaas_fasta_splitter.pl from [GAAS](https://github.com/NBISweden/GAAS) | Perl | yes | yes | yes | no | yes | yes | yes | [example](agat) | 
 [PyFasta](https://pypi.org/project/pyfasta/#command-line-interface) | Python | yes | yes | no  | no | yes | yes | NA | [example](pyfasta) | 
 [pyfaidx](https://github.com/mdshw5/pyfaidx) | Python | yes | no | no | no | no | no | no | [example](pyfaidx) |
 [GenomeTools](https://github.com/genometools/genometools) |  Mostly C | yes | yes | no | yes | no | no | no | [example](GenomeTools) | 
