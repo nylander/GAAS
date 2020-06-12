@@ -15,7 +15,8 @@ gaas_fasta_splitter.pl from [GAAS](https://github.com/NBISweden/GAAS) | Perl | y
 bp_seqretsplit.pl from [Bioperl](https://github.com/bioperl/bioperl-live) |  perl | yes | no | no | no | no | no | no | [example](#bp_seqretsplit) |
 faSplit from [Kent utils](http://hgdownload.cse.ucsc.edu/admin/exe/) | C | yes | yes | no | yes | yes | yes | no | [example](#faSplit) |
 partition.sh from [BBMap](https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/bbmap-guide/) | Java | no | yes | no | no | no | no | no | [example](#bbmap)  | multithreaded 
-[seqkit](https://github.com/shenwei356/seqkit) | Go | yes | yes | yes | no | no | no | yes (subsequence of given region) | [example](#seqkit) | 
+[seqkit](https://github.com/shenwei356/seqkit) | Go | yes | yes | yes | no | no | no | yes (subsequence of given region) | [example](https://bioinf.shenwei.me/seqkit/usage/#split) | 
+[SEDA](https://github.com/sing-group/seda)| java | yes | yes | yes | no | no | no | yes (randomizable) | [example](https://www.sing-group.org/seda/manual/operations.html#id19) | GUI only. Using `Independent extractions` and `Randomize` options give the possibility to get sequences picked several times.
 
 
 # Example
@@ -164,10 +165,6 @@ piece, if larger than 20000, will be all one piece:
 Split the fasta file into 5 files:
 
 `partition.sh in=file.fasta out=part%.fasta ways=5`
-
-## seqkit
-
-
 
 
 ## Reference
