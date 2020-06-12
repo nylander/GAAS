@@ -16,7 +16,7 @@ bp_seqretsplit.pl from [Bioperl](https://github.com/bioperl/bioperl-live) |  per
 faSplit from [Kent utils](http://hgdownload.cse.ucsc.edu/admin/exe/) | C | yes | yes | no | yes | yes | yes | no | [example](#faSplit) |
 partition.sh from [BBMap](https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/bbmap-guide/) | Java | no | yes | no | no | no | no | no | [example](#bbmap)  | multithreaded 
 [seqkit](https://github.com/shenwei356/seqkit) | Go | yes | yes | yes | no | no | no | yes (subsequence of given region) | [example](https://bioinf.shenwei.me/seqkit/usage/#split) | 
-[SEDA](https://github.com/sing-group/seda)| java | yes | yes | yes | no | no | no | yes (randomizable) | [example](https://www.sing-group.org/seda/manual/operations.html#id19) | GUI only. Using `Independent extractions` and `Randomize` options give the possibility to get sequences picked several times.
+[SEDA](https://github.com/sing-group/seda)| java | yes | yes | yes | no | no | no | yes (randomizable) | [example](https://www.sing-group.org/seda/manual/operations.html#id19) | GUI only. Using `Independent extractions` and `Randomize` options give the possibility to get sequences picked several times. There is an extra function called [regular expression split](https://www.sing-group.org/seda/manual/operations.html#regular-expression-split) (use of regex for selecting sequence by matching headers)
 
 
 # Example
