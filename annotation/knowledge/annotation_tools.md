@@ -3,7 +3,7 @@ List of genome annotation tools
 
 | year	| Tool name | Publication | Type	| Method | Organism | Nb citation (pubmed 2016) | Comments | Output Format |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-1991 | GRAIL | Uberbacher and Mural	1991. Mural et al. 1992 | Ab initio (sensors + Neural network) | | | | No longer supported |
+1991 | GRAIL | E. C. Uberbacher and R. J. Mural (1991), "Locat- ing protein-coding regions in human DNAsequences by a multiple sensor-neural network approach", Proc. Natl. Acad. Sci. USA,Vol. 88, pp. 11261- 11265.<br/>R. J. Mural, J. R. Einstein, X. Guan, R. C. Mann and E. C. Uberbacher(1992), "All Artificial Intelli- gence Approach to DNASequence Feature Recogni- tion", Trend in Biotechnology, 10, pp. 66 - 69. | Ab initio (sensors + Neural network) | | | | No longer supported |
 1991 | NetGene | Brunak et al.	| Ab initio | | | | |
 1992 | GeneID |	Gugio et al. | Ab initio | WAM, HMM, PD, AD, NN | | | |
 1992 | GeneID+ |	Guigo, R., Knudsen, S., Drake, N., and Smith, T. (1992) J. Mol. Biol. 226, 141–157. | Hybrid | WAM, HMM, PD, AD, NN | | | |
