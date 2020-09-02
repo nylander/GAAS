@@ -1,7 +1,8 @@
+List of mitome annotation tools
+===========================
 
-# Mitochondrial annotation
-
-List of tools that can be used for Mitochondrial annotation:
+[See here for the list of genome annotation tools](https://github.com/NBISweden/GAAS/blob/master/annotation/knowledge/annotation_tools_genome.md)  
+[See here for the list of mitome annotation tools](https://github.com/NBISweden/GAAS/blob/master/annotation/knowledge/annotation_tools_plastome.md) 
 
 
 | year	| Tool name | Publication | Type | Method | Organism | Comments | Output Format |
