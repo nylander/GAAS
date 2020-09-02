@@ -1,7 +1,7 @@
 List of genome annotation tools
 ===========================
 
-[See here for the list of genome annotation tools](https://github.com/NBISweden/GAAS/blob/master/annotation/knowledge/annotation_tools_plast.md)
+[See here for the list of genome annotation tools](https://github.com/NBISweden/GAAS/blob/master/annotation/knowledge/annotation_tools_plast.md)  
 [See here for the list of mitome annotation tools](https://github.com/NBISweden/GAAS/blob/master/annotation/knowledge/annotation_tools_mito.md)
 
 | year	| Tool name | Publication | Type	| Method | Organism | Nb citation (pubmed 2016) | Comments | Output Format |
