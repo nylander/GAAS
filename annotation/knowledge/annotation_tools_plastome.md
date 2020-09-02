@@ -15,7 +15,7 @@ List of plastome annotation tools
 2015 | ORG.Annot | Developed by Eric Coissac (unpublished) | Pipeline | | | |
 2015 | Plann | Plann: A command‐line application for annotating plastome sequences. DI Huang, QCB Cronk. Applications in Plant Sciences 3 (8), 1500026, 2015. 226, 2015. | | | chloroplast genome annotation | | |
 2017 | Geseq | Tillich M, Lehwark P, Pellizzer T, Ulbricht-Jones ES, Fischer A, Bock R and Greiner S (2017) GeSeq – versatile and accurate annotation of organelle genomes. Nucleic Acids Research 45: W6-W11 | | | chloroplast mitochondria | web based tool | |
-2017 | Verdant | McKain MR, Hartsock RH, Wohl MM, Kellogg EA. 2017. Verdant: automated annotation, alignment and phylogenetic analysis of whole chloroplast genomes. Bioinformatics. 33:130–132.| | | | chloroplast | |
+2017 | Verdant | McKain MR, Hartsock RH, Wohl MM, Kellogg EA. 2017. Verdant: automated annotation, alignment and phylogenetic analysis of whole chloroplast genomes. Bioinformatics. 33:130–132.| | | chloroplast | | |
 2018 | AGORA | Jung J, Kim JI, Jeong Y-S and Yi, G (2018) AGORA: organellar genome annotation from the amino acid and nucleotide references. Bioinformatics 34: 2661-2663 | | | organelle genome annotation ( mitochondrion and plastid genomes of eukaryotes ) | web application | |
 2019 | CpGAVAS2 | Shi L, Chen H, Jiang M, Wang L, Wu X, Huang L and Liu C (2019) CPGAVAS2, an integrated plastome sequence annotator and analyzer. Nucleic Acids Research, gkz345 | | | |
 | year	| Tool name | Publication | Type	| Method | Organism | Comments | Output Format |
