@@ -3,7 +3,8 @@ List of genome annotation tools
 
 [See here for the list of plastome annotation tools](https://github.com/NBISweden/GAAS/blob/master/annotation/knowledge/annotation_tools_plastome.md)  
 [See here for the list of mitome annotation tools](https://github.com/NBISweden/GAAS/blob/master/annotation/knowledge/annotation_tools_mitome.md)  
-[See here for the list of plasmidome annotation tools](https://github.com/NBISweden/GAAS/blob/master/annotation/knowledge/annotation_tools_plasmidome.md) 
+[See here for the list of plasmidome annotation tools](https://github.com/NBISweden/GAAS/blob/master/annotation/knowledge/annotation_tools_plasmidome.md)  
+[Back to the knowledge page](https://github.com/NBISweden/GAAS/blob/master/annotation/knowledge)
 
 | year	| Tool name | Publication | Type	| Method | Organism | Nb citation (pubmed 2016) | Comments | Output Format |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -151,9 +152,11 @@ List of genome annotation tools
 2018 | FunGAP | Min B, Grigoriev IV, Choi IG. FunGAP: Fungal Genome Annotation Pipeline using evidence-based gene model evaluation. Bioinformatics (Oxford, England). 2017;33(18):2936–7. | pipeline | | |  | |
 2018 | BRAKER2 | | | Hybrid | eukaryote |  | |	
 2018 | G-OnRamp | | Ab-initio Web-based | Augustus,GlimmerHMM,SNAP | |  | |
+2018 | VIRULIGN | VIRULIGN: fast codon-correct alignment and annotation of viral genomes. Pieter J K Libin,  Koen Deforche,  Ana B Abecasis,  Kristof Theys. Bioinformatics, Volume 35, Issue 10, 15 May 2019, Pages 1763–1765, https://doi.org/10.1093/bioinformatics/bty851 | Similarity | | Virus | | | 
 2019 | GAAP | Jinhwa Kong, Sun Huh, Jung-Im Won, Jeehee Yoon, Baeksop Kim, and Kiyong Kim. GAAP: A Genome Assembly + Annotation Pipeline. BioMed Research International, Volume 2019, Article ID 4767354, 12 pages | pipeline| Augustus,EVM,MAKER,PASA | |  | Genome Assembly + Annotation Pipeline |
 2019 | VAPiD (Viral Annotation Pipeline and iDentification) | Ryan C. Shean, Negar Makhsous, Graham D. Stoddard, Michelle J. Lin & Alexander L. Greninger. VAPiD: a lightweight cross-platform viral annotation pipeline and identification tool to facilitate virus genome submissions to NCBI GenBank. BMC Bioinformaticsvolume 20, Article number: 48 (2019) | pipeline | | Virus | | |	
 2019 | Vgas (Viral Genome Annotation System) | Kai-Yue Zhang, Yi-Zhou Gao, Meng-Ze Du, Shuo Liu, Chuan Dong, and Feng-Biao Guo. Vgas: A Viral Genome Annotation System. Front Microbiol. 2019; 10: 184. | abinitio + similarity-based | ZCURVE_V + BLASTp | Virus | | In their paper they say: When combining Vgas with GeneMarkS and Prodigal, better prediction results could be obtained than with each of the three individual programs. | |	
+2020 | VADR | VADR: validation and annotation of virus sequence submissions to GenBank. Alejandro A. Schäffer, Eneida L. Hatcher, Linda Yankie, Lara Shonkwiler, J. Rodney Brister, Ilene Karsch-Mizrachi & Eric P. Nawrocki. BMC Bioinformatics 21, 211 (2020). https://doi.org/10.1186/s12859-020-3537-3 | HMM + similarity | | Virus | | | |
 | year	| Tool name | Publication | Type	| Method | Organism | Nb citation (pubmed 2016) | Comments | Output Format |
 
 _____________________
