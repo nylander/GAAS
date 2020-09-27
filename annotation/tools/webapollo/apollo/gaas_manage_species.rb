@@ -23,12 +23,7 @@ require 'ostruct'
 
 ### Define modules and classes here
 
-def tomcat_group
-
-        user_groups = `id`
-        user_groups.include?("tomcat")
-
-end
+prog_dir = File.dirname(__FILE__)
 
 ### Get the script arguments and open relevant files
 options = OpenStruct.new()
@@ -45,8 +40,6 @@ opts.on("-h","--help","Display the usage information") {
 
 opts.parse! 
 
-raise "You are not member of the tomcat group and thus cannot deploy WebApollo!" unless tomcat_group
-
 @species = options.species or abort 'No species name provided'
 @organism = options.species.split('_')[0].capitalize + ' ' + options.species.split('_')[-1]
 @wa_installation_name = options.wa_installation_name or abort 'Name of the WebApollo installation not provided'
@@ -62,15 +55,9 @@ CSS_STRING = ".plus-cigarM {\nbackground-color: green; /* color for plus matches
 user = ENV['USER']
 home = ENV['HOME']
 
-build_dir = ENV['APOLLO_BUILD_DIR'] or abort "Environment variable APOLLO_BUILD_DIR not set"
 data_dir = ENV['APOLLO_DATA_DIR'] or abort "Environment vairable APOLLO_DATA_DIR not set"
 
 web_apollo_storage = "#{data_dir}/#{@species}"		# Folder tree where data is stored
-
-config = {
-	:web_apollo_path => "#{build_dir}/#{@wa_installation_name}",	# The location where this WA installation has been built
-	:tool_dir => "/opt/ucsc",			# Location of blat and FaToNib
-}
 
 ### The workflow
 
@@ -79,7 +66,7 @@ if options.clean == true
 	selection = STDIN.gets.chomp
         if(selection.downcase == "y")
 		puts "Cleaning database"
-		system("#{config[:web_apollo_path]}/docs/web_services/examples/groovy/delete_annotations_from_organism.groovy  -destinationurl http://localhost:8080/#{@wa_installation_name} -organismname #{@species}")
+		system("#{prog_dir}/delete_annotations_from_organism.groovy  -destinationurl http://localhost:8888/#{@wa_installation_name} -organismname #{@species}")
 	
 		puts "Cleaning webapollo folder"
   		system("rm -Rf #{web_apollo_storage}")
@@ -97,11 +84,11 @@ else
 		# Create the folder where the data is to be stored
 		puts "Create folders"
 		system("mkdir -p #{web_apollo_storage}")
-		system("chgrp -R tomcat #{web_apollo_storage}") # Must be owned by tomcat group
+		#system("chgrp -R tomcat #{web_apollo_storage}") # Must be owned by tomcat group
 		
 		# Load genome assembly
 		puts "Loading genome assembly"
-		system("#{config[:web_apollo_path]}/jbrowse/bin/prepare-refseqs.pl --fasta #{@fasta} --out #{web_apollo_storage}")
+		system("prepare-refseqs.pl --fasta #{@fasta} --out #{web_apollo_storage}")
 
 
 	  	# Create custom CSS style sheet
@@ -111,7 +98,7 @@ else
 	  
 		# Build Blat database
 		puts "Build Blat database"
-		system("#{config[:tool_dir]}/faToTwoBit #{@fasta} #{web_apollo_storage}/blat.2bit")
+		system("faToTwoBit #{@fasta} #{web_apollo_storage}/blat.2bit")
 	
 	end
 end	
