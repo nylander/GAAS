@@ -60,7 +60,7 @@ resource "openstack_compute_floatingip_associate_v2" "myip" {
 }
 
 resource "null_resource" "provision" {
-  depends_on = ["openstack_compute_floatingip_associate_v2.myip"]
+  depends_on = [openstack_compute_floatingip_associate_v2.myip]
   connection {
     type = "ssh"
     user = var.ssh_user
