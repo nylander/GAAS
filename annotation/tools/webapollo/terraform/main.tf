@@ -1,6 +1,6 @@
 resource "openstack_compute_keypair_v2" "my-cloud-key" {
   name       = var.keypair_name
-  public_key =  "${file(var.public_ssh_key)}"
+  public_key =  file(var.public_ssh_key)
 
 }
 
@@ -64,10 +64,10 @@ resource "null_resource" "provision" {
   connection {
     type = "ssh"
     user = var.ssh_user
-    private_key = "${file(var.private_ssh_key)}"
+    private_key = file(var.private_ssh_key)
     agent  = true
     timeout  = "5m"
-    host = "${openstack_networking_floatingip_v2.myip.address}"
+    host = openstack_networking_floatingip_v2.myip.address
   }
 
   provisioner "remote-exec" {
