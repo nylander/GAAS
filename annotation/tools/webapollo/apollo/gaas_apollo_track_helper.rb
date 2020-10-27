@@ -45,11 +45,9 @@ opts.parse!
 
 home = ENV['HOME']
 
-build_dir = ENV['APOLLO_BUILD_DIR'] or abort "Environment variable APOLLO_BUILD_DIR not set"
 data_dir = ENV['APOLLO_DATA_DIR'] or abort "Environment vairable APOLLO_DATA_DIR not set"
 
 config = {
-	:web_apollo_build => "#{build_dir}/#{options.wa_installation_name}", 	# The location where this WA isntance is
 	:web_apollo_data => "#{data_dir}/#{options.species}"	# Location of the data store for this species
 }
 
@@ -70,13 +68,12 @@ tracks = { "protein" => "\"match_part\": \"blue-80pct\"" ,
 
 
 abort "No species provided" unless options.species
-raise "This WA instance/installation (#{options.wa_installation_name}) does not have a build directory under #{config[:web_apollo_build]})" unless File.directory?(config[:web_apollo_build])
 raise "This species (#{options.species}) does not have a build directory under #{config[:web_apollo_data]})" unless File.directory?(config[:web_apollo_data])
 abort "No track label provided" unless options.label
 
 if options.remove
     
-  system("perl #{config[:web_apollo_build]}/jbrowse/bin/remove-track.pl --dir #{config[:web_apollo_data]} --trackLabel #{options.label} -D")
+  system("remove-track.pl --dir #{config[:web_apollo_data]} --trackLabel #{options.label} -D")
      
 else
   
@@ -97,7 +94,6 @@ else
   puts "Your data:"
   puts "----------"
   puts "Track to  load: #{options.infile}"
-  puts "WebApollo portal: #{config[:web_apollo_build]}"
   puts "Track label: #{options.label}"
   puts "Category: #{options.category}"
   puts "Track type selection..."
@@ -149,7 +145,7 @@ else
   
   end
 
-  puts "Loading track as type #{track}, with the label #{options.label} into the category #{options.category} of webapollo directory #{config[:web_apollo_build]}"
+  puts "Loading track as type #{track}, with the label #{options.label} into the category #{options.category} of webapollo"
 
 unless options.direct
   puts "Proceed? (Y/N)"
@@ -160,13 +156,13 @@ unless options.direct
 end
 
   if track == "gene" or track == "lift-over" or track == "rnaseq"
-  	system "perl #{config[:web_apollo_build]}/jbrowse/bin/flatfile-to-json.pl --gff #{options.infile} --out #{config[:web_apollo_data]} --arrowheadClass trellis-arrowhead --getSubfeatures --subfeatureClasses '{#{tracks[track]}}'  --cssClass container-16px --config '{ \"category\": \"#{options.category}\" }' --type mRNA --trackLabel #{options.label}"
+  	system "flatfile-to-json.pl --gff #{options.infile} --out #{config[:web_apollo_data]} --arrowheadClass trellis-arrowhead --getSubfeatures --subfeatureClasses '{#{tracks[track]}}'  --cssClass container-16px --config '{ \"category\": \"#{options.category}\" }' --type mRNA --trackLabel #{options.label}"
   elsif track == "tRNA"
-          system "perl #{config[:web_apollo_build]}/jbrowse/bin/flatfile-to-json.pl --gff #{options.infile} --out #{config[:web_apollo_data]} --arrowheadClass trellis-arrowhead --getSubfeatures --subfeatureClasses '{#{tracks[track]}}'  --cssClass container-16px --config '{ \"category\": \"#{options.category}\" }' --type tRNA --trackLabel #{options.label}"
+          system "flatfile-to-json.pl --gff #{options.infile} --out #{config[:web_apollo_data]} --arrowheadClass trellis-arrowhead --getSubfeatures --subfeatureClasses '{#{tracks[track]}}'  --cssClass container-16px --config '{ \"category\": \"#{options.category}\" }' --type tRNA --trackLabel #{options.label}"
   elsif track == "ncRNA"
-  	system "perl #{config[:web_apollo_build]}/jbrowse/bin/flatfile-to-json.pl --gff #{options.infile} --out #{config[:web_apollo_data]} --arrowheadClass trellis-arrowhead --getSubfeatures --subfeatureClasses '{#{tracks[track]}}'  --cssClass container-16px --config '{ \"category\": \"#{options.category}\" }' --type ncRNA --trackLabel #{options.label}"
+  	system "flatfile-to-json.pl --gff #{options.infile} --out #{config[:web_apollo_data]} --arrowheadClass trellis-arrowhead --getSubfeatures --subfeatureClasses '{#{tracks[track]}}'  --cssClass container-16px --config '{ \"category\": \"#{options.category}\" }' --type ncRNA --trackLabel #{options.label}"
   else
-  	system "perl #{config[:web_apollo_build]}/jbrowse/bin/flatfile-to-json.pl --gff #{options.infile} --out #{config[:web_apollo_data]} --arrowheadClass trellis-arrowhead --getSubfeatures --subfeatureClasses '{#{tracks[track]}}' --cssClass container-16px --config '{ \"category\": \"#{options.category}\" }' --trackLabel #{options.label}"	
+  	system "flatfile-to-json.pl --gff #{options.infile} --out #{config[:web_apollo_data]} --arrowheadClass trellis-arrowhead --getSubfeatures --subfeatureClasses '{#{tracks[track]}}' --cssClass container-16px --config '{ \"category\": \"#{options.category}\" }' --trackLabel #{options.label}"	
   end
 
 end 
