@@ -125,8 +125,8 @@ resource "null_resource" "provision" {
 
   provisioner "remote-exec" {
     scripts = [
-      "src/install_docker.sh",
       "src/mount_volume.sh",
+      "src/install_docker.sh",
       "src/run_docker.sh"
     ]
   }
