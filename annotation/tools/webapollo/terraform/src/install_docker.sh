@@ -6,9 +6,6 @@ sudo adduser $USER docker
 
 # install docker from snap
 sudo snap install docker
-newgrp docker
-sudo snap disable docker
-sudo snap enable docker
 
 # install docker-compose
 if [ ! -f   /usr/local/bin/docker-compose ];then
