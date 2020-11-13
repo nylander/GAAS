@@ -41,6 +41,12 @@ resource "openstack_compute_secgroup_v2" "secgroup_webap" {
     ip_protocol = "tcp"
     cidr        = "0.0.0.0/0"
   }
+  rule {
+    from_port   = 443
+    to_port     = 443
+    ip_protocol = "tcp"
+    cidr        = "0.0.0.0/0"
+  }
 
   rule {
     from_port   = 80
@@ -91,8 +97,8 @@ resource "openstack_compute_instance_v2" "instance_webap" {
   name            = var.instance_name
   image_name      = var.image_name
   flavor_name     = var.flavor_name
-  key_pair        = openstack_compute_keypair_v2.my-cloud-key.name
-  security_groups = ["default", openstack_compute_secgroup_v2.secgroup_webap.name ]
+  key_pair        = openstack_compute_keypair_v2.my-cloud-key.id
+  security_groups = [openstack_compute_secgroup_v2.secgroup_webap.id ]
 
   network {
     name = var.internal_network_name
