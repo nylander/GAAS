@@ -129,8 +129,16 @@ resource "null_resource" "provision" {
     host = openstack_networking_floatingip_v2.ip_webap.address
   }
 
+  provisioner "local-exec" {
+    command  =  "bash src/get-sshkeys.sh"
+  }
+  provisioner "file" {
+    source      = "tmp/annotation-cluster/ansible-ubuntu-18.04/roles/common/files/authorized-keys"
+    destination = "/home/ubuntu"
+  }
   provisioner "remote-exec" {
     scripts = [
+      "src/add-sshkeys.sh",
       "src/mount_volume.sh",
       "src/install_docker.sh",
       "src/run_docker.sh"

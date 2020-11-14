@@ -57,3 +57,7 @@ variable size_volume {
     description = "size of the volume to be attached to the instance"
     default = 100
 }
+variable git_common_keys {
+    description = "git repo containing common ssh keys"
+    default = "git@github.com:NBISweden/annotation-cluster.git"
+}
