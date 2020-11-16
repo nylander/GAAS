@@ -21,6 +21,9 @@
 
 
     size_volume = 100 # define size of block storage to be mounted in GB 
+
+    admin_username = "adminuser"
+    admin_password = "verystrongpassword"
     ```
 
 4. Set up Openstack credentials by sourcing an RC file from an SSC project
