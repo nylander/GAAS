@@ -136,12 +136,16 @@ resource "null_resource" "provision" {
     source      = "tmp/annotation-cluster/ansible-ubuntu-18.04/roles/common/files/authorized-keys"
     destination = "/home/ubuntu"
   }
+  provisioner "file" {
+    source      = "src"
+    destination = "/home/ubuntu"
+  }
   provisioner "remote-exec" {
-    scripts = [
-      "src/add-sshkeys.sh",
-      "src/mount_volume.sh",
-      "src/install_docker.sh",
-      "src/run_docker.sh"
+    inline = [
+      "bash /home/ubuntu/src/add-sshkeys.sh",
+      "bash /home/ubuntu/src/mount_volume.sh",
+      "bash /home/ubuntu/src/install_docker.sh",
+      "bash /home/ubuntu/src/run_docker.sh --admin ${var.admin_username} --password ${var.admin_password} "
     ]
   }
 }

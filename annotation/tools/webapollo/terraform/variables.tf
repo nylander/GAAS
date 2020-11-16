@@ -61,3 +61,11 @@ variable git_common_keys {
     description = "git repo containing common ssh keys"
     default = "git@github.com:NBISweden/annotation-cluster.git"
 }
+variable admin_username {
+    description = "Name of the admin user to webapollo"
+    default = "adminuser"
+}
+variable admin_password {
+    description = "Password of the admin user to webapollo"
+    default = "verystrongpassword_1X"
+}
