@@ -2,8 +2,33 @@
 
 here=$(realpath "$(dirname "$0")")
 
-mkdir -p /mnt/sequences/data
-mkdir -p /mnt/sequences/postgres-data
+for s in /mnt/*;
+	 if [ ! -d "$s" ] ; then
+	     # Ignore non-directories
+	     continue
+	 fi
 
-docker run --rm --name webapollo -d -e CATALINA_OPTS="-Xmx14G" -e APOLLO_ADMIN_EMAIL=admin@nbis.se -e APOLLO_ADMIN_PASSWORD="$(cat "$here/apolloadminpassword")" -v /mnt/sequences/data/:/data -v /mnt/sequences/postgres-data/:/var/lib/postgresql -p 8888:8080 gmod/apollo:latest
+	 if [ ! -e "$s/species" ] ; then
+	     # We need a species file to run here
+	     continue
+	 fi
 
+	 password=$(cat "$here/apolloadminpassword")
+	 port=8888
+	 catalinaopts=-Xmx14G
+
+	 if [ -e "$s/port" ]; then
+	     port=$(cat "$s/port")
+	 fi
+	 if [ -e "$s/apolloadminpassword" ]; then
+	     password=$(cat "$s/apolloadminpassword")
+	 fi
+	 if [ -e "$s/catalinaopts" ]; then
+	     catalinaopts=$(cat "$s/catalinaopts")
+	 fi
+
+	 mkdir -p "$s/data"
+	 mkdir -p "$s/postgres-data"
+
+	 docker run --rm --name webapollo -d -e CATALINA_OPTS="$catalinaopts" -e APOLLO_ADMIN_EMAIL=admin@nbis.se -e APOLLO_ADMIN_PASSWORD="$password" -v "$s/data/":/data -v "$s/postgres-data/":/var/lib/postgresql -p "$port":8080 gmod/apollo:latest
+done
