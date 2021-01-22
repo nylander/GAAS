@@ -2,7 +2,7 @@
 
 here=$(realpath "$(dirname "$0")")
 
-for s in /mnt/*;
+for s in /mnt/*; do
 	 if [ ! -d "$s" ] ; then
 	     # Ignore non-directories
 	     continue
