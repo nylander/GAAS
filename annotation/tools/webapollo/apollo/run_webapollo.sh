@@ -2,7 +2,7 @@
 
 here=$(realpath "$(dirname "$0")")
 
-for s in /mnt/*;
+for s in /mnt/*; do
 	 if [ ! -d "$s" ] ; then
 	     # Ignore non-directories
 	     continue
@@ -13,6 +13,7 @@ for s in /mnt/*;
 	     continue
 	 fi
 
+	 species=$(cat "$s/species")
 	 password=$(cat "$here/apolloadminpassword")
 	 port=8888
 	 catalinaopts=-Xmx14G
@@ -30,5 +31,5 @@ for s in /mnt/*;
 	 mkdir -p "$s/data"
 	 mkdir -p "$s/postgres-data"
 
-	 docker run --rm --name webapollo -d -e CATALINA_OPTS="$catalinaopts" -e APOLLO_ADMIN_EMAIL=admin@nbis.se -e APOLLO_ADMIN_PASSWORD="$password" -v "$s/data/":/data -v "$s/postgres-data/":/var/lib/postgresql -p "$port":8080 gmod/apollo:latest
+	 docker run --rm --name "webapollo-$species" -d -e CATALINA_OPTS="$catalinaopts" -e APOLLO_ADMIN_EMAIL=admin@nbis.se -e APOLLO_ADMIN_PASSWORD="$password" -v "$s/data/":/data -v "$s/postgres-data/":/var/lib/postgresql -p "$port":8080 gmod/apollo:latest
 done
