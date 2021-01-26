@@ -1,16 +1,19 @@
-resource "openstack_compute_keypair_v2" "my-cloud-key" {
-  name       = var.keypair_name
-  public_key =  file(var.public_ssh_key)
+data "external" "agent_keys" {
+  program = ["bash", "-c",  "ssh-add -L | grep -v cert | jq -R -s 'split(\"\\n\")[:-1] | map({ \"key\" : . }) | .[0]'" ]
+}
 
+resource "openstack_compute_keypair_v2" "my-cloud-key" {
+  name       = "${var.keypair_name}${var.project_suffix}"
+  public_key =  data.external.agent_keys.result.key
 }
 
 resource "openstack_networking_network_v2" "net_webap" {
-  name           = var.internal_network_name
+  name           = "${var.internal_network_name}${var.project_suffix}"
   admin_state_up = "true"
 }
 
 resource "openstack_networking_subnet_v2" "subnet_webap" {
-  name       = var.internal_subnet_name
+  name       = "${var.internal_subnet_name}${var.project_suffix}"
   network_id = openstack_networking_network_v2.net_webap.id
   cidr       = "10.0.0.0/24"
   ip_version = 4
@@ -18,10 +21,14 @@ resource "openstack_networking_subnet_v2" "subnet_webap" {
   enable_dhcp = "true"
 }
 
+data "openstack_networking_network_v2" "externalnetwork" {
+  name = var.external_network_name
+}
+
 resource "openstack_networking_router_v2" "router_webap" {
-  name                = var.router_name
+  name                = "${var.router_name}${var.project_suffix}"
   admin_state_up      = "true"
-  external_network_id = var.external_network_id
+  external_network_id = data.openstack_networking_network_v2.externalnetwork.id
 }
 
 resource "openstack_networking_router_interface_v2" "router_interface" {
@@ -32,8 +39,8 @@ resource "openstack_networking_router_interface_v2" "router_interface" {
 
 
 resource "openstack_compute_secgroup_v2" "secgroup_webap" {
-  name        = var.secgroup_name
-  description = "security group"
+  name        = "${var.secgroup_name}${var.project_suffix}"
+  description = "security group ${var.project_suffix}"
 
   rule {
     from_port   = 22
@@ -69,7 +76,7 @@ resource "openstack_compute_secgroup_v2" "secgroup_webap" {
 }
 
 resource "openstack_networking_port_v2" "port_webap" {
-  name               = var.port_name
+  name               = "${var.port_name}${var.project_suffix}"
   network_id         = openstack_networking_network_v2.net_webap.id
   admin_state_up     = "true"
   security_group_ids = [openstack_compute_secgroup_v2.secgroup_webap.id]
@@ -81,11 +88,11 @@ resource "openstack_networking_port_v2" "port_webap" {
 }
 
 resource "openstack_networking_floatingip_v2" "ip_webap" {
-  pool = var.floating_ip_pool
+  pool = var.external_network_name
 }
 
 resource "openstack_blockstorage_volume_v2" "vol_webap" {
-  name = "vol_webap"
+  name = "vol_webap${var.project_suffix}"
   size = var.size_volume
 }
 
@@ -94,14 +101,14 @@ resource "openstack_blockstorage_volume_v2" "vol_webap" {
 
 resource "openstack_compute_instance_v2" "instance_webap" {
   depends_on = [openstack_networking_subnet_v2.subnet_webap]
-  name            = var.instance_name
+  name            = "${var.instance_name}${var.project_suffix}"
   image_name      = var.image_name
   flavor_name     = var.flavor_name
   key_pair        = openstack_compute_keypair_v2.my-cloud-key.id
   security_groups = [openstack_compute_secgroup_v2.secgroup_webap.id ]
 
   network {
-    name = var.internal_network_name
+    name = "${var.internal_network_name}${var.project_suffix}"
   }
 
 }
@@ -123,31 +130,66 @@ resource "null_resource" "provision" {
   connection {
     type = "ssh"
     user = var.ssh_user
-    private_key = file(var.private_ssh_key)
     agent  = "true"
     timeout  = "5m"
     host = openstack_networking_floatingip_v2.ip_webap.address
   }
 
   provisioner "local-exec" {
-    command  =  "bash src/get-sshkeys.sh"
+    command  =  "bash localscripts/get-sshkeys.sh"
   }
-  provisioner "file" {
+  provisioner "local-exec" {
+    command  =  "bash localscripts/get-gaas.sh"
+  }
+
+provisioner "file" {
     source      = "tmp/annotation-cluster/ansible-ubuntu-18.04/roles/common/files/authorized-keys"
-    destination = "/home/ubuntu"
+    destination = "/home/${var.ssh_user}"
   }
-  provisioner "file" {
-    source      = "src"
-    destination = "/home/ubuntu"
-  }
-  provisioner "remote-exec" {
-    inline = [
-      "bash /home/ubuntu/src/add-sshkeys.sh",
-      "bash /home/ubuntu/src/mount_volume.sh",
-      "bash /home/ubuntu/src/install_docker.sh",
-      "bash /home/ubuntu/src/run_docker.sh --admin ${var.admin_username} --password ${var.admin_password} "
-    ]
-  }
+
+provisioner "remote-exec" {
+  inline = [ "mkdir -p /home/${var.ssh_user}/nbis",
+  	   "mkdir -p /home/${var.ssh_user}/setup",
+  ]
 }
 
+provisioner "file" {
+    source      = "tmp/GAAS"
+    destination = "/home/${var.ssh_user}/nbis"
+  }
+
+provisioner "file" {
+    source      = "remotescripts/"
+    destination = "/home/${var.ssh_user}/setup"
+  }
+
+provisioner "remote-exec" {
+    inline = [
+      "set -x -e",
+      "PATH=$PATH:/snap/bin",
+      "sudo apt update",
+      "sudo DEBIAN_FRONTEND=noninteractive apt dist-upgrade -y",
+      "bash $HOME/setup/add-sshkeys.sh",
+      "bash $HOME/setup/mount_volume.sh ${var.project_suffix}",
+      "bash $HOME/setup/install_docker.sh",
+      "bash $HOME/setup/install_conda.sh",
+      "echo ${var.admin_password} > ~/nbis/GAAS/annotation/tools/webapollo/apollo/apolloadminpassword",
+      "echo APOLLO_DATA_DIR=\"$(echo /mnt/*/data)\" >> $HOME/.bashrc",
+      "echo export APOLLO_DATA_DIR >> $HOME/.bashrc"
+    ]
+}
+
+# Do a new connection to pick up groups.
+
+provisioner "remote-exec" {
+    inline = [
+          "bash $HOME/nbis/GAAS/annotation/tools/webapollo/apollo/run_webapollo.sh"
+]
+}
+
+}
+output "connection-string" {
+    description = "To run, connect to"
+    value = "${var.ssh_user}@${openstack_networking_floatingip_v2.ip_webap.address}"
+}
 
