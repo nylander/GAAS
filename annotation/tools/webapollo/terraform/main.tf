@@ -170,6 +170,7 @@ provisioner "remote-exec" {
       "sudo apt update",
       "sudo DEBIAN_FRONTEND=noninteractive apt dist-upgrade -y",
       "bash $HOME/setup/add-sshkeys.sh",
+      "bash $HOME/setup/fix_repo_permissions.sh",
       "bash $HOME/setup/mount_volume.sh ${var.project_suffix}",
       "bash $HOME/setup/install_docker.sh",
       "bash $HOME/setup/install_conda.sh",
