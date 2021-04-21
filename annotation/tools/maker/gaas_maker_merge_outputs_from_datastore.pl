@@ -52,7 +52,7 @@ if ($in) {
     if (! -d "$in") {
         die "The input directory $in doesn't exist.\n";
     }
-    else{
+    else {
         push(@inDir, $in);
     }
 }
@@ -64,7 +64,7 @@ else {
 
     my (@matchedDir) = grep $_ =~ /^.*\.maker\.output$/ , @dirList ;
 
-    foreach my $makerDir (@matchedDir){
+    foreach my $makerDir (@matchedDir) {
         push(@inDir, $makerDir);
     }
 }
@@ -118,13 +118,14 @@ foreach my $makerDir (@inDir) {
     my %file_hds;
     my $genomeName = $makerDir;
     $genomeName =~ s/\.maker\.output.*//;
-    my $maker_dir_path = $dir . "/" . $makerDir."/";
-    my $datastore = $maker_dir_path.$genomeName."_datastore" ;
+    my $maker_dir_path = $dir . "/" . $makerDir . "/";
+    my $datastore = $maker_dir_path . $genomeName . "_datastore";
 
 # --------------- check presence datastore ----------------------
-    if (-d $datastore ) {
+    if (-d $datastore) {
         print "Datastore folder found in $makerDir, merging annotations now...\n";
-    } else {
+    }
+    else {
         die "Could not find datastore index ($datastore), exiting...\n";
     }
 # --------------- check output folder ----------------------
@@ -133,12 +134,12 @@ foreach my $makerDir (@inDir) {
         if ($nbDir == 1) {
             $outfolder = $output;
         }
-        else{
-            $outfolder = $output."_$genomeName";
+        else {
+            $outfolder = $output . "_" . $genomeName;
         }
     }
     else {
-        $outfolder = "maker_output_processed_$genomeName";
+        $outfolder = "maker_output_processed_" . $genomeName;
     }
     if (-d "$outfolder") {
         print "The output directory <$outfolder> already exists, let's see if something is missing inside.\n";
@@ -162,7 +163,7 @@ foreach my $makerDir (@inDir) {
         }
         #add ##gff-version 3 header to all gff files
         opendir(DIR, $outfolder);
-        my @gff_files = grep(/\.gff$/,readdir(DIR));
+        my @gff_files = grep(/\.gff$/, readdir(DIR));
         closedir(DIR);
 
         foreach my $gff_file (@gff_files) {
@@ -177,19 +178,6 @@ foreach my $makerDir (@inDir) {
 
     #-------------------------------------------------Save maker option files-------------------------------------------------
     #JN: tis 20 apr 2021 18:37:42: file copy issue in here
-    #my @files_to_copy = ("maker_opts.ctl", "maker_exe.ctl", "maker_evm.ctl", "maker_bopts.ctl");
-    #my $src_path = ".";
-    #print "Now save a copy of the Maker option files ...\n";
-    #if (-f "$outfolder/maker_opts.ctl") {
-    #    print "A copy of the Maker files already exists in $outfolder/maker_opts.ctl.  We skip it.\n";
-    #}
-    #elsif ($in) {
-    #    my ($name, $path, $suffix) = fileparse($in);
-    #    $src_path = $path;
-    #}
-    #foreach my $file (@files_to_copy) {
-    #    copy("$src_path/maker_opts.ctl", "$outfolder/maker_opts.ctl") or warn "Copy failed: $! $outfolder/$file\n";
-    #}
     print "Now save a copy of the Maker option files ...\n";
     if (-f "$outfolder/maker_opts.ctl") {
         print "A copy of the Maker files already exists in $outfolder/maker_opts.ctl.  We skip it.\n";
@@ -227,9 +215,25 @@ foreach my $makerDir (@inDir) {
     #        copy("$path/maker_bopts.ctl","$outfolder/maker_bopts.ctl") or print "Copy failed: $! $outfolder/maker_bopts.ctl\n";
     #    }
     #}
+    #JN: Alternative
+    #my @files_to_copy = ("maker_opts.ctl", "maker_exe.ctl", "maker_evm.ctl", "maker_bopts.ctl");
+    #my $src_path = ".";
+    #print "Now save a copy of the Maker option files ...\n";
+    #if (-f "$outfolder/maker_opts.ctl") {
+    #    print "A copy of the Maker files already exists in $outfolder/maker_opts.ctl.  We skip it.\n";
+    #}
+    #elsif ($in) {
+    #    my ($name, $path, $suffix) = fileparse($in);
+    #    $src_path = $path;
+    #}
+    #foreach my $file (@files_to_copy) {
+    #    copy("$src_path/maker_opts.ctl", "$outfolder/maker_opts.ctl") or warn "Copy failed: $! $outfolder/$file\n";
+    #}
+
 
     ############################################
-    # Now manage to split file by kind of data # Split is done on the fly (no data saved in memory)
+    # Now manage to split file by kind of data
+    # Split is done on the fly (no data saved in memory)
     ############################################
     print "Now protecting the maker_annotation.gff annotation by making it readable only...\n";
     #make the annotation safe
@@ -243,7 +247,7 @@ foreach my $makerDir (@inDir) {
 
 
     #do statistics
-    my $annotation_stat="$outfolder/maker_annotation_stat.txt";
+    my $annotation_stat = "$outfolder/maker_annotation_stat.txt";
     if (-f $annotation_stat) {
         print "$annotation_stat file already exsits...\n";
     }
@@ -273,13 +277,13 @@ foreach my $makerDir (@inDir) {
 sub collect_recursive {
     my ($file_hds, $full_path, $out, $genomeName) = @_;
 
-    my ($name,$path,$suffix) = fileparse($full_path,qr/\.[^.]*/);
+    my ($name, $path, $suffix) = fileparse($full_path, qr/\.[^.]*/);
 
     if ( ! -d $full_path ) {
 
         ###################
         # deal with fasta #
-        if($suffix eq ".fasta") {
+        if ($suffix eq ".fasta") {
             my $key = undef;
             my $type = undef;
             if ($name =~ /([^\.]+)\.transcripts/) {
@@ -296,7 +300,7 @@ sub collect_recursive {
             }
             if ($key) {
                 my $prot_out_file_name = undef;
-                if ($key eq 'maker') { # protein or transcript correspinding to the maker annotation
+                if ($key eq 'maker') { # protein or transcript corresponding to the maker annotation
                     $prot_out_file_name = "$maker_annotation_prefix.$type.fasta";
                 }
                 else {
@@ -305,25 +309,25 @@ sub collect_recursive {
                 }
 
                 my $protein_out_fh = undef;
-                if ( _exists_keys ($file_hds,($prot_out_file_name)) ) {
+                if ( _exists_keys ($file_hds, ($prot_out_file_name)) ) {
                     $protein_out_fh = $file_hds->{$prot_out_file_name};
                 }
                 else {
                     open($protein_out_fh, '>', "$out/$prot_out_file_name") or die "Could not open file '$out/$prot_out_file_name' $!";
-                    $file_hds->{$prot_out_file_name}=$protein_out_fh;
+                    $file_hds->{$prot_out_file_name} = $protein_out_fh;
                 }
 
                 #print
                 open(my $fh, '<:encoding(UTF-8)', $full_path) or die "Could not open file '$full_path' $!";
-                    while (<$fh>) {
-                        print $protein_out_fh $_;
-                    }
+                while (<$fh>) {
+                    print $protein_out_fh $_;
+                }
                 close $fh;
             }
         }
 
         ################
-         #deal with gff #
+        #deal with gff #
         if ($suffix eq ".gff") {
             system "awk -F '    ' 'NF==9 {print \$0 >> \"$out/$maker_mix_prefix.gff\"}' $full_path";
             system "awk '{if(\$2 ~ /[a-zA-Z]+/) if(\$2==\"maker\") { print \$0 >> \"$out/$maker_annotation_prefix.gff\" } else { OFS=\"\\t\"; gsub(/:/, \"_\" ,\$2); print \$0 >> \"$out/\"\$2\".gff\" } }' $full_path";
