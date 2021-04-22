@@ -17,6 +17,7 @@ use File::Basename;
 use IPC::Cmd qw[can_run run];
 use GAAS::GAAS;
 use Data::Dumper; # JN: for debug
+use File::Find::Rule; # JN: try when finding dirs
 
 my $header = get_gaas_header();
 my $output = undef;
@@ -33,6 +34,19 @@ if ( !GetOptions(
                  -exitval => 1 } );
 }
 
+#GetOptions(
+#    "help|h"         => \$help,
+#    "i=s"            => \$in,
+#    "output|out|o=s" => \$output
+#  )
+#  or pod2usage(
+#    {
+#        -message => 'Failed to parse command line',
+#        -verbose => 1,
+#        -exitval => 1
+#    }
+#  );
+
 # Print Help and exit
 if ($help) {
     pod2usage( { -verbose => 99,
@@ -46,7 +60,42 @@ if ($help) {
 
 # MANAGE IN
 my @inDir;
-my $dir = getcwd;
+my $dir = getcwd; # JN: Crucial step here. We assume we'll find certain files in the cwd!
+
+# JN: Example folder structure:
+# JN: $ ls /projects/annotation/larinioides_sclopetarius/maker/maker_pacbio
+# JN: LASC_pacbio_RNA_match.gff                                              maker_evm.ctl
+# JN: genome.maker.output__mixevidence_abinitio_pacbio                       maker_exe.ctl
+# JN: genome.maker.output_mixabinitio_abinitio_pacbio                        maker_mix.gff
+# JN: genome.maker.output_mixabinitio_abinitio_pacbio_output_processed       maker_mix_evidence.gff
+# JN: genome.maker.output_mixabinitio_abinitio_pacbio_output_processed_test  maker_opts.ctl
+# JN: genome.maker.output_mixabinitio_pacbio                                 run_maker.sh
+# JN: genome.maker.output_mixabinitio_pacbio_processed                       slurm-102769.out
+# JN: genome.maker.output_mixevidence_abinitio_pacbio_processed              slurm-102779.out
+# JN: maker_bopts.ctl                                                        slurm-102780.out
+
+# JN: Note that we have output folders from make that doesn't end in '.maker.output'!
+
+# JN: Example command 1:
+# JN: $ perl GAAS/annotation/tools/maker/gaas_maker_merge_outputs_from_datastore.pl \
+# JN:      -i genome.maker.output_mixabinitio_abinitio_pacbio/ \
+# JN:      -o genome.maker.output_mixabinitio_abinitio_pacbio_output_processed
+
+# JN: Example command 2:
+# JN: $ perl GAAS/annotation/tools/maker/gaas_maker_merge_outputs_from_datastore.pl \
+#
+# JN: Issues
+# JN:  1. How can we be sure that the clt files have been applied to the maker.output folder, if
+# JN:     we have several output folders but only one set of ctl files (as in the example above)?
+# JN:  2. When looking for existing maker.output folders, we look for the pattern 'maker\.output$',
+# JN:     but we had other folders named 'maker.output_*'
+# JN:  3. If we instead search for 'maker\.output', we will accidentally also include folders
+# JN:     named 'maker.output*processed'. This is tricky since the user may name her output folder
+# JN:     to anything with the '-o' option!
+
+# JN: Suggestions
+# JN: 1. add option --ctlfolder with default --ctlfolder='.' to accomodate the situation
+# JN:    where we may have many output folders but not sure if we used the same ctl files or not.
 
 if ($in) {
     if (! -d "$in") {
@@ -61,36 +110,20 @@ else {
     opendir(DIR, $dir) or die "couldn't open $dir: $!\n";
     my @dirList = readdir DIR;
     closedir DIR;
-
-    my (@matchedDir) = grep $_ =~ /^.*\.maker\.output$/ , @dirList ;
-
+    #my (@matchedDir) = grep $_ =~ /^.*\.maker\.output$/, @dirList; # JN: regexp anchored at the end. Will miss Luciles 'genome.maker.output_mixabinitio_pacbio'
+    my (@matchedDir) = grep $_ =~ /^.*\.maker\.output/, @dirList; # This will, on the other hand, include the 'genome.maker.output_mixabinitio_pacbio_processed'!
     foreach my $makerDir (@matchedDir) {
         push(@inDir, $makerDir);
     }
+    # JN: Alternative? But see issue with -o (any output name goes for processed folder names)
+    #@mydirs = File::Find::Rule
+    #    ->directory
+    #    ->name(qr/\.maker\.output/)
+    #    ->not($rule->new->name(qr/processed/))
+    #    ->in($dir);
 }
 
-#if(! $in){
-#    # Find the datastore index
-#    my $maker_dir = undef;
-#
-#    opendir(DIR, $dir) or die "couldn't open $dir: $!\n";
-#    my @dirList = readdir DIR;
-#    closedir DIR;
-#
-#    my (@matchedDir) = grep $_ =~ /^.*\.maker\.output$/ , @dirList ;
-#
-#    foreach my $makerDir (@matchedDir){
-#        push(@inDir, $makerDir);
-#    }
-#}
-#else{
-#    if (! -d "$in") {
-#        die "The input directory $in doesn't exist.\n";
-#    }
-#    else{
-#        push(@inDir, $in);
-#    }
-#}
+print Dumper(@inDir); warn "\n  inDir (hit return to continue)\n" and getc();
 
 # MESSAGES
 my $nbDir = $#inDir + 1;
@@ -177,14 +210,12 @@ foreach my $makerDir (@inDir) {
     }
 
     #-------------------------------------------------Save maker option files-------------------------------------------------
-    #JN: tis 20 apr 2021 18:37:42: file copy issue in here
     print "Now save a copy of the Maker option files ...\n";
     if (-f "$outfolder/maker_opts.ctl") {
-        print "A copy of the Maker files already exists in $outfolder/maker_opts.ctl.  We skip it.\n";
+        print "A copy of the Maker files already exists in $outfolder/maker_opts.ctl. We will skip it.\n";
     }
     elsif ($in) {
         my ($name, $path, $suffix) = fileparse($in);
-        print "name:$name, path:$path, suffix:$suffix\n"; warn "\n HERE (hit return to continue)\n" and getc(); #JN: DEBUG
         copy("$path/maker_opts.ctl", "$outfolder/maker_opts.ctl") or print "JN:DEBUG Copy failed: $! $outfolder/maker_opts.ctl\n";
         copy("$path/maker_exe.ctl", "$outfolder/maker_exe.ctl") or print "JN:DEBUG Copy failed: $! $outfolder/maker_exe.ctl\n";
         copy("$path/maker_evm.ctl", "$outfolder/maker_evm.ctl") or print "JN:DEBUG Copy failed: $! $outfolder/maker_evm.ctl\n";
@@ -215,21 +246,25 @@ foreach my $makerDir (@inDir) {
     #        copy("$path/maker_bopts.ctl","$outfolder/maker_bopts.ctl") or print "Copy failed: $! $outfolder/maker_bopts.ctl\n";
     #    }
     #}
-    #JN: Alternative
-    #my @files_to_copy = ("maker_opts.ctl", "maker_exe.ctl", "maker_evm.ctl", "maker_bopts.ctl");
+    # JN: Alternative?
+    # JN: Do we need to copy all the ctl files, even if there is a maker_opts.ctl at the destination?
     #my $src_path = ".";
-    #print "Now save a copy of the Maker option files ...\n";
-    #if (-f "$outfolder/maker_opts.ctl") {
-    #    print "A copy of the Maker files already exists in $outfolder/maker_opts.ctl.  We skip it.\n";
-    #}
-    #elsif ($in) {
+    #if ($in) {
     #    my ($name, $path, $suffix) = fileparse($in);
     #    $src_path = $path;
     #}
-    #foreach my $file (@files_to_copy) {
-    #    copy("$src_path/maker_opts.ctl", "$outfolder/maker_opts.ctl") or warn "Copy failed: $! $outfolder/$file\n";
+    #print "Now save a copy of the Maker option files ...\n";
+    #my @ctl_files = File::Find::Rule->file()
+    #                      ->name('*.ctl')
+    #                      ->in($src_path);
+    #foreach my $file (@ctl_files) {
+    #    if (-f "$outfolder/$file") {
+    #        print "$file already exists in $outfolder. We will skip it.\n";
+    #    }
+    #    else {
+    #        copy("$src_path/$file", "$outfolder/$file") or warn "Copy failed: $! $outfolder/$file\n";
+    #    }
     #}
-
 
     ############################################
     # Now manage to split file by kind of data
@@ -245,7 +280,6 @@ foreach my $makerDir (@inDir) {
         print "ERROR: Did not find the $annotation file !\n";
     }
 
-
     #do statistics
     my $annotation_stat = "$outfolder/maker_annotation_stat.txt";
     if (-f $annotation_stat) {
@@ -254,7 +288,7 @@ foreach my $makerDir (@inDir) {
     else {
         print "Now performing the statistics of the annotation file $annotation...\n";
         my $full_path = can_run('agat_sp_statistics.pl') or print "Cannot launch statistics. agat_sp_statistics.pl script not available\n";
-        if ( !defined($full_path) ) { #JN: can_run returns full path or undef
+        if ( !defined($full_path) ) { # JN: can_run returns full path or undef
         #if ($full_path) {
             system "agat_sp_statistics.pl --gff $annotation -o $annotation_stat > $outfolder/maker_annotation_parsing.log";
         }
