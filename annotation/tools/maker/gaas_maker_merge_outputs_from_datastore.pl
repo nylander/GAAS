@@ -210,7 +210,7 @@ foreach my $makerDir (@inDir) {
         }
         else {
             print Dumper("$ctl_folder/$file");warn "\n FROM (hit return to continue)\n" and getc();
-            print Dumper("$out/$file");warn "\n TO (hit return to continue)\n" and getc();
+            print Dumper("$outfolder/$file");warn "\n TO (hit return to continue)\n" and getc();
             copy("$ctl_folder/$file", "$outfolder/$file")
                 or warn "Copy failed: $! $outfolder/$file\n";
         }
