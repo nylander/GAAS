@@ -22,15 +22,15 @@ my $header     = get_gaas_header();
 my $output     = undef;
 my $in         = undef;
 my $help       = 0;
-my $ctl_folder = "."; # JN: Default is cwd for finding .ctl files
+my $cwdir      = getcwd;
+my $ctlfolder  = getcwd;
 my @inDir;
-my $cwdir = getcwd;
 
 GetOptions(
     "help|h"         => \$help,
     "i=s"            => \$in,
     "output|out|o=s" => \$output,
-    "ctlfolder|c=s"  => \$ctl_folder
+    "ctlfolder|c=s"  => \$ctlfolder
     )
     or pod2usage({
     -message => 'Failed to parse command line',
@@ -169,18 +169,18 @@ foreach my $makerDir (@inDir){
 
     #-------------------------------------------------Save maker option files-------------------------------------------------
     print "Now save a copy of the Maker option files ...\n";
-    my @ctl_files = grep { -f && /\.ctl$/ } readdir $ctl_folder; # JN: All .ctl files
+    my @ctl_files = grep { -f && /\.ctl$/ } readdir $ctlfolder; # JN: All .ctl files
     print Dumper(@ctl_files);warn "\n ctl files (hit return to continue)\n" and getc();
     print Dumper($outfolder);warn "\n outfolder (hit return to continue)\n" and getc();
-    print Dumper($ctl_folder);warn "\n ctl_folder (hit return to continue)\n" and getc();
+    print Dumper($ctlfolder);warn "\n ctlfolder (hit return to continue)\n" and getc();
 
     foreach my $file (@ctl_files) {
         if (-f "$outfolder/$file") {
             print "$file already exists in $outfolder. We will skip it.\n";
         }
         else {
-            print STDERR "JN: DEBUG Trying to copy $ctl_folder/$file ----> $outfolder/$file\n";
-            copy("$ctl_folder/$file", "$outfolder/$file")
+            print STDERR "JN: DEBUG Trying to copy $ctlfolder/$file ----> $outfolder/$file\n";
+            copy("$ctlfolder/$file", "$outfolder/$file")
                 or warn "Copy failed: $! $outfolder/$file\n";
         }
     }
