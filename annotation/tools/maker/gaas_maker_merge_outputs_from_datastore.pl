@@ -170,35 +170,39 @@ foreach my $makerDir (@inDir){
     #-------------------------------------------------Save maker option files-------------------------------------------------
     print "Now save a copy of the Maker option files ...\n";
     my @ctl_files = grep { -f && /\.ctl$/ } readdir $ctl_folder; # JN: All .ctl files
+    print Dumper(@ctl_files);warn "\n ctl files (hit return to continue)\n" and getc();
+    print Dumper($outfolder);warn "\n outfolder (hit return to continue)\n" and getc();
+    print Dumper($ctl_folder);warn "\n ctl_folder (hit return to continue)\n" and getc();
+
     foreach my $file (@ctl_files) {
         if (-f "$outfolder/$file") {
             print "$file already exists in $outfolder. We will skip it.\n";
         }
         else {
+            print STDERR "JN: DEBUG Trying to copy $ctl_folder/$file ----> $outfolder/$file\n";
             copy("$ctl_folder/$file", "$outfolder/$file")
                 or warn "Copy failed: $! $outfolder/$file\n";
         }
     }
 
-
-    if (-f "$outfolder/maker_opts.ctl") {
-        print "A copy of the Maker files already exists in $outfolder/maker_opts.ctl.  We skip it.\n";
-    }
-    else {
-        if (! $in) {
-            copy("maker_opts.ctl","$outfolder/maker_opts.ctl") or print "Copy failed: $! $outfolder/maker_opts.ctl\n";
-            copy("maker_exe.ctl","$outfolder/maker_exe.ctl") or print "Copy failed: $! $outfolder/maker_exe.ctl\n";
-            copy("maker_evm.ctl","$outfolder/maker_evm.ctl") or print "Copy failed: $! $outfolder/maker_evm.ctl\n";
-            copy("maker_bopts.ctl","$outfolder/maker_bopts.ctl") or print "Copy failed: $! $outfolder/maker_bopts.ctl\n";
-        }
-        else {
-            my ($name,$path,$suffix) = fileparse($in);
-            copy("$path/maker_opts.ctl","$outfolder/maker_opts.ctl") or print  "Copy failed: $! $outfolder/maker_opts.ctl\n";
-            copy("$path/maker_exe.ctl","$outfolder/maker_exe.ctl") or print "Copy failed: $! $outfolder/maker_exe.ctl\n";
-            copy("$path/maker_evm.ctl","$outfolder/maker_evm.ctl") or print "Copy failed: $! $outfolder/maker_evm.ctl\n";
-            copy("$path/maker_bopts.ctl","$outfolder/maker_bopts.ctl") or print "Copy failed: $! $outfolder/maker_bopts.ctl\n";
-        }
-    }
+    #if (-f "$outfolder/maker_opts.ctl") {
+    #    print "A copy of the Maker files already exists in $outfolder/maker_opts.ctl.  We skip it.\n";
+    #}
+    #else {
+    #    if (! $in) {
+    #        copy("maker_opts.ctl","$outfolder/maker_opts.ctl") or print "Copy failed: $! $outfolder/maker_opts.ctl\n";
+    #        copy("maker_exe.ctl","$outfolder/maker_exe.ctl") or print "Copy failed: $! $outfolder/maker_exe.ctl\n";
+    #        copy("maker_evm.ctl","$outfolder/maker_evm.ctl") or print "Copy failed: $! $outfolder/maker_evm.ctl\n";
+    #        copy("maker_bopts.ctl","$outfolder/maker_bopts.ctl") or print "Copy failed: $! $outfolder/maker_bopts.ctl\n";
+    #    }
+    #    else {
+    #        my ($name,$path,$suffix) = fileparse($in);
+    #        copy("$path/maker_opts.ctl","$outfolder/maker_opts.ctl") or print  "Copy failed: $! $outfolder/maker_opts.ctl\n";
+    #        copy("$path/maker_exe.ctl","$outfolder/maker_exe.ctl") or print "Copy failed: $! $outfolder/maker_exe.ctl\n";
+    #        copy("$path/maker_evm.ctl","$outfolder/maker_evm.ctl") or print "Copy failed: $! $outfolder/maker_evm.ctl\n";
+    #        copy("$path/maker_bopts.ctl","$outfolder/maker_bopts.ctl") or print "Copy failed: $! $outfolder/maker_bopts.ctl\n";
+    #    }
+    #}
 
 
     ######################################################
