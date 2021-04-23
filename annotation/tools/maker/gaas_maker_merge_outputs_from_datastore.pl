@@ -61,50 +61,18 @@ if ($in) {
     }
 }
 else {
-
     # Find the datastore index
-    my $maker_dir = undef;
-
     opendir(DIR, $cwdir) or die "couldn't open $cwdir: $!\n";
     my @dirList = readdir DIR;
     closedir DIR;
 
-    my (@matchedDir) = grep $_ =~ /^.*\.maker\.output$/ , @dirList ;
-
-    foreach my $makerDir (@matchedDir) {
-        push(@inDir, $makerDir);
+    foreach my $dir (@dirList) {
+        next if ($dir =~ /.*processed.*/); # JN: Assuming processed folders have this string
+        if ($_ =~ /^.*\.maker\.output/) {  # JN: Allowing folders not ending in maker.output
+            push(@inDir, $dir);
+        }
     }
 }
-
-#if (! $in) {
-#    # Find the datastore index
-#    my $maker_dir = undef;
-#
-#    opendir(DIR, $dir) or die "couldn't open $dir: $!\n";
-#    my @dirList = readdir DIR;
-#    closedir DIR;
-#
-#    my (@matchedDir) = grep $_ =~ /^.*\.maker\.output$/ , @dirList ;
-#
-#    foreach my $makerDir (@matchedDir) {
-#        push(@inDir, $makerDir);
-#    }
-#}
-#else {
-#    if (! -d "$in") {
-#        die "The outdirectory $in doesn't exist.\n";
-#    }
-#    else {
-#        push(@inDir, $in);
-#    }
-#}
-
-
-
-
-
-
-
 
 # MESSAGES
 my $nbDir = scalar @inDir;
