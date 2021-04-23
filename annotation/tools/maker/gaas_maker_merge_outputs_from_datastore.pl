@@ -201,12 +201,16 @@ foreach my $makerDir (@inDir) {
     print "Now save a copy of the Maker option files ...\n";
 
     my @ctl_files = File::Find::Rule->file()->name('*.ctl')->in($ctl_folder);
+    print Dumper(@ctl_files); warn "\n HERE (hit return to continue)\n" and getc();
+
 
     foreach my $file (@ctl_files) {
         if (-f "$outfolder/$file") {
             print "$file already exists in $outfolder. We will skip it.\n";
         }
         else {
+            print Dumper("$ctl_folder/$file");warn "\n FROM (hit return to continue)\n" and getc();
+            print Dumper("$out/$file");warn "\n TO (hit return to continue)\n" and getc();
             copy("$ctl_folder/$file", "$outfolder/$file")
                 or warn "Copy failed: $! $outfolder/$file\n";
         }
