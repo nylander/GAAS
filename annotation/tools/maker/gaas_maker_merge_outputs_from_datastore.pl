@@ -17,28 +17,54 @@ use File::Basename;
 use IPC::Cmd qw[can_run run];
 use GAAS::GAAS;
 
-my $header = get_gaas_header();
-my $output = undef;
-my $in = undef;
-my $help= 0;
+my $header     = get_gaas_header();
+my $output     = undef;
+my $in         = undef;
+my $help       = 0;
+my $ctl_folder = "."; # Default is cwd for finding .ctl files
 
-if ( !GetOptions(
-    "help|h" => \$help,
-    "i=s" => \$in,
-    "output|out|o=s" => \$output))
-
-{
-    pod2usage( { -message => 'Failed to parse command line',
-                 -verbose => 1,
-                 -exitval => 1 } );
-}
+GetOptions(
+    "help|h"         => \$help,
+    "i=s"            => \$in,
+    "output|out|o=s" => \$output,
+    "ctlfolder|c=s"  => \$ctl_folder
+  )
+  or pod2usage(
+    {
+        -message => 'Failed to parse command line',
+        -verbose => 1,
+        -exitval => 1
+    }
+  );
 
 # Print Help and exit
 if ($help) {
-    pod2usage( { -verbose => 99,
-                 -exitval => 0,
-                 -message => "$header\n" } );
+    pod2usage(
+        {
+            -verbose => 99,
+            -exitval => 0,
+            -message => "$header\n"
+        }
+    );
 }
+
+# if ( !GetOptions(
+#     "help|h" => \$help,
+#     "i=s" => \$in,
+#     "output|out|o=s" => \$output))
+# 
+# {
+#     pod2usage( { -message => 'Failed to parse command line',
+#                  -verbose => 1,
+#                  -exitval => 1 } );
+# }
+# 
+# # Print Help and exit
+# if ($help) {
+#     pod2usage( { -verbose => 99,
+#                  -exitval => 0,
+#                  -message => "$header\n" } );
+# }
 
 #######################
 ### MANAGE OPTIONS ####
@@ -163,6 +189,18 @@ foreach my $makerDir (@inDir){
 
     #-------------------------------------------------Save maker option files-------------------------------------------------
     print "Now save a copy of the Maker option files ...\n";
+    my @ctl_files = grep { -f && /\.clt$/ } readdir $ctl_folder;
+    foreach my $file (@ctl_files) {
+        if (-f "$outfolder/$file") {
+            print "$file already exists in $outfolder. We will skip it.\n";
+        }
+        else {
+            copy("$ctl_folder/$file", "$outfolder/$file")
+                or warn "Copy failed: $! $outfolder/$file\n";
+        }
+    }
+
+
     if (-f "$outfolder/maker_opts.ctl") {
         print "A copy of the Maker files already exists in $outfolder/maker_opts.ctl.  We skip it.\n";
     }
@@ -183,11 +221,13 @@ foreach my $makerDir (@inDir){
     }
 
 
-    ############################################
-    # Now manage to split file by kind of data # Split is done on the fly (no data saved in memory)
-    ############################################
+    ######################################################
+    # Now manage to split file by kind of data           #
+    # Split is done on the fly (no data saved in memory) #
+    ######################################################
     print "Now protecting the maker_annotation.gff annotation by making it readable only...\n";
-    #make the annotation safe
+
+    # Make the annotation safe
     my $annotation="$outfolder/maker_annotation.gff";
     if (-f $annotation) {
         system "chmod 444 $annotation";
@@ -197,7 +237,7 @@ foreach my $makerDir (@inDir){
     }
 
 
-    #do statistics
+    # Do statistics
     my $annotation_stat="$outfolder/maker_annotation_stat.txt";
     if (-f $annotation_stat) {
         print "$annotation_stat file already exsits...\n";
