@@ -78,7 +78,7 @@ else {
     # }
     # JN: Alternative (below)? But see issue with -o (any output name goes for processed folder names)
     # JN: Is there any other way to know if we already have "processed" folder? By specific content?
-    @inDir = File::Find::Rule->directory->name(qr/\.maker\.output/)
+    @inDir = File::Find::Rule->directory->name(qr/\.maker\.output/)->maxdepth(1)
              ->not(File::Find::Rule->new->name(qr/processed/))->in($dir);
 }
 
@@ -200,17 +200,14 @@ foreach my $makerDir (@inDir) {
     # JN: Do we need to copy all the ctl files, even if there is a maker_opts.ctl at the destination?
     print "Now save a copy of the Maker option files ...\n";
 
-    my @ctl_files = File::Find::Rule->file()->name('*.ctl')->in($ctl_folder);
+    my @ctl_files = File::Find::Rule->file()->name('*.ctl')->maxdepth(1)->in($ctl_folder);
     print Dumper(@ctl_files); warn "\n HERE (hit return to continue)\n" and getc();
-
 
     foreach my $file (@ctl_files) {
         if (-f "$outfolder/$file") {
             print "$file already exists in $outfolder. We will skip it.\n";
         }
         else {
-            print Dumper("$ctl_folder/$file");warn "\n FROM (hit return to continue)\n" and getc();
-            print Dumper("$outfolder/$file");warn "\n TO (hit return to continue)\n" and getc();
             copy("$ctl_folder/$file", "$outfolder/$file")
                 or warn "Copy failed: $! $outfolder/$file\n";
         }
