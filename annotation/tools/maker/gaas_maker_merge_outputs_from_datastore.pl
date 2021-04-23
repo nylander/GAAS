@@ -16,12 +16,13 @@ use IO::File;
 use File::Basename;
 use IPC::Cmd qw[can_run run];
 use GAAS::GAAS;
+use Data::Dumper; # JN: debug
 
 my $header     = get_gaas_header();
 my $output     = undef;
 my $in         = undef;
 my $help       = 0;
-my $ctl_folder = "."; # Default is cwd for finding .ctl files
+my $ctl_folder = "."; # JN: Default is cwd for finding .ctl files
 my @inDir;
 my $cwdir = getcwd;
 
@@ -73,6 +74,9 @@ else {
         }
     }
 }
+
+print Dumper(@inDir);warn "\n  inDir array (hit return to continue)\n" and getc();
+
 
 # MESSAGES
 my $nbDir = scalar @inDir;
