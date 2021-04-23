@@ -169,7 +169,7 @@ foreach my $makerDir (@inDir){
 
     #-------------------------------------------------Save maker option files-------------------------------------------------
     print "Now save a copy of the Maker option files ...\n";
-    my @ctl_files = grep { -f && /\.clt$/ } readdir $ctl_folder;
+    my @ctl_files = grep { -f && /\.ctl$/ } readdir $ctl_folder; # JN: All .ctl files
     foreach my $file (@ctl_files) {
         if (-f "$outfolder/$file") {
             print "$file already exists in $outfolder. We will skip it.\n";
