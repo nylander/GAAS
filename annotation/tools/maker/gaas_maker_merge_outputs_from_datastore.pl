@@ -22,6 +22,8 @@ my $output     = undef;
 my $in         = undef;
 my $help       = 0;
 my $ctl_folder = "."; # Default is cwd for finding .ctl files
+my @inDir;
+my $cwdir = getcwd;
 
 GetOptions(
     "help|h"         => \$help,
@@ -50,14 +52,20 @@ if ($help) {
 #######################
 
 # MANAGE IN
-my @inDir;
-my $dir = getcwd;
+if ($in) {
+    if (! -d "$in") {
+        die "The input directory $in doesn't exist.\n";
+    }
+    else {
+        push(@inDir, $in);
+    }
+}
+else {
 
-if (! $in) {
     # Find the datastore index
     my $maker_dir = undef;
 
-    opendir(DIR, $dir) or die "couldn't open $dir: $!\n";
+    opendir(DIR, $cwdir) or die "couldn't open $cwdir: $!\n";
     my @dirList = readdir DIR;
     closedir DIR;
 
@@ -67,14 +75,36 @@ if (! $in) {
         push(@inDir, $makerDir);
     }
 }
-else {
-    if (! -d "$in") {
-        die "The outdirectory $in doesn't exist.\n";
-    }
-    else {
-        push(@inDir, $in);
-    }
-}
+
+#if (! $in) {
+#    # Find the datastore index
+#    my $maker_dir = undef;
+#
+#    opendir(DIR, $dir) or die "couldn't open $dir: $!\n";
+#    my @dirList = readdir DIR;
+#    closedir DIR;
+#
+#    my (@matchedDir) = grep $_ =~ /^.*\.maker\.output$/ , @dirList ;
+#
+#    foreach my $makerDir (@matchedDir) {
+#        push(@inDir, $makerDir);
+#    }
+#}
+#else {
+#    if (! -d "$in") {
+#        die "The outdirectory $in doesn't exist.\n";
+#    }
+#    else {
+#        push(@inDir, $in);
+#    }
+#}
+
+
+
+
+
+
+
 
 # MESSAGES
 my $nbDir = scalar @inDir;
@@ -107,7 +137,7 @@ foreach my $makerDir (@inDir){
     my %file_hds;
     my $genomeName = $makerDir;
     $genomeName =~ s/\.maker\.output.*//;
-    my $maker_dir_path = $dir . "/" . $makerDir . "/";
+    my $maker_dir_path = $cwdir . "/" . $makerDir . "/";
     my $datastore = $maker_dir_path . $genomeName . "_datastore" ;
 
 # --------------- check presence datastore ----------------------
