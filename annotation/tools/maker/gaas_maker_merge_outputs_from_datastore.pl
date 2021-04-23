@@ -16,42 +16,38 @@ use IO::File;
 use File::Basename;
 use IPC::Cmd qw[can_run run];
 use GAAS::GAAS;
-use Data::Dumper; # JN: for debug
-use File::Find::Rule; # JN: try when finding dirs
+#use Data::Dumper; # JN: for debug
+use File::Find::Rule; # JN: try for finding dirs
 
-my $header = get_gaas_header();
-my $output = undef;
-my $in = undef;
-my $help= 0;
+my $header     = get_gaas_header();
+my $output     = undef;
+my $in         = undef;
+my $help       = 0;
+my $ctl_folder = "."; # Default is cwd for finding .ctl files
 
-if ( !GetOptions(
-    "help|h" => \$help,
-    "i=s" => \$in,
-    "output|out|o=s" => \$output))
-{
-    pod2usage( { -message => 'Failed to parse command line',
-                 -verbose => 1,
-                 -exitval => 1 } );
-}
-
-#GetOptions(
-#    "help|h"         => \$help,
-#    "i=s"            => \$in,
-#    "output|out|o=s" => \$output
-#  )
-#  or pod2usage(
-#    {
-#        -message => 'Failed to parse command line',
-#        -verbose => 1,
-#        -exitval => 1
-#    }
-#  );
+GetOptions(
+    "help|h"         => \$help,
+    "i=s"            => \$in,
+    "output|out|o=s" => \$output,
+    "ctlfolder|c=s"  => \$ctl_folder
+  )
+  or pod2usage(
+    {
+        -message => 'Failed to parse command line',
+        -verbose => 1,
+        -exitval => 1
+    }
+  );
 
 # Print Help and exit
 if ($help) {
-    pod2usage( { -verbose => 99,
-                 -exitval => 0,
-                 -message => "$header\n" } );
+    pod2usage(
+        {
+            -verbose => 99,
+            -exitval => 0,
+            -message => "$header\n"
+        }
+    );
 }
 
 #######################
@@ -60,42 +56,7 @@ if ($help) {
 
 # MANAGE IN
 my @inDir;
-my $dir = getcwd; # JN: Crucial step here. We assume we'll find certain files in the cwd!
-
-# JN: Example folder structure:
-# JN: $ ls /projects/annotation/larinioides_sclopetarius/maker/maker_pacbio
-# JN: LASC_pacbio_RNA_match.gff                                              maker_evm.ctl
-# JN: genome.maker.output__mixevidence_abinitio_pacbio                       maker_exe.ctl
-# JN: genome.maker.output_mixabinitio_abinitio_pacbio                        maker_mix.gff
-# JN: genome.maker.output_mixabinitio_abinitio_pacbio_output_processed       maker_mix_evidence.gff
-# JN: genome.maker.output_mixabinitio_abinitio_pacbio_output_processed_test  maker_opts.ctl
-# JN: genome.maker.output_mixabinitio_pacbio                                 run_maker.sh
-# JN: genome.maker.output_mixabinitio_pacbio_processed                       slurm-102769.out
-# JN: genome.maker.output_mixevidence_abinitio_pacbio_processed              slurm-102779.out
-# JN: maker_bopts.ctl                                                        slurm-102780.out
-
-# JN: Note that we have output folders from make that doesn't end in '.maker.output'!
-
-# JN: Example command 1:
-# JN: $ perl GAAS/annotation/tools/maker/gaas_maker_merge_outputs_from_datastore.pl \
-# JN:      -i genome.maker.output_mixabinitio_abinitio_pacbio/ \
-# JN:      -o genome.maker.output_mixabinitio_abinitio_pacbio_output_processed
-
-# JN: Example command 2:
-# JN: $ perl GAAS/annotation/tools/maker/gaas_maker_merge_outputs_from_datastore.pl \
-#
-# JN: Issues
-# JN:  1. How can we be sure that the clt files have been applied to the maker.output folder, if
-# JN:     we have several output folders but only one set of ctl files (as in the example above)?
-# JN:  2. When looking for existing maker.output folders, we look for the pattern 'maker\.output$',
-# JN:     but we had other folders named 'maker.output_*'
-# JN:  3. If we instead search for 'maker\.output', we will accidentally also include folders
-# JN:     named 'maker.output*processed'. This is tricky since the user may name her output folder
-# JN:     to anything with the '-o' option!
-
-# JN: Suggestions
-# JN: 1. add option --ctlfolder with default --ctlfolder='.' to accomodate the situation
-# JN:    where we may have many output folders but not sure if we used the same ctl files or not.
+my $dir = getcwd;
 
 if ($in) {
     if (! -d "$in") {
@@ -106,36 +67,38 @@ if ($in) {
     }
 }
 else {
-    # Find the datastore index
-    opendir(DIR, $dir) or die "couldn't open $dir: $!\n";
-    my @dirList = readdir DIR;
-    closedir DIR;
-    #my (@matchedDir) = grep $_ =~ /^.*\.maker\.output$/, @dirList; # JN: regexp anchored at the end. Will miss Luciles 'genome.maker.output_mixabinitio_pacbio'
-    my (@matchedDir) = grep $_ =~ /^.*\.maker\.output/, @dirList; # This will, on the other hand, include the 'genome.maker.output_mixabinitio_pacbio_processed'!
-    foreach my $makerDir (@matchedDir) {
-        push(@inDir, $makerDir);
-    }
-    # JN: Alternative? But see issue with -o (any output name goes for processed folder names)
-    #@mydirs = File::Find::Rule
-    #    ->directory
-    #    ->name(qr/\.maker\.output/)
-    #    ->not($rule->new->name(qr/processed/))
-    #    ->in($dir);
+    # # Find the datastore index
+    # opendir(DIR, $dir) or die "couldn't open $dir: $!\n";
+    # my @dirList = readdir DIR;
+    # closedir DIR;
+    # #my (@matchedDir) = grep $_ =~ /^.*\.maker\.output$/, @dirList; # JN: regexp anchored at the end. Will miss Luciles 'genome.maker.output_mixabinitio_pacbio'
+    # my (@matchedDir) = grep $_ =~ /^.*\.maker\.output/, @dirList; # This solution will, on the other hand, include the 'genome.maker.output_mixabinitio_pacbio_processed'!
+    # foreach my $makerDir (@matchedDir) {
+    #     push(@inDir, $makerDir);
+    # }
+    # JN: Alternative (below)? But see issue with -o (any output name goes for processed folder names)
+    # JN: Is there any other way to know if we already have "processed" folder? By specific content?
+    @inDir = File::Find::Rule->directory->name(qr/\.maker\.output/)
+             ->not(File::Find::Rule->new->name(qr/processed/))->in($dir);
 }
 
-print Dumper(@inDir); warn "\n  inDir (hit return to continue)\n" and getc();
-
 # MESSAGES
-my $nbDir = $#inDir + 1;
+#my $nbDir = $#inDir + 1; # JN: Why this increment (of the last index of the array)? Next test will never be 0!
+my $nbDir = scalar @inDir;
 if ($nbDir == 0) {
     die "There seems to be no maker output directory here, exiting...\n";
 }
-print "We found $nbDir maker output directorie(s):\n";
-foreach my $makerDir (@inDir) {
-    print "\t+$makerDir\n";
+elsif ($nbDir == 1) {
+    print "We found maker output directory: $inDir[0]\n";
+}
+else {
+    print "We found $nbDir maker output directories:\n";
+    foreach my $makerDir (@inDir) {
+        print "\t+$makerDir\n";
+    }
 }
 
-#CONSTANT
+# CONSTANT
 my $maker_annotation_prefix = "maker_annotation";
 my $maker_mix_prefix = "maker_mix";
 
@@ -163,6 +126,7 @@ foreach my $makerDir (@inDir) {
     }
 # --------------- check output folder ----------------------
     my $outfolder = undef;
+
     if ($output) {
         if ($nbDir == 1) {
             $outfolder = $output;
@@ -172,10 +136,11 @@ foreach my $makerDir (@inDir) {
         }
     }
     else {
-        $outfolder = "maker_output_processed_" . $genomeName;
+        $outfolder = "maker_output_processed_" . $genomeName; # JN: default output name with 'processed' keyword
     }
+
     if (-d "$outfolder") {
-        print "The output directory <$outfolder> already exists, let's see if something is missing inside.\n";
+        print "The output directory <$outfolder> already exists, let's see if something is missing inside.\n"; # JN: problematic to continue even if folder exists.
     }
     else {
         print "Creating the $outfolder folder\n";
@@ -183,18 +148,19 @@ foreach my $makerDir (@inDir) {
     }
 
 # --------------- GATHERING gff and fasta ----------------------
-    if ( ( grep -f, glob "$outfolder/*.fasta") or ( grep -f, glob "$outfolder/*.gff") ) {
+    if ((grep -f, glob "$outfolder/*.fasta") or (grep -f, glob "$outfolder/*.gff")) {
         print "Output fasta/gff file already exists. We skip the gathering step.\n";
     }
     else {
         print "Now collecting gff and fasta files...\n";
         collect_recursive(\%file_hds, $datastore, $outfolder, $genomeName);
 
-        #Close all file_handler opened that are not gff (gff files created by awk)
+        # Close all file_handler opened that are not gff (gff files created by awk)
         foreach my $key (keys %file_hds) {
             close $file_hds{$key};
         }
-        #add ##gff-version 3 header to all gff files
+
+        # Add ##gff-version 3 header to all gff files
         opendir(DIR, $outfolder);
         my @gff_files = grep(/\.gff$/, readdir(DIR));
         closedir(DIR);
@@ -210,68 +176,49 @@ foreach my $makerDir (@inDir) {
     }
 
     #-------------------------------------------------Save maker option files-------------------------------------------------
-    print "Now save a copy of the Maker option files ...\n";
-    if (-f "$outfolder/maker_opts.ctl") {
-        print "A copy of the Maker files already exists in $outfolder/maker_opts.ctl. We will skip it.\n";
-    }
-    elsif ($in) {
-        my ($name, $path, $suffix) = fileparse($in);
-        copy("$path/maker_opts.ctl", "$outfolder/maker_opts.ctl") or print "JN:DEBUG Copy failed: $! $outfolder/maker_opts.ctl\n";
-        copy("$path/maker_exe.ctl", "$outfolder/maker_exe.ctl") or print "JN:DEBUG Copy failed: $! $outfolder/maker_exe.ctl\n";
-        copy("$path/maker_evm.ctl", "$outfolder/maker_evm.ctl") or print "JN:DEBUG Copy failed: $! $outfolder/maker_evm.ctl\n";
-        copy("$path/maker_bopts.ctl", "$outfolder/maker_bopts.ctl") or print "JN:DEBUG Copy failed: $! $outfolder/maker_bopts.ctl\n";
-    }
-    else {
-        copy("maker_opts.ctl", "$outfolder/maker_opts.ctl") or print "Copy failed: $! $outfolder/maker_opts.ctl\n";
-        copy("maker_exe.ctl", "$outfolder/maker_exe.ctl") or print "Copy failed: $! $outfolder/maker_exe.ctl\n";
-        copy("maker_evm.ctl", "$outfolder/maker_evm.ctl") or print "Copy failed: $! $outfolder/maker_evm.ctl\n";
-        copy("maker_bopts.ctl", "$outfolder/maker_bopts.ctl") or print "Copy failed: $! $outfolder/maker_bopts.ctl\n";
-    }
     #print "Now save a copy of the Maker option files ...\n";
     #if (-f "$outfolder/maker_opts.ctl") {
-    #    print "A copy of the Maker files already exists in $outfolder/maker_opts.ctl.  We skip it.\n";
+    #    print "A copy of the Maker files already exists in $outfolder/maker_opts.ctl. We will skip it.\n";
     #}
     #else {
     #    if(! $in) {
-    #        copy("maker_opts.ctl","$outfolder/maker_opts.ctl") or print "Copy failed: $! $outfolder/maker_opts.ctl\n";
-    #        copy("maker_exe.ctl","$outfolder/maker_exe.ctl") or print "Copy failed: $! $outfolder/maker_exe.ctl\n";
-    #        copy("maker_evm.ctl","$outfolder/maker_evm.ctl") or print "Copy failed: $! $outfolder/maker_evm.ctl\n";
-    #        copy("maker_bopts.ctl","$outfolder/maker_bopts.ctl") or print "Copy failed: $! $outfolder/maker_bopts.ctl\n";
+    #        copy("maker_opts.ctl", "$outfolder/maker_opts.ctl") or print "Copy failed: $! $outfolder/maker_opts.ctl\n";
+    #        copy("maker_exe.ctl", "$outfolder/maker_exe.ctl") or print "Copy failed: $! $outfolder/maker_exe.ctl\n";
+    #        copy("maker_evm.ctl", "$outfolder/maker_evm.ctl") or print "Copy failed: $! $outfolder/maker_evm.ctl\n";
+    #        copy("maker_bopts.ctl", "$outfolder/maker_bopts.ctl") or print "Copy failed: $! $outfolder/maker_bopts.ctl\n";
     #    }
     #    else {
-    #        my ($name,$path,$suffix) = fileparse($in);
-    #        copy("$path/maker_opts.ctl","$outfolder/maker_opts.ctl") or print  "Copy failed: $! $outfolder/maker_opts.ctl\n";
-    #        copy("$path/maker_exe.ctl","$outfolder/maker_exe.ctl") or print "Copy failed: $! $outfolder/maker_exe.ctl\n";
-    #        copy("$path/maker_evm.ctl","$outfolder/maker_evm.ctl") or print "Copy failed: $! $outfolder/maker_evm.ctl\n";
-    #        copy("$path/maker_bopts.ctl","$outfolder/maker_bopts.ctl") or print "Copy failed: $! $outfolder/maker_bopts.ctl\n";
+    #        my ($name, $path, $suffix) = fileparse($in);
+    #        copy("$path/maker_opts.ctl", "$outfolder/maker_opts.ctl") or print "Copy failed: $! $outfolder/maker_opts.ctl\n";
+    #        copy("$path/maker_exe.ctl", "$outfolder/maker_exe.ctl") or print "Copy failed: $! $outfolder/maker_exe.ctl\n";
+    #        copy("$path/maker_evm.ctl", "$outfolder/maker_evm.ctl") or print "Copy failed: $! $outfolder/maker_evm.ctl\n";
+    #        copy("$path/maker_bopts.ctl", "$outfolder/maker_bopts.ctl") or print "Copy failed: $! $outfolder/maker_bopts.ctl\n";
     #    }
     #}
-    # JN: Alternative?
+    #
+    # JN: Alternative (below)?
     # JN: Do we need to copy all the ctl files, even if there is a maker_opts.ctl at the destination?
-    #my $src_path = ".";
-    #if ($in) {
-    #    my ($name, $path, $suffix) = fileparse($in);
-    #    $src_path = $path;
-    #}
-    #print "Now save a copy of the Maker option files ...\n";
-    #my @ctl_files = File::Find::Rule->file()
-    #                      ->name('*.ctl')
-    #                      ->in($src_path);
-    #foreach my $file (@ctl_files) {
-    #    if (-f "$outfolder/$file") {
-    #        print "$file already exists in $outfolder. We will skip it.\n";
-    #    }
-    #    else {
-    #        copy("$src_path/$file", "$outfolder/$file") or warn "Copy failed: $! $outfolder/$file\n";
-    #    }
-    #}
+    print "Now save a copy of the Maker option files ...\n";
+
+    my @ctl_files = File::Find::Rule->file()->name('*.ctl')->in($ctl_folder);
+
+    foreach my $file (@ctl_files) {
+        if (-f "$outfolder/$file") {
+            print "$file already exists in $outfolder. We will skip it.\n";
+        }
+        else {
+            copy("$ctl_folder/$file", "$outfolder/$file")
+                or warn "Copy failed: $! $outfolder/$file\n";
+        }
+    }
 
     ############################################
     # Now manage to split file by kind of data
     # Split is done on the fly (no data saved in memory)
     ############################################
     print "Now protecting the maker_annotation.gff annotation by making it readable only...\n";
-    #make the annotation safe
+
+    # Make the annotation safe
     my $annotation = "$outfolder/maker_annotation.gff";
     if (-f $annotation) {
         system "chmod 444 $annotation";
@@ -280,7 +227,7 @@ foreach my $makerDir (@inDir) {
         print "ERROR: Did not find the $annotation file !\n";
     }
 
-    #do statistics
+    # Do statistics
     my $annotation_stat = "$outfolder/maker_annotation_stat.txt";
     if (-f $annotation_stat) {
         print "$annotation_stat file already exsits...\n";
@@ -288,8 +235,7 @@ foreach my $makerDir (@inDir) {
     else {
         print "Now performing the statistics of the annotation file $annotation...\n";
         my $full_path = can_run('agat_sp_statistics.pl') or print "Cannot launch statistics. agat_sp_statistics.pl script not available\n";
-        if ( !defined($full_path) ) { # JN: can_run returns full path or undef
-        #if ($full_path) {
+        if (!defined($full_path)) {
             system "agat_sp_statistics.pl --gff $annotation -o $annotation_stat > $outfolder/maker_annotation_parsing.log";
         }
     }
@@ -313,10 +259,10 @@ sub collect_recursive {
 
     my ($name, $path, $suffix) = fileparse($full_path, qr/\.[^.]*/);
 
-    if ( ! -d $full_path ) {
+    if (! -d $full_path) {
 
         ###################
-        # deal with fasta #
+        # Deal with fasta #
         if ($suffix eq ".fasta") {
             my $key = undef;
             my $type = undef;
@@ -343,7 +289,7 @@ sub collect_recursive {
                 }
 
                 my $protein_out_fh = undef;
-                if ( _exists_keys ($file_hds, ($prot_out_file_name)) ) {
+                if (_exists_keys ($file_hds, ($prot_out_file_name))) {
                     $protein_out_fh = $file_hds->{$prot_out_file_name};
                 }
                 else {
@@ -351,7 +297,7 @@ sub collect_recursive {
                     $file_hds->{$prot_out_file_name} = $protein_out_fh;
                 }
 
-                #print
+                # Print
                 open(my $fh, '<:encoding(UTF-8)', $full_path) or die "Could not open file '$full_path' $!";
                 while (<$fh>) {
                     print $protein_out_fh $_;
@@ -361,7 +307,7 @@ sub collect_recursive {
         }
 
         ################
-        #deal with gff #
+        # Deal with gff #
         if ($suffix eq ".gff") {
             system "awk -F '    ' 'NF==9 {print \$0 >> \"$out/$maker_mix_prefix.gff\"}' $full_path";
             system "awk '{if(\$2 ~ /[a-zA-Z]+/) if(\$2==\"maker\") { print \$0 >> \"$out/$maker_annotation_prefix.gff\" } else { OFS=\"\\t\"; gsub(/:/, \"_\" ,\$2); print \$0 >> \"$out/\"\$2\".gff\" } }' $full_path";
@@ -369,15 +315,18 @@ sub collect_recursive {
 
         return;
     }
+
     if ($name =~ /^theVoid/) { # In the void there is sub results already stored in the up folder. No need to go such deep otherwise we will have duplicates.
         return;
     }
+
     opendir my $dh, $full_path or die;
     while (my $sub = readdir $dh) {
         next if $sub eq '.' or $sub eq '..';
         collect_recursive($file_hds, "$full_path/$sub", $out, $genomeName);
     }
     close $dh;
+
     return;
 }
 
@@ -405,7 +354,7 @@ The script will look over the datastore folder and subfolders to gather all outp
 
 =head1 SYNOPSIS
 
-    gaas_maker_merge_outputs_from_datastore.pl
+    gaas_maker_merge_outputs_from_datastore.pl [options]
     gaas_maker_merge_outputs_from_datastore.pl --help
 
 =head1 OPTIONS
@@ -420,6 +369,10 @@ The path to the input directory. If none given, we assume that the script is lau
 =item B<-o> or B<--output>
 
 The name of the output directory. By default the name is annotations
+
+=item B<-c> or B<--ctlfolder>
+
+The name of the directory with maker control files (.ctl). Default is current working directory.
 
 =item B<-h> or B<--help>
 
