@@ -72,16 +72,21 @@ else {
 }
 
 # MESSAGES
-my $nbDir = $#inDir+1;
+my $nbDir = scalar @inDir;
 if ($nbDir == 0) {
     die "There seems to be no maker output directory here, exiting...\n";
 }
-print "We found $nbDir maker output directorie(s):\n";
-foreach my $makerDir (@inDir) {
-    print "\t+$makerDir\n";
+elsif ($nbDir == 1) {
+    print "We found maker output directory: $inDir[0]\n";
+}
+else {
+    print "We found $nbDir maker output directories:\n";
+    foreach my $makerDir (@inDir) {
+        print "\t+$makerDir\n";
+    }
 }
 
-#CONSTANT
+# CONSTANT
 my $maker_annotation_prefix = "maker_annotation";
 my $maker_mix_prefix = "maker_mix";
 
