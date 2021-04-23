@@ -75,9 +75,6 @@ else {
     }
 }
 
-print Dumper(@inDir);warn "\n  inDir array (hit return to continue)\n" and getc();
-
-
 # MESSAGES
 my $nbDir = scalar @inDir;
 if ($nbDir == 0) {
@@ -92,6 +89,8 @@ else {
         print "\t+$makerDir\n";
     }
 }
+
+print Dumper(@inDir);warn "\n  inDir array (hit return to continue)\n" and getc();
 
 # CONSTANT
 my $maker_annotation_prefix = "maker_annotation";
