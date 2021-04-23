@@ -28,43 +28,22 @@ GetOptions(
     "i=s"            => \$in,
     "output|out|o=s" => \$output,
     "ctlfolder|c=s"  => \$ctl_folder
-  )
-  or pod2usage(
-    {
-        -message => 'Failed to parse command line',
-        -verbose => 1,
-        -exitval => 1
+    )
+    or pod2usage({
+    -message => 'Failed to parse command line',
+    -verbose => 1,
+    -exitval => 1
     }
-  );
+);
 
 # Print Help and exit
 if ($help) {
-    pod2usage(
-        {
-            -verbose => 99,
-            -exitval => 0,
-            -message => "$header\n"
-        }
-    );
+    pod2usage({
+        -verbose => 99,
+        -exitval => 0,
+        -message => "$header\n"
+    });
 }
-
-# if ( !GetOptions(
-#     "help|h" => \$help,
-#     "i=s" => \$in,
-#     "output|out|o=s" => \$output))
-# 
-# {
-#     pod2usage( { -message => 'Failed to parse command line',
-#                  -verbose => 1,
-#                  -exitval => 1 } );
-# }
-# 
-# # Print Help and exit
-# if ($help) {
-#     pod2usage( { -verbose => 99,
-#                  -exitval => 0,
-#                  -message => "$header\n" } );
-# }
 
 #######################
 ### MANAGE OPTIONS ####
