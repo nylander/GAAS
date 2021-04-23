@@ -16,7 +16,7 @@ use IO::File;
 use File::Basename;
 use IPC::Cmd qw[can_run run];
 use GAAS::GAAS;
-#use Data::Dumper; # JN: for debug
+use Data::Dumper; # JN: for debug
 use File::Find::Rule; # JN: try for finding dirs
 
 my $header     = get_gaas_header();
