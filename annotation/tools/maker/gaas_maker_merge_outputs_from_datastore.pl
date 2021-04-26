@@ -18,6 +18,8 @@ use IPC::Cmd qw[can_run run];
 use GAAS::GAAS;
 use Data::Dumper; # JN: debug
 
+my $DEBUG = 1; # JN: debug
+
 my $header     = get_gaas_header();
 my $output     = undef;
 my $in         = undef;
@@ -140,6 +142,11 @@ foreach my $makerDir (@inDir){
         mkdir $outfolder;
     }
 
+
+if ($DEBUG) {
+    # BEGIN DEBUG
+}
+else {
 # --------------- GATHERING gff and fasta ----------------------
     if ((grep -f, glob "$outfolder/*.fasta") or (grep -f, glob "$outfolder/*.gff")) {
         print "Output fasta/gff file already exists. We skip the gathering step.\n";
@@ -166,6 +173,7 @@ foreach my $makerDir (@inDir){
             }
         }
     }
+} # end DEBUG
 
     #-------------------------------------------------Save maker option files-------------------------------------------------
     print "Now save a copy of the Maker option files ...\n";
