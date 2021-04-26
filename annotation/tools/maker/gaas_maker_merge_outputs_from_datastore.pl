@@ -177,7 +177,9 @@ else {
 
     #-------------------------------------------------Save maker option files-------------------------------------------------
     print "Now save a copy of the Maker option files ...\n";
-    my @ctl_files = grep { -f && /\.ctl$/ } readdir $ctlfolder; # JN: All .ctl files
+    opendir(CTLDIR, $ctlfolder) or die "couldn't open $cwdir: $!\n";
+    my @ctl_files = grep { -f && /\.ctl$/ } readdir CTLDIR; # JN: All .ctl files
+    closedir CTLDIR;
     print Dumper(@ctl_files);warn "\n ctl files (hit return to continue)\n" and getc();
     print Dumper($outfolder);warn "\n outfolder (hit return to continue)\n" and getc();
     print Dumper($ctlfolder);warn "\n ctlfolder (hit return to continue)\n" and getc();
