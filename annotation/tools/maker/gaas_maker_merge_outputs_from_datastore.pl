@@ -92,7 +92,9 @@ else {
     }
 }
 
-print Dumper(@inDir);warn "\n  inDir array (hit return to continue)\n" and getc();
+if ($DEBUG) {
+    print Dumper(@inDir);warn "\n  inDir array (hit return to continue)\n" and getc();
+}
 
 # CONSTANT
 my $maker_annotation_prefix = "maker_annotation";
@@ -180,9 +182,11 @@ else {
     opendir(CTLDIR, $ctlfolder) or die "couldn't open $cwdir: $!\n";
     my @ctl_files = grep { -f && /\.ctl$/ } readdir CTLDIR; # JN: All .ctl files
     closedir CTLDIR;
-    print Dumper(@ctl_files);warn "\n ctl files (hit return to continue)\n" and getc();
-    print Dumper($outfolder);warn "\n outfolder (hit return to continue)\n" and getc();
-    print Dumper($ctlfolder);warn "\n ctlfolder (hit return to continue)\n" and getc();
+    if ($DEBUG) {
+        print Dumper(@ctl_files);warn "\n ctl files (hit return to continue)\n" and getc();
+        print Dumper($outfolder);warn "\n outfolder (hit return to continue)\n" and getc();
+        print Dumper($ctlfolder);warn "\n ctlfolder (hit return to continue)\n" and getc();
+    }
 
     foreach my $file (@ctl_files) {
         if (-f "$outfolder/$file") {
@@ -214,6 +218,10 @@ else {
     #    }
     #}
 
+    if ($DEBUG) {
+        # Skip the next code blocks
+    }
+    else {
 
     ######################################################
     # Now manage to split file by kind of data           #
@@ -242,6 +250,7 @@ else {
         if ($full_path) {
             system "agat_sp_statistics.pl --gff $annotation -o $annotation_stat > $outfolder/maker_annotation_parsing.log";
         }
+    }
     }
     print "All done!\n";
 }
