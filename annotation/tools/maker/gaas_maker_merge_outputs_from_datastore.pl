@@ -16,16 +16,14 @@ use IO::File;
 use File::Basename;
 use IPC::Cmd qw[can_run run];
 use GAAS::GAAS;
-use Data::Dumper; # JN: debug
 
-my $DEBUG = 1; # JN: debug
-
-my $header     = get_gaas_header();
-my $output     = undef;
-my $in         = undef;
-my $help       = 0;
-my $cwdir      = getcwd;
-my $ctlfolder  = getcwd;
+# Globals
+my $header    = get_gaas_header();
+my $output    = undef;
+my $in        = undef;
+my $help      = 0;
+my $cwdir     = getcwd;
+my $ctlfolder = getcwd;
 my @inDir;
 
 GetOptions(
@@ -65,9 +63,9 @@ if ($in) {
 }
 else {
     # Find the datastore index
-    opendir(DIR, $cwdir) or die "couldn't open $cwdir: $!\n";
-    my @dirList = readdir DIR;
-    closedir DIR;
+    opendir(my $DIR, $cwdir) or die "couldn't open $cwdir: $!\n";
+    my @dirList = readdir $DIR;
+    closedir $DIR;
 
     foreach my $dir (@dirList) {
         next if ($dir =~ /.*processed.*/); # JN: Assuming processed folders have this string
@@ -90,10 +88,6 @@ else {
     foreach my $makerDir (@inDir) {
         print "\t+$makerDir\n";
     }
-}
-
-if ($DEBUG) {
-    print Dumper(@inDir);warn "\n  inDir array (hit return to continue)\n" and getc();
 }
 
 # CONSTANT
@@ -122,8 +116,8 @@ foreach my $makerDir (@inDir){
     else {
         die "Could not find datastore index ($datastore), exiting...\n";
     }
-# --------------- check output folder ----------------------
 
+# --------------- check output folder ----------------------
     my $outfolder = undef;
     if ($output) {
         if ($nbDir == 1) {
@@ -144,11 +138,6 @@ foreach my $makerDir (@inDir){
         mkdir $outfolder;
     }
 
-
-if ($DEBUG) {
-    # BEGIN DEBUG
-}
-else {
 # --------------- GATHERING gff and fasta ----------------------
     if ((grep -f, glob "$outfolder/*.fasta") or (grep -f, glob "$outfolder/*.gff")) {
         print "Output fasta/gff file already exists. We skip the gathering step.\n";
@@ -161,10 +150,11 @@ else {
         foreach my $key (keys %file_hds) {
             close $file_hds{$key};
         }
+
         # Add ##gff-version 3 header to all gff files
-        opendir(DIR, $outfolder);
-        my @gff_files = grep(/\.gff$/, readdir(DIR));
-        closedir(DIR);
+        opendir(my $DIR, $outfolder);
+        my @gff_files = grep(/\.gff$/, readdir($DIR));
+        closedir($DIR);
 
         foreach my $gff_file (@gff_files) {
             if ($^O =~ "linux") {
@@ -175,53 +165,22 @@ else {
             }
         }
     }
-} # end DEBUG
 
     #-------------------------------------------------Save maker option files-------------------------------------------------
     print "Now save a copy of the Maker option files ...\n";
-    opendir(CTLDIR, $ctlfolder) or die "couldn't open $cwdir: $!\n";
-    my @ctl_files = grep { -f && /\.ctl$/ } readdir CTLDIR; # JN: All .ctl files
-    closedir CTLDIR;
-    if ($DEBUG) {
-        print Dumper(@ctl_files);warn "\n ctl files (hit return to continue)\n" and getc();
-        print Dumper($outfolder);warn "\n outfolder (hit return to continue)\n" and getc();
-        print Dumper($ctlfolder);warn "\n ctlfolder (hit return to continue)\n" and getc();
-    }
+    opendir(my $CTLDIR, $ctlfolder) or die "couldn't open $cwdir: $!\n";
+    my @ctl_files = grep { -f && /\.ctl$/ } readdir $CTLDIR; # JN: All .ctl files
+    closedir $CTLDIR;
 
     foreach my $file (@ctl_files) {
         if (-f "$outfolder/$file") {
             print "$file already exists in $outfolder. We will skip it.\n";
         }
         else {
-            print STDERR "JN: DEBUG Trying to copy $ctlfolder/$file ----> $outfolder/$file\n";
             copy("$ctlfolder/$file", "$outfolder/$file")
                 or warn "Copy failed: $! $outfolder/$file\n";
         }
     }
-
-    #if (-f "$outfolder/maker_opts.ctl") {
-    #    print "A copy of the Maker files already exists in $outfolder/maker_opts.ctl.  We skip it.\n";
-    #}
-    #else {
-    #    if (! $in) {
-    #        copy("maker_opts.ctl","$outfolder/maker_opts.ctl") or print "Copy failed: $! $outfolder/maker_opts.ctl\n";
-    #        copy("maker_exe.ctl","$outfolder/maker_exe.ctl") or print "Copy failed: $! $outfolder/maker_exe.ctl\n";
-    #        copy("maker_evm.ctl","$outfolder/maker_evm.ctl") or print "Copy failed: $! $outfolder/maker_evm.ctl\n";
-    #        copy("maker_bopts.ctl","$outfolder/maker_bopts.ctl") or print "Copy failed: $! $outfolder/maker_bopts.ctl\n";
-    #    }
-    #    else {
-    #        my ($name,$path,$suffix) = fileparse($in);
-    #        copy("$path/maker_opts.ctl","$outfolder/maker_opts.ctl") or print  "Copy failed: $! $outfolder/maker_opts.ctl\n";
-    #        copy("$path/maker_exe.ctl","$outfolder/maker_exe.ctl") or print "Copy failed: $! $outfolder/maker_exe.ctl\n";
-    #        copy("$path/maker_evm.ctl","$outfolder/maker_evm.ctl") or print "Copy failed: $! $outfolder/maker_evm.ctl\n";
-    #        copy("$path/maker_bopts.ctl","$outfolder/maker_bopts.ctl") or print "Copy failed: $! $outfolder/maker_bopts.ctl\n";
-    #    }
-    #}
-
-    if ($DEBUG) {
-        # Skip the next code blocks
-    }
-    else {
 
     ######################################################
     # Now manage to split file by kind of data           #
@@ -238,7 +197,6 @@ else {
         print "ERROR: Do not find the $annotation file !\n";
     }
 
-
     # Do statistics
     my $annotation_stat="$outfolder/maker_annotation_stat.txt";
     if (-f $annotation_stat) {
@@ -250,7 +208,6 @@ else {
         if ($full_path) {
             system "agat_sp_statistics.pl --gff $annotation -o $annotation_stat > $outfolder/maker_annotation_parsing.log";
         }
-    }
     }
     print "All done!\n";
 }
@@ -311,11 +268,11 @@ sub collect_recursive {
                 }
 
                 # Print
-                open(my $fh, '<:encoding(UTF-8)', $full_path) or die "Could not open file '$full_path' $!";
-                while (<$fh>) {
+                open(my $FH, '<:encoding(UTF-8)', $full_path) or die "Could not open file '$full_path' $!";
+                while (<$FH>) {
                     print $protein_out_fh $_;
                 }
-                close $fh;
+                close $FH;
             }
         }
 
@@ -333,12 +290,12 @@ sub collect_recursive {
         return;
     }
 
-    opendir my $dh, $full_path or die;
-    while (my $sub = readdir $dh) {
+    opendir(my $DH, $full_path) or die "Could not open file handle $full_path for reading: $! \n";
+    while (my $sub = readdir $DH) {
         next if $sub eq '.' or $sub eq '..';
         collect_recursive($file_hds, "$full_path/$sub", $out, $genomeName);
     }
-    close $dh;
+    close $DH;
 
     return;
 }
@@ -368,8 +325,7 @@ The script will look over the datastore folder and subfolders to gather all outp
 
 =head1 SYNOPSIS
 
-    gaas_maker_merge_outputs_from_datastore.pl
-    gaas_maker_merge_outputs_from_datastore.pl --help
+    gaas_maker_merge_outputs_from_datastore.pl [OPTIONS]
 
 =head1 OPTIONS
 
@@ -377,12 +333,18 @@ The script will look over the datastore folder and subfolders to gather all outp
 
 =item B<-i>
 
-The path to the input directory. If none given, we assume that the script is launched where Maker was run. So, in that case the script will look for the folder
-*.maker.output.
+The path to the input directory. If none given, we assume that the script is
+launched where Maker was run. So, in that case the script will look for the
+folder '*.maker.output'.
+
+=item B<-c> or B<--ctlfolder>
+
+The name of the directory with maker control files ('*.ctl'). Default is
+current working directory.
 
 =item B<-o> or B<--output>
 
-The name of the output directory. By default the name is annotations
+The name of the output directory. By default the name is 'annotations'.
 
 =item B<-h> or B<--help>
 
