@@ -169,6 +169,7 @@ provisioner "remote-exec" {
       "PATH=$PATH:/snap/bin",
       "sudo apt update",
       "sudo DEBIAN_FRONTEND=noninteractive apt dist-upgrade -y",
+      "sudo DEBIAN_FRONTEND=noninteractive apt install -y ruby",
       "bash $HOME/setup/add-sshkeys.sh",
       "bash $HOME/setup/fix_repo_permissions.sh",
       "bash $HOME/setup/mount_volume.sh ${var.project_suffix}",
