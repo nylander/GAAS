@@ -71,7 +71,7 @@ else {
 
     foreach my $dir (@dirList) {
         next if ($dir =~ /.*processed.*/); # JN: Assuming processed folders have this string
-        if ($_ =~ /^.*\.maker\.output/) {  # JN: Allowing folders not ending in maker.output
+        if ($dir =~ /^.*\.maker\.output/) {  # JN: Allowing folders not ending in maker.output
             push(@inDir, $dir);
         }
     }
