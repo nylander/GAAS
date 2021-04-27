@@ -98,7 +98,7 @@ Knowledge: collection of cheat Sheets / overviews / summaries
  * [http://ivory.idyll.org/blog/2016-sourmash-sbt.html] (http://ivory.idyll.org/blog/2016-sourmash-sbt.html)
 
 ### Annotation tools
- * #### [Genome (Protein coding genes)](annotation_tools.md)
+ * #### [Genome (Protein coding genes)](annotation_tools_genome.md)
  * #### [Mitochondrion](annotation_tools_mito.md)
  * #### [Chloroplast](annotation_tools_chloro.md)
  * #### [Plasmid](annotation_tools_plasmid.md)
