@@ -99,7 +99,7 @@ Knowledge: collection of cheat Sheets / overviews / summaries
 
 ### Annotation tools
  * #### [Genome (Protein coding genes)](annotation_tools_genome.md)
- * #### [Mitochondrion](annotation_tools_mito.md)
+ * #### [Mitochondrion](annotation_tools_mitome.md)
  * #### [Chloroplast](annotation_tools_chloro.md)
  * #### [Plasmid](annotation_tools_plasmid.md)
 
