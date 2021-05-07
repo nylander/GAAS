@@ -100,7 +100,7 @@ Knowledge: collection of cheat Sheets / overviews / summaries
 ### Annotation tools
  * #### [Genome (Protein coding genes)](annotation_tools_genome.md)
  * #### [Mitochondrion](annotation_tools_mitome.md)
- * #### [Chloroplast](annotation_tools_chloro.md)
+ * #### [Chloroplast](annotation_tools_plastome.md)
  * #### [Plasmid](annotation_tools_plasmidome.md)
 
 ### [Overview of RNA-seq library types](rnaseq_library_types.md)
