@@ -36,7 +36,7 @@ sub get_gaas_header{
 
   my $header = qq{
  ------------------------------------------------------------------------------
-|   Genome Assembly Annotation Service (AGAT) - Version: $VERSION              |
+|   Genome Assembly Annotation Service (GAAS) - Version: $VERSION              |
 |   https://github.com/NBISweden/AGAT                                          |
 |   National Bioinformatics Infrastructure Sweden (NBIS) - www.nbis.se         |
  ------------------------------------------------------------------------------

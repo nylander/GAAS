@@ -20,14 +20,14 @@ to perform the conversion. We will try to see in this review the main difference
 
 ## Test summary
 
-tool | respect GTF format | UTR conserved | attribute conserved | Comment
--- | -- | -- | -- | -- |
-[AGAT](https://github.com/NBISweden/AGAT) | Yes - All (default GTF3) | Yes it converts UTR terms to the appropriate ones according to the GTF version selected.| Yes - All | Can take any GTF GFF as input. The only one keeping comments at the beginning of the file.
-[gffread](https://github.com/gpertea/gffread) | No - They say GTF2.2 but it is not: transcript should be removed; start_codon and stop_codon should stay. | No | No  | 
-[GenomeTools](https://github.com/genometools/genometools) | No - only CDS and exon kept | No | No | gene_id and transcript_id get new identifiers.
-[ea-utils](https://github.com/ExpressionAnalysis/ea-utils) |  No - only CDS and exon kept | No | No |
-[TransDecoder](https://github.com/TransDecoder/TransDecoder) |  No - start and stop codon removed | No | Name only | Needs the fasta file for the conversion. 
-[Kent utils](http://hgdownload.cse.ucsc.edu/admin/exe/) | No - gene is missing or transcript is superfluous to be compliant to one of the GTF format | No | No | Create a new attribute 'gene_name'.
+tool | respect GTF format | UTR conserved | attribute conserved | Stop codon removed from CDS | Comment
+-- | -- | -- | -- | -- | -- |
+[AGAT](https://github.com/NBISweden/AGAT) | Yes - All (default GTF3) | Yes it converts UTR terms to the appropriate ones according to the GTF version selected.| Yes - All | Yes | Can take any GTF GFF as input. The only one keeping comments at the beginning of the file.
+[gffread](https://github.com/gpertea/gffread) | No - They say GTF2.2 but it is not: transcript should be removed; start_codon and stop_codon should stay. | No | No  |  No | 
+[GenomeTools](https://github.com/genometools/genometools) | No - only CDS and exon kept | No | No |  No | gene_id and transcript_id get new identifiers.
+[ea-utils](https://github.com/ExpressionAnalysis/ea-utils) |  No - only CDS and exon kept | No | No | No | 
+[TransDecoder](https://github.com/TransDecoder/TransDecoder) |  No - start and stop codon removed | No | Name only | No | Needs the fasta file for the conversion. Location of the last CDS modified and incorrect
+[Kent utils](http://hgdownload.cse.ucsc.edu/admin/exe/) | No - gene is missing or transcript is superfluous to be compliant to one of the GTF format | No | No |  Yes | Create a new attribute 'gene_name'. 
 
 ## The GFF file to convert
 
@@ -57,7 +57,7 @@ scaffold625	maker	three_prime_UTR	343034	343277	.	+	.	ID=CLUHART00000008717:thre
 
 ### AGAT
 
-AGAT v0.4.0  
+AGAT v0.5.1  
 
 `agat_convert_sp_gff2gtf.pl --gff 1_test.gff -o 1_test_agat.gtf`
 
@@ -73,7 +73,7 @@ scaffold625	maker	exon	341964	343277	.	+	.	gene_id "CLUHARG00000005458"; transcr
 scaffold625	maker	CDS	337915	337971	.	+	0	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; ID "CLUHART00000008717:cds"; Parent "CLUHART00000008717";
 scaffold625	maker	CDS	340733	340841	.	+	0	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; ID "CLUHART00000008717:cds"; Parent "CLUHART00000008717";
 scaffold625	maker	CDS	341518	341628	.	+	2	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; ID "CLUHART00000008717:cds"; Parent "CLUHART00000008717";
-scaffold625	maker	CDS	341964	343033	.	+	2	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; ID "CLUHART00000008717:cds"; Parent "CLUHART00000008717";
+scaffold625	maker	CDS	341964	343030	.	+	2	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; ID "CLUHART00000008717:cds"; Parent "CLUHART00000008717";
 scaffold625	maker	five_prime_utr	337818	337914	.	+	.	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; ID "CLUHART00000008717:five_prime_utr"; Parent "CLUHART00000008717";
 scaffold625	maker	start_codon	337916	337918	.	+	.	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; ID "CLUHART00000008717:start"; Parent "CLUHART00000008717";
 scaffold625	maker	stop_codon	343031	343033	.	+	.	gene_id "CLUHARG00000005458"; transcript_id "CLUHART00000008717"; ID "CLUHART00000008717:stop"; Parent "CLUHART00000008717";
