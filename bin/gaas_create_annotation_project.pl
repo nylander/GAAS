@@ -70,6 +70,7 @@ make_dir($project_path, "RNAseq");
 make_dir($project_path, "Genome");
 make_dir($project_path, "Mito");
 make_dir($project_path, "Delivery");
+make_dir($project_path, "code");
 
 ##Ab initio
 make_dir($project_path, "ab-initio");
