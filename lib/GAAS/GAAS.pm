@@ -8,7 +8,7 @@ use Exporter;
 
 use GAAS::Utilities;
 
-our $VERSION     = "v1.1.0";
+our $VERSION     = "v1.2.1";
 our @ISA         = qw(Exporter);
 our @EXPORT      = qw(get_gaas_header);
 sub import {
