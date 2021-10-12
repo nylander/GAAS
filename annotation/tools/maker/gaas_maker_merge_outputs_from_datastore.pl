@@ -279,7 +279,7 @@ sub collect_recursive {
         #################
         # Deal with gff #
         if ($suffix eq ".gff") {
-            system "awk -F '    ' 'NF==9 {print \$0 >> \"$out/$maker_mix_prefix.gff\"}' $full_path";
+            system "awk -F '\t' 'NF==9{print \$0 >> \"$out/$maker_mix_prefix.gff\"}' $full_path";
             system "awk '{if(\$2 ~ /[a-zA-Z]+/) if(\$2==\"maker\") { print \$0 >> \"$out/$maker_annotation_prefix.gff\" } else { OFS=\"\\t\"; gsub(/:/, \"_\" ,\$2); print \$0 >> \"$out/\"\$2\".gff\" } }' $full_path";
         }
 
