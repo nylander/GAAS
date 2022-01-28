@@ -150,21 +150,21 @@ List of genome annotation tools
 2017 | funannotate | doi.org/10.5281/zenodo.2576527 | Pipeline | Evidence Modeler + Augustus + GeneMark-ES/ET + evidence + PASA | built specifically for fungi, but will also work with higher eukaryotes | | homology-based gene prediction program |
 2017 | GAWN | unpublished - https://github.com/enormandeau/gawn | pipeline evidence-based only | GMAP to create gene and cufflinks and TransDecoder to add UTR | eukaryote | | |	
 2018 | FunGAP | Min B, Grigoriev IV, Choi IG. FunGAP: Fungal Genome Annotation Pipeline using evidence-based gene model evaluation. Bioinformatics (Oxford, England). 2017;33(18):2936–7. | pipeline | | |  | |
-2018 | BRAKER2 | | | Hybrid | eukaryote |  | |	
+2018 | BRAKER2 | Brůna, T., Hoff, K. J., Lomsadze, A., Stanke, M., & Borodovsky, M. (2021). BRAKER2: automatic eukaryotic genome annotation with GeneMark-EP+ and AUGUSTUS supported by a protein database. NAR Genomics and Bioinformatics, 3(1), 1–11. https://doi.org/10.1093/nargab/lqaa108 | | Hybrid | eukaryote |  | |	
 2018 | G-OnRamp | | Ab-initio Web-based | Augustus,GlimmerHMM,SNAP | |  | |
 2018 | VIRULIGN | VIRULIGN: fast codon-correct alignment and annotation of viral genomes. Pieter J K Libin,  Koen Deforche,  Ana B Abecasis,  Kristof Theys. Bioinformatics, Volume 35, Issue 10, 15 May 2019, Pages 1763–1765, https://doi.org/10.1093/bioinformatics/bty851 | Similarity | | Virus | | | 
 2019 | GAAP | Jinhwa Kong, Sun Huh, Jung-Im Won, Jeehee Yoon, Baeksop Kim, and Kiyong Kim. GAAP: A Genome Assembly + Annotation Pipeline. BioMed Research International, Volume 2019, Article ID 4767354, 12 pages | pipeline| Augustus,EVM,MAKER,PASA | |  | Genome Assembly + Annotation Pipeline |
 2019 | VAPiD (Viral Annotation Pipeline and iDentification) | Ryan C. Shean, Negar Makhsous, Graham D. Stoddard, Michelle J. Lin & Alexander L. Greninger. VAPiD: a lightweight cross-platform viral annotation pipeline and identification tool to facilitate virus genome submissions to NCBI GenBank. BMC Bioinformaticsvolume 20, Article number: 48 (2019) | pipeline | | Virus | | |	
 2019 | Vgas (Viral Genome Annotation System) | Kai-Yue Zhang, Yi-Zhou Gao, Meng-Ze Du, Shuo Liu, Chuan Dong, and Feng-Biao Guo. Vgas: A Viral Genome Annotation System. Front Microbiol. 2019; 10: 184. | abinitio + similarity-based | ZCURVE_V + BLASTp | Virus | | In their paper they say: When combining Vgas with GeneMarkS and Prodigal, better prediction results could be obtained than with each of the three individual programs. | |	
 2020 | VADR | VADR: validation and annotation of virus sequence submissions to GenBank. Alejandro A. Schäffer, Eneida L. Hatcher, Linda Yankie, Lara Shonkwiler, J. Rodney Brister, Ilene Karsch-Mizrachi & Eric P. Nawrocki. BMC Bioinformatics 21, 211 (2020). https://doi.org/10.1186/s12859-020-3537-3 | HMM + similarity | | Virus | | | |
+2021 | MOSGA | Martin, R., Hackl, T., Hattab, G., Fischer, M. G., & Heider, D. (2021). MOSGA: Modular Open-Source Genome Annotator. Bioinformatics, 36(22–23), 5514–5515. https://doi.org/10.1093/bioinformatics/btaa1003 | _Ab initio_, Hybrid, | Pipline Framework | Eukaryote | | Web interface, RNA-Seq/Proteins/Orthology based prediction possible + validation | GFF3 + Sequin
+2021 | TSEBRA | Gabriel, L., Hoff, K. J., Brůna, T., Borodovsky, M., & Stanke, M. (2021). TSEBRA: transcript selector for BRAKER. BMC Bioinformatics, 22(1), 566. https://doi.org/10.1186/s12859-021-04482-0 | | Hybrid | Eukaryote | | RNA-Seq + Proteins | GFF3
 | year	| Tool name | Publication | Type	| Method | Organism | Nb citation (pubmed 2016) | Comments | Output Format |
 
 _____________________
 __Legend:__  
 Hybrid = ab initio and evidence based = HMM-based gene prediction tool using extrinsic evidence  
 Comparative = genome sequence comparison  
-  
-
 
 CHMM: class HMM
 CRF: conditional random field; HMM  
@@ -197,7 +197,7 @@ __Interesting publications__
 [Joel Armstrong, Ian T. Fiddes, Mark Diekhans and Benedict Paten. Whole-Genome Alignment and Comparative Annotation.Annu Rev Anim Biosci. 2019 Feb 15; 7: 41–64.](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6450745/)  
 Alice Carolyn McHardy Andreas Kloetgen. Finding Genes in Genome Sequence. Bioinformatics pp 271-291  
 [Bączkowski, K., Mackiewicz, K., Kowalczuk, M., Banaszak, J. and Cebrat, S., “Od sekwencji do funkcji– poszukiwanie genów i ich adnotacje,” Biotechnologia 3(70), 22–44 (2005)](http://www.pfb.info.pl/files/kwartalnik/3_2005/Baczkowski-Mackiewicz.pdf)  
-
+[Pirovano, W., Boetzer, M., Derks, M. F. L., & Smit, S. (2017). NCBI-compliant genome submissions: Tips and tricks to save time and money. Briefings in Bioinformatics, 18(2), 179–182. https://doi.org/10.1093/bib/bbv104](https://academic.oup.com/bib/article/18/2/179/2909878)
 
 __Interesting books__  
 Principles of Gene Manipulation and Genomics. De Sandy B. Primrose, Richard Twyman  
